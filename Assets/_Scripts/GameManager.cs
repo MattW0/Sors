@@ -1,0 +1,72 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using Mirror;
+
+public class GameManager : NetworkBehaviour
+{
+    TurnManager turnManager;
+    public List<PlayerManager> players = new List<PlayerManager>();
+    public ScriptableCard[] creatureCards;
+    public ScriptableCard[] moneyCards;
+
+    [Header("Game state")]
+    public int turn;
+
+    [Header("Game start settings")]
+    public int initialDeckSize = 10;
+    public int nbCreatures = 3;
+    public int initialHandSize = 4;
+    public int startHealth = 30;
+    public int startScore = 0;
+
+    public void Awake()
+    {
+        creatureCards = Resources.LoadAll<ScriptableCard>("CreatureCards/");
+        moneyCards = Resources.LoadAll<ScriptableCard>("MoneyCards/");
+        // Debug.Log("Found " + creatureCards.Length + "creature cards");
+        // Debug.Log("Found " + moneyCards.Length + "money cards");
+    }
+
+    public void GameSetup()
+    {
+        players.Clear();
+        players.AddRange(FindObjectsOfType<PlayerManager>());
+
+        // Player setup
+        foreach (PlayerManager player in players)
+        {   
+            player.RpcSetUI(startHealth, startScore);
+            SpawnPlayerDeck(player);
+            player.cards.deck.Shuffle();
+        }
+
+        PlayersDrawInitialHands();
+
+        turnManager = TurnManager.instance;
+        turnManager.players = players;
+        turnManager.UpdateTurnState(TurnState.PhaseSelection);
+    }
+
+    private void SpawnPlayerDeck(PlayerManager player){
+        // Coppers
+        for (int i = 0; i < initialDeckSize - nbCreatures; i++){
+            ScriptableCard card = moneyCards[0];
+            player.SpawnCard(card);
+        }
+        // Creatures (special)
+        for (int i = 0; i < nbCreatures; i++){
+            ScriptableCard card = creatureCards[Random.Range(0, creatureCards.Length)];
+            player.SpawnCard(card);
+        }
+    }
+
+    private void PlayersDrawInitialHands(){
+        foreach (PlayerManager player in players) {
+
+            for (int i = 0; i < initialHandSize; i++) {
+                player.DrawCard();
+            }
+        }
+    }
+}

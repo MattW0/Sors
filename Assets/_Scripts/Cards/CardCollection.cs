@@ -1,0 +1,57 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.Security.Cryptography;
+using UnityEngine;
+using Mirror;
+using System;
+
+[Serializable]
+public struct CardInfo
+{
+    public string hash;
+    public string title;
+    public bool isCreature;
+    public int cost;
+    public int attack;
+    public int health;
+    public string goID;
+
+    public CardInfo(ScriptableCard card, string _goID)
+    {
+        this.hash = card.hash;
+        this.title = card.title;
+        this.isCreature = card.isCreature;
+        this.cost = card.cost;
+        this.attack = card.attack;
+        this.health = card.health;
+        this.goID = _goID;
+    }
+}
+
+public class CardCollection : NetworkBehaviour
+{
+    [Header("Player")]
+    public PlayerManager player;
+
+    [Header("CardCollections")]
+    public readonly SyncListCard deck = new SyncListCard(); // Deck used during the match. Contains all cards in the deck. This is where we'll be drawing card froms.
+    public readonly SyncListCard hand = new SyncListCard(); // Cards in player's hand during the match.
+    public readonly SyncListCard graveyard = new SyncListCard(); // Cards in player graveyard.
+}
+
+public class SyncListCard : SyncList<CardInfo> { 
+    public void Shuffle(){
+        RNGCryptoServiceProvider provider = new RNGCryptoServiceProvider ();
+        int n = Count;
+        while (n > 1) {
+            byte[] box = new byte[1];
+            do provider.GetBytes (box);
+            while (!(box[0] < n * (Byte.MaxValue / n)));
+            int k = (box[0] % n);
+            n--;
+            CardInfo temp = this[k];
+            this[k] = this[n];
+            this[n] = temp;
+        }
+    }
+}
