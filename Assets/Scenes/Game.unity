@@ -690,7 +690,9 @@ MonoBehaviour:
   players: []
   creatureCards: []
   moneyCards: []
-  turn: 0
+  turnNb: 0
+  nbCardDraw: 2
+  nbDiscard: 1
   initialDeckSize: 10
   nbCreatures: 3
   initialHandSize: 4
@@ -2143,8 +2145,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
-  players: []
   state: 0
+  chosenPhases: 
   phasePanelPrefab: {fileID: 6245966277038001864, guid: 634e6b2c0192f0f4ca1b37244c505feb, type: 3}
   phasePanel: {fileID: 0}
 --- !u!114 &6319069573471266841

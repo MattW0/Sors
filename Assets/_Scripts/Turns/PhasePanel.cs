@@ -1,46 +1,67 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using Mirror;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class PhasePanel : NetworkBehaviour
 {
-    // PhasePanel instance;
     private TurnManager turnManager;
-    [SyncVar] public bool isActive = false;
+    public PhaseItemUI[] phaseItems;
+
+    [Header("UI")]
+    public static int maxActive = 2;
+    private int nbActive;
+    public bool disableSelection = false;
+    public Button confirm;
     
-
     private void Awake() {
-        // instance = this;
         gameObject.transform.SetParent(GameObject.Find("UI").transform, false);
-        PhasePanelUI.onSelectionConfirmend += PhasesConfirmed;
-
         turnManager = TurnManager.instance;
     }
 
-    [Server]
-    private void PhasesConfirmed() {
-        Debug.Log("Phases confirmed");
-        RpcConfirmButtonPressed();
-    }   
-
-    [Command]
-    private void CmdConfirmButtonPressed() {
-        // turnManager.Ready();
-        RpcConfirmButtonPressed();
+    private void Start()
+    {
+        nbActive = 0;
+        phaseItems = GetComponentsInChildren<PhaseItemUI>();
     }
 
-    [ClientRpc]
-    private void RpcConfirmButtonPressed() {
+    public void UpdateActive()
+    {
+        nbActive = 0;
+        foreach (PhaseItemUI phaseItem in phaseItems)
+        {
+            if (phaseItem.isSelected) nbActive++;
+        }
 
-        foreach (var item in gameObject.GetComponent<PhasePanelUI>().selectedItems){
-            string phase = item.GetComponent<PhaseItemUI>().phaseName.text;
-            print(phase);
+        if(nbActive == maxActive) {
+            disableSelection = true;
+            confirm.interactable = true;
+        } else {
+            disableSelection = false;
+            confirm.interactable = false;
         }
     }
 
-    private void OnDestroy() {
-        PhasePanelUI.onSelectionConfirmend -= PhasesConfirmed;
+    public void ConfirmButtonPressed(){
+
+        Debug.Log("Phases confirmed");
+        confirm.interactable = false;
+
+        List<Phase> selectedItems = new List<Phase>();
+        int i = 0;
+        foreach (PhaseItemUI phaseItem in phaseItems)
+        {
+            if (phaseItem.isSelected){
+                selectedItems.Add((Phase) i); // converting to enum type (defined in TurnManager)
+            }
+            phaseItem.selectionConfirmed = true;
+            i++;
+        }
+
+        NetworkIdentity networkIdentity = NetworkClient.connection.identity;
+        PlayerManager p = networkIdentity.GetComponent<PlayerManager>();
+        p.CmdPhaseSelection(selectedItems);
     }
 }

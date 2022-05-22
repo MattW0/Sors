@@ -13,6 +13,7 @@ public class CardUI : NetworkBehaviour {
     public TMP_Text attack;
     public TMP_Text health;
     public Image image;
+    public Image highlight;
 
 
     [ClientRpc]
@@ -48,4 +49,7 @@ public class CardUI : NetworkBehaviour {
         }
     }
 
+    public void Highlight(bool active){
+        highlight.enabled = active;
+    }
 }

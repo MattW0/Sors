@@ -6,12 +6,12 @@ using UnityEngine.UI;
 
 public class PlayerUI : MonoBehaviour
 {
-    public bool isMine;
+    private TurnManager turnManager;
+    public bool isMine = false;
     public TMP_Text playerName;
     public TMP_Text playerScore;
     public TMP_Text playerHealth;
     public Button readyButton;
-    private TurnManager turnManager;
 
     private void Start() {
         turnManager = TurnManager.instance;

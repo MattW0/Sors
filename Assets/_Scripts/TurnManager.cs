@@ -7,10 +7,11 @@ using Mirror;
 public class TurnManager : NetworkBehaviour
 {
     public static TurnManager instance;
-    public List<PlayerManager> players = new List<PlayerManager>();
+    private GameManager gameManager;
     
     [Header("Turn state")]
     [SyncVar][SerializeField] private TurnState state;
+    public List<Phase> chosenPhases = new List<Phase>();
     public static event Action<TurnState> OnTurnStateChanged;
     private static int turnCount = 0;
     private static int playersReady = 0;
@@ -18,27 +19,28 @@ public class TurnManager : NetworkBehaviour
     [Header("Objects")]
     public GameObject phasePanelPrefab;
     [SerializeField] private GameObject phasePanel;
-    PhasePanelUI phasePanelUI;
 
     void Awake() {
         if (instance == null) instance = this;
     }
 
     void Start() {
-        UpdateTurnState(TurnState.Idle);
+        UpdateTurnState(TurnState.Init);
+
+        gameManager = GameManager.instance;
     }
 
     public void UpdateTurnState(TurnState newState){
         state = newState;
 
         switch(state){
-            case TurnState.Idle:
+            case TurnState.Init:
                 break;
             case TurnState.PhaseSelection:
                 PhaseSelection();
                 break;
             case TurnState.DrawI:
-                Debug.Log("DrawI");
+                DrawI();
                 break;
             case TurnState.Recruit:
                 break;
@@ -48,7 +50,7 @@ public class TurnManager : NetworkBehaviour
                 break;
             case TurnState.DrawII:
                 break;
-            case TurnState.Buy:
+            case TurnState.BuyCard:
                 break;
             case TurnState.Develop:
                 break;
@@ -61,40 +63,86 @@ public class TurnManager : NetworkBehaviour
         OnTurnStateChanged?.Invoke(state);
     }
 
-    public void Ready(){
-        playersReady++;
-        if(playersReady == players.Count){
-            UpdateTurnState(TurnState.DrawI);
-        }
-    }
+    // public void Ready(){
+    //     playersReady++;
+    //     if(playersReady == gameManager.players.Count){
+    //         UpdateTurnState(TurnState.DrawI);
+    //     }
+    // }
 
     private void PhaseSelection() {
         phasePanel = Instantiate(phasePanelPrefab, transform);
         NetworkServer.Spawn(phasePanel, connectionToClient);
 
         playersReady = 0;
-        PhasePanelUI.onSelectionConfirmend += SelectedPhases;
     }
 
-    private void SelectedPhases() {
+    public void PlayerSelectedPhases(List<Phase> phases) {
+        
         playersReady++;
-        print("playersReady: " + playersReady);
-        if (playersReady == players.Count) {
-            UpdateTurnState(TurnState.DrawI);
+        foreach (Phase phase in phases) {
+            if(!chosenPhases.Contains(phase)){
+                chosenPhases.Add(phase);
+            }
         }
+        
+        if (playersReady == gameManager.players.Count) BeginPhases();
+    }
+
+    private void BeginPhases(){
+        
+        NetworkServer.Destroy(phasePanel);
+        playersReady = 0;
+
+        chosenPhases.Sort();
+
+        // Going through phases chosen by players
+        while(chosenPhases.Count > 0){
+            Enum.TryParse(chosenPhases[0].ToString(), out TurnState nextState);
+            chosenPhases.RemoveAt(0);
+            UpdateTurnState(nextState);
+        }
+    }
+
+    private void DrawI() {
+
+        //TODO: Draw and discard
+
+        foreach (PlayerManager player in gameManager.players) {
+            
+            int _nbCardDraw = gameManager.nbCardDraw;
+            if (player.playerChosenPhases.Contains(Phase.DrawI)) _nbCardDraw++;
+
+            for (int i = 0; i < _nbCardDraw; i++) {
+                player.DrawCard();
+            }
+        }
+        
+        foreach (PlayerManager player in gameManager.players) player.DiscardCards(gameManager.nbDiscard);
     }
 }
 
 public enum TurnState
 {
-    Idle,
+    Init,
+    WaitingForReady,
     PhaseSelection,
     DrawI,
     Recruit,
     Attack,
     Combat,
     DrawII,
-    Buy,
+    BuyCard,
     Develop,
     CleanUp
+}
+
+public enum Phase
+{
+    DrawI,
+    Recruit,
+    Attack,
+    DrawII,
+    BuyCard,
+    Develop,
 }

@@ -10,7 +10,7 @@ public class PhaseItemUI : MonoBehaviour
     public Image outline;
     public bool isSelected = false;
     public bool selectionConfirmed = false;
-    public PhasePanelUI phaseUI;
+    public PhasePanel phasePanel;
 
     void Start()
     {
@@ -24,11 +24,11 @@ public class PhaseItemUI : MonoBehaviour
         if (outline.enabled) {
             outline.enabled = false;
             isSelected = false;
-        } else if (!phaseUI.disableSelection) {
+        } else if (!phasePanel.disableSelection) {
             outline.enabled = true;
             isSelected = true;
         }
 
-        phaseUI.UpdateActive();
+        phasePanel.UpdateActive();
     }
 }

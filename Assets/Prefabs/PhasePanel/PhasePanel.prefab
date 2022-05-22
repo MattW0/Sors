@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 6245966277038001719}
   - component: {fileID: 6245966277038001718}
   - component: {fileID: -4427248412985979921}
-  - component: {fileID: 2744088656559447850}
   - component: {fileID: 68640790332384322}
   m_Layer: 5
   m_Name: PhasePanel
@@ -101,22 +100,6 @@ MonoBehaviour:
   visible: 0
   m_AssetId: 634e6b2c0192f0f4ca1b37244c505feb
   hasSpawned: 0
---- !u!114 &2744088656559447850
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6245966277038001864}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3afcee4fa9531e04dba022109222e64d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  phaseItems: []
-  selectedItems: []
-  disableSelection: 0
-  confirm: {fileID: 6245966278208692978}
 --- !u!114 &68640790332384322
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -131,7 +114,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
-  isActive: 0
+  phaseItems: []
+  disableSelection: 0
+  confirm: {fileID: 6245966278208692978}
 --- !u!1 &6245966277802793841
 GameObject:
   m_ObjectHideFlags: 0
@@ -736,8 +721,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 2744088656559447850}
-        m_TargetAssemblyTypeName: PhasePanelUI, Assembly-CSharp
+      - m_Target: {fileID: 68640790332384322}
+        m_TargetAssemblyTypeName: PhasePanel, Assembly-CSharp
         m_MethodName: ConfirmButtonPressed
         m_Mode: 1
         m_Arguments:
@@ -985,7 +970,11 @@ PrefabInstance:
     - target: {fileID: 6513761501727539297, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
       propertyPath: phaseUI
       value: 
-      objectReference: {fileID: 2744088656559447850}
+      objectReference: {fileID: 0}
+    - target: {fileID: 6513761501727539297, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
+      propertyPath: phasePanel
+      value: 
+      objectReference: {fileID: 68640790332384322}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
 --- !u!224 &7480626655787578931 stripped
@@ -1095,7 +1084,11 @@ PrefabInstance:
     - target: {fileID: 6513761501727539297, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
       propertyPath: phaseUI
       value: 
-      objectReference: {fileID: 2744088656559447850}
+      objectReference: {fileID: 0}
+    - target: {fileID: 6513761501727539297, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
+      propertyPath: phasePanel
+      value: 
+      objectReference: {fileID: 68640790332384322}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
 --- !u!224 &7480626654934037336 stripped
@@ -1205,7 +1198,11 @@ PrefabInstance:
     - target: {fileID: 6513761501727539297, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
       propertyPath: phaseUI
       value: 
-      objectReference: {fileID: 2744088656559447850}
+      objectReference: {fileID: 0}
+    - target: {fileID: 6513761501727539297, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
+      propertyPath: phasePanel
+      value: 
+      objectReference: {fileID: 68640790332384322}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
 --- !u!224 &7480626655366537788 stripped
@@ -1315,7 +1312,11 @@ PrefabInstance:
     - target: {fileID: 6513761501727539297, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
       propertyPath: phaseUI
       value: 
-      objectReference: {fileID: 2744088656559447850}
+      objectReference: {fileID: 0}
+    - target: {fileID: 6513761501727539297, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
+      propertyPath: phasePanel
+      value: 
+      objectReference: {fileID: 68640790332384322}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
 --- !u!224 &7480626656618318106 stripped
@@ -1425,7 +1426,11 @@ PrefabInstance:
     - target: {fileID: 6513761501727539297, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
       propertyPath: phaseUI
       value: 
-      objectReference: {fileID: 2744088656559447850}
+      objectReference: {fileID: 0}
+    - target: {fileID: 6513761501727539297, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
+      propertyPath: phasePanel
+      value: 
+      objectReference: {fileID: 68640790332384322}
     - target: {fileID: 6967232406852916863, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: -40
@@ -1539,7 +1544,11 @@ PrefabInstance:
     - target: {fileID: 6513761501727539297, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
       propertyPath: phaseUI
       value: 
-      objectReference: {fileID: 2744088656559447850}
+      objectReference: {fileID: 0}
+    - target: {fileID: 6513761501727539297, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
+      propertyPath: phasePanel
+      value: 
+      objectReference: {fileID: 68640790332384322}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
 --- !u!224 &7480626656847757857 stripped

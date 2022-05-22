@@ -6,28 +6,30 @@ using Mirror;
 public class PlayerManager : NetworkBehaviour
 {
     private bool debug = false;
-    public GameObject cardPrefab;
-    GameManager gameManager;
+    private GameManager gameManager;
     public PlayerManager opponent;
     public CardCollection cards;
     public PlayerUI playerUI;
     public PlayerUI opponentUI;
+    public GameObject cardPrefab;
 
 
     [Header("GameStats")]
-    public int _health;
+
+    [SyncVar, SerializeField] private int _health;
     public int _score;
+    public List<Phase> playerChosenPhases = new List<Phase>() {Phase.DrawI, Phase.DrawII};
 
     [Header("UI")]
     // [SerializeField] private GameObject phaseSelectionPanel;
-    private Transform playerHand;
-    private Transform playerDropZone;
-    private Transform playerDrawPile;
-    private Transform playerDiscardPile;
-    private Transform opponentHand;
-    private Transform opponentDropZone;
-    private Transform opponentDrawPile;
-    private Transform opponentDiscardPile;
+    [SerializeField] private Transform playerHand;
+    [SerializeField] private Transform playerDropZone;
+    [SerializeField] private Transform playerDrawPile;
+    [SerializeField] private Transform playerDiscardPile;
+    [SerializeField] private Transform opponentHand;
+    [SerializeField] private Transform opponentDropZone;
+    [SerializeField] private Transform opponentDrawPile;
+    [SerializeField] private Transform opponentDiscardPile;
 
     #region GameSetup
     public override void OnStartClient()
@@ -55,14 +57,14 @@ public class PlayerManager : NetworkBehaviour
         Debug.Log("Game starting");
         GameObject.Find("NetworkManager").GetComponent<NetworkManagerHUD>().enabled = false;
 
+        // only for debug
         PlayerManager[] players = FindObjectsOfType<PlayerManager>();
-
         if(!debug) opponent = players[0] == this ? players[1] : players[0];
 
         TurnManager.OnTurnStateChanged += RpcTurnChanged;
 
         if (isServer){
-            gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
+            gameManager = GameManager.instance;
             gameManager.GameSetup();
         }
     }
@@ -80,6 +82,7 @@ public class PlayerManager : NetworkBehaviour
             playerUI.playerName.text = name;
             playerUI.playerHealth.text = startHealth.ToString();
             playerUI.playerScore.text = startScore.ToString();
+            playerUI.readyButton.gameObject.SetActive(true);
 
             _health = startHealth;
             _score = startScore;
@@ -91,6 +94,9 @@ public class PlayerManager : NetworkBehaviour
             opponentUI.playerScore.text = startScore.ToString();
         }
     }
+    #endregion GameSetup
+
+    #region Cards
 
     public void SpawnCard(ScriptableCard card)
     {
@@ -105,7 +111,6 @@ public class PlayerManager : NetworkBehaviour
 
         RpcMoveCard(cardObject, "DrawPile");
     }
-    #endregion
 
     public void DrawCard(){
         if (cards.deck.Count == 0){
@@ -120,6 +125,14 @@ public class PlayerManager : NetworkBehaviour
 
         GameObject cardObject = GameObject.Find(card.goID);
         RpcMoveCard(cardObject, "Hand");
+    }
+
+    public void DiscardCards(int nbToDiscard){
+        if (cards.hand.Count == 0) return;
+
+        foreach (CardUI _ui in playerHand.transform.GetComponentsInChildren<CardUI>()){
+            _ui.Highlight(true);
+        }
     }
 
     public void PlayCard(GameObject card){
@@ -151,7 +164,7 @@ public class PlayerManager : NetworkBehaviour
             if (hasAuthority) {
                 card.transform.SetParent(playerHand, false);
                 card.GetComponent<CardUI>().Flip();
-                card.GetComponent<DragDrop>().ChangeDragPermission(true);
+                // card.GetComponent<DragDrop>().ChangeDragPermission(true);
             }
             else card.transform.SetParent(opponentHand, false);
             break;
@@ -165,16 +178,28 @@ public class PlayerManager : NetworkBehaviour
         }
     }
 
-    #region Turn actions
+    #endregion Cards
+
+    #region TurnActions
 
     [ClientRpc]
     private void RpcTurnChanged(TurnState state)
     {
         Debug.Log("Turn changed to " + state);
-        // phaseSelectionPanel.SetActive(state == TurnState.PhaseSelection);
+        
+        // if (state == TurnState.PhaseSelection) playerChosenPhases.Clear();
     }
 
-    #endregion
+    [Command] // workaround to communicate with server
+    public void CmdPhaseSelection(List<Phase> _phases){
+
+        playerChosenPhases[0] = _phases[0];
+        playerChosenPhases[1] = _phases[1];
+
+        TurnManager.instance.PlayerSelectedPhases(_phases);
+    }
+
+    #endregion TurnActions
 
     void OnDestroy() {
         TurnManager.OnTurnStateChanged -= RpcTurnChanged;

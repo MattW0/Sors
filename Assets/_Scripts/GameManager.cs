@@ -5,13 +5,18 @@ using Mirror;
 
 public class GameManager : NetworkBehaviour
 {
-    TurnManager turnManager;
+    public static GameManager instance;
+    private TurnManager turnManager;
     public List<PlayerManager> players = new List<PlayerManager>();
     public ScriptableCard[] creatureCards;
     public ScriptableCard[] moneyCards;
 
     [Header("Game state")]
-    public int turn;
+    public int turnNb = 0;
+
+    [Header("Turn specifics")]
+    public int nbCardDraw = 2;
+    public int nbDiscard = 1;
 
     [Header("Game start settings")]
     public int initialDeckSize = 10;
@@ -22,16 +27,18 @@ public class GameManager : NetworkBehaviour
 
     public void Awake()
     {
+        if (instance == null) instance = this;
+
         creatureCards = Resources.LoadAll<ScriptableCard>("CreatureCards/");
         moneyCards = Resources.LoadAll<ScriptableCard>("MoneyCards/");
-        // Debug.Log("Found " + creatureCards.Length + "creature cards");
-        // Debug.Log("Found " + moneyCards.Length + "money cards");
     }
 
     public void GameSetup()
     {
         players.Clear();
         players.AddRange(FindObjectsOfType<PlayerManager>());
+
+        turnManager = TurnManager.instance;
 
         // Player setup
         foreach (PlayerManager player in players)
@@ -42,9 +49,6 @@ public class GameManager : NetworkBehaviour
         }
 
         PlayersDrawInitialHands();
-
-        turnManager = TurnManager.instance;
-        turnManager.players = players;
         turnManager.UpdateTurnState(TurnState.PhaseSelection);
     }
 
@@ -63,7 +67,6 @@ public class GameManager : NetworkBehaviour
 
     private void PlayersDrawInitialHands(){
         foreach (PlayerManager player in players) {
-
             for (int i = 0; i < initialHandSize; i++) {
                 player.DrawCard();
             }
