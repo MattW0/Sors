@@ -5,6 +5,7 @@ using Mirror;
 
 public class GameManager : NetworkBehaviour
 {
+    public bool debug = false;
     public static GameManager instance;
     private TurnManager turnManager;
     public List<PlayerManager> players = new List<PlayerManager>();

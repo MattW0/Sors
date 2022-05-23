@@ -36,6 +36,8 @@ public class PlayerManager : NetworkBehaviour
     {
         base.OnStartClient();
 
+        if (isServer) debug = GameManager.instance.debug;
+
         cards = GetComponent<CardCollection>();
 
         playerDrawPile = GameObject.Find("PlayerDrawPile").transform.GetChild(0);
@@ -130,7 +132,7 @@ public class PlayerManager : NetworkBehaviour
     public void DiscardCards(int nbToDiscard){
         if (cards.hand.Count == 0) return;
 
-        foreach (CardUI _ui in playerHand.transform.GetComponentsInChildren<CardUI>()){
+        foreach (CardUI _ui in playerHand.GetComponentsInChildren<CardUI>()){
             _ui.Highlight(true);
         }
     }

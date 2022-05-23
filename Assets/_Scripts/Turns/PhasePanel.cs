@@ -45,8 +45,6 @@ public class PhasePanel : NetworkBehaviour
     }
 
     public void ConfirmButtonPressed(){
-
-        Debug.Log("Phases confirmed");
         confirm.interactable = false;
 
         List<Phase> selectedItems = new List<Phase>();

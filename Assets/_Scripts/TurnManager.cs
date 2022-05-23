@@ -42,6 +42,9 @@ public class TurnManager : NetworkBehaviour
             case TurnState.DrawI:
                 DrawI();
                 break;
+            case TurnState.Discard:
+                Discard();
+                break;
             case TurnState.Recruit:
                 break;
             case TurnState.Attack:
@@ -95,13 +98,14 @@ public class TurnManager : NetworkBehaviour
         playersReady = 0;
 
         chosenPhases.Sort();
+        print($"Chosen Phases: {string.Join(", ", chosenPhases)}");
 
         // Going through phases chosen by players
-        while(chosenPhases.Count > 0){
-            Enum.TryParse(chosenPhases[0].ToString(), out TurnState nextState);
-            chosenPhases.RemoveAt(0);
-            UpdateTurnState(nextState);
-        }
+        // while(chosenPhases.Count > 0){
+        Enum.TryParse(chosenPhases[0].ToString(), out TurnState nextState);
+        chosenPhases.RemoveAt(0);
+        UpdateTurnState(nextState);
+        // }
     }
 
     private void DrawI() {
@@ -117,8 +121,12 @@ public class TurnManager : NetworkBehaviour
                 player.DrawCard();
             }
         }
-        
+
         foreach (PlayerManager player in gameManager.players) player.DiscardCards(gameManager.nbDiscard);
+        // UpdateTurnState(TurnState.Discard);
+    }
+
+    private void Discard() {
     }
 }
 
@@ -128,6 +136,7 @@ public enum TurnState
     WaitingForReady,
     PhaseSelection,
     DrawI,
+    Discard,
     Recruit,
     Attack,
     Combat,

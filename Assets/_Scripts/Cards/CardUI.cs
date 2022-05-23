@@ -30,7 +30,6 @@ public class CardUI : NetworkBehaviour {
         } else {
             gameObject.transform.Find("CardFront").GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/Copper");
         }
-
     }
 
     public void Flip()
