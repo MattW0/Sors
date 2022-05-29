@@ -689,16 +689,17 @@ MonoBehaviour:
   syncInterval: 0.1
   debug: 0
   players: []
-  creatureCards: []
-  moneyCards: []
   turnNb: 0
   nbCardDraw: 2
   nbDiscard: 1
   initialDeckSize: 10
-  nbCreatures: 3
+  nbCreatures: 2
   initialHandSize: 4
   startHealth: 30
   startScore: 0
+  startCards: []
+  creatureCards: []
+  moneyCards: []
 --- !u!114 &806438203
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2148,8 +2149,7 @@ MonoBehaviour:
   syncInterval: 0.1
   state: 0
   chosenPhases: 
-  phasePanelPrefab: {fileID: 6245966277038001864, guid: 634e6b2c0192f0f4ca1b37244c505feb, type: 3}
-  phasePanel: {fileID: 0}
+  _phasePanelPrefab: {fileID: 6245966277038001864, guid: 634e6b2c0192f0f4ca1b37244c505feb, type: 3}
 --- !u!114 &6319069573471266841
 MonoBehaviour:
   m_ObjectHideFlags: 0

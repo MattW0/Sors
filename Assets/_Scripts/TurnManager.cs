@@ -18,7 +18,7 @@ public class TurnManager : NetworkBehaviour
 
     [Header("Objects")]
     public GameObject _phasePanelPrefab;
-    [SerializeField] private GameObject phasePanel;
+    private GameObject _phasePanel;
 
     void Awake() {
         if (instance == null) instance = this;
@@ -74,8 +74,8 @@ public class TurnManager : NetworkBehaviour
     // }
 
     private void PhaseSelection() {
-        phasePanel = Instantiate(_phasePanelPrefab, transform);
-        NetworkServer.Spawn(phasePanel, connectionToClient);
+        _phasePanel = Instantiate(_phasePanelPrefab, transform);
+        NetworkServer.Spawn(_phasePanel, connectionToClient);
 
         playersReady = 0;
     }
@@ -94,7 +94,7 @@ public class TurnManager : NetworkBehaviour
 
     private void BeginPhases(){
         
-        NetworkServer.Destroy(phasePanel);
+        NetworkServer.Destroy(_phasePanel);
         playersReady = 0;
 
         chosenPhases.Sort();

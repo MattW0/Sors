@@ -19,12 +19,13 @@ public class GameManager : NetworkBehaviour
 
     [Header("Game start settings")]
     public int initialDeckSize = 10;
-    public int nbCreatures = 3;
+    public int nbCreatures = 2;
     public int initialHandSize = 4;
     public int startHealth = 30;
     public int startScore = 0;
 
     [Header("Available cards")]
+    public ScriptableCard[] startCards;
     public ScriptableCard[] creatureCards;
     public ScriptableCard[] moneyCards;
 
@@ -32,6 +33,7 @@ public class GameManager : NetworkBehaviour
     {
         if (instance == null) instance = this;
 
+        startCards = Resources.LoadAll<ScriptableCard>("StartCards/");
         creatureCards = Resources.LoadAll<ScriptableCard>("CreatureCards/");
         moneyCards = Resources.LoadAll<ScriptableCard>("MoneyCards/");
     }
@@ -43,7 +45,7 @@ public class GameManager : NetworkBehaviour
         // Player setup
         players.Clear();
         players.AddRange(FindObjectsOfType<PlayerManager>());
-        
+
         foreach (PlayerManager player in players)
         {   
             player.RpcSetUI(startHealth, startScore);
@@ -63,7 +65,8 @@ public class GameManager : NetworkBehaviour
         }
         // Creatures (special)
         for (int i = 0; i < nbCreatures; i++){
-            ScriptableCard card = creatureCards[Random.Range(0, creatureCards.Length)];
+            // ScriptableCard card = creatureCards[Random.Range(0, creatureCards.Length)];
+            ScriptableCard card = startCards[i];
             player.SpawnCard(card);
         }
     }
