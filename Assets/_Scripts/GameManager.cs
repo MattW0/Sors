@@ -28,6 +28,7 @@ public class GameManager : NetworkBehaviour
     public ScriptableCard[] startCards;
     public ScriptableCard[] creatureCards;
     public ScriptableCard[] moneyCards;
+    [SerializeField] private GameObject _cardPrefab;
 
     public void Awake()
     {
@@ -61,14 +62,29 @@ public class GameManager : NetworkBehaviour
         // Coppers
         for (int i = 0; i < initialDeckSize - nbCreatures; i++){
             ScriptableCard card = moneyCards[0];
-            player.SpawnCard(card);
+            SpawnCard(card, player);
         }
         // Creatures (special)
         for (int i = 0; i < nbCreatures; i++){
             // ScriptableCard card = creatureCards[Random.Range(0, creatureCards.Length)];
             ScriptableCard card = startCards[i];
-            player.SpawnCard(card);
+            SpawnCard(card, player);
         }
+    }
+
+    private void SpawnCard(ScriptableCard card, PlayerManager player){
+
+        GameObject cardObject = Instantiate(_cardPrefab);
+        string instanceID = cardObject.GetInstanceID().ToString();
+        cardObject.name = instanceID;
+        NetworkServer.Spawn(cardObject, connectionToClient);
+        cardObject.GetComponent<NetworkIdentity>().AssignClientAuthority(player.GetComponent<NetworkIdentity>().connectionToClient);
+
+        CardInfo cardInfo = new CardInfo(card, instanceID);
+        player.cards.deck.Add(cardInfo);
+        cardObject.GetComponent<CardUI>().RpcSetCardUI(cardInfo);
+
+        player.RpcMoveCard(cardObject, "DrawPile");
     }
 
     private void PlayersDrawInitialHands(){

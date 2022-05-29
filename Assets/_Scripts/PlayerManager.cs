@@ -11,8 +11,7 @@ public class PlayerManager : NetworkBehaviour
     public CardCollection cards;
     public PlayerUI playerUI;
     public PlayerUI opponentUI;
-    public GameObject cardPrefab;
-
+    // public GameObject cardPrefab;
 
     [Header("GameStats")]
 
@@ -100,19 +99,19 @@ public class PlayerManager : NetworkBehaviour
 
     #region Cards
 
-    public void SpawnCard(ScriptableCard card)
-    {
-        GameObject cardObject = Instantiate(cardPrefab);
-        string instanceID = cardObject.GetInstanceID().ToString();
-        cardObject.name = instanceID;
-        NetworkServer.Spawn(cardObject, connectionToClient);
+    // public void SpawnCard(ScriptableCard card)
+    // {
+    //     GameObject cardObject = Instantiate(cardPrefab);
+    //     string instanceID = cardObject.GetInstanceID().ToString();
+    //     cardObject.name = instanceID;
+    //     NetworkServer.Spawn(cardObject, connectionToClient);
 
-        CardInfo cardInfo = new CardInfo(card, instanceID);
-        cards.deck.Add(cardInfo);
-        cardObject.GetComponent<CardUI>().RpcSetCardUI(cardInfo);
+    //     CardInfo cardInfo = new CardInfo(card, instanceID);
+    //     cards.deck.Add(cardInfo);
+    //     cardObject.GetComponent<CardUI>().RpcSetCardUI(cardInfo);
 
-        RpcMoveCard(cardObject, "DrawPile");
-    }
+    //     RpcMoveCard(cardObject, "DrawPile");
+    // }
 
     public void DrawCard(){
         if (cards.deck.Count == 0){
@@ -129,8 +128,14 @@ public class PlayerManager : NetworkBehaviour
         RpcMoveCard(cardObject, "Hand");
     }
 
-    public void DiscardCards(int nbToDiscard){
+    [TargetRpc]
+    // [ClientRpc]
+    public void TargetDiscardCards(NetworkConnection target, int nbToDiscard){
         if (cards.hand.Count == 0) return;
+
+        // foreach (CardUI _ui in playerHand.GetComponentsInChildren<CardUI>()){
+        //     _ui.Highlight(true);
+        // }
 
         foreach (CardUI _ui in playerHand.GetComponentsInChildren<CardUI>()){
             _ui.Highlight(true);
@@ -195,10 +200,21 @@ public class PlayerManager : NetworkBehaviour
     [Command] // workaround to communicate with server
     public void CmdPhaseSelection(List<Phase> _phases){
 
+        // Saving local player choice
         playerChosenPhases[0] = _phases[0];
         playerChosenPhases[1] = _phases[1];
 
         TurnManager.instance.PlayerSelectedPhases(_phases);
+    }
+
+    [Command]
+    public void CmdDiscardSelection(List<CardInfo> _cards){
+
+        TurnManager.instance.PlayerSelectedDiscardCards();
+
+        foreach(CardInfo _card in _cards){
+            RpcMoveCard(GameObject.Find(_card.goID), "DiscardPile");
+        }
     }
 
     #endregion TurnActions

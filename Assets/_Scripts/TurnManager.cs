@@ -19,15 +19,15 @@ public class TurnManager : NetworkBehaviour
     [Header("Objects")]
     public GameObject _phasePanelPrefab;
     private GameObject _phasePanel;
+    public GameObject _discardPanelPrefab;
 
     void Awake() {
         if (instance == null) instance = this;
     }
 
     void Start() {
-        UpdateTurnState(TurnState.Init);
-
         gameManager = GameManager.instance;
+        UpdateTurnState(TurnState.Init);
     }
 
     public void UpdateTurnState(TurnState newState){
@@ -95,7 +95,6 @@ public class TurnManager : NetworkBehaviour
     private void BeginPhases(){
         
         NetworkServer.Destroy(_phasePanel);
-        playersReady = 0;
 
         chosenPhases.Sort();
         print($"Chosen Phases: {string.Join(", ", chosenPhases)}");
@@ -122,11 +121,27 @@ public class TurnManager : NetworkBehaviour
             }
         }
 
-        foreach (PlayerManager player in gameManager.players) player.DiscardCards(gameManager.nbDiscard);
-        // UpdateTurnState(TurnState.Discard);
+        UpdateTurnState(TurnState.Discard);
     }
 
     private void Discard() {
+
+        playersReady = 0;
+
+        GameObject _discardPanel = Instantiate(_discardPanelPrefab, transform);
+        NetworkServer.Spawn(_discardPanel, connectionToClient);
+
+        // gameManager.players[0].RpcDiscardCards(gameManager.nbDiscard);
+
+        foreach (PlayerManager player in gameManager.players) {
+            NetworkIdentity nwIdentity = player.gameObject.GetComponent<NetworkIdentity>();
+            player.TargetDiscardCards(nwIdentity.connectionToClient, gameManager.nbDiscard);
+        }
+    }
+
+    public void PlayerSelectedDiscardCards(){
+        playersReady++;
+        if (playersReady == gameManager.players.Count) print("Discarded");
     }
 }
 

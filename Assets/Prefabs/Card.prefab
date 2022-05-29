@@ -454,12 +454,12 @@ GameObject:
   - component: {fileID: 2754976486999726370}
   - component: {fileID: 1420931769377809987}
   - component: {fileID: 1751124642552553800}
-  - component: {fileID: -3667383451683184967}
   - component: {fileID: 6084506861975650639}
   - component: {fileID: 2856754972007163730}
   - component: {fileID: 7173413632668903558}
   - component: {fileID: 3424864328992555256}
   - component: {fileID: 1662656646801267718}
+  - component: {fileID: -4575455535364612694}
   m_Layer: 6
   m_Name: Card
   m_TagString: Untagged
@@ -515,40 +515,6 @@ MonoBehaviour:
   visible: 0
   m_AssetId: 5049089525d268b41ac4327a430b6221
   hasSpawned: 0
---- !u!114 &-3667383451683184967
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5450374274839420802}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2f74aedd71d9a4f55b3ce499326d45fb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  syncMode: 0
-  syncInterval: 0.1
-  clientAuthority: 1
-  sendInterval: 0.05
-  syncPosition: 1
-  syncRotation: 1
-  syncScale: 0
-  interpolatePosition: 1
-  interpolateRotation: 1
-  interpolateScale: 0
-  bufferTimeMultiplier: 1
-  bufferSizeLimit: 64
-  catchupThreshold: 4
-  catchupMultiplier: 0.1
-  onlySyncOnChange: 1
-  bufferResetMultiplier: 5
-  positionSensitivity: 0.01
-  rotationSensitivity: 0.01
-  scaleSensitivity: 0.01
-  showGizmos: 0
-  showOverlay: 0
-  overlayColor: {r: 0, g: 0, b: 0, a: 0.5}
 --- !u!61 &6084506861975650639
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -641,6 +607,22 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
+  - eventID: 2
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: -4575455535364612694}
+          m_TargetAssemblyTypeName: Discard, Assembly-CSharp
+          m_MethodName: OnDiscardClick
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
 --- !u!114 &3424864328992555256
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -657,7 +639,7 @@ MonoBehaviour:
   syncInterval: 0.1
   returnDuration: 0.9
   timeStartReturn: 0
-  isDraggable: 0
+  isDraggable: 1
   isDragging: 0
 --- !u!114 &1662656646801267718
 MonoBehaviour:
@@ -680,6 +662,20 @@ MonoBehaviour:
   health: {fileID: 4399480099220149044}
   image: {fileID: 5706841334308121695}
   highlight: {fileID: 6942316134712413200}
+--- !u!114 &-4575455535364612694
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5450374274839420802}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff33b9b350d6a2643b653392de663162, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
 --- !u!1 &5650112559521258811
 GameObject:
   m_ObjectHideFlags: 0
