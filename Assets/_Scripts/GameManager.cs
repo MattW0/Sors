@@ -9,8 +9,6 @@ public class GameManager : NetworkBehaviour
     public static GameManager instance;
     private TurnManager turnManager;
     public List<PlayerManager> players = new List<PlayerManager>();
-    public ScriptableCard[] creatureCards;
-    public ScriptableCard[] moneyCards;
 
     [Header("Game state")]
     public int turnNb = 0;
@@ -26,6 +24,10 @@ public class GameManager : NetworkBehaviour
     public int startHealth = 30;
     public int startScore = 0;
 
+    [Header("Available cards")]
+    public ScriptableCard[] creatureCards;
+    public ScriptableCard[] moneyCards;
+
     public void Awake()
     {
         if (instance == null) instance = this;
@@ -36,12 +38,12 @@ public class GameManager : NetworkBehaviour
 
     public void GameSetup()
     {
-        players.Clear();
-        players.AddRange(FindObjectsOfType<PlayerManager>());
-
         turnManager = TurnManager.instance;
 
         // Player setup
+        players.Clear();
+        players.AddRange(FindObjectsOfType<PlayerManager>());
+        
         foreach (PlayerManager player in players)
         {   
             player.RpcSetUI(startHealth, startScore);

@@ -56,10 +56,9 @@ public class PlayerManager : NetworkBehaviour
     [ClientRpc]
     public void RpcGameSetup()
     {
-        Debug.Log("Game starting");
+        // Debug.Log("Game starting");
         GameObject.Find("NetworkManager").GetComponent<NetworkManagerHUD>().enabled = false;
 
-        // only for debug
         PlayerManager[] players = FindObjectsOfType<PlayerManager>();
         if(!debug) opponent = players[0] == this ? players[1] : players[0];
 
@@ -76,10 +75,12 @@ public class PlayerManager : NetworkBehaviour
     {   
         string name = isServer ? "Server" : "Client";
         string opponentName = !isServer ? "Server" : "Client"; // inverse of my name
+        
+        playerUI = GameObject.Find("PlayerInfo").GetComponent<PlayerUI>();
+        opponentUI = GameObject.Find("OpponentInfo").GetComponent<PlayerUI>();
 
         if (hasAuthority){
             // playerUIPanel.SetActive(true);
-            playerUI = GameObject.Find("PlayerInfo").GetComponent<PlayerUI>();
             playerUI.isMine = true;
             playerUI.playerName.text = name;
             playerUI.playerHealth.text = startHealth.ToString();
@@ -90,7 +91,6 @@ public class PlayerManager : NetworkBehaviour
             _score = startScore;
         } else {
             // opponentUIPanel.SetActive(true);
-            opponentUI = GameObject.Find("OpponentInfo").GetComponent<PlayerUI>();
             opponentUI.playerName.text = opponentName;
             opponentUI.playerHealth.text = startHealth.ToString();
             opponentUI.playerScore.text = startScore.ToString();

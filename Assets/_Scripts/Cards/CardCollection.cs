@@ -39,7 +39,8 @@ public class CardCollection : NetworkBehaviour
     public readonly SyncListCard graveyard = new SyncListCard(); // Cards in player graveyard.
 }
 
-public class SyncListCard : SyncList<CardInfo> { 
+public class SyncListCard : SyncList<CardInfo> {
+    
     public void Shuffle(){
         RNGCryptoServiceProvider provider = new RNGCryptoServiceProvider ();
         int n = Count;
