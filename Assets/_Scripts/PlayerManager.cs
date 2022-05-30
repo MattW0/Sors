@@ -19,16 +19,7 @@ public class PlayerManager : NetworkBehaviour
     public int _score;
     public List<Phase> playerChosenPhases = new List<Phase>() {Phase.DrawI, Phase.DrawII};
 
-    [Header("UI")]
-    // [SerializeField] private GameObject phaseSelectionPanel;
-    [SerializeField] private Transform playerHand;
-    [SerializeField] private Transform playerDropZone;
-    [SerializeField] private Transform playerDrawPile;
-    [SerializeField] private Transform playerDiscardPile;
-    [SerializeField] private Transform opponentHand;
-    [SerializeField] private Transform opponentDropZone;
-    [SerializeField] private Transform opponentDrawPile;
-    [SerializeField] private Transform opponentDiscardPile;
+    
 
     #region GameSetup
     public override void OnStartClient()
@@ -38,13 +29,6 @@ public class PlayerManager : NetworkBehaviour
         if (isServer) debug = GameManager.instance.debug;
 
         cards = GetComponent<CardCollection>();
-
-        playerDrawPile = GameObject.Find("PlayerDrawPile").transform.GetChild(0);
-        opponentDrawPile = GameObject.Find("OpponentDrawPile").transform.GetChild(0);
-        playerHand = GameObject.Find("PlayerHand").transform;
-        opponentHand = GameObject.Find("OpponentHand").transform;
-        playerDropZone = GameObject.Find("PlayerDropZone").transform;
-        opponentDropZone = GameObject.Find("OpponentDropZone").transform;
 
         int numberPlayersRequired = debug ? 1 : 2;
         if (NetworkServer.connections.Count == numberPlayersRequired){
@@ -61,9 +45,8 @@ public class PlayerManager : NetworkBehaviour
         PlayerManager[] players = FindObjectsOfType<PlayerManager>();
         if(!debug) opponent = players[0] == this ? players[1] : players[0];
 
-        TurnManager.OnTurnStateChanged += RpcTurnChanged;
-
         if (isServer){
+            TurnManager.OnTurnStateChanged += RpcTurnChanged;
             gameManager = GameManager.instance;
             gameManager.GameSetup();
         }
@@ -99,20 +82,6 @@ public class PlayerManager : NetworkBehaviour
 
     #region Cards
 
-    // public void SpawnCard(ScriptableCard card)
-    // {
-    //     GameObject cardObject = Instantiate(cardPrefab);
-    //     string instanceID = cardObject.GetInstanceID().ToString();
-    //     cardObject.name = instanceID;
-    //     NetworkServer.Spawn(cardObject, connectionToClient);
-
-    //     CardInfo cardInfo = new CardInfo(card, instanceID);
-    //     cards.deck.Add(cardInfo);
-    //     cardObject.GetComponent<CardUI>().RpcSetCardUI(cardInfo);
-
-    //     RpcMoveCard(cardObject, "DrawPile");
-    // }
-
     public void DrawCard(){
         if (cards.deck.Count == 0){
             Debug.Log("No more cards in deck!");
@@ -129,17 +98,12 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [TargetRpc]
-    // [ClientRpc]
     public void TargetDiscardCards(NetworkConnection target, int nbToDiscard){
         if (cards.hand.Count == 0) return;
 
         // foreach (CardUI _ui in playerHand.GetComponentsInChildren<CardUI>()){
         //     _ui.Highlight(true);
         // }
-
-        foreach (CardUI _ui in playerHand.GetComponentsInChildren<CardUI>()){
-            _ui.Highlight(true);
-        }
     }
 
     public void PlayCard(GameObject card){
@@ -158,31 +122,7 @@ public class PlayerManager : NetworkBehaviour
     [ClientRpc]
     public void RpcMoveCard(GameObject card, string destination)
     {
-        switch (destination){
-
-        default:
-            Debug.Log("Unknown card destination");
-            break;
-        case "DrawPile":
-            if (hasAuthority) card.transform.SetParent(playerDrawPile, false);
-            else card.transform.SetParent(opponentDrawPile, false);
-            break;
-        case "Hand":
-            if (hasAuthority) {
-                card.transform.SetParent(playerHand, false);
-                card.GetComponent<CardUI>().Flip();
-                // card.GetComponent<DragDrop>().ChangeDragPermission(true);
-            }
-            else card.transform.SetParent(opponentHand, false);
-            break;
-        case "PlayZone":
-            if (hasAuthority) card.transform.SetParent(playerDropZone, false);
-            else {
-                card.transform.SetParent(opponentDropZone, false);
-                card.GetComponent<CardUI>().Flip();
-            }
-            break;
-        }
+        card.GetComponent<CardMover>().MoveToDestination(hasAuthority, destination);
     }
 
     #endregion Cards
@@ -190,11 +130,9 @@ public class PlayerManager : NetworkBehaviour
     #region TurnActions
 
     [ClientRpc]
-    private void RpcTurnChanged(TurnState state)
+    private void RpcTurnChanged(TurnState _state)
     {
-        Debug.Log("Turn changed to " + state);
-        
-        // if (state == TurnState.PhaseSelection) playerChosenPhases.Clear();
+        // print($"<color=LightSkyBlue>Turn changed to {_state}</color>");
     }
 
     [Command] // workaround to communicate with server
@@ -208,18 +146,18 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Command]
-    public void CmdDiscardSelection(List<CardInfo> _cards){
+    public void CmdDiscardSelection(List<GameObject> _cards){
 
         TurnManager.instance.PlayerSelectedDiscardCards();
 
-        foreach(CardInfo _card in _cards){
-            RpcMoveCard(GameObject.Find(_card.goID), "DiscardPile");
+        foreach(GameObject _card in _cards){
+            RpcMoveCard(_card, "DiscardPile");
         }
     }
 
     #endregion TurnActions
 
-    void OnDestroy() {
+    private void OnDestroy() {
         TurnManager.OnTurnStateChanged -= RpcTurnChanged;
     }
 }

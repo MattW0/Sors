@@ -10,16 +10,17 @@ public class TurnManager : NetworkBehaviour
     private GameManager gameManager;
     
     [Header("Turn state")]
-    [SyncVar][SerializeField] private TurnState state;
+    [SerializeField] private TurnState state;
     public List<Phase> chosenPhases = new List<Phase>();
     public static event Action<TurnState> OnTurnStateChanged;
     private static int turnCount = 0;
     private static int playersReady = 0;
 
     [Header("Objects")]
-    public GameObject _phasePanelPrefab;
+    [SerializeField] private GameObject _phasePanelPrefab;
     private GameObject _phasePanel;
-    public GameObject _discardPanelPrefab;
+    [SerializeField] private GameObject _discardPanelPrefab;
+    private GameObject _discardPanel;
 
     void Awake() {
         if (instance == null) instance = this;
@@ -30,11 +31,18 @@ public class TurnManager : NetworkBehaviour
         UpdateTurnState(TurnState.Init);
     }
 
-    public void UpdateTurnState(TurnState newState){
-        state = newState;
+    public void UpdateTurnState(TurnState _newState){
+        state = _newState;
+
+        if (_newState != TurnState.NextPhase) {
+            print($"<color=aqua>Turn changed to {_newState}</color>");
+        }
 
         switch(state){
             case TurnState.Init:
+                break;
+            case TurnState.NextPhase:
+                NextPhase();
                 break;
             case TurnState.PhaseSelection:
                 PhaseSelection();
@@ -46,21 +54,28 @@ public class TurnManager : NetworkBehaviour
                 Discard();
                 break;
             case TurnState.Recruit:
+                Recruit();
                 break;
             case TurnState.Attack:
+                Attack();
                 break;
             case TurnState.Combat:
+                Combat();
                 break;
             case TurnState.DrawII:
+                DrawI();
                 break;
             case TurnState.BuyCard:
+                BuyCard();
                 break;
             case TurnState.Develop:
+                Develop();
                 break;
             case TurnState.CleanUp:
+                CleanUp();
                 break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
+                throw new ArgumentOutOfRangeException(nameof(_newState), _newState, null);
         }
 
         OnTurnStateChanged?.Invoke(state);
@@ -72,6 +87,7 @@ public class TurnManager : NetworkBehaviour
     //         UpdateTurnState(TurnState.DrawI);
     //     }
     // }
+
 
     private void PhaseSelection() {
         _phasePanel = Instantiate(_phasePanelPrefab, transform);
@@ -89,27 +105,49 @@ public class TurnManager : NetworkBehaviour
             }
         }
         
-        if (playersReady == gameManager.players.Count) BeginPhases();
+        if (!(playersReady == gameManager.players.Count)) return;
+
+        // Starting the selected phases
+        NetworkServer.Destroy(_phasePanel);
+        chosenPhases.Sort();
+        print($"<color=white>Chosen Phases: {string.Join(", ", chosenPhases)}</color>");
+        UpdateTurnState(TurnState.NextPhase);
     }
 
-    private void BeginPhases(){
+    private void Discard() {
+
+        playersReady = 0;
+
+        _discardPanel = Instantiate(_discardPanelPrefab, transform);
+        NetworkServer.Spawn(_discardPanel, connectionToClient);
+
+        foreach (PlayerManager player in gameManager.players) {
+            NetworkIdentity nwIdentity = player.gameObject.GetComponent<NetworkIdentity>();
+            player.TargetDiscardCards(nwIdentity.connectionToClient, gameManager.nbDiscard);
+        }
+    }
+
+    public void PlayerSelectedDiscardCards(){
+        playersReady++;
+        if (!(playersReady == gameManager.players.Count)) return ;
+
+        NetworkServer.Destroy(_discardPanel);
+        UpdateTurnState(TurnState.NextPhase);
+    }
+
+    private void NextPhase(){
         
-        NetworkServer.Destroy(_phasePanel);
+        if (chosenPhases.Count == 0) {
+            UpdateTurnState(TurnState.CleanUp);
+            return;
+        }
 
-        chosenPhases.Sort();
-        print($"Chosen Phases: {string.Join(", ", chosenPhases)}");
-
-        // Going through phases chosen by players
-        // while(chosenPhases.Count > 0){
-        Enum.TryParse(chosenPhases[0].ToString(), out TurnState nextState);
+        Enum.TryParse(chosenPhases[0].ToString(), out TurnState nextPhase);
         chosenPhases.RemoveAt(0);
-        UpdateTurnState(nextState);
-        // }
+        UpdateTurnState(nextPhase);
     }
 
     private void DrawI() {
-
-        //TODO: Draw and discard
 
         foreach (PlayerManager player in gameManager.players) {
             
@@ -124,30 +162,47 @@ public class TurnManager : NetworkBehaviour
         UpdateTurnState(TurnState.Discard);
     }
 
-    private void Discard() {
-
-        playersReady = 0;
-
-        GameObject _discardPanel = Instantiate(_discardPanelPrefab, transform);
-        NetworkServer.Spawn(_discardPanel, connectionToClient);
-
-        // gameManager.players[0].RpcDiscardCards(gameManager.nbDiscard);
-
-        foreach (PlayerManager player in gameManager.players) {
-            NetworkIdentity nwIdentity = player.gameObject.GetComponent<NetworkIdentity>();
-            player.TargetDiscardCards(nwIdentity.connectionToClient, gameManager.nbDiscard);
-        }
+    private void Recruit(){
+        print("<color=yellow>Recruit not yet implemented</color>");
+        UpdateTurnState(TurnState.NextPhase);
     }
 
-    public void PlayerSelectedDiscardCards(){
-        playersReady++;
-        if (playersReady == gameManager.players.Count) print("Discarded");
+    private void Attack(){
+        print("<color=yellow>Attack not yet implemented</color>");
+        UpdateTurnState(TurnState.NextPhase);
     }
+
+    private void Combat(){
+        print("<color=yellow>Combat not yet implemented</color>");
+        UpdateTurnState(TurnState.NextPhase);
+    }
+
+    private void DrawII(){
+        print("<color=yellow>DrawII not yet implemented</color>");
+        UpdateTurnState(TurnState.NextPhase);
+    }
+
+    private void BuyCard(){
+        print("<color=yellow>BuyCard not yet implemented</color>");
+        UpdateTurnState(TurnState.NextPhase);
+    }
+
+    private void Develop(){
+        print("<color=yellow>Develop not yet implemented</color>");
+        UpdateTurnState(TurnState.NextPhase);
+    }
+
+    private void CleanUp(){
+        print("<color=yellow>CleanUp not yet implemented</color>");
+        UpdateTurnState(TurnState.PhaseSelection);
+    }
+
 }
 
 public enum TurnState
 {
     Init,
+    NextPhase,
     WaitingForReady,
     PhaseSelection,
     DrawI,

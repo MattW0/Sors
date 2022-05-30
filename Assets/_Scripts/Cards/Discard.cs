@@ -5,30 +5,37 @@ using Mirror;
 
 public class Discard : NetworkBehaviour
 {
-    private DiscardPanel discardPanel; 
+    private DiscardPanel _discardPanel;
+
     private bool _isSelected;
     private Vector2 _startPosition;
 
-    private void Update()
+    private void Awake()
     {
-        discardPanel = DiscardPanel.instance;
+        DiscardPanel.OnDiscardPhaseStarted += StartDiscardPhase;
+    }
+
+    private void StartDiscardPhase(){
+        _discardPanel = DiscardPanel.Instance;
     }
 
     public void OnDiscardClick(){
-        if (!hasAuthority || !discardPanel) return;
-
-        print("Discarding");
+        if (!hasAuthority || !_discardPanel) return;
 
         if (_isSelected) {
             transform.position = _startPosition;
             _isSelected = false;
-            discardPanel.CardToDiscardSelected(false);
+            _discardPanel.CardToDiscardSelected(gameObject, false);
             return;
         }
 
         _isSelected = true;
         _startPosition = transform.position;
         transform.position = _startPosition + Vector2.up * 10;
-        discardPanel.CardToDiscardSelected(true);
+        _discardPanel.CardToDiscardSelected(gameObject, true);
+    }
+
+    private void OnDestroy() {
+        DiscardPanel.OnDiscardPhaseStarted -= StartDiscardPhase;
     }
 }

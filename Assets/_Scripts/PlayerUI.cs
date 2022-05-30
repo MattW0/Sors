@@ -16,6 +16,7 @@ public class PlayerUI : MonoBehaviour
     private void Start() {
         turnManager = TurnManager.instance;
     }
+    
     public void UpdateHealth(int healthDelta)
     {
         int currentHealth = int.Parse(playerHealth.text);

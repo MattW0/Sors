@@ -15,6 +15,13 @@ public class CardUI : NetworkBehaviour {
     public Image image;
     public Image highlight;
 
+    private GameObject _front;
+    private GameObject _back;
+    
+    private void Awake(){
+        _front = gameObject.transform.Find("CardFront").gameObject;
+        _back = gameObject.transform.Find("CardBack").gameObject;
+    }
 
     [ClientRpc]
     public void RpcSetCardUI(CardInfo cardInfo)
@@ -32,20 +39,16 @@ public class CardUI : NetworkBehaviour {
         }
     }
 
-    public void Flip()
+    public void CardBackUp()
     {
-        GameObject front = gameObject.transform.Find("CardFront").gameObject;
-        GameObject back = gameObject.transform.Find("CardBack").gameObject;
+        _back.SetActive(true);
+        _front.SetActive(false);
+    }
 
-        if (front.activeSelf){
-            // Debug.Log("Front side up");
-            back.SetActive(true);
-            front.SetActive(false);
-        } else {
-            // Debug.Log("Back side up");
-            back.SetActive(false);
-            front.SetActive(true);
-        }
+    public void CardFrontUp()
+    {
+        _back.SetActive(false);
+        _front.SetActive(true);
     }
 
     public void Highlight(bool active){
