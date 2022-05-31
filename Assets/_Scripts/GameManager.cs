@@ -14,6 +14,7 @@ public class GameManager : NetworkBehaviour
     public int turnNb = 0;
 
     [Header("Turn specifics")]
+    public int nbPhasesToChose = 2;
     public int nbCardDraw = 2;
     public int nbDiscard = 1;
 
@@ -55,8 +56,6 @@ public class GameManager : NetworkBehaviour
         }
 
         PlayersDrawInitialHands();
-
-        turnNb = 1;
         turnManager.UpdateTurnState(TurnState.PhaseSelection);
     }
 

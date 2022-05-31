@@ -27,7 +27,7 @@ public class TurnManager : NetworkBehaviour
 
     void Start() {
         gameManager = GameManager.Instance;
-        UpdateTurnState(TurnState.Init);
+        UpdateTurnState(TurnState.Prepare);
     }
 
     public void UpdateTurnState(TurnState _newState){
@@ -38,14 +38,17 @@ public class TurnManager : NetworkBehaviour
         }
 
         switch(state){
-            case TurnState.Init:
-                break;
-            case TurnState.NextPhase:
-                NextPhase();
+            // --- Preparation and transition ---
+            case TurnState.Prepare:
+                Prepare();
                 break;
             case TurnState.PhaseSelection:
                 PhaseSelection();
                 break;
+            case TurnState.NextPhase:
+                NextPhase();
+                break;
+            // --- Phases ---
             case TurnState.DrawI:
                 DrawI();
                 break;
@@ -70,6 +73,7 @@ public class TurnManager : NetworkBehaviour
             case TurnState.Develop:
                 Develop();
                 break;
+            // --- Win check and turn reset ---
             case TurnState.CleanUp:
                 CleanUp();
                 break;
@@ -80,15 +84,16 @@ public class TurnManager : NetworkBehaviour
         OnTurnStateChanged?.Invoke(state);
     }
 
-    // public void Ready(){
-    //     playersReady++;
-    //     if(playersReady == gameManager.players.Count){
-    //         UpdateTurnState(TurnState.DrawI);
-    //     }
-    // }
+    private void Prepare() {
+        print("<color=yellow>Prepare not yet implemented</color>");
 
-
+        UpdateTurnState(TurnState.PhaseSelection);
+    }
+ 
     private void PhaseSelection() {
+
+        gameManager.turnNb++;
+
         _phasePanel = Instantiate(_phasePanelPrefab, transform);
         NetworkServer.Spawn(_phasePanel, connectionToClient);
 
@@ -193,8 +198,6 @@ public class TurnManager : NetworkBehaviour
 
     private void CleanUp(){
 
-        gameManager.turnNb++;
-
         print("<color=yellow>CleanUp not yet implemented</color>");
         UpdateTurnState(TurnState.PhaseSelection);
     }
@@ -203,7 +206,7 @@ public class TurnManager : NetworkBehaviour
 
 public enum TurnState
 {
-    Init,
+    Prepare,
     NextPhase,
     WaitingForReady,
     PhaseSelection,

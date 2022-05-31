@@ -4,35 +4,52 @@ using System.Collections.Generic;
 using Mirror;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class PhasePanel : NetworkBehaviour
 {
     private TurnManager turnManager;
     public PhaseItemUI[] phaseItems;
 
-    [Header("UI")]
-    public static int maxActive = 2;
-    private int nbActive;
-    public bool disableSelection = false;
+    [Header("Turn screen")]
+    [SerializeField] private TMP_Text _turnText;
+    [SerializeField] private GameObject overlayImage;
+    [SerializeField] private float turnScreenWaitTime = 2f;
+    [SerializeField] private float turnScreenFadeTime = 1f;
+
+    private int _nbActive;
+    public bool disableSelection;
     public Button confirm;
     
     private void Awake() {
         gameObject.transform.SetParent(GameObject.Find("UI").transform, false);
         turnManager = TurnManager.Instance;
 
-        nbActive = 0;
+        _nbActive = 0;
         phaseItems = GetComponentsInChildren<PhaseItemUI>();
     }
 
+    private void Start() {
+        _turnText.text = $"Turn {GameManager.Instance.turnNb}";
+        // WaitAndFade();
+        overlayImage.GetComponent<Image>().CrossFadeAlpha(0f, turnScreenFadeTime, false);
+        _turnText.CrossFadeAlpha(0f, turnScreenFadeTime, false);
+        overlayImage.SetActive(false);
+    }
+
+    // private IEnumerator WaitAndFade() {
+    //     yield return new WaitForSeconds(turnScreenWaitTime);
+    // }
+
     public void UpdateActive()
     {
-        nbActive = 0;
+        _nbActive = 0;
         foreach (PhaseItemUI phaseItem in phaseItems)
         {
-            if (phaseItem.isSelected) nbActive++;
+            if (phaseItem.isSelected) _nbActive++;
         }
 
-        if(nbActive == maxActive) {
+        if(_nbActive == GameManager.Instance.nbPhasesToChose) {
             disableSelection = true;
             confirm.interactable = true;
         } else {
