@@ -27,8 +27,10 @@ public class DiscardPanel : NetworkBehaviour
         gameObject.transform.SetParent(GameObject.Find("UI").transform, false);
         OnDiscardPhaseStarted?.Invoke();
 
+        _gameManager = GameManager.Instance;
+
         _selectedCardsList = new List<GameObject>();
-        _nbCardsToDiscard = GameManager.instance.nbDiscard;
+        _nbCardsToDiscard = _gameManager.nbDiscard;
         displayText.text = $"Discard 0/{_nbCardsToDiscard} cards";
     }
 

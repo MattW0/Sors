@@ -18,11 +18,8 @@ public class PhasePanel : NetworkBehaviour
     
     private void Awake() {
         gameObject.transform.SetParent(GameObject.Find("UI").transform, false);
-        turnManager = TurnManager.instance;
-    }
+        turnManager = TurnManager.Instance;
 
-    private void Start()
-    {
         nbActive = 0;
         phaseItems = GetComponentsInChildren<PhaseItemUI>();
     }

@@ -6,14 +6,13 @@ using Mirror;
 
 public class TurnManager : NetworkBehaviour
 {
-    public static TurnManager instance;
+    public static TurnManager Instance { get; private set; }
     private GameManager gameManager;
     
     [Header("Turn state")]
     [SerializeField] private TurnState state;
     public List<Phase> chosenPhases = new List<Phase>();
     public static event Action<TurnState> OnTurnStateChanged;
-    private static int turnCount = 0;
     private static int playersReady = 0;
 
     [Header("Objects")]
@@ -23,11 +22,11 @@ public class TurnManager : NetworkBehaviour
     private GameObject _discardPanel;
 
     void Awake() {
-        if (instance == null) instance = this;
+        if (Instance == null) Instance = this;
     }
 
     void Start() {
-        gameManager = GameManager.instance;
+        gameManager = GameManager.Instance;
         UpdateTurnState(TurnState.Init);
     }
 
@@ -193,6 +192,9 @@ public class TurnManager : NetworkBehaviour
     }
 
     private void CleanUp(){
+
+        gameManager.turnNb++;
+
         print("<color=yellow>CleanUp not yet implemented</color>");
         UpdateTurnState(TurnState.PhaseSelection);
     }

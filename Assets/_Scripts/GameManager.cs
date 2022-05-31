@@ -6,7 +6,7 @@ using Mirror;
 public class GameManager : NetworkBehaviour
 {
     public bool debug = false;
-    public static GameManager instance;
+    public static GameManager Instance { get; private set; }
     private TurnManager turnManager;
     public List<PlayerManager> players = new List<PlayerManager>();
 
@@ -32,7 +32,7 @@ public class GameManager : NetworkBehaviour
 
     public void Awake()
     {
-        if (instance == null) instance = this;
+        if (Instance == null) Instance = this;
 
         startCards = Resources.LoadAll<ScriptableCard>("StartCards/");
         creatureCards = Resources.LoadAll<ScriptableCard>("CreatureCards/");
@@ -41,7 +41,7 @@ public class GameManager : NetworkBehaviour
 
     public void GameSetup()
     {
-        turnManager = TurnManager.instance;
+        turnManager = TurnManager.Instance;
 
         // Player setup
         players.Clear();
@@ -55,6 +55,8 @@ public class GameManager : NetworkBehaviour
         }
 
         PlayersDrawInitialHands();
+
+        turnNb = 1;
         turnManager.UpdateTurnState(TurnState.PhaseSelection);
     }
 

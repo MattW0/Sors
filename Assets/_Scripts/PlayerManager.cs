@@ -6,27 +6,23 @@ using Mirror;
 public class PlayerManager : NetworkBehaviour
 {
     private bool debug = false;
-    private GameManager gameManager;
+
     public PlayerManager opponent;
     public CardCollection cards;
     public PlayerUI playerUI;
     public PlayerUI opponentUI;
-    // public GameObject cardPrefab;
 
     [Header("GameStats")]
-
     [SyncVar, SerializeField] private int _health;
     public int _score;
     public List<Phase> playerChosenPhases = new List<Phase>() {Phase.DrawI, Phase.DrawII};
-
-    
 
     #region GameSetup
     public override void OnStartClient()
     {
         base.OnStartClient();
 
-        if (isServer) debug = GameManager.instance.debug;
+        if (isServer) debug = GameManager.Instance.debug;
 
         cards = GetComponent<CardCollection>();
 
@@ -38,8 +34,8 @@ public class PlayerManager : NetworkBehaviour
 
     [ClientRpc]
     public void RpcGameSetup()
-    {
-        // Debug.Log("Game starting");
+    {        
+        // Turning off Mirror "Menu"
         GameObject.Find("NetworkManager").GetComponent<NetworkManagerHUD>().enabled = false;
 
         PlayerManager[] players = FindObjectsOfType<PlayerManager>();
@@ -47,8 +43,7 @@ public class PlayerManager : NetworkBehaviour
 
         if (isServer){
             TurnManager.OnTurnStateChanged += RpcTurnChanged;
-            gameManager = GameManager.instance;
-            gameManager.GameSetup();
+            GameManager.Instance.GameSetup();
         }
     }
 
@@ -142,13 +137,13 @@ public class PlayerManager : NetworkBehaviour
         playerChosenPhases[0] = _phases[0];
         playerChosenPhases[1] = _phases[1];
 
-        TurnManager.instance.PlayerSelectedPhases(_phases);
+        TurnManager.Instance.PlayerSelectedPhases(_phases);
     }
 
     [Command]
     public void CmdDiscardSelection(List<GameObject> _cards){
 
-        TurnManager.instance.PlayerSelectedDiscardCards();
+        TurnManager.Instance.PlayerSelectedDiscardCards();
 
         foreach(GameObject _card in _cards){
             RpcMoveCard(_card, "DiscardPile");

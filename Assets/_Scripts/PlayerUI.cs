@@ -14,7 +14,7 @@ public class PlayerUI : MonoBehaviour
     public Button readyButton;
 
     private void Start() {
-        turnManager = TurnManager.instance;
+        turnManager = TurnManager.Instance;
     }
     
     public void UpdateHealth(int healthDelta)
