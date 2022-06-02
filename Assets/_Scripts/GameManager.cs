@@ -8,6 +8,7 @@ public class GameManager : NetworkBehaviour
     public bool debug = false;
     public static GameManager Instance { get; private set; }
     private TurnManager turnManager;
+    private Kingdom _kingdom;
     public List<PlayerManager> players = new List<PlayerManager>();
 
     [Header("Game state")]
@@ -19,6 +20,7 @@ public class GameManager : NetworkBehaviour
     public int nbDiscard = 1;
 
     [Header("Game start settings")]
+    [SerializeField] private int _nbKingomCards = 16;
     public int initialDeckSize = 10;
     public int nbCreatures = 2;
     public int initialHandSize = 4;
@@ -43,8 +45,26 @@ public class GameManager : NetworkBehaviour
     public void GameSetup()
     {
         turnManager = TurnManager.Instance;
+        _kingdom = Kingdom.Instance;
 
-        // Player setup
+        //KingdomSetup();
+        PlayerStart();        
+    }
+
+    private void KingdomSetup(){
+
+        CardInfo[] _kingdomCards = new CardInfo[_nbKingomCards];
+        
+        for (int i = 0; i < _nbKingomCards; i++)
+        {
+            ScriptableCard _card = creatureCards[Random.Range(0, creatureCards.Length)];
+            _kingdomCards[i] = new CardInfo(_card);
+        }
+
+        _kingdom.SetKingdomCards(_kingdomCards);
+    }
+
+    private void PlayerStart(){
         players.Clear();
         players.AddRange(FindObjectsOfType<PlayerManager>());
 

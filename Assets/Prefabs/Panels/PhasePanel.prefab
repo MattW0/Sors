@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3198390364458397303}
   - component: {fileID: 4703929651730905708}
   - component: {fileID: 4087438116644064953}
-  m_Layer: 5
+  m_Layer: 2
   m_Name: TurnTitle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -30,8 +30,8 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2991452865055832581}
-  m_RootOrder: 6
+  m_Father: {fileID: 8857270058213180915}
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
@@ -168,6 +168,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2991452865055832581}
+  - {fileID: 8857270058213180915}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -247,7 +248,7 @@ MonoBehaviour:
   syncInterval: 0.1
   phaseItems: []
   _turnText: {fileID: 4087438116644064953}
-  overlayImage: {fileID: 7456876797609570879}
+  overlayObject: {fileID: 6819110538534441198}
   turnScreenWaitTime: 2
   turnScreenFadeTime: 1
   disableSelection: 0
@@ -1003,6 +1004,39 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &6819110538534441198
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8857270058213180915}
+  m_Layer: 0
+  m_Name: TurnOverlay
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8857270058213180915
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6819110538534441198}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 6427016059831523054}
+  - {fileID: 3198390364458397303}
+  m_Father: {fileID: 6245966277038001865}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7456876797609570879
 GameObject:
   m_ObjectHideFlags: 0
@@ -1014,8 +1048,8 @@ GameObject:
   - component: {fileID: 6427016059831523054}
   - component: {fileID: 9054768269818275140}
   - component: {fileID: 3915283696504851333}
-  m_Layer: 0
-  m_Name: TurnOverlay
+  m_Layer: 2
+  m_Name: BG
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1033,8 +1067,8 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2991452865055832581}
-  m_RootOrder: 5
+  m_Father: {fileID: 8857270058213180915}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -1112,8 +1146,6 @@ Transform:
   - {fileID: 6245966277802793854}
   - {fileID: 6245966278117477201}
   - {fileID: 6245966278208692981}
-  - {fileID: 6427016059831523054}
-  - {fileID: 3198390364458397303}
   m_Father: {fileID: 6245966277038001865}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

@@ -16,7 +16,7 @@ public struct CardInfo
     public int health;
     public string goID;
 
-    public CardInfo(ScriptableCard card, string _goID)
+    public CardInfo(ScriptableCard card, string _goID = null)
     {
         this.hash = card.hash;
         this.title = card.title;
@@ -24,7 +24,8 @@ public struct CardInfo
         this.cost = card.cost;
         this.attack = card.attack;
         this.health = card.health;
-        this.goID = _goID;
+        if (_goID != null) this.goID = _goID;
+        else this.goID = null;
     }
 }
 
