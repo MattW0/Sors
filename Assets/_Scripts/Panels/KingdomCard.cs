@@ -13,7 +13,6 @@ public class KingdomCard : MonoBehaviour
 
     public void SetCard(CardInfo _card)
     {
-        print("Setcard");
         title.text = _card.title;
         cost.text = _card.cost.ToString();
         attack.text = _card.attack.ToString();

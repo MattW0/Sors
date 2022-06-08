@@ -9,8 +9,8 @@ public class Kingdom : NetworkBehaviour
 {
     public static Kingdom Instance { get; private set; }
 
-    private KingdomCard[] _kingdomCards;
-    [SerializeField] private GameObject _parent;
+    [SerializeField] private KingdomCard[] _kingdomCards;
+    [SerializeField] private GameObject _cardGrid;
     
     // UI
     [SerializeField] private Button _maximize, _minimize;
@@ -19,17 +19,17 @@ public class Kingdom : NetworkBehaviour
     private void Awake()
     {
         if (Instance == null) Instance = this;
+        gameObject.transform.SetParent(GameObject.Find("UI").transform, false);
     }
 
     public void SetKingdomCards(CardInfo[] _kingdomCardsInfo)
     {   
-        print(_kingdomCardsInfo.Length);
-        this._kingdomCards = new KingdomCard[_kingdomCardsInfo.Length];
+        _kingdomCards = new KingdomCard[_kingdomCardsInfo.Length];
+        _kingdomCards = _cardGrid.GetComponentsInChildren<KingdomCard>();
 
-        print("SetKingdomCards");
         for (int i = 0; i < _kingdomCardsInfo.Length; i++)
         {
-            this._kingdomCards[i].SetCard(_kingdomCardsInfo[i]);
+            _kingdomCards[i].SetCard(_kingdomCardsInfo[i]);
         }
     }
 

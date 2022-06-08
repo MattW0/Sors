@@ -57,6 +57,7 @@ public class SyncListCard : SyncList<CardInfo> {
         }
     }
 
+    // Try and implement this?
     void OnCollectionUpdated(SyncListCard.Operation op, int index, CardInfo oldItem, CardInfo newItem)
     {
         switch (op)

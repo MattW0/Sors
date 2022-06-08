@@ -87,7 +87,7 @@ public class TurnManager : NetworkBehaviour
     private void Prepare() {
         print("<color=yellow>Prepare not yet implemented</color>");
 
-        UpdateTurnState(TurnState.PhaseSelection);
+        // UpdateTurnState(TurnState.PhaseSelection);
     }
  
     private void PhaseSelection() {

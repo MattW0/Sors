@@ -12,7 +12,7 @@ public class GameManager : NetworkBehaviour
     public List<PlayerManager> players = new List<PlayerManager>();
 
     [Header("Game state")]
-    public int turnNb = 0;
+    [SyncVar] public int turnNb = 0;
 
     [Header("Turn specifics")]
     public int nbPhasesToChose = 2;
@@ -28,6 +28,7 @@ public class GameManager : NetworkBehaviour
     public int startScore = 0;
 
     [Header("Available cards")]
+    [SerializeField] private GameObject _kingdomPrefab;
     public ScriptableCard[] startCards;
     public ScriptableCard[] creatureCards;
     public ScriptableCard[] moneyCards;
@@ -45,13 +46,16 @@ public class GameManager : NetworkBehaviour
     public void GameSetup()
     {
         turnManager = TurnManager.Instance;
-        _kingdom = Kingdom.Instance;
 
-        //KingdomSetup();
+        KingdomSetup();
         PlayerStart();        
     }
 
     private void KingdomSetup(){
+
+        GameObject _kingdomObject = Instantiate(_kingdomPrefab, transform);
+        NetworkServer.Spawn(_kingdomObject, connectionToClient);
+        _kingdom = Kingdom.Instance;
 
         CardInfo[] _kingdomCards = new CardInfo[_nbKingomCards];
         
