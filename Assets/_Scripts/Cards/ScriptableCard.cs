@@ -5,10 +5,10 @@ using UnityEngine;
 using UnityEditor;
 
 [CreateAssetMenu(fileName = "New Card", menuName = "Card")]
-public class ScriptableCard : ScriptableObject{
-
+public class ScriptableCard : ScriptableObject
+{
     [Header("Image")]
-    public Sprite image; // Card image
+    public Sprite image;
 
     [Header("Properties")]
     public string hash;
@@ -18,4 +18,21 @@ public class ScriptableCard : ScriptableObject{
     public int health;
     public string title;
     public string description;
+
+    // We can't pass ScriptableCards over the Network, but we can pass uniqueIDs.
+    // Throughout this project, you'll find that I've passed uniqueIDs through the Server,
+    static Dictionary<string, ScriptableCard> _cache;
+    public static Dictionary<string, ScriptableCard> Cache
+    {
+        get
+        {
+            if (_cache == null)
+            {
+                // Load all ScriptableCards from our Resources folder
+                ScriptableCard[] cards = Resources.LoadAll<ScriptableCard>("CreatureCards/");
+                _cache = cards.ToDictionary(card => card.hash, card => card);
+            }
+            return _cache;
+        }
+    }
 }

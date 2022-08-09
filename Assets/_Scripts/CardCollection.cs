@@ -24,20 +24,29 @@ public struct CardInfo
         this.cost = card.cost;
         this.attack = card.attack;
         this.health = card.health;
+
         if (_goID != null) this.goID = _goID;
         else this.goID = null;
     }
+
+    public ScriptableCard data
+    {
+        get
+        {
+            // Return ScriptableCard from our cached list, based on the card's uniqueID.
+            return ScriptableCard.Cache[goID];
+        }
+    }
+
+    // TODO: Need a way to get CardInfo from GameObject !!!
 }
 
 public class CardCollection : NetworkBehaviour
 {
-    [Header("Player")]
-    public PlayerManager player;
-
     [Header("CardCollections")]
     public readonly SyncListCard deck = new SyncListCard(); // Deck used during the match. Contains all cards in the deck. This is where we'll be drawing card froms.
     public readonly SyncListCard hand = new SyncListCard(); // Cards in player's hand during the match.
-    public readonly SyncListCard graveyard = new SyncListCard(); // Cards in player graveyard.
+    public readonly SyncListCard discard = new SyncListCard(); // Cards in player discard.
 }
 
 public class SyncListCard : SyncList<CardInfo> {
@@ -60,28 +69,29 @@ public class SyncListCard : SyncList<CardInfo> {
     // Try and implement this?
     void OnCollectionUpdated(SyncListCard.Operation op, int index, CardInfo oldItem, CardInfo newItem)
     {
-        switch (op)
-        {
-            case SyncListCard.Operation.OP_ADD:
-                // index is where it was added into the list
-                // newItem is the new item
-                break;
-            case SyncListCard.Operation.OP_INSERT:
-                // index is where it was inserted into the list
-                // newItem is the new item
-                break;
-            case SyncListCard.Operation.OP_REMOVEAT:
-                // index is where it was removed from the list
-                // oldItem is the item that was removed
-                break;
-            case SyncListCard.Operation.OP_SET:
-                // index is of the item that was changed
-                // oldItem is the previous value for the item at the index
-                // newItem is the new value for the item at the index
-                break;
-            case SyncListCard.Operation.OP_CLEAR:
-                // list got cleared
-                break;
-        }
+        this[index] = newItem;
+        // switch (op)
+        // {
+        //     case SyncListCard.Operation.OP_ADD:
+        //         // index is where it was added into the list
+        //         // newItem is the new item
+        //         break;
+        //     case SyncListCard.Operation.OP_INSERT:
+        //         // index is where it was inserted into the list
+        //         // newItem is the new item
+        //         break;
+        //     case SyncListCard.Operation.OP_REMOVEAT:
+        //         // index is where it was removed from the list
+        //         // oldItem is the item that was removed
+        //         break;
+        //     case SyncListCard.Operation.OP_SET:
+        //         // index is of the item that was changed
+        //         // oldItem is the previous value for the item at the index
+        //         // newItem is the new value for the item at the index
+        //         break;
+        //     case SyncListCard.Operation.OP_CLEAR:
+        //         // list got cleared
+        //         break;
+        // }
     }
 }

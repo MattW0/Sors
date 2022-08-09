@@ -12,14 +12,19 @@ public class PlayerManager : NetworkBehaviour
     public PlayerUI playerUI;
     public PlayerUI opponentUI;
 
-    [Header("GameStats")]
+    [Header("Game Stats")]
     [SyncVar, SerializeField] private int _health;
     public int _score;
     public List<Phase> playerChosenPhases = new List<Phase>() {Phase.DrawI, Phase.DrawII};
 
+    [Header("Turn Stats")]
+    [SyncVar] private int _cash;
+    public int Cash { get => _cash; set => _cash = value; }
+    // [SyncVar] private int _cash;
+    // [SyncVar] private int _cash;
+
     #region GameSetup
-    public override void OnStartClient()
-    {
+    public override void OnStartClient(){
         base.OnStartClient();
 
         if (isServer) debug = GameManager.Instance.debug;
@@ -33,9 +38,8 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcGameSetup()
-    {        
-        // Turning off Mirror "Menu"
+    public void RpcGameSetup(){        
+        // Disable Mirror HUD
         GameObject.Find("NetworkManager").GetComponent<NetworkManagerHUD>().enabled = false;
 
         PlayerManager[] players = FindObjectsOfType<PlayerManager>();
@@ -48,8 +52,7 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcSetUI(int startHealth, int startScore)
-    {   
+    public void RpcSetUI(int startHealth, int startScore){   
         string name = isServer ? "Server" : "Client";
         string opponentName = !isServer ? "Server" : "Client"; // inverse of my name
         
@@ -79,9 +82,14 @@ public class PlayerManager : NetworkBehaviour
 
     public void DrawCard(){
         if (cards.deck.Count == 0){
-            Debug.Log("No more cards in deck!");
-            return;
-            // TODO: Shuffle Discard pile -> Draw pile
+            Debug.Log("Shuffling discard into deck");
+
+            foreach (CardInfo _card in cards.discard){
+                cards.deck.Add(_card);
+                cards.discard.Remove(_card);
+            }
+
+            cards.deck.Shuffle();
         }
 
         CardInfo card = cards.deck[0];
@@ -127,10 +135,12 @@ public class PlayerManager : NetworkBehaviour
     [ClientRpc]
     private void RpcTurnChanged(TurnState _state)
     {
-        // print($"<color=LightSkyBlue>Turn changed to {_state}</color>");
+        print($"<color=LightSkyBlue>Turn changed to {_state}</color>");
     }
 
-    [Command] // workaround to communicate with server
+    // !!! workarounds to communicate with server !!!
+
+    [Command] 
     public void CmdPhaseSelection(List<Phase> _phases){
 
         // Saving local player choice
@@ -146,6 +156,12 @@ public class PlayerManager : NetworkBehaviour
         TurnManager.Instance.PlayerSelectedDiscardCards();
 
         foreach(GameObject _card in _cards){
+            // CardInfo _cardInfo = new CardInfo(_card, _card.GetInstanceID().ToString());
+
+            // CardInfo _cardInfo = _card.GetComponent<CardInfo>();
+            // cards.hand.Remove(_cardInfo);
+            // cards.discard.Add(_cardInfo);
+
             RpcMoveCard(_card, "DiscardPile");
         }
     }

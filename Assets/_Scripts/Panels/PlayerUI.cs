@@ -8,9 +8,17 @@ public class PlayerUI : MonoBehaviour
 {
     private TurnManager turnManager;
     public bool isMine = false;
+
+    [Header("Player Stats")]
     public TMP_Text playerName;
     public TMP_Text playerScore;
     public TMP_Text playerHealth;
+
+    [Header("Turn Stats")]
+    public TMP_Text turnCash;
+    public TMP_Text turnBuys;
+    public TMP_Text turnRecruits;
+
     public Button readyButton;
 
     private void Start() {
@@ -31,7 +39,29 @@ public class PlayerUI : MonoBehaviour
         playerScore.text = currentScore.ToString();
     }
 
-    public void OnReadyButtonPressed(){
-
+    public void UpdateCash(int cashDelta)
+    {
+        int currentCash = int.Parse(turnCash.text);
+        currentCash += cashDelta;
+        turnCash.text = currentCash.ToString();
     }
+
+    public void UpdateBuys(int buysDelta)
+    {
+        int currentBuys = int.Parse(turnBuys.text);
+        currentBuys += buysDelta;
+        turnBuys.text = currentBuys.ToString();
+    }
+
+    public void UpdateRecruits(int recruitsDelta)
+    {
+        int currentRecruits = int.Parse(turnRecruits.text);
+        currentRecruits += recruitsDelta;
+        turnRecruits.text = currentRecruits.ToString();
+    }
+    
+
+    // public void OnReadyButtonPressed(){
+
+    // }
 }

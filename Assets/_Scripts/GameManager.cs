@@ -48,7 +48,9 @@ public class GameManager : NetworkBehaviour
         turnManager = TurnManager.Instance;
 
         KingdomSetup();
-        PlayerStart();        
+        PlayerSetup();
+
+        turnManager.UpdateTurnState(TurnState.PhaseSelection);
     }
 
     private void KingdomSetup(){
@@ -68,7 +70,7 @@ public class GameManager : NetworkBehaviour
         _kingdom.SetKingdomCards(_kingdomCards);
     }
 
-    private void PlayerStart(){
+    private void PlayerSetup(){
         players.Clear();
         players.AddRange(FindObjectsOfType<PlayerManager>());
 
@@ -80,7 +82,6 @@ public class GameManager : NetworkBehaviour
         }
 
         PlayersDrawInitialHands();
-        turnManager.UpdateTurnState(TurnState.PhaseSelection);
     }
 
     private void SpawnPlayerDeck(PlayerManager player){
@@ -97,7 +98,7 @@ public class GameManager : NetworkBehaviour
         }
     }
 
-    private void SpawnCard(ScriptableCard card, PlayerManager player){
+    private void SpawnCard(ScriptableCard _scriptableCard, PlayerManager player){
 
         GameObject cardObject = Instantiate(_cardPrefab);
         string instanceID = cardObject.GetInstanceID().ToString();
@@ -105,7 +106,7 @@ public class GameManager : NetworkBehaviour
         NetworkServer.Spawn(cardObject, connectionToClient);
         cardObject.GetComponent<NetworkIdentity>().AssignClientAuthority(player.GetComponent<NetworkIdentity>().connectionToClient);
 
-        CardInfo cardInfo = new CardInfo(card, instanceID);
+        CardInfo cardInfo = new CardInfo(_scriptableCard, instanceID);
         player.cards.deck.Add(cardInfo);
         cardObject.GetComponent<CardUI>().RpcSetCardUI(cardInfo);
 
