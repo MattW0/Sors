@@ -34,6 +34,8 @@ public class CardMover : MonoBehaviour
         case "DrawPile":
             if (hasAuthority) gameObject.transform.SetParent(playerDrawPile, false);
             else gameObject.transform.SetParent(opponentDrawPile, false);
+
+            gameObject.GetComponent<CardUI>().CardBackUp();
             break;
         case "Hand":
             if (hasAuthority) {

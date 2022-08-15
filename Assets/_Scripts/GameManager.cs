@@ -6,6 +6,7 @@ using Mirror;
 public class GameManager : NetworkBehaviour
 {
     public bool debug = false;
+
     public static GameManager Instance { get; private set; }
     private TurnManager turnManager;
     private Kingdom _kingdom;
@@ -33,6 +34,15 @@ public class GameManager : NetworkBehaviour
     public ScriptableCard[] creatureCards;
     public ScriptableCard[] moneyCards;
     [SerializeField] private GameObject _cardPrefab;
+
+    // Caching all cards in game
+    private Dictionary<string, CardInfo> _cache = new Dictionary<string, CardInfo>();
+    public Dictionary<string, CardInfo> Cache{ get => _cache; }
+    public CardInfo GetCardInfo(string _goID) { return Cache[_goID]; }
+
+    private Dictionary<string, GameObject> _cacheObjects = new Dictionary<string, GameObject>();
+    public Dictionary<string, GameObject> CacheObjects{ get => _cacheObjects; }
+    public GameObject GetCardObject(string _goID) { return CacheObjects[_goID]; }
 
     public void Awake()
     {
@@ -103,13 +113,16 @@ public class GameManager : NetworkBehaviour
         GameObject cardObject = Instantiate(_cardPrefab);
         string instanceID = cardObject.GetInstanceID().ToString();
         cardObject.name = instanceID;
+        _cacheObjects.Add(instanceID, cardObject);
+
         NetworkServer.Spawn(cardObject, connectionToClient);
         cardObject.GetComponent<NetworkIdentity>().AssignClientAuthority(player.GetComponent<NetworkIdentity>().connectionToClient);
 
         CardInfo cardInfo = new CardInfo(_scriptableCard, instanceID);
+        _cache.Add(instanceID, cardInfo);
+
         player.cards.deck.Add(cardInfo);
         cardObject.GetComponent<CardUI>().RpcSetCardUI(cardInfo);
-
         player.RpcMoveCard(cardObject, "DrawPile");
     }
 
@@ -118,6 +131,11 @@ public class GameManager : NetworkBehaviour
             for (int i = 0; i < initialHandSize; i++) {
                 player.DrawCard();
             }
+
+            // CardInfo card = GetCardInfo(player.cards.hand[0].goID);
+            // print(card.title);
         }
+
+
     }
 }

@@ -7,6 +7,7 @@ public class PlayerManager : NetworkBehaviour
 {
     private bool debug = false;
 
+    private GameManager _gameManager;
     public PlayerManager opponent;
     public CardCollection cards;
     public PlayerUI playerUI;
@@ -27,7 +28,10 @@ public class PlayerManager : NetworkBehaviour
     public override void OnStartClient(){
         base.OnStartClient();
 
-        if (isServer) debug = GameManager.Instance.debug;
+        if (isServer) {
+            _gameManager = GameManager.Instance;
+            debug = _gameManager.debug;
+        }
 
         cards = GetComponent<CardCollection>();
 
@@ -81,23 +85,30 @@ public class PlayerManager : NetworkBehaviour
     #region Cards
 
     public void DrawCard(){
-        if (cards.deck.Count == 0){
-            Debug.Log("Shuffling discard into deck");
 
-            foreach (CardInfo _card in cards.discard){
-                cards.deck.Add(_card);
-                cards.discard.Remove(_card);
-            }
+        if(!isServer) return;
 
-            cards.deck.Shuffle();
-        }
+        if (cards.deck.Count == 0) ShuffleDiscardIntoDeck();
 
         CardInfo card = cards.deck[0];
         cards.deck.RemoveAt(0);
         cards.hand.Add(card);
 
-        GameObject cardObject = GameObject.Find(card.goID);
+        GameObject cardObject = _gameManager.GetCardObject(card.goID);
         RpcMoveCard(cardObject, "Hand");
+    }
+
+    private void ShuffleDiscardIntoDeck(){
+        Debug.Log("Shuffling discard into deck");
+
+        foreach (CardInfo _card in cards.discard){
+            cards.deck.Add(_card);
+            cards.discard.Remove(_card);
+
+            GameObject _cachedCard = _gameManager.GetCardObject(_card.goID);
+            RpcMoveCard(_cachedCard, "DrawPile");
+        }
+        cards.deck.Shuffle();
     }
 
     [TargetRpc]
@@ -135,7 +146,7 @@ public class PlayerManager : NetworkBehaviour
     [ClientRpc]
     private void RpcTurnChanged(TurnState _state)
     {
-        print($"<color=LightSkyBlue>Turn changed to {_state}</color>");
+        // print($"<color=LightSkyBlue>Turn changed to {_state}</color>");
     }
 
     // !!! workarounds to communicate with server !!!
@@ -156,11 +167,11 @@ public class PlayerManager : NetworkBehaviour
         TurnManager.Instance.PlayerSelectedDiscardCards();
 
         foreach(GameObject _card in _cards){
-            // CardInfo _cardInfo = new CardInfo(_card, _card.GetInstanceID().ToString());
+            CardInfo _cardInfo = _gameManager.GetCardInfo(_card.name);
 
-            // CardInfo _cardInfo = _card.GetComponent<CardInfo>();
-            // cards.hand.Remove(_cardInfo);
-            // cards.discard.Add(_cardInfo);
+            cards.hand.Remove(_cardInfo);
+            cards.discard.Add(_cardInfo);
+            print("Discarding card: " + _cardInfo.title);
 
             RpcMoveCard(_card, "DiscardPile");
         }

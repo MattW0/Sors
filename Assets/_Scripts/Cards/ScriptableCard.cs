@@ -19,16 +19,13 @@ public class ScriptableCard : ScriptableObject
     public string title;
     public string description;
 
-    // We can't pass ScriptableCards over the Network, but we can pass uniqueIDs.
-    // Throughout this project, you'll find that I've passed uniqueIDs through the Server,
     static Dictionary<string, ScriptableCard> _cache;
     public static Dictionary<string, ScriptableCard> Cache
     {
-        get
-        {
-            if (_cache == null)
-            {
+        get {
+            if (_cache == null) {
                 // Load all ScriptableCards from our Resources folder
+                Debug.Log("Caching cards");
                 ScriptableCard[] cards = Resources.LoadAll<ScriptableCard>("CreatureCards/");
                 _cache = cards.ToDictionary(card => card.hash, card => card);
             }
