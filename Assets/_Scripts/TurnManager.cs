@@ -125,10 +125,10 @@ public class TurnManager : NetworkBehaviour
         _discardPanel = Instantiate(_discardPanelPrefab, transform);
         NetworkServer.Spawn(_discardPanel, connectionToClient);
 
-        foreach (PlayerManager player in gameManager.players) {
-            NetworkIdentity nwIdentity = player.gameObject.GetComponent<NetworkIdentity>();
-            player.TargetDiscardCards(nwIdentity.connectionToClient, gameManager.nbDiscard);
-        }
+        // foreach (PlayerManager player in gameManager.players) {
+        //     NetworkIdentity nwIdentity = player.gameObject.GetComponent<NetworkIdentity>();
+        //     player.TargetDiscardCards(nwIdentity.connectionToClient, gameManager.nbDiscard);
+        // }
     }
 
     public void PlayerSelectedDiscardCards(){
@@ -158,9 +158,7 @@ public class TurnManager : NetworkBehaviour
             int _nbCardDraw = gameManager.nbCardDraw;
             if (player.playerChosenPhases.Contains(Phase.DrawI)) _nbCardDraw++;
 
-            for (int i = 0; i < _nbCardDraw; i++) {
-                player.DrawCard();
-            }
+            player.DrawCards(_nbCardDraw);
         }
 
         UpdateTurnState(TurnState.Discard);

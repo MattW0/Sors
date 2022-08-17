@@ -124,6 +124,7 @@ GameObject:
   - component: {fileID: 2546293214925874029}
   - component: {fileID: 1171311618380169462}
   - component: {fileID: 8744985108043541094}
+  - component: {fileID: 7477867523131402618}
   m_Layer: 5
   m_Name: CardPile
   m_TagString: Untagged
@@ -209,6 +210,20 @@ MonoBehaviour:
   visible: 0
   m_AssetId: 72531475a516bbe408f7384a7d9c7f40
   hasSpawned: 0
+--- !u!114 &7477867523131402618
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8157005274257590275}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f93128493015a93448d6b5f90185c5d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _cardNumber: {fileID: 4962108264652391413}
+  _cardHolder: {fileID: 898913995657158588}
 --- !u!1 &8212867843409503398
 GameObject:
   m_ObjectHideFlags: 0

@@ -6,6 +6,7 @@ using Mirror;
 public class GameManager : NetworkBehaviour
 {
     public bool debug = false;
+    public bool animations = false;
 
     public static GameManager Instance { get; private set; }
     private TurnManager turnManager;
@@ -128,14 +129,7 @@ public class GameManager : NetworkBehaviour
 
     private void PlayersDrawInitialHands(){
         foreach (PlayerManager player in players) {
-            for (int i = 0; i < initialHandSize; i++) {
-                player.DrawCard();
-            }
-
-            // CardInfo card = GetCardInfo(player.cards.hand[0].goID);
-            // print(card.title);
+            player.DrawCards(initialHandSize);
         }
-
-
     }
 }

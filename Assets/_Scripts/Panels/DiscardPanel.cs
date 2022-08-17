@@ -57,4 +57,8 @@ public class DiscardPanel : NetworkBehaviour
         PlayerManager p = networkIdentity.GetComponent<PlayerManager>();
         p.CmdDiscardSelection(_selectedCardsList);
     }
+
+    public void OnDestroy() {
+        Instance = null;
+    }
 }

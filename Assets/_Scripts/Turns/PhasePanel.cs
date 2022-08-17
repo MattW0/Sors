@@ -14,8 +14,8 @@ public class PhasePanel : NetworkBehaviour
     [Header("Turn screen")]
     [SerializeField] private TMP_Text _turnText;
     [SerializeField] private GameObject overlayObject;
-    [SerializeField] private int turnScreenWaitTime = 1;
-    [SerializeField] private float turnScreenFadeTime = 0.5f;
+    [SerializeField] private int _turnScreenWaitTime = 1;
+    [SerializeField] private float _turnScreenFadeTime = 0.5f;
 
     private int _nbActive;
     public bool disableSelection;
@@ -31,6 +31,10 @@ public class PhasePanel : NetworkBehaviour
 
     private void Start() {
         _turnText.text = $"Turn {GameManager.Instance.turnNb}";
+        if(!GameManager.Instance.animations) {
+            _turnScreenWaitTime = 0;
+            _turnScreenFadeTime = 0f;
+        }
         StartCoroutine(WaitAndFade());
     }
 
@@ -40,12 +44,12 @@ public class PhasePanel : NetworkBehaviour
         Image _sprite = overlayObject.transform.GetChild(0).GetComponent<Image>();
 
         // Wait and fade
-        yield return new WaitForSeconds(turnScreenWaitTime);
-        _sprite.CrossFadeAlpha(0f, turnScreenFadeTime, false);
-        _turnText.CrossFadeAlpha(0f, turnScreenFadeTime, false);
+        yield return new WaitForSeconds(_turnScreenWaitTime);
+        _sprite.CrossFadeAlpha(0f, _turnScreenFadeTime, false);
+        _turnText.CrossFadeAlpha(0f, _turnScreenFadeTime, false);
 
         // Wait and disable
-        yield return new WaitForSeconds(turnScreenFadeTime);
+        yield return new WaitForSeconds(_turnScreenFadeTime);
         overlayObject.SetActive(false);
     }
 

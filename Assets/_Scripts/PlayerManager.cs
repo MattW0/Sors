@@ -84,30 +84,39 @@ public class PlayerManager : NetworkBehaviour
 
     #region Cards
 
-    public void DrawCard(){
+    public void DrawCards(int _amount){
 
         if(!isServer) return;
 
         if (cards.deck.Count == 0) ShuffleDiscardIntoDeck();
 
-        CardInfo card = cards.deck[0];
-        cards.deck.RemoveAt(0);
-        cards.hand.Add(card);
+        for (int i = 0; i < _amount; i++){
+            CardInfo card = cards.deck[0];
+            cards.deck.RemoveAt(0);
+            cards.hand.Add(card);
 
-        GameObject cardObject = _gameManager.GetCardObject(card.goID);
-        RpcMoveCard(cardObject, "Hand");
+            GameObject cardObject = _gameManager.GetCardObject(card.goID);
+            RpcMoveCard(cardObject, "Hand");
+        }
     }
 
     private void ShuffleDiscardIntoDeck(){
         Debug.Log("Shuffling discard into deck");
 
+        List<CardInfo> temp = new List<CardInfo>();
         foreach (CardInfo _card in cards.discard){
+            temp.Add(_card);
             cards.deck.Add(_card);
-            cards.discard.Remove(_card);
 
             GameObject _cachedCard = _gameManager.GetCardObject(_card.goID);
             RpcMoveCard(_cachedCard, "DrawPile");
+
         }
+
+        foreach (CardInfo _card in temp){
+            cards.discard.Remove(_card);
+        }
+
         cards.deck.Shuffle();
     }
 
