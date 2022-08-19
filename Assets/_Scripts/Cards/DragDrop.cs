@@ -1,29 +1,32 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using Mirror;
+using DG.Tweening;
 
-public class DragDrop : NetworkBehaviour
-{
+public class DragDrop : NetworkBehaviour, IBeginDragHandler, IEndDragHandler, IDragHandler {
     // public Player p;
-    private GameObject board;
-    private GameObject startParent;
-    private GameObject dropZone;
+    private GameObject _board;
+    private GameObject _startParent;
 
-    private Vector2 startPosition;
+    private Vector2 _startPosition;
+    private Vector2 _dragOffset;
+    private RectTransform _rectTransform;
+    private CanvasGroup _canvasGroup;
 
-    public float returnDuration = 0.9f;
+    public float returnDuration = 0.6f;
     public float timeStartReturn = 0f;
 
     [Header("Permissions")]
     [SerializeField] private bool isDraggable = false;
-    private bool isOverDropZone = false;
-    public bool isDragging = false;
-    private bool isReturning = false;
+    [SerializeField] private bool isOverDropZone = false;
 
-    private void Start()
+    private void Awake()
     {
-        board = GameObject.Find("PlayBoard");
+        _board = GameObject.Find("PlayBoard");
+        _rectTransform = GetComponent<RectTransform>();
+        _canvasGroup = GetComponent<CanvasGroup>();
     }
 
     public void ChangeDragPermission(bool draggable)
@@ -31,69 +34,46 @@ public class DragDrop : NetworkBehaviour
         isDraggable = draggable;
     }
 
-    void Update()
-    {
-        if(!hasAuthority) return;
+    public void OnBeginDrag(PointerEventData eventData){
+        if (!isDraggable || !hasAuthority) return;
 
-        if (isDragging) {
-            transform.position = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
-            transform.SetParent(board.transform, true);
-        }
+        _startParent = transform.parent.gameObject;
+        _startPosition = transform.position;
+        _dragOffset = (Vector2)transform.position - eventData.position;
+        _canvasGroup.blocksRaycasts = false;
+        _canvasGroup.alpha = 0.7f;
 
-        // Return card to original position
-        else if (isReturning) {
-            transform.position = Vector2.Lerp(transform.position, startPosition, timeStartReturn);
-            timeStartReturn += Time.deltaTime;
-
-            // If position is close enough to startPosition, then stop
-            if (Vector2.Distance(transform.position, startPosition) < 0.1f) {
-                transform.position = startPosition;
-                transform.SetParent(startParent.transform, true);
-                isReturning = false;
-            }
-        }
+        transform.SetParent(_board.transform, true);
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        isOverDropZone = true;
-        dropZone = collision.gameObject;
+    public void OnDrag(PointerEventData eventData){
+        if (!isDraggable || !hasAuthority) return;
+
+        _rectTransform.position = eventData.position + _dragOffset;
     }
 
-    private void OnCollisionExit2D(Collision2D collision)
-    {
-        isOverDropZone = false;
-        dropZone = null;
-    }
-
-    public void StartDrag()
-    {
-        print("Starting drag with isDraggable: " + isDraggable);
-        if (!isDraggable) return;
-        if (isReturning) return;
-        // if ()
-
-        isDragging = true;
-        startParent = transform.parent.gameObject;
-        startPosition = transform.position;
-        // Debug.Log("StartDrag:"+startPosition.ToString());
-    }
-
-    public void EndDrag()
-    {
-        if (!isDraggable) return;
-
-        isDragging = false;
+    public void OnEndDrag(PointerEventData eventData){
+        if (!isDraggable || !hasAuthority) return;
 
         if (isOverDropZone) {
-            // transform.SetParent(dropZone.transform, false);
-            isDraggable = false;
+            _canvasGroup.alpha = 1f;
+            
             NetworkIdentity networkIdentity = NetworkClient.connection.identity;
             PlayerManager p = networkIdentity.GetComponent<PlayerManager>();
             p.PlayCard(gameObject);
-        } else {
-            isReturning = true;
-            timeStartReturn = 0f;
+
+            return;
         }
+
+        // If not over dropzone, return to start position
+        transform.DOMove(_startPosition, returnDuration).OnComplete(() => {
+            transform.SetParent(_startParent.transform, true);
+            _canvasGroup.blocksRaycasts = true;
+            _canvasGroup.alpha = 1f;
+        });
     }
+
+    // For detection if card is over dropzone
+    private void OnCollisionEnter2D(Collision2D collision) => isOverDropZone = true;
+    private void OnCollisionExit2D(Collision2D collision) => isOverDropZone = false;
 }

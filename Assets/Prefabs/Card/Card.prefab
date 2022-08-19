@@ -462,6 +462,7 @@ GameObject:
   - component: {fileID: -4575455535364612694}
   - component: {fileID: -2482358407959743578}
   - component: {fileID: 3215327794571095695}
+  - component: {fileID: 5155140612128770232}
   m_Layer: 6
   m_Name: Card
   m_TagString: Untagged
@@ -577,38 +578,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Delegates:
-  - eventID: 13
-    callback:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 3424864328992555256}
-          m_TargetAssemblyTypeName: DragDrop, Assembly-CSharp
-          m_MethodName: StartDrag
-          m_Mode: 1
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
-  - eventID: 14
-    callback:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 3424864328992555256}
-          m_TargetAssemblyTypeName: DragDrop, Assembly-CSharp
-          m_MethodName: EndDrag
-          m_Mode: 1
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
   - eventID: 2
     callback:
       m_PersistentCalls:
@@ -655,8 +624,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6bda0c327d5b5f44aacbb1705ae66425, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  syncMode: 0
-  syncInterval: 0.1
   _title: {fileID: 7196564867689549168}
   _description: {fileID: 411265824569140634}
   _cost: {fileID: 1414057181683225692}
@@ -720,6 +687,18 @@ MonoBehaviour:
     attack: 0
     health: 0
     goID: 
+--- !u!225 &5155140612128770232
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5450374274839420802}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &5650112559521258811
 GameObject:
   m_ObjectHideFlags: 0

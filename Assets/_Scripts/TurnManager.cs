@@ -121,31 +121,6 @@ public class TurnManager : NetworkBehaviour
         UpdateTurnState(TurnState.NextPhase);
     }
 
-    private void Discard() {
-
-        playersReady = 0;
-
-        _discardPanel = Instantiate(_discardPanelPrefab, transform);
-        NetworkServer.Spawn(_discardPanel, connectionToClient);
-
-        // foreach (PlayerManager player in gameManager.players) {
-        //     NetworkIdentity nwIdentity = player.gameObject.GetComponent<NetworkIdentity>();
-        //     player.TargetDiscardCards(nwIdentity.connectionToClient, gameManager.nbDiscard);
-        // }
-    }
-
-    public void PlayerSelectedDiscardCards(){
-        playersReady++;
-        if (!(playersReady == gameManager.players.Count)) return ;
-
-        foreach (PlayerManager player in gameManager.players) {
-            player.RpcDiscardSelection();
-        }
-
-        NetworkServer.Destroy(_discardPanel);
-        UpdateTurnState(TurnState.NextPhase);
-    }
-
     private void NextPhase(){
         
         if (chosenPhases.Count == 0) {
@@ -169,6 +144,30 @@ public class TurnManager : NetworkBehaviour
         }
 
         UpdateTurnState(TurnState.Discard);
+    }
+
+    private void Discard() {
+
+        playersReady = 0;
+        _discardPanel = Instantiate(_discardPanelPrefab, transform);
+        NetworkServer.Spawn(_discardPanel, connectionToClient);
+
+        // foreach (PlayerManager player in gameManager.players) {
+        //     NetworkIdentity nwIdentity = player.gameObject.GetComponent<NetworkIdentity>();
+        //     player.TargetDiscardCards(nwIdentity.connectionToClient, gameManager.nbDiscard);
+        // }
+    }
+
+    public void PlayerSelectedDiscardCards(){
+        playersReady++;
+        if (!(playersReady == gameManager.players.Count)) return ;
+
+        foreach (PlayerManager player in gameManager.players) {
+            player.RpcDiscardSelection();
+        }
+
+        NetworkServer.Destroy(_discardPanel);
+        UpdateTurnState(TurnState.NextPhase);
     }
 
     private void Recruit(){

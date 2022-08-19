@@ -23,7 +23,9 @@ public class Discard : NetworkBehaviour
     }
 
     public void OnDiscardClick(){
-        if (!hasAuthority || !_discardPanel) return;
+        // Return if it's not discard phase or card is not in hand
+        if (!_discardPanel) return;
+        if (!(gameObject.transform.parent.name == "PlayerHand")) return; // Kinda ugly, might need to change
 
         if (_isSelected) {
             _isSelected = false;
