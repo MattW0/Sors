@@ -184,7 +184,7 @@ public class PlayerManager : NetworkBehaviour
     [ClientRpc]
     public void RpcDiscardSelection(){
         foreach(GameObject _card in _discardSelection){
-            CardInfo _cardInfo = _gameManager.GetCardInfo(_card.name);
+            CardInfo _cardInfo = _card.GetComponent<CardStats>().cardInfo;
 
             cards.hand.Remove(_cardInfo);
             cards.discard.Add(_cardInfo);

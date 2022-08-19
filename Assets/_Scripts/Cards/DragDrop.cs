@@ -39,6 +39,7 @@ public class DragDrop : NetworkBehaviour
             transform.position = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
             transform.SetParent(board.transform, true);
         }
+
         // Return card to original position
         else if (isReturning) {
             transform.position = Vector2.Lerp(transform.position, startPosition, timeStartReturn);
@@ -67,8 +68,10 @@ public class DragDrop : NetworkBehaviour
 
     public void StartDrag()
     {
+        print("Starting drag with isDraggable: " + isDraggable);
         if (!isDraggable) return;
         if (isReturning) return;
+        // if ()
 
         isDragging = true;
         startParent = transform.parent.gameObject;

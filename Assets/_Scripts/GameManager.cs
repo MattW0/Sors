@@ -36,14 +36,10 @@ public class GameManager : NetworkBehaviour
     public ScriptableCard[] moneyCards;
     [SerializeField] private GameObject _cardPrefab;
 
-    // Caching all cards in game
-    private Dictionary<string, CardInfo> _cache = new Dictionary<string, CardInfo>();
-    public Dictionary<string, CardInfo> Cache{ get => _cache; }
-    public CardInfo GetCardInfo(string _goID) { return Cache[_goID]; }
-
-    private Dictionary<string, GameObject> _cacheObjects = new Dictionary<string, GameObject>();
-    public Dictionary<string, GameObject> CacheObjects{ get => _cacheObjects; }
-    public GameObject GetCardObject(string _goID) { return CacheObjects[_goID]; }
+    // Caching all gameObjects of cards in game
+    private Dictionary<string, GameObject> _cache = new Dictionary<string, GameObject>();
+    public Dictionary<string, GameObject> Cache{ get => _cache; }
+    public GameObject GetCardObject(string _goID) { return Cache[_goID]; }
 
     public void Awake()
     {
@@ -101,9 +97,9 @@ public class GameManager : NetworkBehaviour
             ScriptableCard card = moneyCards[0];
             SpawnCard(card, player);
         }
-        // Creatures (special)
+
+        // Other start cards
         for (int i = 0; i < nbCreatures; i++){
-            // ScriptableCard card = creatureCards[Random.Range(0, creatureCards.Length)];
             ScriptableCard card = startCards[i];
             SpawnCard(card, player);
         }
@@ -114,16 +110,14 @@ public class GameManager : NetworkBehaviour
         GameObject cardObject = Instantiate(_cardPrefab);
         string instanceID = cardObject.GetInstanceID().ToString();
         cardObject.name = instanceID;
-        _cacheObjects.Add(instanceID, cardObject);
+        _cache.Add(instanceID, cardObject);
 
         NetworkServer.Spawn(cardObject, connectionToClient);
         cardObject.GetComponent<NetworkIdentity>().AssignClientAuthority(player.GetComponent<NetworkIdentity>().connectionToClient);
 
-        CardInfo cardInfo = new CardInfo(_scriptableCard, instanceID);
-        _cache.Add(instanceID, cardInfo);
-
+        CardInfo cardInfo = new CardInfo(_scriptableCard, instanceID);        
+        cardObject.GetComponent<CardStats>().RpcSetCardStats(cardInfo);
         player.cards.deck.Add(cardInfo);
-        cardObject.GetComponent<CardUI>().RpcSetCardUI(cardInfo);
         player.RpcMoveCard(cardObject, "DrawPile");
     }
 

@@ -1,19 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Mirror;
 using UnityEngine.UI;
 using TMPro;
 
-public class CardUI : NetworkBehaviour {
+public class CardUI : MonoBehaviour {
 
-    public TMP_Text title;
-    public TMP_Text description;
-    public TMP_Text cost;
-    public TMP_Text attack;
-    public TMP_Text health;
-    public Image image;
-    public Image highlight;
+    [SerializeField] private TMP_Text _title;
+    [SerializeField] private TMP_Text _description;
+    [SerializeField] private TMP_Text _cost;
+    [SerializeField] private TMP_Text _attack;
+    [SerializeField] private TMP_Text _health;
+    [SerializeField] private Image _image;
+    [SerializeField] private Image _highlight;
 
     private GameObject _front;
     private GameObject _back;
@@ -23,17 +22,15 @@ public class CardUI : NetworkBehaviour {
         _back = gameObject.transform.Find("CardBack").gameObject;
     }
 
-    [ClientRpc]
-    public void RpcSetCardUI(CardInfo cardInfo)
-    {
-        title.text = cardInfo.title;
-        cost.text = cardInfo.cost.ToString();
+    public void SetCardUI(CardInfo cardInfo){
+        _title.text = cardInfo.title;
+        _cost.text = cardInfo.cost.ToString();
         
         if (cardInfo.isCreature){
             gameObject.transform.Find("CardFront/Special").gameObject.SetActive(true);
-            description.text = cardInfo.hash;
-            attack.text = cardInfo.attack.ToString();
-            health.text = cardInfo.health.ToString();
+            _description.text = cardInfo.hash;
+            _attack.text = cardInfo.attack.ToString();
+            _health.text = cardInfo.health.ToString();
         } else {
             gameObject.transform.Find("CardFront").GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/Copper");
         }
@@ -52,6 +49,6 @@ public class CardUI : NetworkBehaviour {
     }
 
     public void Highlight(bool active){
-        highlight.enabled = active;
+        _highlight.enabled = active;
     }
 }

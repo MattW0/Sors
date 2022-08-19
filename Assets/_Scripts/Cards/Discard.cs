@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using Mirror;
 
 public class Discard : NetworkBehaviour
@@ -10,12 +9,12 @@ public class Discard : NetworkBehaviour
 
     private bool _isSelected;
     private Vector2 _startPosition;
-    private Image _highlight;
+    private CardUI _cardUI;
 
     private void Awake()
     {
         DiscardPanel.OnDiscardPhaseStarted += StartDiscardPhase;
-        _highlight = gameObject.transform.GetChild(0).GetComponent<Image>();
+        _cardUI = gameObject.GetComponent<CardUI>();
     }
 
     private void StartDiscardPhase(){
@@ -28,14 +27,14 @@ public class Discard : NetworkBehaviour
 
         if (_isSelected) {
             _isSelected = false;
-            _highlight.enabled = false;
+            _cardUI.Highlight(false);
             transform.position = _startPosition;
             _discardPanel.CardToDiscardSelected(gameObject, false);
             return;
         }
 
         _isSelected = true;
-        _highlight.enabled = true;
+        _cardUI.Highlight(true);
         _startPosition = transform.position;
         transform.position = _startPosition + Vector2.up * 10;
         _discardPanel.CardToDiscardSelected(gameObject, true);

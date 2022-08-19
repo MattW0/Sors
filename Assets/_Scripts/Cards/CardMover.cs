@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class CardMover : MonoBehaviour
 {
@@ -16,7 +15,7 @@ public class CardMover : MonoBehaviour
     [SerializeField] private Transform opponentDrawPile;
     [SerializeField] private Transform opponentDiscardPile;
 
-    private Image _highlight;
+    private CardUI _cardUI;
 
     private void Awake(){
         playerDrawPile = GameObject.Find("PlayerDrawPile").transform.GetChild(0);
@@ -28,7 +27,7 @@ public class CardMover : MonoBehaviour
         playerDiscardPile = GameObject.Find("PlayerDiscardPile").transform.GetChild(0);
         opponentDiscardPile = GameObject.Find("OpponentDiscardPile").transform.GetChild(0);
 
-        _highlight = gameObject.transform.GetChild(0).GetComponent<Image>();
+        _cardUI = gameObject.GetComponent<CardUI>();
     }
 
     public void MoveToDestination(bool hasAuthority, string destination){
@@ -46,7 +45,7 @@ public class CardMover : MonoBehaviour
             if (hasAuthority) {
                 gameObject.transform.SetParent(playerHand, false);
                 gameObject.GetComponent<CardUI>().CardFrontUp();
-                // card.GetComponent<DragDrop>().ChangeDragPermission(true);
+                gameObject.GetComponent<DragDrop>().ChangeDragPermission(true);
             }
             else gameObject.transform.SetParent(opponentHand, false);
             break;
@@ -67,6 +66,6 @@ public class CardMover : MonoBehaviour
             break;
         }
 
-        _highlight.enabled = false;
+        _cardUI.Highlight(false);
     }
 }
