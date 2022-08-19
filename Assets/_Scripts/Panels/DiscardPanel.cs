@@ -19,7 +19,7 @@ public class DiscardPanel : NetworkBehaviour
     public TMP_Text displayText;
     public GameObject waitingText;
 
-    private List<GameObject> _selectedCardsList;
+    [SerializeField] private List<GameObject> _selectedCardsList;
     
     private void Awake() {
         if (Instance == null) Instance = this;
@@ -60,5 +60,6 @@ public class DiscardPanel : NetworkBehaviour
 
     public void OnDestroy() {
         Instance = null;
+        _selectedCardsList.Clear();
     }
 }

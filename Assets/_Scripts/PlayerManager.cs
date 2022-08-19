@@ -23,6 +23,7 @@ public class PlayerManager : NetworkBehaviour
     public int Cash { get => _cash; set => _cash = value; }
     // [SyncVar] private int _cash;
     // [SyncVar] private int _cash;
+    private List<GameObject> _discardSelection = new List<GameObject>();
 
     #region GameSetup
     public override void OnStartClient(){
@@ -88,9 +89,13 @@ public class PlayerManager : NetworkBehaviour
 
         if(!isServer) return;
 
-        if (cards.deck.Count == 0) ShuffleDiscardIntoDeck();
+        while (_amount > cards.deck.Count + cards.discard.Count){
+            _amount--;
+        } 
 
         for (int i = 0; i < _amount; i++){
+            if (cards.deck.Count == 0) ShuffleDiscardIntoDeck();
+
             CardInfo card = cards.deck[0];
             cards.deck.RemoveAt(0);
             cards.hand.Add(card);
@@ -138,7 +143,7 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Command]
-    public void CmdMoveCard(GameObject card, string destination){
+    private void CmdMoveCard(GameObject card, string destination){
         RpcMoveCard(card, destination);
     }
 
@@ -172,18 +177,23 @@ public class PlayerManager : NetworkBehaviour
 
     [Command]
     public void CmdDiscardSelection(List<GameObject> _cards){
-
+        _discardSelection = _cards;
         TurnManager.Instance.PlayerSelectedDiscardCards();
+    }
 
-        foreach(GameObject _card in _cards){
+    [ClientRpc]
+    public void RpcDiscardSelection(){
+        foreach(GameObject _card in _discardSelection){
             CardInfo _cardInfo = _gameManager.GetCardInfo(_card.name);
 
             cards.hand.Remove(_cardInfo);
             cards.discard.Add(_cardInfo);
-            print("Discarding card: " + _cardInfo.title);
+            // print("Discarding card: " + _cardInfo.title);
 
             RpcMoveCard(_card, "DiscardPile");
         }
+
+        _discardSelection.Clear();
     }
 
     #endregion TurnActions

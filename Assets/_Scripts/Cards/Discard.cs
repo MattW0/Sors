@@ -17,6 +17,7 @@ public class Discard : NetworkBehaviour
 
     private void StartDiscardPhase(){
         _discardPanel = DiscardPanel.Instance;
+        _isSelected = false;
     }
 
     public void OnDiscardClick(){

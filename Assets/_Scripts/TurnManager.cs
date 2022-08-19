@@ -21,6 +21,9 @@ public class TurnManager : NetworkBehaviour
     [SerializeField] private GameObject _discardPanelPrefab;
     private GameObject _discardPanel;
 
+    // public static event Action OnCardPileNumberChanged;
+
+
     void Awake() {
         if (Instance == null) Instance = this;
     }
@@ -134,6 +137,10 @@ public class TurnManager : NetworkBehaviour
     public void PlayerSelectedDiscardCards(){
         playersReady++;
         if (!(playersReady == gameManager.players.Count)) return ;
+
+        foreach (PlayerManager player in gameManager.players) {
+            player.RpcDiscardSelection();
+        }
 
         NetworkServer.Destroy(_discardPanel);
         UpdateTurnState(TurnState.NextPhase);

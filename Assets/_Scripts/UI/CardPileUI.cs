@@ -8,8 +8,18 @@ public class CardPileUI : MonoBehaviour
     [SerializeField] private TMP_Text _cardNumber;
     [SerializeField] private Transform _cardHolder;
 
-    // Should use event to only fire when card pile changes
+    // private void Awake()
+    // {
+    //     TurnManager.OnCardPileNumberChanged += UpdateCardPileNumber;
+    // }
+
+    // Should use event to only fire when card pile changes, i think?
     private void Update(){
+        // print("Updating Card Pile Number");
         _cardNumber.text = _cardHolder.childCount.ToString();
     }
+
+    // private void Destroy(){
+    //     TurnManager.OnCardPileNumberChanged -= UpdateCardPileNumber;
+    // }
 }
