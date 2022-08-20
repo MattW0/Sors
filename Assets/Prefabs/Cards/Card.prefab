@@ -457,12 +457,12 @@ GameObject:
   - component: {fileID: 6084506861975650639}
   - component: {fileID: 2856754972007163730}
   - component: {fileID: 7173413632668903558}
+  - component: {fileID: 5155140612128770232}
   - component: {fileID: 3424864328992555256}
   - component: {fileID: 1662656646801267718}
   - component: {fileID: -4575455535364612694}
   - component: {fileID: -2482358407959743578}
   - component: {fileID: 3215327794571095695}
-  - component: {fileID: 5155140612128770232}
   m_Layer: 6
   m_Name: Card
   m_TagString: Untagged
@@ -594,6 +594,18 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
+--- !u!225 &5155140612128770232
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5450374274839420802}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!114 &3424864328992555256
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -611,7 +623,7 @@ MonoBehaviour:
   returnDuration: 0.9
   timeStartReturn: 0
   isDraggable: 0
-  isDragging: 0
+  isOverDropZone: 0
 --- !u!114 &1662656646801267718
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -645,6 +657,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
+  _cards: {fileID: 0}
 --- !u!114 &-2482358407959743578
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -687,18 +700,7 @@ MonoBehaviour:
     attack: 0
     health: 0
     goID: 
---- !u!225 &5155140612128770232
-CanvasGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5450374274839420802}
-  m_Enabled: 1
-  m_Alpha: 1
-  m_Interactable: 1
-  m_BlocksRaycasts: 1
-  m_IgnoreParentGroups: 0
+  isInteractable: 0
 --- !u!1 &5650112559521258811
 GameObject:
   m_ObjectHideFlags: 0

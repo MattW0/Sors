@@ -6,12 +6,17 @@ using Mirror;
 
 public class CardStats : NetworkBehaviour
 {
+    public PlayerManager owner;
     public CardInfo cardInfo;
     public bool isInteractable;
+
     private CardUI _cardUI;
 
     private void Awake()
     {
+        NetworkIdentity networkIdentity = NetworkClient.connection.identity;
+        owner = networkIdentity.GetComponent<PlayerManager>();
+        
         _cardUI = gameObject.GetComponent<CardUI>();
     }
 

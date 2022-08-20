@@ -35,6 +35,7 @@ public class GameManager : NetworkBehaviour
     public ScriptableCard[] creatureCards;
     public ScriptableCard[] moneyCards;
     [SerializeField] private GameObject _cardPrefab;
+    [SerializeField] private GameObject _moneyCardPrefab;
 
     // Caching all gameObjects of cards in game
     private Dictionary<string, GameObject> _cache = new Dictionary<string, GameObject>();
@@ -83,7 +84,8 @@ public class GameManager : NetworkBehaviour
 
         foreach (PlayerManager player in players)
         {   
-            player.RpcSetUI(startHealth, startScore);
+            player.RpcFindOpponent(debug);
+            player.RpcSetPlayerStats(startHealth, startScore);
             SpawnPlayerDeck(player);
             player.cards.deck.Shuffle();
         }
@@ -95,19 +97,20 @@ public class GameManager : NetworkBehaviour
         // Coppers
         for (int i = 0; i < initialDeckSize - nbCreatures; i++){
             ScriptableCard card = moneyCards[0];
-            SpawnCard(card, player);
+            GameObject cardObject = Instantiate(_moneyCardPrefab);
+            SpawnAndCacheCard(cardObject, card, player);
         }
 
         // Other start cards
         for (int i = 0; i < nbCreatures; i++){
             ScriptableCard card = startCards[i];
-            SpawnCard(card, player);
+            GameObject cardObject = Instantiate(_cardPrefab);
+            SpawnAndCacheCard(cardObject, card, player);
         }
     }
 
-    private void SpawnCard(ScriptableCard _scriptableCard, PlayerManager player){
+    private void SpawnAndCacheCard(GameObject cardObject, ScriptableCard _scriptableCard, PlayerManager player){
 
-        GameObject cardObject = Instantiate(_cardPrefab);
         string instanceID = cardObject.GetInstanceID().ToString();
         cardObject.name = instanceID;
         _cache.Add(instanceID, cardObject);

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
 
-public class Discard : NetworkBehaviour
+public class Discard : MonoBehaviour
 {
     private DiscardPanel _discardPanel;
 

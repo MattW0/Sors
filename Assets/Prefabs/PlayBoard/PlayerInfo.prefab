@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 553638061619316539}
   - component: {fileID: 538250954320120357}
   m_Layer: 5
-  m_Name: Buys
+  m_Name: Deploys
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -67,7 +67,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Buys
+  m_text: Deploys
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1352,8 +1352,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -105, y: -85}
-  m_SizeDelta: {x: 160, y: 50}
+  m_AnchoredPosition: {x: 130, y: 85}
+  m_SizeDelta: {x: 120, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3819743975842108166
 CanvasRenderer:
@@ -1693,15 +1693,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 5865940209055497767}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4c26ede82151485438f4bef7e80d0371, type: 3}
+  m_Script: {fileID: 11500000, guid: d16f8bba207473648962f0a9b16eff69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   isMine: 0
   playerName: {fileID: 8516886225344650896}
-  playerScore: {fileID: 2714114646449606114}
   playerHealth: {fileID: 194311310569817791}
+  playerScore: {fileID: 2714114646449606114}
   turnCash: {fileID: 3413060714198459550}
-  turnBuys: {fileID: 3555446264363947780}
+  turnDeploys: {fileID: 3555446264363947780}
   turnRecruits: {fileID: 5393797785439270405}
   readyButton: {fileID: 5800270022216831536}
 --- !u!1 &6336448797540076204
@@ -1929,7 +1929,7 @@ GameObject:
   - component: {fileID: 8224401423496217741}
   - component: {fileID: 3555446264363947780}
   m_Layer: 5
-  m_Name: BuysText
+  m_Name: DeploysText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

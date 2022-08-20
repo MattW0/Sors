@@ -5,8 +5,6 @@ using Mirror;
 
 public class PlayerManager : NetworkBehaviour
 {
-    private bool debug = false;
-
     [Header("Entities")]
     private GameManager _gameManager;
     private Kingdom _kingdom;
@@ -15,14 +13,21 @@ public class PlayerManager : NetworkBehaviour
     [Header("Game Stats")]
     public CardCollection cards;
     [SyncVar, SerializeField] private int _health;
-    public int _score;
+    [SyncVar, SerializeField] private int _score;
+    public int Health { get => _health; set => _health = value; }
+    public int Score { get => _score; set => _score = value; }
+
     public List<Phase> playerChosenPhases = new List<Phase>() {Phase.DrawI, Phase.DrawII};
 
     [Header("Turn Stats")]
-    [SyncVar] private int _cash = 0;
-    public int Cash { get => _cash; set => _cash = value; }
-    // [SyncVar] private int _cash;
-    // [SyncVar] private int _cash;
+    [SyncVar, SerializeField] private int _cash = 0;
+    public int Cash { 
+        get => _cash; 
+        set{
+            _cash = value;
+            SetCashValue(_cash);
+        }
+    }
     private List<GameObject> _discardSelection = new List<GameObject>();
 
     public PlayerUI playerUI;
@@ -32,34 +37,20 @@ public class PlayerManager : NetworkBehaviour
     public override void OnStartClient(){
         base.OnStartClient();
 
-        if (isServer) {
-            _gameManager = GameManager.Instance;
-            debug = _gameManager.debug;
-        }
-
         cards = GetComponent<CardCollection>();
-
-        int numberPlayersRequired = debug ? 1 : 2;
-        if (NetworkServer.connections.Count == numberPlayersRequired){
-            RpcGameSetup();
-        }
+        if (isServer) _gameManager = GameManager.Instance;
     }
 
     [ClientRpc]
-    public void RpcGameSetup(){        
-        // Disable Mirror HUD
-        GameObject.Find("NetworkManager").GetComponent<NetworkManagerHUD>().enabled = false;
-
+    public void RpcFindOpponent(bool debug){   
+        if(!hasAuthority) return;
+        
         PlayerManager[] players = FindObjectsOfType<PlayerManager>();
         if(!debug) opponent = players[0] == this ? players[1] : players[0];
-
-        if (!isServer) return;
-        TurnManager.OnTurnStateChanged += RpcTurnChanged;
-        _gameManager.GameSetup();
     }
 
     [ClientRpc]
-    public void RpcSetUI(int startHealth, int startScore){   
+    public void RpcSetPlayerStats(int startHealth, int startScore){   
         string name = isServer ? "Server" : "Client";
         string opponentName = !isServer ? "Server" : "Client"; // inverse of my name
         
@@ -67,22 +58,14 @@ public class PlayerManager : NetworkBehaviour
         opponentUI = GameObject.Find("OpponentInfo").GetComponent<PlayerUI>();
 
         if (hasAuthority){
-            // playerUIPanel.SetActive(true);
-            playerUI.isMine = true;
-            playerUI.playerName.text = name;
-            playerUI.playerHealth.text = startHealth.ToString();
-            playerUI.playerScore.text = startScore.ToString();
-            playerUI.readyButton.gameObject.SetActive(true);
-
             _health = startHealth;
             _score = startScore;
+            playerUI.SetPlayerUI(name, startHealth.ToString(), startScore.ToString());
         } else {
-            // opponentUIPanel.SetActive(true);
-            opponentUI.playerName.text = opponentName;
-            opponentUI.playerHealth.text = startHealth.ToString();
-            opponentUI.playerScore.text = startScore.ToString();
+            opponentUI.SetOpponentUI(opponentName, startHealth.ToString(), startScore.ToString());
         }
     }
+
     #endregion GameSetup
 
     #region Cards
@@ -202,9 +185,23 @@ public class PlayerManager : NetworkBehaviour
 
         if (_kingdom == null) _kingdom = Kingdom.Instance;
         _kingdom.MaxButton();
-        // HighlightPlayableCards();
-        
-    }  
+    }
+
+    private void SetCashValue(int value){
+        if (isServer) RpcSetCashValue(value);
+        else CmdSetCashValue(value);
+    }
+
+    [Command]
+    private void CmdSetCashValue(int value){
+        RpcSetCashValue(value);
+    }
+
+    [ClientRpc]
+    private void RpcSetCashValue(int value){
+        if(hasAuthority) playerUI.SetCash(value);
+        else opponentUI.SetCash(value);
+    }
 
     #endregion TurnActions
 
