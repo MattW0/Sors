@@ -9,7 +9,6 @@ using TMPro;
 public class DiscardPanel : NetworkBehaviour
 {   
     public static DiscardPanel Instance { get; private set; }
-    private GameManager _gameManager;
 
     public static event Action OnDiscardPhaseStarted;
 
@@ -22,16 +21,16 @@ public class DiscardPanel : NetworkBehaviour
     [SerializeField] private List<GameObject> _selectedCardsList;
     
     private void Awake() {
-        if (Instance == null) Instance = this;
+        
+        Instance = this;
+
+        _nbSelected = 0;
+        _selectedCardsList = new List<GameObject>();
+        _nbCardsToDiscard = GameManager.Instance.nbDiscard;
 
         gameObject.transform.SetParent(GameObject.Find("UI").transform, false);
-        OnDiscardPhaseStarted?.Invoke();
-
-        _gameManager = GameManager.Instance;
-
-        _selectedCardsList = new List<GameObject>();
-        _nbCardsToDiscard = _gameManager.nbDiscard;
         displayText.text = $"Discard 0/{_nbCardsToDiscard} cards";
+        OnDiscardPhaseStarted?.Invoke();
     }
 
     public void CardToDiscardSelected(GameObject _card, bool selected){

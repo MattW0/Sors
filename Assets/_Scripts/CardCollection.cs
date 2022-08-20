@@ -3,34 +3,6 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using UnityEngine;
 using Mirror;
-using System;
-
-[Serializable]
-public struct CardInfo
-{
-    public string hash;
-    public string title;
-    public bool isCreature;
-    public int cost;
-    public int attack;
-    public int health;
-    public string goID;
-
-    public CardInfo(ScriptableCard card, string _goID = null)
-    {
-        this.hash = card.hash;
-        this.title = card.title;
-        this.isCreature = card.isCreature;
-        this.cost = card.cost;
-        this.attack = card.attack;
-        this.health = card.health;
-
-        if (_goID != null) this.goID = _goID;
-        else this.goID = null;
-    }
-
-    // TODO: Need a way to get CardInfo from GameObject !!!
-}
 
 public class CardCollection : NetworkBehaviour
 {
@@ -48,7 +20,7 @@ public class SyncListCard : SyncList<CardInfo> {
         while (n > 1) {
             byte[] box = new byte[1];
             do provider.GetBytes (box);
-            while (!(box[0] < n * (Byte.MaxValue / n)));
+            while (!(box[0] < n * (System.Byte.MaxValue / n)));
             int k = (box[0] % n);
             n--;
             CardInfo temp = this[k];

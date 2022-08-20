@@ -687,7 +687,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
-  debug: 1
+  debug: 0
   animations: 0
   players: []
   turnNb: 0
@@ -1966,6 +1966,10 @@ PrefabInstance:
       value: 2362482234
       objectReference: {fileID: 0}
     - target: {fileID: 4949265841074345074, guid: e461b4738d1d58d4992efa4bef60aeab, type: 3}
+      propertyPath: m_Size.y
+      value: 0.0001
+      objectReference: {fileID: 0}
+    - target: {fileID: 4949265841074345074, guid: e461b4738d1d58d4992efa4bef60aeab, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
@@ -2147,6 +2151,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 2883406798425353301, guid: e461b4738d1d58d4992efa4bef60aeab, type: 3}
+    - {fileID: 4949265841074345074, guid: e461b4738d1d58d4992efa4bef60aeab, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: e461b4738d1d58d4992efa4bef60aeab, type: 3}
 --- !u!114 &6319069573471266840
 MonoBehaviour:

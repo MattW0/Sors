@@ -10,11 +10,13 @@ public class Discard : NetworkBehaviour
     private bool _isSelected;
     private Vector2 _startPosition;
     private CardUI _cardUI;
+    [SerializeField] private GameObject _cards;
 
     private void Awake()
     {
         DiscardPanel.OnDiscardPhaseStarted += StartDiscardPhase;
         _cardUI = gameObject.GetComponent<CardUI>();
+        _cards = GameObject.Find("PlayerHand");
     }
 
     private void StartDiscardPhase(){
@@ -23,9 +25,9 @@ public class Discard : NetworkBehaviour
     }
 
     public void OnDiscardClick(){
-        // Return if it's not discard phase or card is not in hand
-        if (!_discardPanel) return;
-        if (!(gameObject.transform.parent.name == "PlayerHand")) return; // Kinda ugly, might need to change
+
+        if (!(transform.IsChildOf(_cards.transform))) return; // Return if card not in hand
+        if (!_discardPanel) return; // Return if it's not discard phase
 
         if (_isSelected) {
             _isSelected = false;

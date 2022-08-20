@@ -7,23 +7,26 @@ public class PlayerManager : NetworkBehaviour
 {
     private bool debug = false;
 
+    [Header("Entities")]
     private GameManager _gameManager;
+    private Kingdom _kingdom;
     public PlayerManager opponent;
-    public CardCollection cards;
-    public PlayerUI playerUI;
-    public PlayerUI opponentUI;
 
     [Header("Game Stats")]
+    public CardCollection cards;
     [SyncVar, SerializeField] private int _health;
     public int _score;
     public List<Phase> playerChosenPhases = new List<Phase>() {Phase.DrawI, Phase.DrawII};
 
     [Header("Turn Stats")]
-    [SyncVar] private int _cash;
+    [SyncVar] private int _cash = 0;
     public int Cash { get => _cash; set => _cash = value; }
     // [SyncVar] private int _cash;
     // [SyncVar] private int _cash;
     private List<GameObject> _discardSelection = new List<GameObject>();
+
+    public PlayerUI playerUI;
+    public PlayerUI opponentUI;
 
     #region GameSetup
     public override void OnStartClient(){
@@ -50,10 +53,9 @@ public class PlayerManager : NetworkBehaviour
         PlayerManager[] players = FindObjectsOfType<PlayerManager>();
         if(!debug) opponent = players[0] == this ? players[1] : players[0];
 
-        if (isServer){
-            TurnManager.OnTurnStateChanged += RpcTurnChanged;
-            GameManager.Instance.GameSetup();
-        }
+        if (!isServer) return;
+        TurnManager.OnTurnStateChanged += RpcTurnChanged;
+        _gameManager.GameSetup();
     }
 
     [ClientRpc]
@@ -167,11 +169,8 @@ public class PlayerManager : NetworkBehaviour
 
     [Command] 
     public void CmdPhaseSelection(List<Phase> _phases){
-
         // Saving local player choice
-        playerChosenPhases[0] = _phases[0];
-        playerChosenPhases[1] = _phases[1];
-
+        playerChosenPhases = _phases;
         TurnManager.Instance.PlayerSelectedPhases(_phases);
     }
 
@@ -195,6 +194,17 @@ public class PlayerManager : NetworkBehaviour
 
         _discardSelection.Clear();
     }
+
+    [TargetRpc]
+    public void TargetRecruit(NetworkConnection target){
+
+        print("Recruiting");
+
+        if (_kingdom == null) _kingdom = Kingdom.Instance;
+        _kingdom.MaxButton();
+        // HighlightPlayableCards();
+        
+    }  
 
     #endregion TurnActions
 

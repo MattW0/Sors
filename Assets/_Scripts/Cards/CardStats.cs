@@ -7,11 +7,19 @@ using Mirror;
 public class CardStats : NetworkBehaviour
 {
     public CardInfo cardInfo;
+    public bool isInteractable;
     private CardUI _cardUI;
 
     private void Awake()
     {
         _cardUI = gameObject.GetComponent<CardUI>();
+    }
+
+    [TargetRpc]
+    public void TargetSetInteractable(NetworkConnection target, bool _isInteractable)
+    {
+        isInteractable = _isInteractable;
+        _cardUI.Highlight(isInteractable);
     }
 
     [ClientRpc]

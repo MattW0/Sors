@@ -7,7 +7,10 @@ using Mirror;
 public class TurnManager : NetworkBehaviour
 {
     public static TurnManager Instance { get; private set; }
-    private GameManager gameManager;
+
+    [Header("Entities")]
+    private GameManager _gameManager;
+    private Kingdom _kingdom;
     
     [Header("Turn state")]
     [SerializeField] private TurnState state;
@@ -26,11 +29,6 @@ public class TurnManager : NetworkBehaviour
 
     void Awake() {
         if (Instance == null) Instance = this;
-    }
-
-    void Start() {
-        gameManager = GameManager.Instance;
-        UpdateTurnState(TurnState.Prepare);
     }
 
     public void UpdateTurnState(TurnState _newState){
@@ -68,7 +66,7 @@ public class TurnManager : NetworkBehaviour
                 Combat();
                 break;
             case TurnState.DrawII:
-                DrawI();
+                DrawII();
                 break;
             case TurnState.BuyCard:
                 BuyCard();
@@ -88,14 +86,15 @@ public class TurnManager : NetworkBehaviour
     }
 
     private void Prepare() {
-        print("<color=yellow>Prepare not yet implemented</color>");
+        _gameManager = GameManager.Instance;
+        _kingdom = Kingdom.Instance;
 
-        // UpdateTurnState(TurnState.PhaseSelection);
+        UpdateTurnState(TurnState.PhaseSelection);
     }
  
     private void PhaseSelection() {
 
-        gameManager.turnNb++;
+        _gameManager.turnNb++;
 
         _phasePanel = Instantiate(_phasePanelPrefab, transform);
         NetworkServer.Spawn(_phasePanel, connectionToClient);
@@ -112,7 +111,7 @@ public class TurnManager : NetworkBehaviour
             }
         }
         
-        if (!(playersReady == gameManager.players.Count)) return;
+        if (!(playersReady == _gameManager.players.Count)) return;
 
         // Starting the selected phases
         NetworkServer.Destroy(_phasePanel);
@@ -134,20 +133,16 @@ public class TurnManager : NetworkBehaviour
     }
 
     private void DrawI() {
-
-        foreach (PlayerManager player in gameManager.players) {
-            
-            int _nbCardDraw = gameManager.nbCardDraw;
+        foreach (PlayerManager player in _gameManager.players) {
+            int _nbCardDraw = _gameManager.nbCardDraw;
             if (player.playerChosenPhases.Contains(Phase.DrawI)) _nbCardDraw++;
 
             player.DrawCards(_nbCardDraw);
         }
-
         UpdateTurnState(TurnState.Discard);
     }
 
     private void Discard() {
-
         playersReady = 0;
         _discardPanel = Instantiate(_discardPanelPrefab, transform);
         NetworkServer.Spawn(_discardPanel, connectionToClient);
@@ -160,19 +155,32 @@ public class TurnManager : NetworkBehaviour
 
     public void PlayerSelectedDiscardCards(){
         playersReady++;
-        if (!(playersReady == gameManager.players.Count)) return ;
+        if (!(playersReady == _gameManager.players.Count)) return ;
 
-        foreach (PlayerManager player in gameManager.players) {
+        foreach (PlayerManager player in _gameManager.players) {
             player.RpcDiscardSelection();
         }
 
         NetworkServer.Destroy(_discardPanel);
+        Destroy(_discardPanel);
         UpdateTurnState(TurnState.NextPhase);
     }
 
     private void Recruit(){
-        print("<color=yellow>Recruit not yet implemented</color>");
-        UpdateTurnState(TurnState.NextPhase);
+
+        foreach (PlayerManager player in _gameManager.players) {
+
+            NetworkIdentity targetPlayer = player.GetComponent<NetworkIdentity>();
+
+            foreach (CardInfo card in player.cards.hand) {
+                if (card.isCreature) continue;
+
+                GameObject cardObject = _gameManager.GetCardObject(card.goID);
+                cardObject.GetComponent<CardStats>().TargetSetInteractable(targetPlayer.connectionToClient, true);
+            }
+
+            player.TargetRecruit(targetPlayer.connectionToClient);
+        }
     }
 
     private void Attack(){
@@ -186,8 +194,14 @@ public class TurnManager : NetworkBehaviour
     }
 
     private void DrawII(){
-        print("<color=yellow>DrawII not yet implemented</color>");
-        UpdateTurnState(TurnState.NextPhase);
+        foreach (PlayerManager player in _gameManager.players) {
+            int _nbCardDraw = _gameManager.nbCardDraw;
+            if (player.playerChosenPhases.Contains(Phase.DrawII)) _nbCardDraw++;
+
+            player.DrawCards(_nbCardDraw);
+        }
+        
+        UpdateTurnState(TurnState.Discard);
     }
 
     private void BuyCard(){

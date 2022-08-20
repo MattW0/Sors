@@ -57,7 +57,7 @@ public class GameManager : NetworkBehaviour
         KingdomSetup();
         PlayerSetup();
 
-        turnManager.UpdateTurnState(TurnState.PhaseSelection);
+        turnManager.UpdateTurnState(TurnState.Prepare);
     }
 
     private void KingdomSetup(){
