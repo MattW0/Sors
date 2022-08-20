@@ -29,33 +29,33 @@ public class SyncListCard : SyncList<CardInfo> {
         }
     }
 
-    // Try and implement this?
-    void OnCollectionUpdated(SyncListCard.Operation op, int index, CardInfo oldItem, CardInfo newItem)
-    {
-        switch (op)
-        {
-            case SyncListCard.Operation.OP_ADD:
-                Debug.Log("Adding card to collection");
-                this[index] = newItem;
-                // index is where it was added into the list
-                // newItem is the new item
-                break;
-            case SyncListCard.Operation.OP_INSERT:
-                // index is where it was inserted into the list
-                // newItem is the new item
-                break;
-            case SyncListCard.Operation.OP_REMOVEAT:
-                // index is where it was removed from the list
-                // oldItem is the item that was removed
-                break;
-            case SyncListCard.Operation.OP_SET:
-                // index is of the item that was changed
-                // oldItem is the previous value for the item at the index
-                // newItem is the new value for the item at the index
-                break;
-            case SyncListCard.Operation.OP_CLEAR:
-                // list got cleared
-                break;
-        }
-    }
+    // // Try and implement this?
+    // void OnCollectionUpdated(SyncListCard.Operation op, int index, CardInfo oldItem, CardInfo newItem)
+    // {
+    //     switch (op)
+    //     {
+    //         case SyncListCard.Operation.OP_ADD:
+    //             Debug.Log("Adding card to collection");
+    //             this[index] = newItem;
+    //             // index is where it was added into the list
+    //             // newItem is the new item
+    //             break;
+    //         case SyncListCard.Operation.OP_INSERT:
+    //             // index is where it was inserted into the list
+    //             // newItem is the new item
+    //             break;
+    //         case SyncListCard.Operation.OP_REMOVEAT:
+    //             // index is where it was removed from the list
+    //             // oldItem is the item that was removed
+    //             break;
+    //         case SyncListCard.Operation.OP_SET:
+    //             // index is of the item that was changed
+    //             // oldItem is the previous value for the item at the index
+    //             // newItem is the new value for the item at the index
+    //             break;
+    //         case SyncListCard.Operation.OP_CLEAR:
+    //             // list got cleared
+    //             break;
+    //     }
+    // }
 }

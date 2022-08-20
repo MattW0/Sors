@@ -22,7 +22,8 @@ public class Kingdom : NetworkBehaviour
         gameObject.transform.SetParent(GameObject.Find("UI").transform, false);
     }
 
-    public void SetKingdomCards(CardInfo[] _kingdomCardsInfo)
+    [ClientRpc]
+    public void RpcSetKingdomCards(CardInfo[] _kingdomCardsInfo)
     {   
         _kingdomCards = new KingdomCard[_kingdomCardsInfo.Length];
         _kingdomCards = _cardGrid.GetComponentsInChildren<KingdomCard>();

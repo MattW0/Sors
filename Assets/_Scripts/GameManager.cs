@@ -74,7 +74,7 @@ public class GameManager : NetworkBehaviour
             _kingdomCards[i] = new CardInfo(_card);
         }
 
-        _kingdom.SetKingdomCards(_kingdomCards);
+        _kingdom.RpcSetKingdomCards(_kingdomCards);
     }
 
     private void PlayerSetup(){

@@ -56,11 +56,11 @@ public class TurnManager : NetworkBehaviour
             case TurnState.Discard:
                 Discard();
                 break;
-            case TurnState.Recruit:
-                Recruit();
+            case TurnState.Develop:
+                Develop();
                 break;
-            case TurnState.Attack:
-                Attack();
+            case TurnState.Deploy:
+                Deploy();
                 break;
             case TurnState.Combat:
                 Combat();
@@ -68,17 +68,18 @@ public class TurnManager : NetworkBehaviour
             case TurnState.DrawII:
                 DrawII();
                 break;
-            case TurnState.BuyCard:
-                BuyCard();
+            case TurnState.Recruit:
+                Recruit();
                 break;
-            case TurnState.Develop:
-                Develop();
+            case TurnState.Prevail:
+                Prevail();
                 break;
             // --- Win check and turn reset ---
             case TurnState.CleanUp:
                 CleanUp();
                 break;
             default:
+                print("<color=red>Invalid turn state</color>");
                 throw new ArgumentOutOfRangeException(nameof(_newState), _newState, null);
         }
 
@@ -166,25 +167,13 @@ public class TurnManager : NetworkBehaviour
         UpdateTurnState(TurnState.NextPhase);
     }
 
-    private void Recruit(){
-
-        foreach (PlayerManager player in _gameManager.players) {
-
-            NetworkIdentity targetPlayer = player.GetComponent<NetworkIdentity>();
-
-            foreach (CardInfo card in player.cards.hand) {
-                if (card.isCreature) continue;
-
-                GameObject cardObject = _gameManager.GetCardObject(card.goID);
-                cardObject.GetComponent<CardStats>().TargetSetInteractable(targetPlayer.connectionToClient, true);
-            }
-
-            player.TargetRecruit(targetPlayer.connectionToClient);
-        }
+    private void Develop(){
+        print("<color=yellow>Develop not yet implemented</color>");
+        UpdateTurnState(TurnState.NextPhase);
     }
 
-    private void Attack(){
-        print("<color=yellow>Attack not yet implemented</color>");
+    private void Deploy(){
+        print("<color=yellow>Deploy not yet implemented</color>");
         UpdateTurnState(TurnState.NextPhase);
     }
 
@@ -204,13 +193,25 @@ public class TurnManager : NetworkBehaviour
         UpdateTurnState(TurnState.Discard);
     }
 
-    private void BuyCard(){
-        print("<color=yellow>BuyCard not yet implemented</color>");
-        UpdateTurnState(TurnState.NextPhase);
+    private void Recruit(){
+
+        foreach (PlayerManager player in _gameManager.players) {
+
+            NetworkIdentity targetPlayer = player.GetComponent<NetworkIdentity>();
+
+            foreach (CardInfo card in player.cards.hand) {
+                if (card.isCreature) continue;
+
+                GameObject cardObject = _gameManager.GetCardObject(card.goID);
+                cardObject.GetComponent<CardStats>().TargetSetInteractable(targetPlayer.connectionToClient, true);
+            }
+
+            player.TargetRecruit(targetPlayer.connectionToClient);
+        }
     }
 
-    private void Develop(){
-        print("<color=yellow>Develop not yet implemented</color>");
+    private void Prevail(){
+        print("<color=yellow>Prevail not yet implemented</color>");
         UpdateTurnState(TurnState.NextPhase);
     }
 
@@ -230,21 +231,21 @@ public enum TurnState
     PhaseSelection,
     DrawI,
     Discard,
-    Recruit,
-    Attack,
+    Develop,
+    Deploy,
     Combat,
     DrawII,
-    BuyCard,
-    Develop,
+    Recruit,
+    Prevail,
     CleanUp
 }
 
 public enum Phase
 {
     DrawI,
-    Recruit,
-    Attack,
-    DrawII,
-    BuyCard,
     Develop,
+    Deploy,
+    DrawII,
+    Recruit,
+    Prevail,
 }
