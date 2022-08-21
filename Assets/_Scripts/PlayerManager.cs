@@ -19,22 +19,33 @@ public class PlayerManager : NetworkBehaviour
     public int Score { get => _score; set => _score = value; }
 
     public List<Phase> playerChosenPhases = new List<Phase>() {Phase.DrawI, Phase.DrawII};
+    private List<GameObject> _discardSelection = new List<GameObject>();
 
     [Header("Turn Stats")]
-    [SyncVar, SerializeField] private int _cash;
+    [SyncVar, SerializeField] private int _cash = 0;
     public int Cash { 
         get => _cash; 
         set{
             _cash = value;
             SetCashValue(_cash);
+            OnCashChanged?.Invoke(_cash);
         }
     }
-    private List<GameObject> _discardSelection = new List<GameObject>();
+    [SyncVar, SerializeField] private int _recruits = 1;
+    public int Recruits { 
+        get => _recruits; 
+        set{
+            _recruits = value;
+            SetRecruitValue(_recruits);
+            // OnCashChanged?.Invoke(_cash);
+        }
+    }
 
     public PlayerUI playerUI;
     public PlayerUI opponentUI;
 
     public static event Action OnCardPileChanged;
+    public static event Action<int> OnCashChanged;
 
     #region GameSetup
     public override void OnStartClient(){
@@ -151,17 +162,19 @@ public class PlayerManager : NetworkBehaviour
     // !!! workarounds to communicate with server !!!
 
     [Command] 
-    public void CmdPhaseSelection(List<Phase> _phases){
+    public void CmdPhaseSelection(List<Phase> phases){
         // Saving local player choice
-        playerChosenPhases = _phases;
-        TurnManager.Instance.PlayerSelectedPhases(_phases);
+        playerChosenPhases = phases;
+        if (playerChosenPhases.Contains(Phase.Recruit)) Recruits++;
+        TurnManager.Instance.PlayerSelectedPhases(phases);
     }
 
     [Command]
-    public void CmdDiscardSelection(List<GameObject> _cards){
-        _discardSelection = _cards;
+    public void CmdDiscardSelection(List<GameObject> cards){
+        _discardSelection = cards;
         TurnManager.Instance.PlayerSelectedDiscardCards();
     }
+
 
     [ClientRpc]
     public void RpcDiscardSelection(){
@@ -179,14 +192,23 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [TargetRpc]
-    public void TargetRecruit(NetworkConnection target){
+    public void TargetRecruit(NetworkConnection target, int nbRecruits){
 
-        print("Recruiting");
+        print("Recruiting: " + nbRecruits);
 
         if (_kingdom == null) _kingdom = Kingdom.Instance;
         _kingdom.MaxButton();
     }
 
+    [Command]
+    public void CmdRecruitSelection(CardInfo card){
+        Recruits--;
+        TurnManager.Instance.PlayerSelectedRecruitCard(this, card);
+    }
+
+    #endregion TurnActions
+
+    #region UI
     private void SetCashValue(int value){
         if (isServer) RpcSetCashValue(value);
         else CmdSetCashValue(value);
@@ -203,5 +225,21 @@ public class PlayerManager : NetworkBehaviour
         else opponentUI.SetCash(value);
     }
 
-    #endregion TurnActions
+    private void SetRecruitValue(int value){
+        if (isServer) RpcSetRecruitValue(value);
+        else CmdSetRecruitValue(value);
+    }
+
+    [Command]
+    private void CmdSetRecruitValue(int value){
+        RpcSetRecruitValue(value);
+    }
+
+    [ClientRpc]
+    private void RpcSetRecruitValue(int value){
+        if(hasAuthority) playerUI.SetRecruits(value);
+        else opponentUI.SetRecruits(value);
+    }
+    #endregion UI
+
 }

@@ -25,4 +25,14 @@ public struct CardInfo
         if (_goID != null) this.goID = _goID;
         else this.goID = null;
     }
+
+    public void Destroy(){
+        this.hash = null;
+        this.title = null;
+        this.isCreature = false;
+        this.cost = 0;
+        this.attack = 0;
+        this.health = 0;
+        this.goID = null;
+    }
 }

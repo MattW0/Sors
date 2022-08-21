@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,8 +12,12 @@ public class Kingdom : NetworkBehaviour
 
     [SerializeField] private KingdomCard[] _kingdomCards;
     [SerializeField] private GameObject _cardGrid;
+
+    public static event Action OnRecruitPhaseStarted;
+    private CardInfo _selectedCard;
     
     // UI
+    public Button confirm;
     [SerializeField] private Button _maximize, _minimize;
     [SerializeField] private GameObject _smallView, _kingdom;
 
@@ -32,6 +37,21 @@ public class Kingdom : NetworkBehaviour
         {
             _kingdomCards[i].SetCard(_kingdomCardsInfo[i]);
         }
+    }
+
+    public void CardToRecruitSelected(KingdomCard card){
+        confirm.interactable = true;
+        _selectedCard = card.cardInfo;
+    }
+
+    public void ConfirmButtonPressed(){
+        confirm.interactable = false;
+
+        NetworkIdentity networkIdentity = NetworkClient.connection.identity;
+        PlayerManager p = networkIdentity.GetComponent<PlayerManager>();
+        p.CmdRecruitSelection(_selectedCard);
+
+        // if (p.Recruits == 0) MinButton();
     }
 
     public void MinButton()

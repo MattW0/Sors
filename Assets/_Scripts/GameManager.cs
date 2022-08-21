@@ -20,6 +20,8 @@ public class GameManager : NetworkBehaviour
     public int nbPhasesToChose = 2;
     public int nbCardDraw = 2;
     public int nbDiscard = 1;
+    public int turnCash = 0;
+    public int turnRecruits = 1;
 
     [Header("Game start settings")]
     [SerializeField] private int _nbKingomCards = 16;
@@ -85,7 +87,13 @@ public class GameManager : NetworkBehaviour
         foreach (PlayerManager player in players)
         {   
             player.RpcFindOpponent(debug);
+
+            // UI
             player.RpcSetPlayerStats(startHealth, startScore);
+            player.Cash = turnCash;
+            player.Recruits = turnRecruits;
+
+            // Cards
             SpawnPlayerDeck(player);
             player.cards.deck.Shuffle();
         }
@@ -98,18 +106,20 @@ public class GameManager : NetworkBehaviour
         for (int i = 0; i < initialDeckSize - nbCreatures; i++){
             ScriptableCard card = moneyCards[0];
             GameObject cardObject = Instantiate(_moneyCardPrefab);
-            SpawnAndCacheCard(cardObject, card, player);
+            SpawnCacheAndMoveCard(cardObject, card, player, "DrawPile");
+
         }
 
         // Other start cards
         for (int i = 0; i < nbCreatures; i++){
             ScriptableCard card = startCards[i];
             GameObject cardObject = Instantiate(_cardPrefab);
-            SpawnAndCacheCard(cardObject, card, player);
+            SpawnCacheAndMoveCard(cardObject, card, player, "DrawPile");
         }
     }
 
-    private void SpawnAndCacheCard(GameObject cardObject, ScriptableCard _scriptableCard, PlayerManager player){
+    private void SpawnCacheAndMoveCard(GameObject cardObject, ScriptableCard scriptableCard, 
+                                       PlayerManager player, string destination){
 
         string instanceID = cardObject.GetInstanceID().ToString();
         cardObject.name = instanceID;
@@ -118,10 +128,10 @@ public class GameManager : NetworkBehaviour
         NetworkServer.Spawn(cardObject, connectionToClient);
         cardObject.GetComponent<NetworkIdentity>().AssignClientAuthority(player.GetComponent<NetworkIdentity>().connectionToClient);
 
-        CardInfo cardInfo = new CardInfo(_scriptableCard, instanceID);        
+        CardInfo cardInfo = new CardInfo(scriptableCard, instanceID);        
         cardObject.GetComponent<CardStats>().RpcSetCardStats(cardInfo);
         player.cards.deck.Add(cardInfo);
-        player.RpcMoveCard(cardObject, "DrawPile");
+        player.RpcMoveCard(cardObject, destination);
     }
 
     private void PlayersDrawInitialHands(){
@@ -129,5 +139,13 @@ public class GameManager : NetworkBehaviour
             player.DrawCards(initialHandSize);
             player.RpcCardPilesChanged();
         }
+    }
+
+    public void SpawnCreature(PlayerManager player, CardInfo cardInfo){
+        print("GameManager: SpawnCreature");
+
+        ScriptableCard scriptableCard = Resources.Load<ScriptableCard>("CreatureCards/" + cardInfo.title);
+        GameObject cardObject = Instantiate(_cardPrefab);
+        SpawnCacheAndMoveCard(cardObject, scriptableCard, player, "DiscardPile");
     }
 }

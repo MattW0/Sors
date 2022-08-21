@@ -15,7 +15,7 @@ public class CardPileUI : MonoBehaviour
 
     // Should use event to only fire when card pile changes, i think?
     private void UpdateCardPileNumber(){
-        print("Updating Card Pile Number");
+        // print("Updating Card Pile Number");
         _cardNumber.text = _cardHolder.childCount.ToString();
     }
 

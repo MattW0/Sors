@@ -15,8 +15,11 @@ public class TurnManager : NetworkBehaviour
     [Header("Turn state")]
     [SerializeField] private TurnState state;
     public List<Phase> chosenPhases = new List<Phase>();
-    public static event Action<TurnState> OnTurnStateChanged;
+    private Dictionary<PlayerManager, CardInfo> _recruitedCards;
     private static int playersReady = 0;
+
+    // Events
+    public static event Action<TurnState> OnTurnStateChanged;
 
     [Header("Objects")]
     [SerializeField] private GameObject _phasePanelPrefab;
@@ -119,6 +122,8 @@ public class TurnManager : NetworkBehaviour
     }
 
     private void NextPhase(){
+
+        playersReady = 0;
         
         if (chosenPhases.Count == 0) {
             UpdateTurnState(TurnState.CleanUp);
@@ -155,7 +160,7 @@ public class TurnManager : NetworkBehaviour
 
     public void PlayerSelectedDiscardCards(){
         playersReady++;
-        if (!(playersReady == _gameManager.players.Count)) return ;
+        if (!(playersReady == _gameManager.players.Count)) return;
 
         foreach (PlayerManager player in _gameManager.players) {
             player.RpcDiscardSelection();
@@ -194,19 +199,47 @@ public class TurnManager : NetworkBehaviour
 
     private void Recruit(){
 
+        _recruitedCards = new Dictionary<PlayerManager, CardInfo>();
+
         foreach (PlayerManager player in _gameManager.players) {
-
+            
             NetworkIdentity targetPlayer = player.GetComponent<NetworkIdentity>();
+            int nbRecruits = _gameManager.turnRecruits;
 
-            foreach (CardInfo card in player.cards.hand) {
-                if (card.isCreature) continue;
+            // Allowing money to be played
+            RecruitHighlightMoney(player, targetPlayer);
+            if (player.playerChosenPhases.Contains(Phase.Recruit)) nbRecruits++;
 
-                GameObject cardObject = _gameManager.GetCardObject(card.goID);
-                cardObject.GetComponent<CardStats>().TargetSetInteractable(targetPlayer.connectionToClient, true);
-            }
-
-            player.TargetRecruit(targetPlayer.connectionToClient);
+            player.TargetRecruit(targetPlayer.connectionToClient, nbRecruits);
         }
+    }
+
+    private void RecruitHighlightMoney(PlayerManager player, NetworkIdentity targetPlayer) {
+        foreach (CardInfo card in player.cards.hand) {
+            if (card.isCreature) continue;
+
+            GameObject cardObject = _gameManager.GetCardObject(card.goID);
+            cardObject.GetComponent<CardStats>().TargetSetInteractable(targetPlayer.connectionToClient, true);
+        }
+    }
+
+    public void PlayerSelectedRecruitCard(PlayerManager player, CardInfo card){
+
+        player.Cash -= card.cost;
+        print("Player " + player + " bought " + card.title);
+        // CANT HAVE THE SAME KEY TWICE! -> change to <PlayerManager, CardInfo[]>
+        _recruitedCards.Add(player, card);
+        if (player.Recruits > 0) return;
+
+        playersReady++;
+        if (!(playersReady == _gameManager.players.Count)) return;
+
+        foreach ((PlayerManager owner, CardInfo _card) in _recruitedCards) {
+            print("<color=white>Recruited card: " + _card.title + "</color>");
+            print("<color=white>By player: " + owner + "</color>");
+            _gameManager.SpawnCreature(owner, _card);
+        }
+        UpdateTurnState(TurnState.NextPhase);
     }
 
     private void Prevail(){

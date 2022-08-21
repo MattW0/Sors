@@ -58,10 +58,8 @@ public class CardMover : MonoBehaviour
             break;
         case "DiscardPile":
             if (hasAuthority) gameObject.transform.SetParent(playerDiscardPile, false);
-            else {
-                gameObject.transform.SetParent(opponentDiscardPile, false);
-                gameObject.GetComponent<CardUI>().CardFrontUp();
-            }
+            else gameObject.transform.SetParent(opponentDiscardPile, false);
+            gameObject.GetComponent<CardUI>().CardFrontUp();
             gameObject.transform.localPosition = Vector3.zero;
             break;
         }
