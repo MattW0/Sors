@@ -24,9 +24,6 @@ public class TurnManager : NetworkBehaviour
     [SerializeField] private GameObject _discardPanelPrefab;
     private GameObject _discardPanel;
 
-    // public static event Action OnCardPileNumberChanged;
-
-
     void Awake() {
         if (Instance == null) Instance = this;
     }
@@ -140,10 +137,12 @@ public class TurnManager : NetworkBehaviour
 
             player.DrawCards(_nbCardDraw);
         }
+
         UpdateTurnState(TurnState.Discard);
     }
 
     private void Discard() {
+
         playersReady = 0;
         _discardPanel = Instantiate(_discardPanelPrefab, transform);
         NetworkServer.Spawn(_discardPanel, connectionToClient);
@@ -220,7 +219,6 @@ public class TurnManager : NetworkBehaviour
         print("<color=yellow>CleanUp not yet implemented</color>");
         UpdateTurnState(TurnState.PhaseSelection);
     }
-
 }
 
 public enum TurnState

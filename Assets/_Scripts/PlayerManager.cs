@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 using Mirror;
 
 public class PlayerManager : NetworkBehaviour
@@ -20,7 +21,7 @@ public class PlayerManager : NetworkBehaviour
     public List<Phase> playerChosenPhases = new List<Phase>() {Phase.DrawI, Phase.DrawII};
 
     [Header("Turn Stats")]
-    [SyncVar, SerializeField] private int _cash = 0;
+    [SyncVar, SerializeField] private int _cash;
     public int Cash { 
         get => _cash; 
         set{
@@ -33,6 +34,8 @@ public class PlayerManager : NetworkBehaviour
     public PlayerUI playerUI;
     public PlayerUI opponentUI;
 
+    public static event Action OnCardPileChanged;
+
     #region GameSetup
     public override void OnStartClient(){
         base.OnStartClient();
@@ -44,7 +47,7 @@ public class PlayerManager : NetworkBehaviour
     [ClientRpc]
     public void RpcFindOpponent(bool debug){   
         if(!hasAuthority) return;
-        
+
         PlayerManager[] players = FindObjectsOfType<PlayerManager>();
         if(!debug) opponent = players[0] == this ? players[1] : players[0];
     }
@@ -69,6 +72,11 @@ public class PlayerManager : NetworkBehaviour
     #endregion GameSetup
 
     #region Cards
+
+    [ClientRpc]
+    public void RpcCardPilesChanged(){
+        OnCardPileChanged?.Invoke();
+    }
 
     public void DrawCards(int _amount){
 
@@ -119,12 +127,11 @@ public class PlayerManager : NetworkBehaviour
         // }
     }
 
+    // public void CardPileNumberChanged() => OnCardPileChanged?.Invoke();
+
     public void PlayCard(GameObject card){
-        if (isServer){
-            RpcMoveCard(card, "PlayZone");
-        } else {
-            CmdMoveCard(card, "PlayZone");
-        }
+        if (isServer) RpcMoveCard(card, "PlayZone");
+        else CmdMoveCard(card, "PlayZone");
     }
 
     [Command]
@@ -133,20 +140,13 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcMoveCard(GameObject card, string destination)
-    {
+    public void RpcMoveCard(GameObject card, string destination){
         card.GetComponent<CardMover>().MoveToDestination(hasAuthority, destination);
     }
 
     #endregion Cards
 
     #region TurnActions
-
-    [ClientRpc]
-    private void RpcTurnChanged(TurnState _state)
-    {
-        // print($"<color=LightSkyBlue>Turn changed to {_state}</color>");
-    }
 
     // !!! workarounds to communicate with server !!!
 
@@ -174,7 +174,7 @@ public class PlayerManager : NetworkBehaviour
 
             RpcMoveCard(_card, "DiscardPile");
         }
-
+        
         _discardSelection.Clear();
     }
 
@@ -204,8 +204,4 @@ public class PlayerManager : NetworkBehaviour
     }
 
     #endregion TurnActions
-
-    private void OnDestroy() {
-        TurnManager.OnTurnStateChanged -= RpcTurnChanged;
-    }
 }

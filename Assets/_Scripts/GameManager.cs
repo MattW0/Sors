@@ -127,6 +127,7 @@ public class GameManager : NetworkBehaviour
     private void PlayersDrawInitialHands(){
         foreach (PlayerManager player in players) {
             player.DrawCards(initialHandSize);
+            player.RpcCardPilesChanged();
         }
     }
 }
