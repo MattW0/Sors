@@ -15,8 +15,8 @@ public class TurnManager : NetworkBehaviour
     [Header("Turn state")]
     [SerializeField] private TurnState state;
     public List<Phase> chosenPhases = new List<Phase>();
-    private Dictionary<PlayerManager, CardInfo> _recruitedCards;
-    private static int playersReady = 0;
+    private Dictionary<PlayerManager, List<CardInfo>> _recruitedCards;
+    private static int _playersReady = 0;
 
     // Events
     public static event Action<TurnState> OnTurnStateChanged;
@@ -31,11 +31,11 @@ public class TurnManager : NetworkBehaviour
         if (Instance == null) Instance = this;
     }
 
-    public void UpdateTurnState(TurnState _newState){
-        state = _newState;
+    public void UpdateTurnState(TurnState newState){
+        state = newState;
 
-        if (_newState != TurnState.NextPhase) {
-            print($"<color=aqua>Turn changed to {_newState}</color>");
+        if (newState != TurnState.NextPhase) {
+            print($"<color=aqua>Turn changed to {newState}</color>");
         }
 
         switch(state){
@@ -80,7 +80,7 @@ public class TurnManager : NetworkBehaviour
                 break;
             default:
                 print("<color=red>Invalid turn state</color>");
-                throw new ArgumentOutOfRangeException(nameof(_newState), _newState, null);
+                throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
         }
 
         OnTurnStateChanged?.Invoke(state);
@@ -100,19 +100,19 @@ public class TurnManager : NetworkBehaviour
         _phasePanel = Instantiate(_phasePanelPrefab, transform);
         NetworkServer.Spawn(_phasePanel, connectionToClient);
 
-        playersReady = 0;
+        _playersReady = 0;
     }
 
     public void PlayerSelectedPhases(List<Phase> phases) {
         
-        playersReady++;
+        _playersReady++;
         foreach (Phase phase in phases) {
             if(!chosenPhases.Contains(phase)){
                 chosenPhases.Add(phase);
             }
         }
         
-        if (!(playersReady == _gameManager.players.Count)) return;
+        if (!(_playersReady == _gameManager.players.Count)) return;
 
         // Starting the selected phases
         NetworkServer.Destroy(_phasePanel);
@@ -123,7 +123,7 @@ public class TurnManager : NetworkBehaviour
 
     private void NextPhase(){
 
-        playersReady = 0;
+        _playersReady = 0;
         
         if (chosenPhases.Count == 0) {
             UpdateTurnState(TurnState.CleanUp);
@@ -137,10 +137,10 @@ public class TurnManager : NetworkBehaviour
 
     private void DrawI() {
         foreach (PlayerManager player in _gameManager.players) {
-            int _nbCardDraw = _gameManager.nbCardDraw;
-            if (player.playerChosenPhases.Contains(Phase.DrawI)) _nbCardDraw++;
+            int nbCardDraw = _gameManager.nbCardDraw;
+            if (player.playerChosenPhases.Contains(Phase.DrawI)) nbCardDraw++;
 
-            player.DrawCards(_nbCardDraw);
+            player.DrawCards(nbCardDraw);
         }
 
         UpdateTurnState(TurnState.Discard);
@@ -148,7 +148,7 @@ public class TurnManager : NetworkBehaviour
 
     private void Discard() {
 
-        playersReady = 0;
+        _playersReady = 0;
         _discardPanel = Instantiate(_discardPanelPrefab, transform);
         NetworkServer.Spawn(_discardPanel, connectionToClient);
 
@@ -159,8 +159,8 @@ public class TurnManager : NetworkBehaviour
     }
 
     public void PlayerSelectedDiscardCards(){
-        playersReady++;
-        if (!(playersReady == _gameManager.players.Count)) return;
+        _playersReady++;
+        if (_playersReady != _gameManager.players.Count) return;
 
         foreach (PlayerManager player in _gameManager.players) {
             player.RpcDiscardSelection();
@@ -187,11 +187,11 @@ public class TurnManager : NetworkBehaviour
     }
 
     private void DrawII(){
-        foreach (PlayerManager player in _gameManager.players) {
-            int _nbCardDraw = _gameManager.nbCardDraw;
-            if (player.playerChosenPhases.Contains(Phase.DrawII)) _nbCardDraw++;
+        foreach (var player in _gameManager.players) {
+            var nbCardDraw = _gameManager.nbCardDraw;
+            if (player.playerChosenPhases.Contains(Phase.DrawII)) nbCardDraw++;
 
-            player.DrawCards(_nbCardDraw);
+            player.DrawCards(nbCardDraw);
         }
         
         UpdateTurnState(TurnState.Discard);
@@ -199,11 +199,11 @@ public class TurnManager : NetworkBehaviour
 
     private void Recruit(){
 
-        _recruitedCards = new Dictionary<PlayerManager, CardInfo>();
+        _recruitedCards = new Dictionary<PlayerManager, List<CardInfo>>();
 
-        foreach (PlayerManager player in _gameManager.players) {
+        foreach (var player in _gameManager.players) {
             
-            NetworkIdentity targetPlayer = player.GetComponent<NetworkIdentity>();
+            var targetPlayer = player.GetComponent<NetworkIdentity>();
             int nbRecruits = _gameManager.turnRecruits;
 
             // Allowing money to be played
@@ -213,32 +213,39 @@ public class TurnManager : NetworkBehaviour
             player.TargetRecruit(targetPlayer.connectionToClient, nbRecruits);
         }
     }
-
+    
     private void RecruitHighlightMoney(PlayerManager player, NetworkIdentity targetPlayer) {
-        foreach (CardInfo card in player.cards.hand) {
+        foreach (var card in player.cards.hand) {
             if (card.isCreature) continue;
 
-            GameObject cardObject = _gameManager.GetCardObject(card.goID);
+            var cardObject = _gameManager.GetCardObject(card.goID);
             cardObject.GetComponent<CardStats>().TargetSetInteractable(targetPlayer.connectionToClient, true);
         }
     }
 
     public void PlayerSelectedRecruitCard(PlayerManager player, CardInfo card){
 
-        player.Cash -= card.cost;
-        print("Player " + player + " bought " + card.title);
-        // CANT HAVE THE SAME KEY TWICE! -> change to <PlayerManager, CardInfo[]>
-        _recruitedCards.Add(player, card);
+        if (_recruitedCards.ContainsKey(player))
+            _recruitedCards[player].Add(card);
+        else
+            _recruitedCards.Add(player, new List<CardInfo> { card });
+        
         if (player.Recruits > 0) return;
+        _playersReady++;
+        var targetPlayer = player.GetComponent<NetworkIdentity>();
+        player.TargetFinishRecruiting(targetPlayer.connectionToClient);
 
-        playersReady++;
-        if (!(playersReady == _gameManager.players.Count)) return;
+        if (_playersReady != _gameManager.players.Count) return;
+        foreach (var (owner, cards) in _recruitedCards) {
+            foreach (var cardInfo in cards) {
+                _gameManager.SpawnCreature(owner, cardInfo);
+                print("<color=white>" + owner.playerName + " recruits " + cardInfo.title + "</color>");
+            }
 
-        foreach ((PlayerManager owner, CardInfo _card) in _recruitedCards) {
-            print("<color=white>Recruited card: " + _card.title + "</color>");
-            print("<color=white>By player: " + owner + "</color>");
-            _gameManager.SpawnCreature(owner, _card);
+            owner.Recruits = 1;
         }
+
+        _kingdom.ResetRecruit();
         UpdateTurnState(TurnState.NextPhase);
     }
 

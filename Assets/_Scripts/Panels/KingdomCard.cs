@@ -12,54 +12,55 @@ public class KingdomCard : MonoBehaviour
     public CardInfo cardInfo;
 
     // UI
-    [SerializeField] private TMP_Text _title;
-    [SerializeField] private TMP_Text _cost;
-    [SerializeField] private TMP_Text _attack;
-    [SerializeField] private TMP_Text _defense;
-    [SerializeField] private Image _highlight;
+    [SerializeField] private TMP_Text title;
+    [SerializeField] private TMP_Text cost;
+    [SerializeField] private TMP_Text attack;
+    [SerializeField] private TMP_Text defense;
+    [SerializeField] private Image highlight;
 
     private void Awake(){
         _kingdom = Kingdom.Instance;
-        Kingdom.OnRecruitPhaseStarted += StartRecruitPhase;
+        Kingdom.OnRecruitPhaseEnded += EndRecruitPhase;
         PlayerManager.OnCashChanged += UpdateRecruitability;
     }
 
-    public void SetCard(CardInfo _card)
+    public void SetCard(CardInfo card)
     {   
-        cardInfo = _card;
-        _title.text = _card.title;
-        _cost.text = _card.cost.ToString();
-        _attack.text = _card.attack.ToString();
-        _defense.text = _card.health.ToString();
+        cardInfo = card;
+        title.text = card.title;
+        cost.text = card.cost.ToString();
+        attack.text = card.attack.ToString();
+        defense.text = card.health.ToString();
     }
 
-    private void StartRecruitPhase(){
+    private void EndRecruitPhase(){
         isRecruitable = false;
     }
 
     private void UpdateRecruitability(int currentCash){
-        if (currentCash >= int.Parse(_cost.text)){
+        if (currentCash >= int.Parse(cost.text)){
             isRecruitable = true;
             Highlight(true);
+        } else {
+            isRecruitable = false;
+            Highlight(false);
         }
     }
 
     public void OnKingdomCardClick(){
         if (!isRecruitable) return;
 
-        print("Recruiting " + _title.text);
         Highlight(true, true);
         _kingdom.CardToRecruitSelected(this);
     }
 
-    private void Highlight(bool active, bool chosen=false){
-        _highlight.enabled = active;
-
-        if (!chosen) return;
-        _highlight.color = Color.blue;
+    private void Highlight(bool active, bool chosen=false)
+    {
+        highlight.enabled = active;
+        highlight.color = !chosen ? Color.green : Color.blue;
     }
 
     private void OnDestroy(){
-        Kingdom.OnRecruitPhaseStarted -= StartRecruitPhase;
+        Kingdom.OnRecruitPhaseEnded -= EndRecruitPhase;
     }
 }

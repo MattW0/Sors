@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -28,10 +29,10 @@ public class SorsNetworkManager : NetworkManager
         yield return null;
     }
 
-    public override void OnClientConnect(NetworkConnection conn)
+    public override void OnClientConnect()
     {
-        base.OnClientConnect(conn);
-        Debug.Log("Client connected");
+        base.OnClientConnect();
+        print("Client connected");
 
         // Disable Mirror HUD
         gameObject.GetComponent<NetworkManagerHUD>().enabled = false;

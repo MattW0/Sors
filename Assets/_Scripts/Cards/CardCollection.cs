@@ -7,9 +7,9 @@ using Mirror;
 public class CardCollection : NetworkBehaviour
 {
     [Header("CardCollections")]
-    public readonly SyncListCard deck = new SyncListCard(); // Deck used during the match. Contains all cards in the deck. This is where we'll be drawing card froms.
-    public readonly SyncListCard hand = new SyncListCard(); // Cards in player's hand during the match.
-    public readonly SyncListCard discard = new SyncListCard(); // Cards in player discard.
+    public readonly SyncListCard deck = new SyncListCard();
+    public readonly SyncListCard hand = new SyncListCard();
+    public readonly SyncListCard discard = new SyncListCard(); 
 }
 
 public class SyncListCard : SyncList<CardInfo> {

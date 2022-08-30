@@ -694,16 +694,18 @@ MonoBehaviour:
   nbPhasesToChose: 2
   nbCardDraw: 1
   nbDiscard: 1
+  turnCash: 0
+  turnRecruits: 1
   _nbKingomCards: 16
   initialDeckSize: 10
   nbCreatures: 2
   initialHandSize: 4
   startHealth: 30
   startScore: 0
-  _kingdomPrefab: {fileID: 6245966277038001864, guid: 37e2b8313015d1a4f8f13069553e53bd, type: 3}
   startCards: []
   creatureCards: []
   moneyCards: []
+  _kingdomPrefab: {fileID: 6245966277038001864, guid: 37e2b8313015d1a4f8f13069553e53bd, type: 3}
   _cardPrefab: {fileID: 5450374274839420802, guid: 5049089525d268b41ac4327a430b6221, type: 3}
   _moneyCardPrefab: {fileID: 8134903570611113416, guid: 2d148f57d14cfc345bb5294be07cb84f, type: 3}
 --- !u!114 &806438203

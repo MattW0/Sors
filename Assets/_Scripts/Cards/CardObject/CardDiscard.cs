@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
 
-public class Discard : MonoBehaviour
+public class CardDiscard : MonoBehaviour
 {
     private DiscardPanel _discardPanel;
 

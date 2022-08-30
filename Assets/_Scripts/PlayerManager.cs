@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
@@ -9,6 +8,7 @@ public class PlayerManager : NetworkBehaviour
     [Header("Entities")]
     private GameManager _gameManager;
     private Kingdom _kingdom;
+    public string playerName;
     public PlayerManager opponent;
 
     [Header("Game Stats")]
@@ -20,32 +20,32 @@ public class PlayerManager : NetworkBehaviour
 
     public List<Phase> playerChosenPhases = new List<Phase>() {Phase.DrawI, Phase.DrawII};
     private List<GameObject> _discardSelection = new List<GameObject>();
+    
+    public static event Action OnCardPileChanged;
+    public static event Action<int> OnCashChanged;
 
     [Header("Turn Stats")]
-    [SyncVar, SerializeField] private int _cash = 0;
+    [SyncVar, SerializeField] private int cash;
     public int Cash { 
-        get => _cash; 
+        get => cash;
         set{
-            _cash = value;
-            SetCashValue(_cash);
-            OnCashChanged?.Invoke(_cash);
+            cash = value;
+            SetCashValue(cash);
+            OnCashChanged?.Invoke(cash);
         }
     }
-    [SyncVar, SerializeField] private int _recruits = 1;
+    [SyncVar] private int _recruits = 1;
     public int Recruits { 
         get => _recruits; 
         set{
             _recruits = value;
             SetRecruitValue(_recruits);
-            // OnCashChanged?.Invoke(_cash);
+            OnCashChanged?.Invoke(Cash);
         }
     }
 
     public PlayerUI playerUI;
     public PlayerUI opponentUI;
-
-    public static event Action OnCardPileChanged;
-    public static event Action<int> OnCashChanged;
 
     #region GameSetup
     public override void OnStartClient(){
@@ -56,17 +56,19 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcFindOpponent(bool debug){   
+    public void RpcFindObjects(bool debug){   
         if(!hasAuthority) return;
 
-        PlayerManager[] players = FindObjectsOfType<PlayerManager>();
+        var players = FindObjectsOfType<PlayerManager>();
         if(!debug) opponent = players[0] == this ? players[1] : players[0];
+        
+        _kingdom = Kingdom.Instance;
     }
 
     [ClientRpc]
     public void RpcSetPlayerStats(int startHealth, int startScore){   
-        string name = isServer ? "Server" : "Client";
-        string opponentName = !isServer ? "Server" : "Client"; // inverse of my name
+        playerName = isServer ? "Host" : "Client";
+        var opponentName = !isServer ? "Host" : "Client"; // inverse of my name
         
         playerUI = GameObject.Find("PlayerInfo").GetComponent<PlayerUI>();
         opponentUI = GameObject.Find("OpponentInfo").GetComponent<PlayerUI>();
@@ -74,7 +76,7 @@ public class PlayerManager : NetworkBehaviour
         if (hasAuthority){
             _health = startHealth;
             _score = startScore;
-            playerUI.SetPlayerUI(name, startHealth.ToString(), startScore.ToString());
+            playerUI.SetPlayerUI(playerName, startHealth.ToString(), startScore.ToString());
         } else {
             opponentUI.SetOpponentUI(opponentName, startHealth.ToString(), startScore.ToString());
         }
@@ -89,15 +91,15 @@ public class PlayerManager : NetworkBehaviour
         OnCardPileChanged?.Invoke();
     }
 
-    public void DrawCards(int _amount){
+    public void DrawCards(int amount){
 
         if(!isServer) return;
 
-        while (_amount > cards.deck.Count + cards.discard.Count){
-            _amount--;
+        while (amount > cards.deck.Count + cards.discard.Count){
+            amount--;
         } 
 
-        for (int i = 0; i < _amount; i++){
+        for (int i = 0; i < amount; i++){
             if (cards.deck.Count == 0) ShuffleDiscardIntoDeck();
 
             CardInfo card = cards.deck[0];
@@ -105,25 +107,25 @@ public class PlayerManager : NetworkBehaviour
             cards.hand.Add(card);
 
             GameObject cardObject = _gameManager.GetCardObject(card.goID);
-            RpcMoveCard(cardObject, "Hand");
+            RpcMoveCard(cardObject, CardLocations.Deck, CardLocations.Hand);
         }
     }
 
     private void ShuffleDiscardIntoDeck(){
-        Debug.Log("Shuffling discard into deck");
+        print("Shuffling discard into deck");
 
-        List<CardInfo> temp = new List<CardInfo>();
-        foreach (CardInfo _card in cards.discard){
-            temp.Add(_card);
-            cards.deck.Add(_card);
+        var temp = new List<CardInfo>();
+        foreach (var card in cards.discard){
+            temp.Add(card);
+            cards.deck.Add(card);
 
-            GameObject _cachedCard = _gameManager.GetCardObject(_card.goID);
-            RpcMoveCard(_cachedCard, "DrawPile");
+            GameObject cachedCard = _gameManager.GetCardObject(card.goID);
+            RpcMoveCard(cachedCard, CardLocations.Discard, CardLocations.Deck);
 
         }
 
-        foreach (CardInfo _card in temp){
-            cards.discard.Remove(_card);
+        foreach (var card in temp){
+            cards.discard.Remove(card);
         }
 
         cards.deck.Shuffle();
@@ -141,18 +143,20 @@ public class PlayerManager : NetworkBehaviour
     // public void CardPileNumberChanged() => OnCardPileChanged?.Invoke();
 
     public void PlayCard(GameObject card){
-        if (isServer) RpcMoveCard(card, "PlayZone");
-        else CmdMoveCard(card, "PlayZone");
+        if (isServer) RpcMoveCard(card, CardLocations.Hand, CardLocations.PlayZone);
+        else CmdMoveCard(card, CardLocations.Hand, CardLocations.PlayZone);
     }
 
     [Command]
-    private void CmdMoveCard(GameObject card, string destination){
-        RpcMoveCard(card, destination);
+    private void CmdMoveCard(GameObject card, CardLocations from, CardLocations to){
+        RpcMoveCard(card, from, to);
     }
 
     [ClientRpc]
-    public void RpcMoveCard(GameObject card, string destination){
-        card.GetComponent<CardMover>().MoveToDestination(hasAuthority, destination);
+    public void RpcMoveCard(GameObject card, CardLocations from, CardLocations to){
+        // if(from == CardLocations.Hand) cards.hand.Remove(card.GetComponent<CardStats>().cardInfo);
+        
+        card.GetComponent<CardMover>().MoveToDestination(hasAuthority, to);
     }
 
     #endregion Cards
@@ -170,22 +174,22 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Command]
-    public void CmdDiscardSelection(List<GameObject> cards){
-        _discardSelection = cards;
+    public void CmdDiscardSelection(List<GameObject> cardsToDiscard){
+        _discardSelection = cardsToDiscard;
         TurnManager.Instance.PlayerSelectedDiscardCards();
     }
 
 
     [ClientRpc]
     public void RpcDiscardSelection(){
-        foreach(GameObject _card in _discardSelection){
-            CardInfo _cardInfo = _card.GetComponent<CardStats>().cardInfo;
+        foreach(var card in _discardSelection){
+            var cardInfo = card.GetComponent<CardStats>().cardInfo;
 
-            cards.hand.Remove(_cardInfo);
-            cards.discard.Add(_cardInfo);
+            cards.hand.Remove(cardInfo);
+            cards.discard.Add(cardInfo);
             // print("Discarding card: " + _cardInfo.title);
 
-            RpcMoveCard(_card, "DiscardPile");
+            RpcMoveCard(card, CardLocations.Hand, CardLocations.Discard);
         }
         
         _discardSelection.Clear();
@@ -195,15 +199,21 @@ public class PlayerManager : NetworkBehaviour
     public void TargetRecruit(NetworkConnection target, int nbRecruits){
 
         print("Recruiting: " + nbRecruits);
-
-        if (_kingdom == null) _kingdom = Kingdom.Instance;
         _kingdom.MaxButton();
     }
 
     [Command]
     public void CmdRecruitSelection(CardInfo card){
+        Cash -= card.cost;
         Recruits--;
         TurnManager.Instance.PlayerSelectedRecruitCard(this, card);
+    }
+
+    [TargetRpc]
+    public void TargetFinishRecruiting(NetworkConnection target){
+        _kingdom.MinButton();
+
+        // Need to discard all money cards
     }
 
     #endregion TurnActions

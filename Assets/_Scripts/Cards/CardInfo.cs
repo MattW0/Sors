@@ -13,17 +13,17 @@ public struct CardInfo
     public int health;
     public string goID;
 
-    public CardInfo(ScriptableCard card, string _goID = null)
+    public CardInfo(ScriptableCard card, string gameObjectID = null)
     {
-        this.hash = card.hash;
-        this.title = card.title;
-        this.isCreature = card.isCreature;
-        this.cost = card.cost;
-        this.attack = card.attack;
-        this.health = card.health;
+        hash = card.hash;
+        title = card.title;
+        isCreature = card.isCreature;
+        cost = card.cost;
+        attack = card.attack;
+        health = card.health;
 
-        if (_goID != null) this.goID = _goID;
-        else this.goID = null;
+        if (gameObjectID != null) goID = gameObjectID;
+        else goID = null;
     }
 
     public void Destroy(){

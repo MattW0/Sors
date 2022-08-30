@@ -4,22 +4,22 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using Mirror;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class Kingdom : NetworkBehaviour
 {
     public static Kingdom Instance { get; private set; }
 
-    [SerializeField] private KingdomCard[] _kingdomCards;
-    [SerializeField] private GameObject _cardGrid;
+    [SerializeField] private KingdomCard[] kingdomCards;
+    [SerializeField] private GameObject cardGrid;
 
-    public static event Action OnRecruitPhaseStarted;
+    public static event Action OnRecruitPhaseEnded;
     private CardInfo _selectedCard;
     
     // UI
     public Button confirm;
-    [SerializeField] private Button _maximize, _minimize;
-    [SerializeField] private GameObject _smallView, _kingdom;
+    [SerializeField] private GameObject minView, maxView;
 
     private void Awake()
     {
@@ -28,15 +28,22 @@ public class Kingdom : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcSetKingdomCards(CardInfo[] _kingdomCardsInfo)
+    public void RpcSetKingdomCards(CardInfo[] kingdomCardsInfo)
     {   
-        _kingdomCards = new KingdomCard[_kingdomCardsInfo.Length];
-        _kingdomCards = _cardGrid.GetComponentsInChildren<KingdomCard>();
+        kingdomCards = new KingdomCard[kingdomCardsInfo.Length];
+        kingdomCards = cardGrid.GetComponentsInChildren<KingdomCard>();
 
-        for (int i = 0; i < _kingdomCardsInfo.Length; i++)
+        for (int i = 0; i < kingdomCardsInfo.Length; i++)
         {
-            _kingdomCards[i].SetCard(_kingdomCardsInfo[i]);
+            kingdomCards[i].SetCard(kingdomCardsInfo[i]);
         }
+    }
+    
+    [Server]
+    public void ResetRecruit()
+    {
+        print("Recruit ended");
+        OnRecruitPhaseEnded?.Invoke();
     }
 
     public void CardToRecruitSelected(KingdomCard card){
@@ -44,7 +51,8 @@ public class Kingdom : NetworkBehaviour
         _selectedCard = card.cardInfo;
     }
 
-    public void ConfirmButtonPressed(){
+    public void ConfirmButtonPressed()
+    {
         confirm.interactable = false;
 
         NetworkIdentity networkIdentity = NetworkClient.connection.identity;
@@ -56,13 +64,13 @@ public class Kingdom : NetworkBehaviour
 
     public void MinButton()
     {
-        _smallView.SetActive(true);
-        _kingdom.SetActive(false);
+        minView.SetActive(true);
+        maxView.SetActive(false);
     }
 
     public void MaxButton()
     {
-        _smallView.SetActive(false);
-        _kingdom.SetActive(true);
+        minView.SetActive(false);
+        maxView.SetActive(true);
     }
 }

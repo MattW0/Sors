@@ -430,13 +430,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
-  _kingdomCards: []
-  _cardGrid: {fileID: 6245966278117477200}
+  kingdomCards: []
+  cardGrid: {fileID: 6245966278117477200}
   confirm: {fileID: 2555941078368652081}
-  _maximize: {fileID: 1816101177672389785}
-  _minimize: {fileID: 6245966278208692978}
-  _smallView: {fileID: 6691000610258294705}
-  _kingdom: {fileID: 4615250021965143155}
+  minView: {fileID: 6691000610258294705}
+  maxView: {fileID: 4615250021965143155}
 --- !u!1 &6245966277976611723
 GameObject:
   m_ObjectHideFlags: 0

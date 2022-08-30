@@ -9,7 +9,7 @@ public class GameManager : NetworkBehaviour
     public bool animations = false;
 
     public static GameManager Instance { get; private set; }
-    private TurnManager turnManager;
+    private TurnManager _turnManager;
     private Kingdom _kingdom;
     public List<PlayerManager> players = new List<PlayerManager>();
 
@@ -24,7 +24,7 @@ public class GameManager : NetworkBehaviour
     public int turnRecruits = 1;
 
     [Header("Game start settings")]
-    [SerializeField] private int _nbKingomCards = 16;
+    [SerializeField] private int nbKingdomCards = 16;
     public int initialDeckSize = 10;
     public int nbCreatures = 2;
     public int initialHandSize = 4;
@@ -32,17 +32,19 @@ public class GameManager : NetworkBehaviour
     public int startScore = 0;
 
     [Header("Available cards")]
-    [SerializeField] private GameObject _kingdomPrefab;
     public ScriptableCard[] startCards;
     public ScriptableCard[] creatureCards;
     public ScriptableCard[] moneyCards;
+    
+    [Header("Prefabs")]
+    [SerializeField] private GameObject _kingdomPrefab;
     [SerializeField] private GameObject _cardPrefab;
     [SerializeField] private GameObject _moneyCardPrefab;
 
     // Caching all gameObjects of cards in game
-    private Dictionary<string, GameObject> _cache = new Dictionary<string, GameObject>();
-    public Dictionary<string, GameObject> Cache{ get => _cache; }
-    public GameObject GetCardObject(string _goID) { return Cache[_goID]; }
+    private readonly Dictionary<string, GameObject> _cache = new Dictionary<string, GameObject>();
+    private Dictionary<string, GameObject> Cache => _cache;
+    public GameObject GetCardObject(string goID) { return Cache[goID]; }
 
     public void Awake()
     {
@@ -55,29 +57,29 @@ public class GameManager : NetworkBehaviour
 
     public void GameSetup()
     {
-        turnManager = TurnManager.Instance;
+        _turnManager = TurnManager.Instance;
 
         KingdomSetup();
         PlayerSetup();
 
-        turnManager.UpdateTurnState(TurnState.Prepare);
+        _turnManager.UpdateTurnState(TurnState.Prepare);
     }
 
     private void KingdomSetup(){
 
-        GameObject _kingdomObject = Instantiate(_kingdomPrefab, transform);
-        NetworkServer.Spawn(_kingdomObject, connectionToClient);
+        GameObject kingdomObject = Instantiate(_kingdomPrefab, transform);
+        NetworkServer.Spawn(kingdomObject, connectionToClient);
         _kingdom = Kingdom.Instance;
 
-        CardInfo[] _kingdomCards = new CardInfo[_nbKingomCards];
+        CardInfo[] kingdomCards = new CardInfo[nbKingdomCards];
         
-        for (int i = 0; i < _nbKingomCards; i++)
+        for (int i = 0; i < nbKingdomCards; i++)
         {
-            ScriptableCard _card = creatureCards[Random.Range(0, creatureCards.Length)];
-            _kingdomCards[i] = new CardInfo(_card);
+            ScriptableCard card = creatureCards[Random.Range(0, creatureCards.Length)];
+            kingdomCards[i] = new CardInfo(card);
         }
 
-        _kingdom.RpcSetKingdomCards(_kingdomCards);
+        _kingdom.RpcSetKingdomCards(kingdomCards);
     }
 
     private void PlayerSetup(){
@@ -86,7 +88,7 @@ public class GameManager : NetworkBehaviour
 
         foreach (PlayerManager player in players)
         {   
-            player.RpcFindOpponent(debug);
+            player.RpcFindObjects(debug);
 
             // UI
             player.RpcSetPlayerStats(startHealth, startScore);
@@ -106,7 +108,7 @@ public class GameManager : NetworkBehaviour
         for (int i = 0; i < initialDeckSize - nbCreatures; i++){
             ScriptableCard card = moneyCards[0];
             GameObject cardObject = Instantiate(_moneyCardPrefab);
-            SpawnCacheAndMoveCard(cardObject, card, player, "DrawPile");
+            SpawnCacheAndMoveCard(cardObject, card, player, CardLocations.Deck);
 
         }
 
@@ -114,12 +116,12 @@ public class GameManager : NetworkBehaviour
         for (int i = 0; i < nbCreatures; i++){
             ScriptableCard card = startCards[i];
             GameObject cardObject = Instantiate(_cardPrefab);
-            SpawnCacheAndMoveCard(cardObject, card, player, "DrawPile");
+            SpawnCacheAndMoveCard(cardObject, card, player, CardLocations.Deck);
         }
     }
 
     private void SpawnCacheAndMoveCard(GameObject cardObject, ScriptableCard scriptableCard, 
-                                       PlayerManager player, string destination){
+                                       PlayerManager player, CardLocations destination){
 
         string instanceID = cardObject.GetInstanceID().ToString();
         cardObject.name = instanceID;
@@ -128,24 +130,43 @@ public class GameManager : NetworkBehaviour
         NetworkServer.Spawn(cardObject, connectionToClient);
         cardObject.GetComponent<NetworkIdentity>().AssignClientAuthority(player.GetComponent<NetworkIdentity>().connectionToClient);
 
-        CardInfo cardInfo = new CardInfo(scriptableCard, instanceID);        
+        var cardInfo = new CardInfo(scriptableCard, instanceID);        
         cardObject.GetComponent<CardStats>().RpcSetCardStats(cardInfo);
-        player.cards.deck.Add(cardInfo);
-        player.RpcMoveCard(cardObject, destination);
+        switch (destination)
+        {
+            case CardLocations.Deck:
+                player.cards.deck.Add(cardInfo);
+                break;
+            case CardLocations.Discard:
+                player.cards.discard.Add(cardInfo);
+                break;
+            case CardLocations.Hand:
+                player.cards.hand.Add(cardInfo);
+                break;
+        }
+        player.RpcMoveCard(cardObject, CardLocations.Spawned, destination);
     }
 
     private void PlayersDrawInitialHands(){
-        foreach (PlayerManager player in players) {
+        foreach (var player in players) {
             player.DrawCards(initialHandSize);
             player.RpcCardPilesChanged();
         }
     }
 
     public void SpawnCreature(PlayerManager player, CardInfo cardInfo){
-        print("GameManager: SpawnCreature");
+        // print("GameManager: SpawnCreature");
 
-        ScriptableCard scriptableCard = Resources.Load<ScriptableCard>("CreatureCards/" + cardInfo.title);
-        GameObject cardObject = Instantiate(_cardPrefab);
-        SpawnCacheAndMoveCard(cardObject, scriptableCard, player, "DiscardPile");
+        var scriptableCard = Resources.Load<ScriptableCard>("CreatureCards/" + cardInfo.title);
+        var cardObject = Instantiate(_cardPrefab);
+        SpawnCacheAndMoveCard(cardObject, scriptableCard, player, CardLocations.Discard);
     }
+}
+
+public enum CardLocations{
+    Spawned,
+    Deck,
+    Hand,
+    PlayZone,
+    Discard
 }

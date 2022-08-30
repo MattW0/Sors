@@ -21,16 +21,16 @@ public class CardStats : NetworkBehaviour
     }
 
     [TargetRpc]
-    public void TargetSetInteractable(NetworkConnection target, bool _isInteractable)
+    public void TargetSetInteractable(NetworkConnection target, bool interactable)
     {
-        isInteractable = _isInteractable;
+        isInteractable = interactable;
         _cardUI.Highlight(isInteractable);
     }
 
     [ClientRpc]
-    public void RpcSetCardStats(CardInfo _cardInfo)
+    public void RpcSetCardStats(CardInfo card)
     {
-        this.cardInfo = _cardInfo;
-        _cardUI.SetCardUI(_cardInfo);
+        this.cardInfo = card;
+        _cardUI.SetCardUI(card);
     }
 }

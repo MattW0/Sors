@@ -6,7 +6,7 @@ using Mirror;
 using DG.Tweening;
 
 public class DragDrop : NetworkBehaviour, IBeginDragHandler, IEndDragHandler, IDragHandler {
-    // public Player p;
+
     private GameObject _board;
     private GameObject _startParent;
 
@@ -39,7 +39,7 @@ public class DragDrop : NetworkBehaviour, IBeginDragHandler, IEndDragHandler, ID
 
         _startParent = transform.parent.gameObject;
         _startPosition = transform.position;
-        _dragOffset = (Vector2)transform.position - eventData.position;
+        _dragOffset = _startPosition - eventData.position;
         _canvasGroup.blocksRaycasts = false;
         _canvasGroup.alpha = 0.7f;
 

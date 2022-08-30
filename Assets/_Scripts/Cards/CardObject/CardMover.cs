@@ -30,18 +30,18 @@ public class CardMover : MonoBehaviour
         _cardUI = gameObject.GetComponent<CardUI>();
     }
 
-    public void MoveToDestination(bool hasAuthority, string destination){
+    public void MoveToDestination(bool hasAuthority, CardLocations destination){
         switch (destination){
         default:
             print("<color=orange> Unknown card destination </color>");
             break;
-        case "DrawPile":
+        case CardLocations.Deck:
             if (hasAuthority) gameObject.transform.SetParent(playerDrawPile, false);
             else gameObject.transform.SetParent(opponentDrawPile, false);
 
             gameObject.GetComponent<CardUI>().CardBackUp();
             break;
-        case "Hand":
+        case CardLocations.Hand:
             if (hasAuthority) {
                 gameObject.transform.SetParent(playerHand, false);
                 gameObject.GetComponent<CardUI>().CardFrontUp();
@@ -49,14 +49,14 @@ public class CardMover : MonoBehaviour
             }
             else gameObject.transform.SetParent(opponentHand, false);
             break;
-        case "PlayZone":
+        case CardLocations.PlayZone:
             if (hasAuthority) gameObject.transform.SetParent(playerDropZone, false);
             else {
                 gameObject.transform.SetParent(opponentDropZone, false);
                 gameObject.GetComponent<CardUI>().CardFrontUp();
             }
             break;
-        case "DiscardPile":
+        case CardLocations.Discard:
             if (hasAuthority) gameObject.transform.SetParent(playerDiscardPile, false);
             else gameObject.transform.SetParent(opponentDiscardPile, false);
             gameObject.GetComponent<CardUI>().CardFrontUp();
