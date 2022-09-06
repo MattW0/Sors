@@ -7,11 +7,13 @@ public class CardMover : MonoBehaviour
     [Header("Playboard Transforms")]
     // [SerializeField] private GameObject phaseSelectionPanel;
     [SerializeField] private Transform playerHand;
-    [SerializeField] private Transform playerDropZone;
+    [SerializeField] private Transform playerPlayZone;
+    [SerializeField] private Transform playerMoneyZone;
     [SerializeField] private Transform playerDrawPile;
     [SerializeField] private Transform playerDiscardPile;
     [SerializeField] private Transform opponentHand;
-    [SerializeField] private Transform opponentDropZone;
+    [SerializeField] private Transform opponentPlayZone;
+    [SerializeField] private Transform opponentMoneyZone;
     [SerializeField] private Transform opponentDrawPile;
     [SerializeField] private Transform opponentDiscardPile;
 
@@ -22,8 +24,10 @@ public class CardMover : MonoBehaviour
         opponentDrawPile = GameObject.Find("OpponentDrawPile").transform.GetChild(0);
         playerHand = GameObject.Find("PlayerHand").transform;
         opponentHand = GameObject.Find("OpponentHand").transform;
-        playerDropZone = GameObject.Find("PlayerDropZone").transform;
-        opponentDropZone = GameObject.Find("OpponentDropZone").transform;
+        playerPlayZone = GameObject.Find("PlayerPlayZone").transform;
+        opponentPlayZone = GameObject.Find("OpponentPlayZone").transform;
+        playerMoneyZone = GameObject.Find("PlayerMoneyZone").transform;
+        opponentMoneyZone = GameObject.Find("OpponentMoneyZone").transform;
         playerDiscardPile = GameObject.Find("PlayerDiscardPile").transform.GetChild(0);
         opponentDiscardPile = GameObject.Find("OpponentDiscardPile").transform.GetChild(0);
 
@@ -50,9 +54,16 @@ public class CardMover : MonoBehaviour
             else gameObject.transform.SetParent(opponentHand, false);
             break;
         case CardLocations.PlayZone:
-            if (hasAuthority) gameObject.transform.SetParent(playerDropZone, false);
+            if (hasAuthority) gameObject.transform.SetParent(playerPlayZone, false);
             else {
-                gameObject.transform.SetParent(opponentDropZone, false);
+                gameObject.transform.SetParent(opponentPlayZone, false);
+                gameObject.GetComponent<CardUI>().CardFrontUp();
+            }
+            break;
+        case CardLocations.MoneyZone:
+            if (hasAuthority) gameObject.transform.SetParent(playerMoneyZone, false);
+            else {
+                gameObject.transform.SetParent(opponentMoneyZone, false);
                 gameObject.GetComponent<CardUI>().CardFrontUp();
             }
             break;

@@ -14,12 +14,13 @@ public class CardStats : NetworkBehaviour
 
     private void Awake()
     {
-        NetworkIdentity networkIdentity = NetworkClient.connection.identity;
+        var networkIdentity = NetworkClient.connection.identity;
         owner = networkIdentity.GetComponent<PlayerManager>();
         
         _cardUI = gameObject.GetComponent<CardUI>();
     }
-
+    
+    // Should this be target? Rather target playermanager
     [TargetRpc]
     public void TargetSetInteractable(NetworkConnection target, bool interactable)
     {

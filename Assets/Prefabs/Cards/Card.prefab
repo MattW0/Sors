@@ -655,8 +655,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff33b9b350d6a2643b653392de663162, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  syncMode: 0
-  syncInterval: 0.1
   _cards: {fileID: 0}
 --- !u!114 &-2482358407959743578
 MonoBehaviour:
@@ -692,6 +690,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
+  owner: {fileID: 0}
   cardInfo:
     hash: 
     title: 

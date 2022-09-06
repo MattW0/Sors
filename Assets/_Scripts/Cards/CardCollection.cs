@@ -9,7 +9,8 @@ public class CardCollection : NetworkBehaviour
     [Header("CardCollections")]
     public readonly SyncListCard deck = new SyncListCard();
     public readonly SyncListCard hand = new SyncListCard();
-    public readonly SyncListCard discard = new SyncListCard(); 
+    public readonly SyncListCard discard = new SyncListCard();
+    public readonly SyncListCard money = new SyncListCard();
 }
 
 public class SyncListCard : SyncList<CardInfo> {
@@ -23,9 +24,7 @@ public class SyncListCard : SyncList<CardInfo> {
             while (!(box[0] < n * (System.Byte.MaxValue / n)));
             int k = (box[0] % n);
             n--;
-            CardInfo temp = this[k];
-            this[k] = this[n];
-            this[n] = temp;
+            (this[k], this[n]) = (this[n], this[k]);
         }
     }
 

@@ -89,7 +89,7 @@ public class TurnManager : NetworkBehaviour
     private void Prepare() {
         _gameManager = GameManager.Instance;
         _kingdom = Kingdom.Instance;
-
+        
         UpdateTurnState(TurnState.PhaseSelection);
     }
  
@@ -207,44 +207,61 @@ public class TurnManager : NetworkBehaviour
             int nbRecruits = _gameManager.turnRecruits;
 
             // Allowing money to be played
-            RecruitHighlightMoney(player, targetPlayer);
+            RecruitHighlightMoney(player, targetPlayer, true);
             if (player.playerChosenPhases.Contains(Phase.Recruit)) nbRecruits++;
 
             player.TargetRecruit(targetPlayer.connectionToClient, nbRecruits);
         }
     }
     
-    private void RecruitHighlightMoney(PlayerManager player, NetworkIdentity targetPlayer) {
+    
+    // bad bad bad...
+    private void RecruitHighlightMoney(PlayerManager player, NetworkIdentity targetPlayer, bool highlight) {
+        
         foreach (var card in player.cards.hand) {
             if (card.isCreature) continue;
 
             var cardObject = _gameManager.GetCardObject(card.goID);
-            cardObject.GetComponent<CardStats>().TargetSetInteractable(targetPlayer.connectionToClient, true);
+            cardObject.GetComponent<CardStats>().TargetSetInteractable(targetPlayer.connectionToClient, highlight);
         }
     }
 
-    public void PlayerSelectedRecruitCard(PlayerManager player, CardInfo card){
+    public void PlayerSelectedRecruitCard(PlayerManager player, CardInfo card)
+    {
+        print("Recruiting card " + card.title);
+        if (card.title != null) // If player did not skip recruit (and selected a card)
+        {
+            if (_recruitedCards.ContainsKey(player))
+                _recruitedCards[player].Add(card);
+            else
+                _recruitedCards.Add(player, new List<CardInfo> { card });
+        }
 
-        if (_recruitedCards.ContainsKey(player))
-            _recruitedCards[player].Add(card);
-        else
-            _recruitedCards.Add(player, new List<CardInfo> { card });
-        
+        // Waiting for player to use other recruits
         if (player.Recruits > 0) return;
+        
         _playersReady++;
-        var targetPlayer = player.GetComponent<NetworkIdentity>();
-        player.TargetFinishRecruiting(targetPlayer.connectionToClient);
-
+        print($"{_playersReady}/{_gameManager.players.Count} players ready");
+        
+        // Waiting for a player to finish recruiting
         if (_playersReady != _gameManager.players.Count) return;
+
+        RecruitSpawnAndReset();
+
+        
+    }
+
+    private void RecruitSpawnAndReset()
+    {
         foreach (var (owner, cards) in _recruitedCards) {
             foreach (var cardInfo in cards) {
                 _gameManager.SpawnCreature(owner, cardInfo);
                 print("<color=white>" + owner.playerName + " recruits " + cardInfo.title + "</color>");
             }
-
             owner.Recruits = 1;
+            owner.TargetFinishRecruiting();
         }
-
+        
         _kingdom.ResetRecruit();
         UpdateTurnState(TurnState.NextPhase);
     }

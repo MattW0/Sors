@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using Mirror;
+using Unity.VisualScripting;
 
 public class PlayerManager : NetworkBehaviour
 {
@@ -10,6 +11,8 @@ public class PlayerManager : NetworkBehaviour
     private Kingdom _kingdom;
     public string playerName;
     public PlayerManager opponent;
+    [SerializeField] private List<PlayZoneManager> _playZones;
+
 
     [Header("Game Stats")]
     public CardCollection cards;
@@ -23,6 +26,8 @@ public class PlayerManager : NetworkBehaviour
     
     public static event Action OnCardPileChanged;
     public static event Action<int> OnCashChanged;
+
+    public List<GameObject> moneyCards;
 
     [Header("Turn Stats")]
     [SyncVar, SerializeField] private int cash;
@@ -63,6 +68,7 @@ public class PlayerManager : NetworkBehaviour
         if(!debug) opponent = players[0] == this ? players[1] : players[0];
         
         _kingdom = Kingdom.Instance;
+        _playZones.AddRange(FindObjectsOfType<PlayZoneManager>());
     }
 
     [ClientRpc]
@@ -142,9 +148,13 @@ public class PlayerManager : NetworkBehaviour
 
     // public void CardPileNumberChanged() => OnCardPileChanged?.Invoke();
 
-    public void PlayCard(GameObject card){
-        if (isServer) RpcMoveCard(card, CardLocations.Hand, CardLocations.PlayZone);
-        else CmdMoveCard(card, CardLocations.Hand, CardLocations.PlayZone);
+    public void PlayCard(GameObject card, bool isMoney=false) {
+        
+        var destination = CardLocations.PlayZone;
+        if (isMoney) destination = CardLocations.MoneyZone;
+        
+        if (isServer) RpcMoveCard(card, CardLocations.Hand, destination);
+        else CmdMoveCard(card, CardLocations.Hand, destination);
     }
 
     [Command]
@@ -194,7 +204,8 @@ public class PlayerManager : NetworkBehaviour
         
         _discardSelection.Clear();
     }
-
+    
+    // All those targets dont do much
     [TargetRpc]
     public void TargetRecruit(NetworkConnection target, int nbRecruits){
 
@@ -204,16 +215,28 @@ public class PlayerManager : NetworkBehaviour
 
     [Command]
     public void CmdRecruitSelection(CardInfo card){
-        Cash -= card.cost;
+        
+        if (card.title != null) Cash -= card.cost;
+        
         Recruits--;
         TurnManager.Instance.PlayerSelectedRecruitCard(this, card);
     }
 
     [TargetRpc]
-    public void TargetFinishRecruiting(NetworkConnection target){
+    public void TargetFinishRecruiting(){
+        
         _kingdom.MinButton();
 
-        // Need to discard all money cards
+        foreach (var zone in _playZones)
+        {
+            bool auth = zone.gameObject.name == "PlayerDropZone";
+            zone.DiscardMoneyCards(auth);
+        }
+
+        // foreach (var card in cards.hand)
+        // {
+        //     card.
+        // }
     }
 
     #endregion TurnActions

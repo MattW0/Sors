@@ -54,12 +54,21 @@ public class Kingdom : NetworkBehaviour
     public void ConfirmButtonPressed()
     {
         confirm.interactable = false;
-
-        NetworkIdentity networkIdentity = NetworkClient.connection.identity;
-        PlayerManager p = networkIdentity.GetComponent<PlayerManager>();
-        p.CmdRecruitSelection(_selectedCard);
-
+        PlayerPressedButton();
         // if (p.Recruits == 0) MinButton();
+    }
+
+    public void SkipButtonPressed()
+    {
+        _selectedCard.Destroy();
+        PlayerPressedButton();
+    }
+
+    private void PlayerPressedButton()
+    {
+        var networkIdentity = NetworkClient.connection.identity;
+        var p = networkIdentity.GetComponent<PlayerManager>();
+        p.CmdRecruitSelection(_selectedCard);
     }
 
     public void MinButton()

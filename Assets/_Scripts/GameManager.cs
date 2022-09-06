@@ -11,7 +11,7 @@ public class GameManager : NetworkBehaviour
     public static GameManager Instance { get; private set; }
     private TurnManager _turnManager;
     private Kingdom _kingdom;
-    public List<PlayerManager> players = new List<PlayerManager>();
+    public List<PlayerManager> players;
 
     [Header("Game state")]
     [SyncVar] public int turnNb = 0;
@@ -42,8 +42,8 @@ public class GameManager : NetworkBehaviour
     [SerializeField] private GameObject _moneyCardPrefab;
 
     // Caching all gameObjects of cards in game
-    private readonly Dictionary<string, GameObject> _cache = new Dictionary<string, GameObject>();
-    private Dictionary<string, GameObject> Cache => _cache;
+    private Dictionary<string, GameObject> Cache { get; set; }
+
     public GameObject GetCardObject(string goID) { return Cache[goID]; }
 
     public void Awake()
@@ -53,6 +53,8 @@ public class GameManager : NetworkBehaviour
         startCards = Resources.LoadAll<ScriptableCard>("StartCards/");
         creatureCards = Resources.LoadAll<ScriptableCard>("CreatureCards/");
         moneyCards = Resources.LoadAll<ScriptableCard>("MoneyCards/");
+
+        Cache = new Dictionary<string, GameObject>();
     }
 
     public void GameSetup()
@@ -86,7 +88,7 @@ public class GameManager : NetworkBehaviour
         players.Clear();
         players.AddRange(FindObjectsOfType<PlayerManager>());
 
-        foreach (PlayerManager player in players)
+        foreach (var player in players)
         {   
             player.RpcFindObjects(debug);
 
@@ -109,7 +111,6 @@ public class GameManager : NetworkBehaviour
             ScriptableCard card = moneyCards[0];
             GameObject cardObject = Instantiate(_moneyCardPrefab);
             SpawnCacheAndMoveCard(cardObject, card, player, CardLocations.Deck);
-
         }
 
         // Other start cards
@@ -125,7 +126,7 @@ public class GameManager : NetworkBehaviour
 
         string instanceID = cardObject.GetInstanceID().ToString();
         cardObject.name = instanceID;
-        _cache.Add(instanceID, cardObject);
+        Cache.Add(instanceID, cardObject);
 
         NetworkServer.Spawn(cardObject, connectionToClient);
         cardObject.GetComponent<NetworkIdentity>().AssignClientAuthority(player.GetComponent<NetworkIdentity>().connectionToClient);
@@ -168,5 +169,6 @@ public enum CardLocations{
     Deck,
     Hand,
     PlayZone,
+    MoneyZone,
     Discard
 }
