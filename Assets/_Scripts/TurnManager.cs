@@ -10,7 +10,9 @@ public class TurnManager : NetworkBehaviour
 
     [Header("Entities")]
     private GameManager _gameManager;
+    private PlayerManager _serverPlayer;
     private Kingdom _kingdom;
+    private PlayerHandManager _handManager;
     
     [Header("Turn state")]
     [SerializeField] private TurnState state;
@@ -27,7 +29,7 @@ public class TurnManager : NetworkBehaviour
     [SerializeField] private GameObject _discardPanelPrefab;
     private GameObject _discardPanel;
 
-    void Awake() {
+    private void Awake() {
         if (Instance == null) Instance = this;
     }
 
@@ -88,8 +90,10 @@ public class TurnManager : NetworkBehaviour
 
     private void Prepare() {
         _gameManager = GameManager.Instance;
+        _serverPlayer = _gameManager.players[0];
         _kingdom = Kingdom.Instance;
-        
+        _handManager = PlayerHandManager.Instance;
+
         UpdateTurnState(TurnState.PhaseSelection);
     }
  
@@ -200,29 +204,16 @@ public class TurnManager : NetworkBehaviour
     private void Recruit(){
 
         _recruitedCards = new Dictionary<PlayerManager, List<CardInfo>>();
+        _handManager.RpcHighlightMoney(true);
 
         foreach (var player in _gameManager.players) {
             
             var targetPlayer = player.GetComponent<NetworkIdentity>();
+            
             int nbRecruits = _gameManager.turnRecruits;
-
-            // Allowing money to be played
-            RecruitHighlightMoney(player, targetPlayer, true);
             if (player.playerChosenPhases.Contains(Phase.Recruit)) nbRecruits++;
 
             player.TargetRecruit(targetPlayer.connectionToClient, nbRecruits);
-        }
-    }
-    
-    
-    // bad bad bad...
-    private void RecruitHighlightMoney(PlayerManager player, NetworkIdentity targetPlayer, bool highlight) {
-        
-        foreach (var card in player.cards.hand) {
-            if (card.isCreature) continue;
-
-            var cardObject = _gameManager.GetCardObject(card.goID);
-            cardObject.GetComponent<CardStats>().TargetSetInteractable(targetPlayer.connectionToClient, highlight);
         }
     }
 
@@ -247,8 +238,6 @@ public class TurnManager : NetworkBehaviour
         if (_playersReady != _gameManager.players.Count) return;
 
         RecruitSpawnAndReset();
-
-        
     }
 
     private void RecruitSpawnAndReset()
@@ -258,11 +247,14 @@ public class TurnManager : NetworkBehaviour
                 _gameManager.SpawnCreature(owner, cardInfo);
                 print("<color=white>" + owner.playerName + " recruits " + cardInfo.title + "</color>");
             }
-            owner.Recruits = 1;
-            owner.TargetFinishRecruiting();
+            owner.Recruits = _gameManager.turnRecruits;
+            owner.Recruits = _gameManager.turnCash;
+            owner.RpcFinishRecruiting();
         }
         
         _kingdom.ResetRecruit();
+        _handManager.RpcHighlightMoney(false);
+
         UpdateTurnState(TurnState.NextPhase);
     }
 

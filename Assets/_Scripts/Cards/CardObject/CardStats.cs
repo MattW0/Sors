@@ -20,9 +20,7 @@ public class CardStats : NetworkBehaviour
         _cardUI = gameObject.GetComponent<CardUI>();
     }
     
-    // Should this be target? Rather target playermanager
-    [TargetRpc]
-    public void TargetSetInteractable(NetworkConnection target, bool interactable)
+    public void SetInteractable(bool interactable)
     {
         isInteractable = interactable;
         _cardUI.Highlight(isInteractable);
