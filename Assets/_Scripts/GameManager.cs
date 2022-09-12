@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
+using Random = UnityEngine.Random;
 
 public class GameManager : NetworkBehaviour
 {
@@ -11,7 +13,7 @@ public class GameManager : NetworkBehaviour
     public static GameManager Instance { get; private set; }
     private TurnManager _turnManager;
     private Kingdom _kingdom;
-    public List<PlayerManager> players;
+    public Dictionary<PlayerManager, NetworkIdentity> players;
 
     [Header("Game state")]
     [SyncVar] public int turnNb = 0;
@@ -85,11 +87,14 @@ public class GameManager : NetworkBehaviour
     }
 
     private void PlayerSetup(){
-        players.Clear();
-        players.AddRange(FindObjectsOfType<PlayerManager>());
+        players = new Dictionary<PlayerManager, NetworkIdentity>();
+        var playerManagers = FindObjectsOfType<PlayerManager>();
 
-        foreach (var player in players)
-        {   
+        foreach (var player in playerManagers)
+        {
+            var playerNetworkId = player.GetComponent<NetworkIdentity>();
+            players.Add(player, playerNetworkId);
+            
             player.RpcFindObjects(debug);
 
             // UI
@@ -98,69 +103,75 @@ public class GameManager : NetworkBehaviour
             player.Recruits = turnRecruits;
 
             // Cards
-            SpawnPlayerDeck(player);
+            SpawnPlayerDeck(player, playerNetworkId);
             player.cards.deck.Shuffle();
         }
 
         PlayersDrawInitialHands();
     }
 
-    private void SpawnPlayerDeck(PlayerManager player){
+    private void SpawnPlayerDeck(PlayerManager playerManager, NetworkIdentity playerNetworkId){
         // Coppers
-        for (int i = 0; i < initialDeckSize - nbCreatures; i++){
-            ScriptableCard card = moneyCards[0];
-            GameObject cardObject = Instantiate(_moneyCardPrefab);
-            SpawnCacheAndMoveCard(cardObject, card, player, CardLocations.Deck);
+        for (var i = 0; i < initialDeckSize - nbCreatures; i++){
+            var moneyCard = moneyCards[0]; // Only copper right now
+            var cardObject = Instantiate(_moneyCardPrefab);
+            SpawnCacheAndMoveCard(playerManager, playerNetworkId, cardObject, moneyCard, CardLocations.Deck);
         }
 
         // Other start cards
-        for (int i = 0; i < nbCreatures; i++){
-            ScriptableCard card = startCards[i];
-            GameObject cardObject = Instantiate(_cardPrefab);
-            SpawnCacheAndMoveCard(cardObject, card, player, CardLocations.Deck);
+        for (var i = 0; i < nbCreatures; i++){
+            var creatureCard = startCards[i]; // Special creatures 'A' & 'B' 
+            var cardObject = Instantiate(_cardPrefab);
+            SpawnCacheAndMoveCard(playerManager, playerNetworkId, cardObject, creatureCard, CardLocations.Deck);
         }
     }
 
-    private void SpawnCacheAndMoveCard(GameObject cardObject, ScriptableCard scriptableCard, 
-                                       PlayerManager player, CardLocations destination){
+    private void SpawnCacheAndMoveCard(PlayerManager playerManager, NetworkIdentity playerNetworkId,
+                                       GameObject cardObject, ScriptableCard scriptableCard, CardLocations destination){
 
         string instanceID = cardObject.GetInstanceID().ToString();
         cardObject.name = instanceID;
         Cache.Add(instanceID, cardObject);
 
         NetworkServer.Spawn(cardObject, connectionToClient);
-        cardObject.GetComponent<NetworkIdentity>().AssignClientAuthority(player.GetComponent<NetworkIdentity>().connectionToClient);
+        cardObject.GetComponent<NetworkIdentity>().AssignClientAuthority(playerNetworkId.connectionToClient);
 
         var cardInfo = new CardInfo(scriptableCard, instanceID);        
         cardObject.GetComponent<CardStats>().RpcSetCardStats(cardInfo);
         switch (destination)
         {
             case CardLocations.Deck:
-                player.cards.deck.Add(cardInfo);
+                playerManager.cards.deck.Add(cardInfo);
                 break;
             case CardLocations.Discard:
-                player.cards.discard.Add(cardInfo);
+                playerManager.cards.discard.Add(cardInfo);
                 break;
             case CardLocations.Hand:
-                player.cards.hand.Add(cardInfo);
+                playerManager.cards.hand.Add(cardInfo);
                 break;
+            case CardLocations.Spawned:
+                break;
+            case CardLocations.PlayZone:
+                break;
+            case CardLocations.MoneyZone:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(destination), destination, null);
         }
-        player.RpcMoveCard(cardObject, CardLocations.Spawned, destination);
+        playerManager.RpcMoveCard(cardObject, CardLocations.Spawned, destination);
     }
 
     private void PlayersDrawInitialHands(){
-        foreach (var player in players) {
+        foreach (var player in players.Keys) {
             player.DrawCards(initialHandSize);
             player.RpcCardPilesChanged();
         }
     }
 
-    public void SpawnCreature(PlayerManager player, CardInfo cardInfo){
-        // print("GameManager: SpawnCreature");
-
+    public void SpawnCreature(PlayerManager player, NetworkIdentity playerNetworkId, CardInfo cardInfo){
         var scriptableCard = Resources.Load<ScriptableCard>("CreatureCards/" + cardInfo.title);
         var cardObject = Instantiate(_cardPrefab);
-        SpawnCacheAndMoveCard(cardObject, scriptableCard, player, CardLocations.Discard);
+        SpawnCacheAndMoveCard(player, playerNetworkId, cardObject, scriptableCard, CardLocations.Discard);
     }
 }
 

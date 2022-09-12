@@ -9,12 +9,19 @@ public class MoneyPlayZone : MonoBehaviour
     {
         var children = new List<CardMover>(); 
         children.AddRange(GetComponentsInChildren<CardMover>());
-        print($"Found {children.Count} children");
 
-        foreach (var obj in children)
-        {
+        foreach (var obj in children) { 
             obj.MoveToDestination(auth, CardLocations.Discard);
         }
     }
 
+    public List<GameObject> GetCards()
+    {
+        var cards = new List<GameObject>();
+        foreach (Transform child in transform)
+        {
+            cards.Add(child.gameObject);
+        }
+        return cards;
+    }
 }

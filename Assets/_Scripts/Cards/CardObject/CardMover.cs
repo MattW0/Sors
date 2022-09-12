@@ -49,7 +49,6 @@ public class CardMover : MonoBehaviour
             if (hasAuthority) {
                 gameObject.transform.SetParent(playerHand, false);
                 gameObject.GetComponent<CardUI>().CardFrontUp();
-                gameObject.GetComponent<DragDrop>().ChangeDragPermission(true);
             }
             else gameObject.transform.SetParent(opponentHand, false);
             break;

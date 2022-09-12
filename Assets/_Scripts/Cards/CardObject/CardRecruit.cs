@@ -17,10 +17,10 @@ public class CardRecruit : NetworkBehaviour
     public void OnRecruitMoneyPlay(){
         // Return if card can't be played (not in hand or no money card)
         if (!_cardStats.isInteractable) return;
-        
-        _owner.moneyCards.Add(gameObject);
+
+        _owner.CmdAddMoneyCard(_cardStats.cardInfo);
         _owner.PlayCard(gameObject, true);
+        
         _cardStats.isInteractable = false;
-        _owner.Cash++;
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Mirror;
 
@@ -13,6 +14,7 @@ public class TurnManager : NetworkBehaviour
     private PlayerManager _serverPlayer;
     private Kingdom _kingdom;
     private PlayerHandManager _handManager;
+    private List<PlayZoneManager> _playZoneManagers;
     
     [Header("Turn state")]
     [SerializeField] private TurnState state;
@@ -90,15 +92,17 @@ public class TurnManager : NetworkBehaviour
 
     private void Prepare() {
         _gameManager = GameManager.Instance;
-        _serverPlayer = _gameManager.players[0];
+        _serverPlayer = _gameManager.players.Keys.First();
         _kingdom = Kingdom.Instance;
+        
         _handManager = PlayerHandManager.Instance;
+        _playZoneManagers = new List<PlayZoneManager>();
+        _playZoneManagers.AddRange(FindObjectsOfType<PlayZoneManager>());
 
         UpdateTurnState(TurnState.PhaseSelection);
     }
  
     private void PhaseSelection() {
-
         _gameManager.turnNb++;
 
         _phasePanel = Instantiate(_phasePanelPrefab, transform);
@@ -110,13 +114,13 @@ public class TurnManager : NetworkBehaviour
     public void PlayerSelectedPhases(List<Phase> phases) {
         
         _playersReady++;
-        foreach (Phase phase in phases) {
+        foreach (var phase in phases) {
             if(!chosenPhases.Contains(phase)){
                 chosenPhases.Add(phase);
             }
         }
         
-        if (!(_playersReady == _gameManager.players.Count)) return;
+        if (_playersReady != _gameManager.players.Count) return;
 
         // Starting the selected phases
         NetworkServer.Destroy(_phasePanel);
@@ -139,14 +143,27 @@ public class TurnManager : NetworkBehaviour
         UpdateTurnState(nextPhase);
     }
 
+    #region Drawing
+    
     private void DrawI() {
-        foreach (PlayerManager player in _gameManager.players) {
-            int nbCardDraw = _gameManager.nbCardDraw;
+        foreach (var player in _gameManager.players.Keys) {
+            var nbCardDraw = _gameManager.nbCardDraw;
             if (player.playerChosenPhases.Contains(Phase.DrawI)) nbCardDraw++;
 
             player.DrawCards(nbCardDraw);
         }
 
+        UpdateTurnState(TurnState.Discard);
+    }
+    
+    private void DrawII(){
+        foreach (var player in _gameManager.players.Keys) {
+            var nbCardDraw = _gameManager.nbCardDraw;
+            if (player.playerChosenPhases.Contains(Phase.DrawII)) nbCardDraw++;
+
+            player.DrawCards(nbCardDraw);
+        }
+        
         UpdateTurnState(TurnState.Discard);
     }
 
@@ -155,25 +172,22 @@ public class TurnManager : NetworkBehaviour
         _playersReady = 0;
         _discardPanel = Instantiate(_discardPanelPrefab, transform);
         NetworkServer.Spawn(_discardPanel, connectionToClient);
-
-        // foreach (PlayerManager player in gameManager.players) {
-        //     NetworkIdentity nwIdentity = player.gameObject.GetComponent<NetworkIdentity>();
-        //     player.TargetDiscardCards(nwIdentity.connectionToClient, gameManager.nbDiscard);
-        // }
     }
 
     public void PlayerSelectedDiscardCards(){
         _playersReady++;
         if (_playersReady != _gameManager.players.Count) return;
 
-        foreach (PlayerManager player in _gameManager.players) {
+        foreach (var player in _gameManager.players.Keys) {
             player.RpcDiscardSelection();
         }
 
         NetworkServer.Destroy(_discardPanel);
-        Destroy(_discardPanel);
+        // Destroy(_discardPanel);
         UpdateTurnState(TurnState.NextPhase);
     }
+    
+    #endregion
 
     private void Develop(){
         print("<color=yellow>Develop not yet implemented</color>");
@@ -190,36 +204,21 @@ public class TurnManager : NetworkBehaviour
         UpdateTurnState(TurnState.NextPhase);
     }
 
-    private void DrawII(){
-        foreach (var player in _gameManager.players) {
-            var nbCardDraw = _gameManager.nbCardDraw;
-            if (player.playerChosenPhases.Contains(Phase.DrawII)) nbCardDraw++;
-
-            player.DrawCards(nbCardDraw);
-        }
-        
-        UpdateTurnState(TurnState.Discard);
-    }
-
     private void Recruit(){
 
         _recruitedCards = new Dictionary<PlayerManager, List<CardInfo>>();
         _handManager.RpcHighlightMoney(true);
 
-        foreach (var player in _gameManager.players) {
-            
-            var targetPlayer = player.GetComponent<NetworkIdentity>();
-            
-            int nbRecruits = _gameManager.turnRecruits;
-            if (player.playerChosenPhases.Contains(Phase.Recruit)) nbRecruits++;
+        foreach (var (playerManager, playerNetworkIdentity) in _gameManager.players) {
+            var nbRecruits = _gameManager.turnRecruits;
+            if (playerManager.playerChosenPhases.Contains(Phase.Recruit)) nbRecruits++;
 
-            player.TargetRecruit(targetPlayer.connectionToClient, nbRecruits);
+            playerManager.TargetRecruit(playerNetworkIdentity.connectionToClient, nbRecruits);
         }
     }
 
     public void PlayerSelectedRecruitCard(PlayerManager player, CardInfo card)
     {
-        print("Recruiting card " + card.title);
         if (card.title != null) // If player did not skip recruit (and selected a card)
         {
             if (_recruitedCards.ContainsKey(player))
@@ -244,12 +243,24 @@ public class TurnManager : NetworkBehaviour
     {
         foreach (var (owner, cards) in _recruitedCards) {
             foreach (var cardInfo in cards) {
-                _gameManager.SpawnCreature(owner, cardInfo);
+                _gameManager.SpawnCreature(owner, _gameManager.players[owner], cardInfo);
                 print("<color=white>" + owner.playerName + " recruits " + cardInfo.title + "</color>");
             }
             owner.Recruits = _gameManager.turnRecruits;
-            owner.Recruits = _gameManager.turnCash;
+            owner.Cash = _gameManager.turnCash;
+            
+            foreach (var cardInfo in owner.moneyCards)
+            {
+                owner.cards.discard.Add(cardInfo);
+            }
+            owner.moneyCards.Clear();
+            
             owner.RpcFinishRecruiting();
+        }
+
+        foreach (var zone in _playZoneManagers)
+        {
+            zone.RpcDiscardMoney();
         }
         
         _kingdom.ResetRecruit();
@@ -264,7 +275,6 @@ public class TurnManager : NetworkBehaviour
     }
 
     private void CleanUp(){
-
         print("<color=yellow>CleanUp not yet implemented</color>");
         UpdateTurnState(TurnState.PhaseSelection);
     }

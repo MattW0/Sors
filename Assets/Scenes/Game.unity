@@ -689,7 +689,6 @@ MonoBehaviour:
   syncInterval: 0.1
   debug: 0
   animations: 0
-  players: []
   turnNb: 0
   nbPhasesToChose: 2
   nbCardDraw: 1
@@ -1669,6 +1668,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 186642930}
     m_Modifications:
+    - target: {fileID: 545393304240188920, guid: e461b4738d1d58d4992efa4bef60aeab, type: 3}
+      propertyPath: isMyZone
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 573044564622061721, guid: e461b4738d1d58d4992efa4bef60aeab, type: 3}
       propertyPath: m_Color.a
       value: 1

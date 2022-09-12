@@ -37,8 +37,9 @@ public class DragDrop : NetworkBehaviour, IBeginDragHandler, IEndDragHandler, ID
     public void OnBeginDrag(PointerEventData eventData){
         if (!isDraggable || !hasAuthority) return;
 
-        _startParent = transform.parent.gameObject;
-        _startPosition = transform.position;
+        var cardTransform = transform;
+        _startParent = cardTransform.parent.gameObject;
+        _startPosition = cardTransform.position;
         _dragOffset = _startPosition - eventData.position;
         _canvasGroup.blocksRaycasts = false;
         _canvasGroup.alpha = 0.7f;
@@ -58,8 +59,8 @@ public class DragDrop : NetworkBehaviour, IBeginDragHandler, IEndDragHandler, ID
         if (isOverDropZone) {
             _canvasGroup.alpha = 1f;
             
-            NetworkIdentity networkIdentity = NetworkClient.connection.identity;
-            PlayerManager p = networkIdentity.GetComponent<PlayerManager>();
+            var networkIdentity = NetworkClient.connection.identity;
+            var p = networkIdentity.GetComponent<PlayerManager>();
             p.PlayCard(gameObject);
 
             return;

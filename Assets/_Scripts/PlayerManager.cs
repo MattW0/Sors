@@ -30,7 +30,7 @@ public class PlayerManager : NetworkBehaviour
     public static event Action OnCardPileChanged;
     public static event Action<int> OnCashChanged;
 
-    public List<GameObject> moneyCards;
+    public List<CardInfo> moneyCards;
 
     [Header("Turn Stats")]
     [SyncVar, SerializeField] private int cash;
@@ -71,13 +71,11 @@ public class PlayerManager : NetworkBehaviour
         if(!debug) opponent = players[0] == this ? players[1] : players[0];
         
         _kingdom = Kingdom.Instance;
-        playZones.AddRange(FindObjectsOfType<PlayZoneManager>());
-        _myPlayZone = playZones[1]; // First entry is opponent playZone
     }
 
     [ClientRpc]
     public void RpcSetPlayerStats(int startHealth, int startScore){   
-        playerName = isServer ? "Host" : "Client";
+        playerName = hasAuthority ? "Host" : "Client";
         var opponentName = !isServer ? "Host" : "Client"; // inverse of my name
         
         playerUI = GameObject.Find("PlayerInfo").GetComponent<PlayerUI>();
@@ -100,7 +98,8 @@ public class PlayerManager : NetworkBehaviour
     public void RpcCardPilesChanged(){
         OnCardPileChanged?.Invoke();
     }
-
+        
+    [Server]
     public void DrawCards(int amount){
 
         if(!isServer) return;
@@ -109,14 +108,14 @@ public class PlayerManager : NetworkBehaviour
             amount--;
         } 
 
-        for (int i = 0; i < amount; i++){
+        for (var i = 0; i < amount; i++){
             if (cards.deck.Count == 0) ShuffleDiscardIntoDeck();
 
-            CardInfo card = cards.deck[0];
+            var cardInfo = cards.deck[0];
             cards.deck.RemoveAt(0);
-            cards.hand.Add(card);
+            cards.hand.Add(cardInfo);
 
-            GameObject cardObject = _gameManager.GetCardObject(card.goID);
+            var cardObject = _gameManager.GetCardObject(cardInfo.goID);
             RpcMoveCard(cardObject, CardLocations.Deck, CardLocations.Hand);
         }
     }
@@ -129,9 +128,8 @@ public class PlayerManager : NetworkBehaviour
             temp.Add(card);
             cards.deck.Add(card);
 
-            GameObject cachedCard = _gameManager.GetCardObject(card.goID);
+            var cachedCard = _gameManager.GetCardObject(card.goID);
             RpcMoveCard(cachedCard, CardLocations.Discard, CardLocations.Deck);
-
         }
 
         foreach (var card in temp){
@@ -199,8 +197,15 @@ public class PlayerManager : NetworkBehaviour
     // All those targets dont do much
     [TargetRpc]
     public void TargetRecruit(NetworkConnection target, int nbRecruits){
-        print("Recruiting: " + nbRecruits);
         _kingdom.MaxButton();
+    }
+    
+    [Command]
+    public void CmdAddMoneyCard(CardInfo cardInfo)
+    {
+        Cash++;
+        moneyCards.Add(cardInfo);
+        cards.hand.Remove(cardInfo);
     }
 
     [Command]
@@ -217,12 +222,7 @@ public class PlayerManager : NetworkBehaviour
     public void RpcFinishRecruiting()
     {
         if (!hasAuthority) return;
-        
         _kingdom.MinButton();
-        foreach (var zone in playZones)
-        {
-            zone.DiscardMoneyCards(zone == _myPlayZone);
-        }
     }
 
     #endregion TurnActions

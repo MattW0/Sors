@@ -3,14 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Unity.VisualScripting;
 
 [System.Serializable]
 public class KingdomCard : MonoBehaviour
 {
     private Kingdom _kingdom;
-    public bool isRecruitable;
     public CardInfo cardInfo;
-
+    
+    public bool isRecruitable;
+    private bool isSelected;
+    
     // UI
     [SerializeField] private TMP_Text title;
     [SerializeField] private TMP_Text cost;
@@ -49,9 +52,17 @@ public class KingdomCard : MonoBehaviour
 
     public void OnKingdomCardClick(){
         if (!isRecruitable) return;
+        // Deselecting
+        if (isSelected) {
+            _kingdom.CardToRecruitClicked(false, this);
+            Highlight(true, false);
+            isSelected = false;
+            return;
+        }
 
+        isSelected = true;
         Highlight(true, true);
-        _kingdom.CardToRecruitSelected(this);
+        _kingdom.CardToRecruitClicked(true, this);
     }
 
     private void Highlight(bool active, bool chosen=false)

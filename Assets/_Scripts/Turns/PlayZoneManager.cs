@@ -6,16 +6,27 @@ using UnityEngine;
 
 public class PlayZoneManager : NetworkBehaviour
 {
-    public PlayerManager zoneOwner;
+    public bool isMyZone;
     [SerializeField] private MoneyPlayZone moneyZone;
     
-    public void PreparePlayZones()
+    [Command]
+    private void CmdUpdateCardCollection(PlayerManager owner, GameObject card)
     {
-        zoneOwner = NetworkClient.localPlayer.gameObject.GetComponent<PlayerManager>();
+        var cardInfo = card.GetComponent<CardStats>().cardInfo;
+        owner.cards.hand.Remove(cardInfo);
+        owner.cards.discard.Add(cardInfo);
     }
 
-    public void DiscardMoneyCards(bool isZoneOwner)
+    [ClientRpc]
+    public void RpcDiscardMoney()
     {
-        moneyZone.DiscardMoney(isZoneOwner);
+        var cards = moneyZone.GetCards();
+        
+        foreach (var card in cards)
+        {
+            card.GetComponent<CardMover>().MoveToDestination(isMyZone, CardLocations.Discard);
+            // if (isMyZone) CmdUpdateCardCollection(owner, card);
+        }
     }
+    
 }

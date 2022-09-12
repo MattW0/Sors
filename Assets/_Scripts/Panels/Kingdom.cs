@@ -42,13 +42,18 @@ public class Kingdom : NetworkBehaviour
     [Server]
     public void ResetRecruit()
     {
-        print("Recruit ended");
         OnRecruitPhaseEnded?.Invoke();
     }
 
-    public void CardToRecruitSelected(KingdomCard card){
-        confirm.interactable = true;
-        _selectedCard = card.cardInfo;
+    public void CardToRecruitClicked(bool select, KingdomCard card){
+
+        if (select) {
+            confirm.interactable = true;
+            _selectedCard = card.cardInfo;
+        } else {
+            confirm.interactable = false;
+            _selectedCard.Destroy();
+        }
     }
 
     public void ConfirmButtonPressed()
