@@ -18,14 +18,14 @@ public class DiscardPanel : NetworkBehaviour
     public TMP_Text displayText;
     public GameObject waitingText;
 
-    [SerializeField] private List<GameObject> _selectedCardsList;
+    [SerializeField] private List<GameObject> selectedCardsList;
     
     private void Awake() {
         
-        Instance = this;
+        if (!Instance) Instance = this;
 
         _nbSelected = 0;
-        _selectedCardsList = new List<GameObject>();
+        selectedCardsList = new List<GameObject>();
         _nbCardsToDiscard = GameManager.Instance.nbDiscard;
 
         gameObject.transform.SetParent(GameObject.Find("UI").transform, false);
@@ -33,13 +33,13 @@ public class DiscardPanel : NetworkBehaviour
         OnDiscardPhaseStarted?.Invoke();
     }
 
-    public void CardToDiscardSelected(GameObject _card, bool selected){
+    public void CardToDiscardSelected(GameObject card, bool selected){
         if (selected) {
             _nbSelected++;
-            _selectedCardsList.Add(_card);
+            selectedCardsList.Add(card);
         } else {
             _nbSelected--;
-            _selectedCardsList.Remove(_card);
+            selectedCardsList.Remove(card);
         }
 
         displayText.text = $"Discard {_nbSelected}/{_nbCardsToDiscard} cards";
@@ -52,13 +52,13 @@ public class DiscardPanel : NetworkBehaviour
         confirm.gameObject.SetActive(false);
         waitingText.SetActive(true);
 
-        NetworkIdentity networkIdentity = NetworkClient.connection.identity;
-        PlayerManager p = networkIdentity.GetComponent<PlayerManager>();
-        p.CmdDiscardSelection(_selectedCardsList);
+        var networkIdentity = NetworkClient.connection.identity;
+        var p = networkIdentity.GetComponent<PlayerManager>();
+        p.CmdDiscardSelection(selectedCardsList);
     }
 
     public void OnDestroy() {
         Instance = null;
-        _selectedCardsList.Clear();
+        selectedCardsList.Clear();
     }
 }

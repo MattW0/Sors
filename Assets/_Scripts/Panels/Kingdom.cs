@@ -19,6 +19,7 @@ public class Kingdom : NetworkBehaviour
     
     // UI
     public Button confirm;
+    public Button skip;
     [SerializeField] private GameObject minView, maxView;
 
     private void Awake()
@@ -38,11 +39,25 @@ public class Kingdom : NetworkBehaviour
             kingdomCards[i].SetCard(kingdomCardsInfo[i]);
         }
     }
+
+    [Server]
+    public void BeginRecruit()
+    {
+        RpcMaxButton();
+        skip.interactable = true;
+    }
+    
+    [TargetRpc]
+    public void TargetResetRecruit(NetworkConnection target, int recruitsLeft)
+    {
+        if (recruitsLeft > 0) skip.interactable = true;
+    }
     
     [Server]
-    public void ResetRecruit()
+    public void EndRecruit()
     {
         OnRecruitPhaseEnded?.Invoke();
+        RpcMinButton();
     }
 
     public void CardToRecruitClicked(bool select, KingdomCard card){
@@ -60,11 +75,11 @@ public class Kingdom : NetworkBehaviour
     {
         confirm.interactable = false;
         PlayerPressedButton();
-        // if (p.Recruits == 0) MinButton();
     }
 
     public void SkipButtonPressed()
     {
+        skip.interactable = false;
         _selectedCard.Destroy();
         PlayerPressedButton();
     }
@@ -73,6 +88,7 @@ public class Kingdom : NetworkBehaviour
     {
         var networkIdentity = NetworkClient.connection.identity;
         var p = networkIdentity.GetComponent<PlayerManager>();
+        
         p.CmdRecruitSelection(_selectedCard);
     }
 
@@ -86,5 +102,17 @@ public class Kingdom : NetworkBehaviour
     {
         minView.SetActive(false);
         maxView.SetActive(true);
+    }
+
+    [ClientRpc]
+    private void RpcMinButton()
+    {
+        MinButton();
+    }
+    
+    [ClientRpc]
+    private void RpcMaxButton()
+    {
+        MaxButton();
     }
 }

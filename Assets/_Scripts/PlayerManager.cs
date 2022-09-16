@@ -26,11 +26,12 @@ public class PlayerManager : NetworkBehaviour
 
     public List<Phase> playerChosenPhases = new List<Phase>() {Phase.DrawI, Phase.DrawII};
     private List<GameObject> _discardSelection = new List<GameObject>();
+    public List<CardInfo> moneyCards;
     
     public static event Action OnCardPileChanged;
     public static event Action<int> OnCashChanged;
+    public static event Action<int> OnRecruitChanged;
 
-    public List<CardInfo> moneyCards;
 
     [Header("Turn Stats")]
     [SyncVar, SerializeField] private int cash;
@@ -39,7 +40,6 @@ public class PlayerManager : NetworkBehaviour
         set{
             cash = value;
             SetCashValue(cash);
-            OnCashChanged?.Invoke(cash);
         }
     }
     [SyncVar] private int _recruits = 1;
@@ -48,7 +48,6 @@ public class PlayerManager : NetworkBehaviour
         set{
             _recruits = value;
             SetRecruitValue(_recruits);
-            OnCashChanged?.Invoke(Cash);
         }
     }
 
@@ -193,19 +192,24 @@ public class PlayerManager : NetworkBehaviour
         
         _discardSelection.Clear();
     }
-    
-    // All those targets dont do much
-    [TargetRpc]
-    public void TargetRecruit(NetworkConnection target, int nbRecruits){
-        _kingdom.MaxButton();
-    }
-    
+
     [Command]
-    public void CmdAddMoneyCard(CardInfo cardInfo)
+    public void CmdPlayMoneyCard(CardInfo cardInfo)
     {
         Cash++;
         moneyCards.Add(cardInfo);
         cards.hand.Remove(cardInfo);
+    }
+
+    [ClientRpc]
+    public void RpcDiscardMoneyCards()
+    {
+        foreach (var card in moneyCards)
+        {
+            cards.discard.Add(card);
+        }
+        
+        moneyCards.Clear();
     }
 
     [Command]
@@ -215,14 +219,6 @@ public class PlayerManager : NetworkBehaviour
         if (card.title != null) Cash -= card.cost;
         
         TurnManager.Instance.PlayerSelectedRecruitCard(this, card);
-    }
-    
-    // Could also do TargetRpc ?
-    [ClientRpc]
-    public void RpcFinishRecruiting()
-    {
-        if (!hasAuthority) return;
-        _kingdom.MinButton();
     }
 
     #endregion TurnActions
@@ -240,6 +236,8 @@ public class PlayerManager : NetworkBehaviour
 
     [ClientRpc]
     private void RpcSetCashValue(int value){
+        OnCashChanged?.Invoke(value);
+        
         if(hasAuthority) playerUI.SetCash(value);
         else opponentUI.SetCash(value);
     }
@@ -256,6 +254,8 @@ public class PlayerManager : NetworkBehaviour
 
     [ClientRpc]
     private void RpcSetRecruitValue(int value){
+        OnRecruitChanged?.Invoke(value);
+
         if(hasAuthority) playerUI.SetRecruits(value);
         else opponentUI.SetRecruits(value);
     }

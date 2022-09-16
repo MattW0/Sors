@@ -208,12 +208,12 @@ public class TurnManager : NetworkBehaviour
 
         _recruitedCards = new Dictionary<PlayerManager, List<CardInfo>>();
         _handManager.RpcHighlightMoney(true);
+        _kingdom.BeginRecruit();
 
-        foreach (var (playerManager, playerNetworkIdentity) in _gameManager.players) {
+        foreach (var playerManager in _gameManager.players.Keys) {
             var nbRecruits = _gameManager.turnRecruits;
             if (playerManager.playerChosenPhases.Contains(Phase.Recruit)) nbRecruits++;
-
-            playerManager.TargetRecruit(playerNetworkIdentity.connectionToClient, nbRecruits);
+            playerManager.Recruits = nbRecruits;
         }
     }
 
@@ -226,6 +226,8 @@ public class TurnManager : NetworkBehaviour
             else
                 _recruitedCards.Add(player, new List<CardInfo> { card });
         }
+        
+        _kingdom.TargetResetRecruit(_gameManager.players[player].connectionToClient, player.Recruits);
 
         // Waiting for player to use other recruits
         if (player.Recruits > 0) return;
@@ -246,27 +248,33 @@ public class TurnManager : NetworkBehaviour
                 _gameManager.SpawnCreature(owner, _gameManager.players[owner], cardInfo);
                 print("<color=white>" + owner.playerName + " recruits " + cardInfo.title + "</color>");
             }
-            owner.Recruits = _gameManager.turnRecruits;
-            owner.Cash = _gameManager.turnCash;
-            
-            foreach (var cardInfo in owner.moneyCards)
-            {
-                owner.cards.discard.Add(cardInfo);
-            }
-            owner.moneyCards.Clear();
-            
-            owner.RpcFinishRecruiting();
         }
+        
+        PlayersFinishRecruiting();
 
         foreach (var zone in _playZoneManagers)
         {
             zone.RpcDiscardMoney();
         }
         
-        _kingdom.ResetRecruit();
+        _kingdom.EndRecruit();
         _handManager.RpcHighlightMoney(false);
 
         UpdateTurnState(TurnState.NextPhase);
+    }
+    
+    private void PlayersFinishRecruiting()
+    {
+        print("PlayersFinishRecruiting");
+        foreach (var owner in _gameManager.players.Keys)
+        {
+            owner.RpcDiscardMoneyCards();
+            
+            owner.Recruits = _gameManager.turnRecruits;
+            owner.Cash = _gameManager.turnCash;
+            
+            owner.moneyCards.Clear();
+        }
     }
 
     private void Prevail(){

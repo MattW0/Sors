@@ -52,6 +52,7 @@ public class KingdomCard : MonoBehaviour
 
     public void OnKingdomCardClick(){
         if (!isRecruitable) return;
+        
         // Deselecting
         if (isSelected) {
             _kingdom.CardToRecruitClicked(false, this);

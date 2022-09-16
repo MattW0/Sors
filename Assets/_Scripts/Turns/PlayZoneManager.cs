@@ -8,13 +8,15 @@ public class PlayZoneManager : NetworkBehaviour
 {
     public bool isMyZone;
     [SerializeField] private MoneyPlayZone moneyZone;
+    private TurnManager _turnManager;
+    private GameManager _gameManager;
     
-    [Command]
-    private void CmdUpdateCardCollection(PlayerManager owner, GameObject card)
+    [SerializeField] private List<CardInfo> playedCardsList;
+
+    private void Awake()
     {
-        var cardInfo = card.GetComponent<CardStats>().cardInfo;
-        owner.cards.hand.Remove(cardInfo);
-        owner.cards.discard.Add(cardInfo);
+        playedCardsList = new List<CardInfo>();
+        if (isServer && !_gameManager) _gameManager = GameManager.Instance;
     }
 
     [ClientRpc]
@@ -25,7 +27,6 @@ public class PlayZoneManager : NetworkBehaviour
         foreach (var card in cards)
         {
             card.GetComponent<CardMover>().MoveToDestination(isMyZone, CardLocations.Discard);
-            // if (isMyZone) CmdUpdateCardCollection(owner, card);
         }
     }
     
