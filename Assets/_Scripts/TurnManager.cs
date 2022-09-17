@@ -101,7 +101,8 @@ public class TurnManager : NetworkBehaviour
 
         UpdateTurnState(TurnState.PhaseSelection);
     }
- 
+    
+    #region PhaseSelection
     private void PhaseSelection() {
         _gameManager.turnNb++;
 
@@ -142,6 +143,7 @@ public class TurnManager : NetworkBehaviour
         chosenPhases.RemoveAt(0);
         UpdateTurnState(nextPhase);
     }
+    #endregion
 
     #region Drawing
     
@@ -195,14 +197,21 @@ public class TurnManager : NetworkBehaviour
     }
 
     private void Deploy(){
-        print("<color=yellow>Deploy not yet implemented</color>");
-        UpdateTurnState(TurnState.NextPhase);
+        _handManager.RpcHighlightMoney(true);
+
+        foreach (var playerManager in _gameManager.players.Keys) {
+            var nbDeploys = _gameManager.turnDeploys;
+            if (playerManager.playerChosenPhases.Contains(Phase.Deploy)) nbDeploys++;
+            playerManager.Deploys = nbDeploys;
+        }
     }
 
     private void Combat(){
         print("<color=yellow>Combat not yet implemented</color>");
         UpdateTurnState(TurnState.NextPhase);
     }
+    
+    #region Recruit
 
     private void Recruit(){
 
@@ -276,6 +285,7 @@ public class TurnManager : NetworkBehaviour
             owner.moneyCards.Clear();
         }
     }
+    #endregion 
 
     private void Prevail(){
         print("<color=yellow>Prevail not yet implemented</color>");

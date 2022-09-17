@@ -8,7 +8,6 @@ public class PlayerManager : NetworkBehaviour
 {
     [Header("Entities")]
     private GameManager _gameManager;
-    private Kingdom _kingdom;
     public string playerName;
     public PlayerManager opponent;
     
@@ -16,21 +15,22 @@ public class PlayerManager : NetworkBehaviour
     [SerializeField] private List<PlayZoneManager> playZones;
     private PlayZoneManager _myPlayZone;
 
-
     [Header("Game Stats")]
     public CardCollection cards;
-    [SyncVar, SerializeField] private int _health;
-    [SyncVar, SerializeField] private int _score;
-    public int Health { get => _health; set => _health = value; }
-    public int Score { get => _score; set => _score = value; }
+    [SyncVar, SerializeField] private int health;
+    [SyncVar, SerializeField] private int score;
+    public int Health { get => health; set => health = value; }
+    public int Score { get => score; set => score = value; }
 
     public List<Phase> playerChosenPhases = new List<Phase>() {Phase.DrawI, Phase.DrawII};
-    private List<GameObject> _discardSelection = new List<GameObject>();
+    private List<GameObject> _discardSelection;
     public List<CardInfo> moneyCards;
     
     public static event Action OnCardPileChanged;
     public static event Action<int> OnCashChanged;
-    public static event Action<int> OnRecruitChanged;
+    // public static event Action<int> OnDeployChanged;
+
+    // public static event Action<int> OnRecruitChanged;
 
 
     [Header("Turn Stats")]
@@ -48,6 +48,15 @@ public class PlayerManager : NetworkBehaviour
         set{
             _recruits = value;
             SetRecruitValue(_recruits);
+        }
+    }
+    
+    [SyncVar] private int _deploys = 1;
+    public int Deploys { 
+        get => _deploys; 
+        set{
+            _deploys = value;
+            SetDeployValue(_deploys);
         }
     }
 
@@ -68,8 +77,6 @@ public class PlayerManager : NetworkBehaviour
 
         var players = FindObjectsOfType<PlayerManager>();
         if(!debug) opponent = players[0] == this ? players[1] : players[0];
-        
-        _kingdom = Kingdom.Instance;
     }
 
     [ClientRpc]
@@ -81,8 +88,8 @@ public class PlayerManager : NetworkBehaviour
         opponentUI = GameObject.Find("OpponentInfo").GetComponent<PlayerUI>();
 
         if (hasAuthority){
-            _health = startHealth;
-            _score = startScore;
+            health = startHealth;
+            score = startScore;
             playerUI.SetPlayerUI(playerName, startHealth.ToString(), startScore.ToString());
         } else {
             opponentUI.SetOpponentUI(opponentName, startHealth.ToString(), startScore.ToString());
@@ -241,6 +248,24 @@ public class PlayerManager : NetworkBehaviour
         if(hasAuthority) playerUI.SetCash(value);
         else opponentUI.SetCash(value);
     }
+    
+    private void SetDeployValue(int value){
+        if (isServer) RpcSetDeployValue(value);
+        else CmdSetDeployValue(value);
+    }
+
+    [Command]
+    private void CmdSetDeployValue(int value){
+        RpcSetDeployValue(value);
+    }
+
+    [ClientRpc]
+    private void RpcSetDeployValue(int value){
+        // OnDeployChanged?.Invoke(value);
+
+        if(hasAuthority) playerUI.SetDeploys(value);
+        else opponentUI.SetDeploys(value);
+    }
 
     private void SetRecruitValue(int value){
         if (isServer) RpcSetRecruitValue(value);
@@ -254,11 +279,12 @@ public class PlayerManager : NetworkBehaviour
 
     [ClientRpc]
     private void RpcSetRecruitValue(int value){
-        OnRecruitChanged?.Invoke(value);
+        // OnRecruitChanged?.Invoke(value);
 
         if(hasAuthority) playerUI.SetRecruits(value);
         else opponentUI.SetRecruits(value);
     }
+    
     #endregion UI
 
 }

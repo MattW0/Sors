@@ -12,7 +12,7 @@ public class KingdomCard : MonoBehaviour
     public CardInfo cardInfo;
     
     public bool isRecruitable;
-    private bool isSelected;
+    private bool _isSelected;
     
     // UI
     [SerializeField] private TMP_Text title;
@@ -54,14 +54,14 @@ public class KingdomCard : MonoBehaviour
         if (!isRecruitable) return;
         
         // Deselecting
-        if (isSelected) {
+        if (_isSelected) {
             _kingdom.CardToRecruitClicked(false, this);
             Highlight(true, false);
-            isSelected = false;
+            _isSelected = false;
             return;
         }
 
-        isSelected = true;
+        _isSelected = true;
         Highlight(true, true);
         _kingdom.CardToRecruitClicked(true, this);
     }
@@ -69,7 +69,7 @@ public class KingdomCard : MonoBehaviour
     private void Highlight(bool active, bool chosen=false)
     {
         highlight.enabled = active;
-        highlight.color = !chosen ? Color.green : Color.blue;
+        highlight.color = chosen ? Color.blue : Color.green;
     }
 
     private void OnDestroy(){

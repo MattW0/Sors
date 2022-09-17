@@ -23,6 +23,7 @@ public class GameManager : NetworkBehaviour
     public int nbCardDraw = 2;
     public int nbDiscard = 1;
     public int turnCash = 0;
+    public int turnDeploys = 1; 
     public int turnRecruits = 1;
 
     [Header("Game start settings")]

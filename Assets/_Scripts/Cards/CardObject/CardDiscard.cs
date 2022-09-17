@@ -10,13 +10,13 @@ public class CardDiscard : MonoBehaviour
     private bool _isSelected;
     private Vector2 _startPosition;
     private CardUI _cardUI;
-    [SerializeField] private GameObject _cards;
+    [SerializeField] private GameObject playerHand;
 
     private void Awake()
     {
         DiscardPanel.OnDiscardPhaseStarted += StartDiscardPhase;
         _cardUI = gameObject.GetComponent<CardUI>();
-        _cards = GameObject.Find("PlayerHand");
+        playerHand = GameObject.Find("PlayerHand");
     }
 
     private void StartDiscardPhase(){
@@ -26,9 +26,11 @@ public class CardDiscard : MonoBehaviour
 
     public void OnDiscardClick(){
 
-        if (!(transform.IsChildOf(_cards.transform))) return; // Return if card not in hand
+        if (!(transform.IsChildOf(playerHand.transform))) return; // Return if card not in hand
         if (!_discardPanel) return; // Return if it's not discard phase
 
+        var trans = transform;
+        
         if (_isSelected) {
             _isSelected = false;
             _cardUI.Highlight(false);
@@ -39,8 +41,8 @@ public class CardDiscard : MonoBehaviour
 
         _isSelected = true;
         _cardUI.Highlight(true);
-        _startPosition = transform.position;
-        transform.position = _startPosition + Vector2.up * 10;
+        _startPosition = trans.position;
+        trans.position = _startPosition + Vector2.up * 10;
         _discardPanel.CardToDiscardSelected(gameObject, true);
     }
 
