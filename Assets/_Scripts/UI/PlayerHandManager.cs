@@ -12,6 +12,16 @@ public class PlayerHandManager : NetworkBehaviour
     {
         if (!Instance) Instance = this;
     }
+    
+    [ClientRpc]
+    public void RpcHighlightAll(bool isInteractable) {
+        foreach (Transform child in transform) {
+            var card = child.gameObject.GetComponent<CardStats>();
+            
+            // if (card.cardInfo.isCreature) continue;
+            card.SetDiscardable(isInteractable);
+        }
+    }
 
     [ClientRpc]
     public void RpcHighlightMoney(bool isInteractable) {

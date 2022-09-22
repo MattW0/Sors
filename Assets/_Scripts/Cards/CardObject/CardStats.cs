@@ -9,6 +9,7 @@ public class CardStats : NetworkBehaviour
     public PlayerManager owner;
     public CardInfo cardInfo;
     public bool isInteractable;
+    public bool isDiscardable;
 
     private CardUI _cardUI;
 
@@ -24,6 +25,13 @@ public class CardStats : NetworkBehaviour
     {
         isInteractable = interactable;
         _cardUI.Highlight(isInteractable);
+    }
+    
+    public void SetDiscardable(bool discardable)
+    {
+        isDiscardable = discardable;
+        if (discardable) _cardUI.DiscardHighlight(isDiscardable);
+        else _cardUI.DiscardCleanUp();
     }
 
     [ClientRpc]

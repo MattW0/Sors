@@ -687,7 +687,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
-  debug: 1
+  debug: 0
   animations: 0
   turnNb: 0
   nbPhasesToChose: 2
@@ -706,6 +706,7 @@ MonoBehaviour:
   creatureCards: []
   moneyCards: []
   _kingdomPrefab: {fileID: 6245966277038001864, guid: 37e2b8313015d1a4f8f13069553e53bd, type: 3}
+  _discardPanelPrefab: {fileID: 5765509117050641646, guid: e335860c9c03c82469c10feefbe3e926, type: 3}
   _cardPrefab: {fileID: 5450374274839420802, guid: 5049089525d268b41ac4327a430b6221, type: 3}
   _moneyCardPrefab: {fileID: 8134903570611113416, guid: 2d148f57d14cfc345bb5294be07cb84f, type: 3}
 --- !u!114 &806438203
@@ -833,6 +834,7 @@ MonoBehaviour:
   - {fileID: 6245966277038001864, guid: 634e6b2c0192f0f4ca1b37244c505feb, type: 3}
   - {fileID: 5765509117050641646, guid: e335860c9c03c82469c10feefbe3e926, type: 3}
   - {fileID: 6245966277038001864, guid: 37e2b8313015d1a4f8f13069553e53bd, type: 3}
+  - {fileID: 5765509117050641646, guid: e335860c9c03c82469c10feefbe3e926, type: 3}
 --- !u!1 &959583056
 GameObject:
   m_ObjectHideFlags: 0
@@ -2219,7 +2221,6 @@ MonoBehaviour:
   state: 0
   chosenPhases: 
   _phasePanelPrefab: {fileID: 6245966277038001864, guid: 634e6b2c0192f0f4ca1b37244c505feb, type: 3}
-  _discardPanelPrefab: {fileID: 5765509117050641646, guid: e335860c9c03c82469c10feefbe3e926, type: 3}
 --- !u!114 &6319069573471266841
 MonoBehaviour:
   m_ObjectHideFlags: 0

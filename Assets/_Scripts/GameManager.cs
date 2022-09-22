@@ -41,6 +41,7 @@ public class GameManager : NetworkBehaviour
     
     [Header("Prefabs")]
     [SerializeField] private GameObject _kingdomPrefab;
+    [SerializeField] private GameObject _discardPanelPrefab;
     [SerializeField] private GameObject _cardPrefab;
     [SerializeField] private GameObject _moneyCardPrefab;
 
@@ -65,26 +66,34 @@ public class GameManager : NetworkBehaviour
         _turnManager = TurnManager.Instance;
 
         KingdomSetup();
+        PanelSetup();
         PlayerSetup();
 
         _turnManager.UpdateTurnState(TurnState.Prepare);
     }
 
     private void KingdomSetup(){
-
-        GameObject kingdomObject = Instantiate(_kingdomPrefab, transform);
+        var kingdomObject = Instantiate(_kingdomPrefab, transform);
         NetworkServer.Spawn(kingdomObject, connectionToClient);
         _kingdom = Kingdom.Instance;
 
-        CardInfo[] kingdomCards = new CardInfo[nbKingdomCards];
+        var kingdomCards = new CardInfo[nbKingdomCards];
         
-        for (int i = 0; i < nbKingdomCards; i++)
+        for (var i = 0; i < nbKingdomCards; i++)
         {
-            ScriptableCard card = creatureCards[Random.Range(0, creatureCards.Length)];
+            var card = creatureCards[Random.Range(0, creatureCards.Length)];
             kingdomCards[i] = new CardInfo(card);
         }
 
         _kingdom.RpcSetKingdomCards(kingdomCards);
+    }
+
+    private void PanelSetup()
+    {
+        var discardPanelObject = Instantiate(_discardPanelPrefab, transform);
+        NetworkServer.Spawn(discardPanelObject, connectionToClient);
+        
+        discardPanelObject.gameObject.SetActive(false);
     }
 
     private void PlayerSetup(){

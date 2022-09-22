@@ -51,4 +51,14 @@ public class CardUI : MonoBehaviour {
     public void Highlight(bool active){
         _highlight.enabled = active;
     }
+    
+    public void DiscardHighlight(bool active){
+        _highlight.color = Color.red;
+        _highlight.enabled = active;
+    }
+    
+    public void DiscardCleanUp(){
+        _highlight.color = Color.green;
+        _highlight.enabled = false;
+    }
 }

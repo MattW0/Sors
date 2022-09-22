@@ -13,6 +13,7 @@ public class TurnManager : NetworkBehaviour
     private GameManager _gameManager;
     private PlayerManager _serverPlayer;
     private Kingdom _kingdom;
+    private DiscardPanel _discardPanel;
     private PlayerHandManager _handManager;
     private List<PlayZoneManager> _playZoneManagers;
     
@@ -28,8 +29,7 @@ public class TurnManager : NetworkBehaviour
     [Header("Objects")]
     [SerializeField] private GameObject _phasePanelPrefab;
     private GameObject _phasePanel;
-    [SerializeField] private GameObject _discardPanelPrefab;
-    private GameObject _discardPanel;
+    // [SerializeField] private GameObject _discardPanelPrefab;
 
     private void Awake() {
         if (Instance == null) Instance = this;
@@ -94,6 +94,7 @@ public class TurnManager : NetworkBehaviour
         _gameManager = GameManager.Instance;
         _serverPlayer = _gameManager.players.Keys.First();
         _kingdom = Kingdom.Instance;
+        _discardPanel = DiscardPanel.Instance;
         
         _handManager = PlayerHandManager.Instance;
         _playZoneManagers = new List<PlayZoneManager>();
@@ -170,10 +171,10 @@ public class TurnManager : NetworkBehaviour
     }
 
     private void Discard() {
-
         _playersReady = 0;
-        _discardPanel = Instantiate(_discardPanelPrefab, transform);
-        NetworkServer.Spawn(_discardPanel, connectionToClient);
+        
+        _handManager.RpcHighlightAll(true);
+        _discardPanel.RpcBeginDiscard();
     }
 
     public void PlayerSelectedDiscardCards(){
@@ -181,11 +182,12 @@ public class TurnManager : NetworkBehaviour
         if (_playersReady != _gameManager.players.Count) return;
 
         foreach (var player in _gameManager.players.Keys) {
-            player.RpcDiscardSelection();
+            player.DiscardSelection();
         }
 
-        NetworkServer.Destroy(_discardPanel);
-        // Destroy(_discardPanel);
+        _discardPanel.RpcFinishDiscard();
+        _handManager.RpcHighlightAll(false);
+        
         UpdateTurnState(TurnState.NextPhase);
     }
     
@@ -214,7 +216,6 @@ public class TurnManager : NetworkBehaviour
     #region Recruit
 
     private void Recruit(){
-
         _recruitedCards = new Dictionary<PlayerManager, List<CardInfo>>();
         _handManager.RpcHighlightMoney(true);
         _kingdom.BeginRecruit();
@@ -277,7 +278,7 @@ public class TurnManager : NetworkBehaviour
         print("PlayersFinishRecruiting");
         foreach (var owner in _gameManager.players.Keys)
         {
-            owner.RpcDiscardMoneyCards();
+            owner.DiscardMoneyCards();
             
             owner.Recruits = _gameManager.turnRecruits;
             owner.Cash = _gameManager.turnCash;

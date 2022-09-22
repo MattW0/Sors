@@ -183,20 +183,21 @@ public class PlayerManager : NetworkBehaviour
         _discardSelection = cardsToDiscard;
         TurnManager.Instance.PlayerSelectedDiscardCards();
     }
-
-
-    [ClientRpc]
-    public void RpcDiscardSelection(){
+    
+    [Server]
+    public void DiscardSelection()
+    {
+        // Not an Rpc because Server handles _discardSelection and calls each player
+        // object to discard their selection (in TurnManager.PlayerSelectedDiscardCards)
+        
         foreach(var card in _discardSelection){
             var cardInfo = card.GetComponent<CardStats>().cardInfo;
 
             cards.hand.Remove(cardInfo);
             cards.discard.Add(cardInfo);
-            // print("Discarding card: " + _cardInfo.title);
 
             RpcMoveCard(card, CardLocations.Hand, CardLocations.Discard);
         }
-        
         _discardSelection.Clear();
     }
 
@@ -208,14 +209,14 @@ public class PlayerManager : NetworkBehaviour
         cards.hand.Remove(cardInfo);
     }
 
-    [ClientRpc]
-    public void RpcDiscardMoneyCards()
+    // [ClientRpc]
+    public void DiscardMoneyCards()
     {
+        print($"Discarding {moneyCards.Count} copper");
         foreach (var card in moneyCards)
         {
             cards.discard.Add(card);
         }
-        
         moneyCards.Clear();
     }
 
