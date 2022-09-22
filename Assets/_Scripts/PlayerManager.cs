@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using CardDecoder;
 using Mirror;
 using Unity.VisualScripting;
 
@@ -28,6 +29,7 @@ public class PlayerManager : NetworkBehaviour
     
     public static event Action OnCardPileChanged;
     public static event Action<int> OnCashChanged;
+    public static event Action<GameObject, bool> OnHandChanged; 
     // public static event Action<int> OnDeployChanged;
 
     // public static event Action<int> OnRecruitChanged;
@@ -68,6 +70,8 @@ public class PlayerManager : NetworkBehaviour
         base.OnStartClient();
 
         cards = GetComponent<CardCollection>();
+        // cards.deck.Callback += cards.OnDeckListChange;
+        
         if (isServer) _gameManager = GameManager.Instance;
     }
 
@@ -95,6 +99,19 @@ public class PlayerManager : NetworkBehaviour
             opponentUI.SetOpponentUI(opponentName, startHealth.ToString(), startScore.ToString());
         }
     }
+    
+    [Server] // GameManager calls this on player object
+    public void DrawInitialHand(int amount)
+    {
+        for (var i = 0; i < amount; i++){
+            var cardInfo = cards.deck[0];
+            cards.deck.RemoveAt(0);
+            cards.hand.Add(cardInfo);
+
+            var cardObject = _gameManager.GetCardObject(cardInfo.goID);
+            RpcMoveCard(cardObject, CardLocations.Deck, CardLocations.Hand);
+        }
+    }
 
     #endregion GameSetup
 
@@ -107,9 +124,6 @@ public class PlayerManager : NetworkBehaviour
         
     [Server]
     public void DrawCards(int amount){
-
-        if(!isServer) return;
-
         while (amount > cards.deck.Count + cards.discard.Count){
             amount--;
         } 
@@ -162,6 +176,10 @@ public class PlayerManager : NetworkBehaviour
     [ClientRpc]
     public void RpcMoveCard(GameObject card, CardLocations from, CardLocations to){
         card.GetComponent<CardMover>().MoveToDestination(hasAuthority, to);
+
+        if (!hasAuthority) return;
+        if (from == CardLocations.Hand) OnHandChanged?.Invoke(card, false);
+        else if (to == CardLocations.Hand) OnHandChanged?.Invoke(card, true);
     }
 
     #endregion Cards

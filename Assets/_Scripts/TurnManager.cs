@@ -200,7 +200,8 @@ public class TurnManager : NetworkBehaviour
 
     private void Deploy(){
         _handManager.RpcHighlightMoney(true);
-
+        
+        // Bonus for phase selection
         foreach (var playerManager in _gameManager.players.Keys) {
             var nbDeploys = _gameManager.turnDeploys;
             if (playerManager.playerChosenPhases.Contains(Phase.Deploy)) nbDeploys++;

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Mirror;
 using Random = UnityEngine.Random;
@@ -115,9 +116,9 @@ public class GameManager : NetworkBehaviour
             // Cards
             SpawnPlayerDeck(player, playerNetworkId);
             player.cards.deck.Shuffle();
-        }
 
-        PlayersDrawInitialHands();
+            player.DrawInitialHand(initialHandSize);
+        }
     }
 
     private void SpawnPlayerDeck(PlayerManager playerManager, NetworkIdentity playerNetworkId){
@@ -169,13 +170,6 @@ public class GameManager : NetworkBehaviour
                 throw new ArgumentOutOfRangeException(nameof(destination), destination, null);
         }
         playerManager.RpcMoveCard(cardObject, CardLocations.Spawned, destination);
-    }
-
-    private void PlayersDrawInitialHands(){
-        foreach (var player in players.Keys) {
-            player.DrawCards(initialHandSize);
-            player.RpcCardPilesChanged();
-        }
     }
 
     public void SpawnCreature(PlayerManager player, NetworkIdentity playerNetworkId, CardInfo cardInfo){

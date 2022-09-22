@@ -11,12 +11,17 @@ public class CardCollection : NetworkBehaviour
     public readonly SyncListCard hand = new SyncListCard();
     public readonly SyncListCard discard = new SyncListCard();
     public readonly SyncListCard money = new SyncListCard();
+    
+    // public void OnDeckListChange(SyncListCard.Operation op, int index, CardInfo oldCard, CardInfo newCard)
+    // {
+    //     deck[index] = newCard;
+    // }
 }
 
 public class SyncListCard : SyncList<CardInfo> {
     
     public void Shuffle(){
-        RNGCryptoServiceProvider provider = new RNGCryptoServiceProvider ();
+        RNGCryptoServiceProvider provider = new RNGCryptoServiceProvider();
         int n = Count;
         while (n > 1) {
             byte[] box = new byte[1];
@@ -29,7 +34,7 @@ public class SyncListCard : SyncList<CardInfo> {
     }
 
     // // Try and implement this?
-    // void OnCollectionUpdated(SyncListCard.Operation op, int index, CardInfo oldItem, CardInfo newItem)
+    // public void OnCollectionUpdated(SyncListCard.Operation op, int index, CardInfo oldItem, CardInfo newItem)
     // {
     //     switch (op)
     //     {
