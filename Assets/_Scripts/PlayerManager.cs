@@ -13,7 +13,6 @@ public class PlayerManager : NetworkBehaviour
     public PlayerManager opponent;
     
     [Header("Board Objects")]
-    [SerializeField] private List<PlayZoneManager> playZones;
     private PlayZoneManager _myPlayZone;
 
     [Header("Game Stats")]
@@ -80,6 +79,8 @@ public class PlayerManager : NetworkBehaviour
         if(!hasAuthority) return;
 
         var players = FindObjectsOfType<PlayerManager>();
+        _myPlayZone = GameObject.Find("PlayerDropZone").GetComponent<PlayZoneManager>();
+        
         if(!debug) opponent = players[0] == this ? players[1] : players[0];
     }
 
@@ -242,7 +243,9 @@ public class PlayerManager : NetworkBehaviour
         Deploys--;
         if (card.title != null) Cash -= card.cost;
         
-        TurnManager.Instance.PlayerSelectedDeploy(this, card);
+        _myPlayZone.DeployToBattlezone();
+        
+        // TurnManager.Instance.PlayerSelectedDeploy(this, card);
     }
 
     [Command]

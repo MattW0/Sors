@@ -101,6 +101,7 @@ public class TurnManager : NetworkBehaviour
         _handManager = PlayerHandManager.Instance;
         _playZoneManagers = new List<PlayZoneManager>();
         _playZoneManagers.AddRange(FindObjectsOfType<PlayZoneManager>());
+        foreach (var pzm in _playZoneManagers) pzm.Prepare();
 
         PlayerManager.OnCashChanged += PlayerCashChanged;
 

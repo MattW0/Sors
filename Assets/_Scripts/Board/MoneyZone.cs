@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MoneyPlayZone : MonoBehaviour
+public class MoneyZone : MonoBehaviour
 {
     public List<GameObject> GetCards()
     {

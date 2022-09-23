@@ -27,8 +27,8 @@ public class CardMover : MonoBehaviour
         opponentHand = GameObject.Find("OpponentHand").transform;
         playerPlayZone = GameObject.Find("PlayerPlayZone").transform;
         opponentPlayZone = GameObject.Find("OpponentPlayZone").transform;
-        playerMoneyZone = GameObject.Find("PlayerMoneyZone").transform;
-        opponentMoneyZone = GameObject.Find("OpponentMoneyZone").transform;
+        playerMoneyZone = GameObject.Find("PlayerMoneyZone").transform.GetChild(1);
+        opponentMoneyZone = GameObject.Find("OpponentMoneyZone").transform.GetChild(1);
         playerDiscardPile = GameObject.Find("PlayerDiscardPile").transform.GetChild(0);
         opponentDiscardPile = GameObject.Find("OpponentDiscardPile").transform.GetChild(0);
 
