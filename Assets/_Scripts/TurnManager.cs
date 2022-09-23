@@ -100,6 +100,8 @@ public class TurnManager : NetworkBehaviour
         _playZoneManagers = new List<PlayZoneManager>();
         _playZoneManagers.AddRange(FindObjectsOfType<PlayZoneManager>());
 
+        PlayerManager.OnCashChanged += PlayerCashChanged;
+
         UpdateTurnState(TurnState.PhaseSelection);
     }
     
@@ -297,6 +299,19 @@ public class TurnManager : NetworkBehaviour
     private void CleanUp(){
         print("<color=yellow>CleanUp not yet implemented</color>");
         UpdateTurnState(TurnState.PhaseSelection);
+    }
+    
+    // helper functions
+    private void PlayerCashChanged(PlayerManager player, int newAmount)
+    {
+        switch (state) {
+            case TurnState.Deploy:
+                _handManager.TargetCheckDeployability(_gameManager.players[player].connectionToClient, newAmount);
+                break;
+            case TurnState.Recruit:
+                _kingdom.TargetCheckRecruitability(_gameManager.players[player].connectionToClient, newAmount);
+                break;
+        }
     }
 }
 

@@ -27,7 +27,7 @@ public class PlayerHandManager : NetworkBehaviour
     [ClientRpc]
     public void RpcHighlightAll(bool isInteractable) {
         foreach (var card in _handCards) {
-            card.SetDiscardable(isInteractable);
+            card.IsDiscardable = isInteractable;
         }
     }
 
@@ -35,7 +35,17 @@ public class PlayerHandManager : NetworkBehaviour
     public void RpcHighlightMoney(bool isInteractable) {
         foreach (var card in _handCards) {
             if (card.cardInfo.isCreature) continue;
-            card.SetInteractable(isInteractable);
+            card.IsInteractable = isInteractable;
+        }
+    }
+
+    [TargetRpc]
+    public void TargetCheckDeployability(NetworkConnection target, int currentCash)
+    {
+        foreach (var card in _handCards)
+        {
+            if (!card.cardInfo.isCreature) continue;
+            card.IsDeployable = (currentCash >= card.cardInfo.cost);
         }
     }
 

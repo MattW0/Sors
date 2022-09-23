@@ -8,30 +8,46 @@ public class CardStats : NetworkBehaviour
 {
     public PlayerManager owner;
     public CardInfo cardInfo;
-    public bool isInteractable;
-    public bool isDiscardable;
-
     private CardUI _cardUI;
 
+    private bool _interactable;
+    public bool IsInteractable { 
+        get => _interactable;
+        set {
+            _interactable = value;
+            _cardUI.Highlight(value, Color.green);
+        }
+    }
+
+    private bool _discardable;
+    public bool IsDiscardable { 
+        get => _discardable;
+        set {
+            _discardable = value;
+            if (value) _cardUI.Highlight(true, Color.red);
+            // else _cardUI.HighlightReset();
+        }
+    }
+    
+    private bool _deployable;
+
+    public bool IsDeployable
+    {
+        get => _deployable;
+        set
+        {
+            _deployable = value;
+            if (value) _cardUI.Highlight(true, Color.cyan);
+            // else _cardUI.HighlightReset();
+        }
+    }
+    
     private void Awake()
     {
         var networkIdentity = NetworkClient.connection.identity;
         owner = networkIdentity.GetComponent<PlayerManager>();
         
         _cardUI = gameObject.GetComponent<CardUI>();
-    }
-    
-    public void SetInteractable(bool interactable)
-    {
-        isInteractable = interactable;
-        _cardUI.Highlight(isInteractable);
-    }
-    
-    public void SetDiscardable(bool discardable)
-    {
-        isDiscardable = discardable;
-        if (discardable) _cardUI.DiscardHighlight(isDiscardable);
-        else _cardUI.DiscardCleanUp();
     }
 
     [ClientRpc]

@@ -17,6 +17,7 @@ public class KingdomCard : MonoBehaviour
     // UI
     [SerializeField] private TMP_Text title;
     [SerializeField] private TMP_Text cost;
+    public int Cost => int.Parse(cost.text); // for access in Kingdom
     [SerializeField] private TMP_Text attack;
     [SerializeField] private TMP_Text defense;
     [SerializeField] private Image highlight;
@@ -24,7 +25,6 @@ public class KingdomCard : MonoBehaviour
     private void Awake(){
         _kingdom = Kingdom.Instance;
         Kingdom.OnRecruitPhaseEnded += EndRecruitPhase;
-        PlayerManager.OnCashChanged += UpdateRecruitability;
     }
 
     public void SetCard(CardInfo card)
@@ -36,18 +36,14 @@ public class KingdomCard : MonoBehaviour
         defense.text = card.health.ToString();
     }
 
+    public void SetRecruitable(bool value)
+    {
+        isRecruitable = value;
+        Highlight(value);
+    }
+    
     private void EndRecruitPhase(){
         isRecruitable = false;
-    }
-
-    private void UpdateRecruitability(int currentCash){
-        if (currentCash >= int.Parse(cost.text)){
-            isRecruitable = true;
-            Highlight(true);
-        } else {
-            isRecruitable = false;
-            Highlight(false);
-        }
     }
 
     public void OnKingdomCardClick(){

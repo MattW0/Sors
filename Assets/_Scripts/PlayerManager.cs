@@ -28,7 +28,7 @@ public class PlayerManager : NetworkBehaviour
     public List<CardInfo> moneyCards;
     
     public static event Action OnCardPileChanged;
-    public static event Action<int> OnCashChanged;
+    public static event Action<PlayerManager, int> OnCashChanged;
     public static event Action<GameObject, bool> OnHandChanged; 
     // public static event Action<int> OnDeployChanged;
 
@@ -41,7 +41,7 @@ public class PlayerManager : NetworkBehaviour
         get => cash;
         set{
             cash = value;
-            SetCashValue(cash);
+            SetCashValue(cash); // Invoke OnCashChanged and update UI
         }
     }
     [SyncVar] private int _recruits = 1;
@@ -178,8 +178,8 @@ public class PlayerManager : NetworkBehaviour
         card.GetComponent<CardMover>().MoveToDestination(hasAuthority, to);
 
         if (!hasAuthority) return;
-        if (from == CardLocations.Hand) OnHandChanged?.Invoke(card, false);
-        else if (to == CardLocations.Hand) OnHandChanged?.Invoke(card, true);
+        if (to == CardLocations.Hand) OnHandChanged?.Invoke(card, true);
+        else if (from == CardLocations.Hand) OnHandChanged?.Invoke(card, false);
     }
 
     #endregion Cards
@@ -262,7 +262,7 @@ public class PlayerManager : NetworkBehaviour
 
     [ClientRpc]
     private void RpcSetCashValue(int value){
-        OnCashChanged?.Invoke(value);
+        OnCashChanged?.Invoke(this, value);
         
         if(hasAuthority) playerUI.SetCash(value);
         else opponentUI.SetCash(value);

@@ -13,6 +13,8 @@ public class CardUI : MonoBehaviour {
     [SerializeField] private TMP_Text _health;
     [SerializeField] private Image _image;
     [SerializeField] private Image _highlight;
+    
+    public Color standardHighlight = Color.white;
 
     private GameObject _front;
     private GameObject _back;
@@ -48,17 +50,13 @@ public class CardUI : MonoBehaviour {
         _front.SetActive(true);
     }
 
-    public void Highlight(bool active){
+    public void Highlight(bool active, Color color){
+        _highlight.color = color;
         _highlight.enabled = active;
     }
     
-    public void DiscardHighlight(bool active){
-        _highlight.color = Color.red;
-        _highlight.enabled = active;
-    }
-    
-    public void DiscardCleanUp(){
-        _highlight.color = Color.green;
+    public void HighlightReset(){
+        _highlight.color = standardHighlight;
         _highlight.enabled = false;
     }
 }

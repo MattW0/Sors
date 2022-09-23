@@ -18,6 +18,7 @@ public class CardMover : MonoBehaviour
     [SerializeField] private Transform opponentDiscardPile;
 
     private CardUI _cardUI;
+    private Transform _transform;
 
     private void Awake(){
         playerDrawPile = GameObject.Find("PlayerDrawPile").transform.GetChild(0);
@@ -34,46 +35,48 @@ public class CardMover : MonoBehaviour
         _cardUI = gameObject.GetComponent<CardUI>();
     }
 
-    public void MoveToDestination(bool hasAuthority, CardLocations destination){
+    public void MoveToDestination(bool hasAuthority, CardLocations destination)
+    {
+        _transform = gameObject.transform;
+        
         switch (destination){
         default:
             print("<color=orange> Unknown card destination </color>");
             break;
         case CardLocations.Deck:
-            if (hasAuthority) gameObject.transform.SetParent(playerDrawPile, false);
-            else gameObject.transform.SetParent(opponentDrawPile, false);
-
-            gameObject.GetComponent<CardUI>().CardBackUp();
+            if (hasAuthority) _transform.SetParent(playerDrawPile, false);
+            else _transform.SetParent(opponentDrawPile, false);
+            _cardUI.CardBackUp();
             break;
         case CardLocations.Hand:
             if (hasAuthority) {
-                gameObject.transform.SetParent(playerHand, false);
-                gameObject.GetComponent<CardUI>().CardFrontUp();
+                _transform.SetParent(playerHand, false);
+                _cardUI.CardFrontUp();
             }
-            else gameObject.transform.SetParent(opponentHand, false);
+            else _transform.SetParent(opponentHand, false);
             break;
         case CardLocations.PlayZone:
-            if (hasAuthority) gameObject.transform.SetParent(playerPlayZone, false);
+            if (hasAuthority) _transform.SetParent(playerPlayZone, false);
             else {
-                gameObject.transform.SetParent(opponentPlayZone, false);
-                gameObject.GetComponent<CardUI>().CardFrontUp();
+                _transform.SetParent(opponentPlayZone, false);
+                _cardUI.CardFrontUp();
             }
             break;
         case CardLocations.MoneyZone:
-            if (hasAuthority) gameObject.transform.SetParent(playerMoneyZone, false);
+            if (hasAuthority) _transform.SetParent(playerMoneyZone, false);
             else {
-                gameObject.transform.SetParent(opponentMoneyZone, false);
-                gameObject.GetComponent<CardUI>().CardFrontUp();
+                _transform.SetParent(opponentMoneyZone, false);
+                _cardUI.CardFrontUp();
             }
             break;
         case CardLocations.Discard:
-            if (hasAuthority) gameObject.transform.SetParent(playerDiscardPile, false);
-            else gameObject.transform.SetParent(opponentDiscardPile, false);
-            gameObject.GetComponent<CardUI>().CardFrontUp();
-            gameObject.transform.localPosition = Vector3.zero;
+            if (hasAuthority) _transform.SetParent(playerDiscardPile, false);
+            else _transform.SetParent(opponentDiscardPile, false);
+            _cardUI.CardFrontUp();
+            _transform.localPosition = Vector3.zero;
             break;
         }
 
-        _cardUI.Highlight(false);
+        _cardUI.HighlightReset();
     }
 }

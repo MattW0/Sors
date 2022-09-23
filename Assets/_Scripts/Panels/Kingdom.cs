@@ -59,6 +59,14 @@ public class Kingdom : NetworkBehaviour
         OnRecruitPhaseEnded?.Invoke();
         RpcMinButton();
     }
+    
+    [TargetRpc]
+    public void TargetCheckRecruitability(NetworkConnection target, int currentCash){
+        foreach (var kc in kingdomCards)
+        {
+            kc.SetRecruitable(currentCash >= kc.Cost);
+        }
+    }
 
     public void CardToRecruitClicked(bool select, KingdomCard card){
 
