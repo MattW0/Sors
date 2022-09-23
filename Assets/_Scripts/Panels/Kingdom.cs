@@ -40,10 +40,10 @@ public class Kingdom : NetworkBehaviour
         }
     }
 
-    [Server]
-    public void BeginRecruit()
+    [ClientRpc]
+    public void RpcBeginRecruit()
     {
-        RpcMaxButton();
+        MaxButton();
         skip.interactable = true;
     }
     
@@ -53,18 +53,11 @@ public class Kingdom : NetworkBehaviour
         if (recruitsLeft > 0) skip.interactable = true;
     }
     
-    [Server]
-    public void EndRecruit()
-    {
-        OnRecruitPhaseEnded?.Invoke();
-        RpcMinButton();
-    }
-    
     [TargetRpc]
     public void TargetCheckRecruitability(NetworkConnection target, int currentCash){
         foreach (var kc in kingdomCards)
         {
-            kc.SetRecruitable(currentCash >= kc.Cost);
+            kc.Recruitable = currentCash >= kc.Cost;
         }
     }
 
@@ -99,6 +92,13 @@ public class Kingdom : NetworkBehaviour
         
         p.CmdRecruitSelection(_selectedCard);
     }
+    
+    [Server]
+    public void EndRecruit()
+    {
+        OnRecruitPhaseEnded?.Invoke();
+        RpcMinButton();
+    }
 
     public void MinButton()
     {
@@ -116,11 +116,5 @@ public class Kingdom : NetworkBehaviour
     private void RpcMinButton()
     {
         MinButton();
-    }
-    
-    [ClientRpc]
-    private void RpcMaxButton()
-    {
-        MaxButton();
     }
 }

@@ -228,14 +228,21 @@ public class PlayerManager : NetworkBehaviour
     }
 
     // [ClientRpc]
-    public void DiscardMoneyCards()
-    {
-        print($"Discarding {moneyCards.Count} copper");
+    public void DiscardMoneyCards() {
         foreach (var card in moneyCards)
         {
             cards.discard.Add(card);
         }
         moneyCards.Clear();
+    }
+
+    [Command]
+    public void CmdDeploy(CardInfo card)
+    {
+        Deploys--;
+        if (card.title != null) Cash -= card.cost;
+        
+        TurnManager.Instance.PlayerSelectedDeploy(this, card);
     }
 
     [Command]

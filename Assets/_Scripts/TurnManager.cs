@@ -94,7 +94,9 @@ public class TurnManager : NetworkBehaviour
         _gameManager = GameManager.Instance;
         _serverPlayer = _gameManager.players.Keys.First();
         _kingdom = Kingdom.Instance;
+        
         _discardPanel = DiscardPanel.Instance;
+        _discardPanel.RpcSetInactive(); // Must do this for clients
         
         _handManager = PlayerHandManager.Instance;
         _playZoneManagers = new List<PlayZoneManager>();
@@ -200,7 +202,9 @@ public class TurnManager : NetworkBehaviour
         UpdateTurnState(TurnState.NextPhase);
     }
 
-    private void Deploy(){
+    private void Deploy()
+    {
+        _playersReady = 0;
         _handManager.RpcHighlightMoney(true);
         
         // Bonus for phase selection
@@ -209,6 +213,22 @@ public class TurnManager : NetworkBehaviour
             if (playerManager.playerChosenPhases.Contains(Phase.Deploy)) nbDeploys++;
             playerManager.Deploys = nbDeploys;
         }
+    }
+
+    public void PlayerSelectedDeploy(PlayerManager player, CardInfo card) {
+        // If player did not skip deploy (and clicked a card)
+        if (card.title != null) player.PlayCard(_gameManager.GetCardObject(card.goID), false);
+        
+        // Waiting for player to use other deploys
+        if (player.Deploys > 0) return;
+        
+        _playersReady++;
+        print($"{_playersReady}/{_gameManager.players.Count} players ready");
+        
+        // Waiting for a player to finish recruiting
+        if (_playersReady != _gameManager.players.Count) return;
+        print("Everybody recruited");
+        // NextPhase();
     }
 
     private void Combat(){
@@ -221,7 +241,7 @@ public class TurnManager : NetworkBehaviour
     private void Recruit(){
         _recruitedCards = new Dictionary<PlayerManager, List<CardInfo>>();
         _handManager.RpcHighlightMoney(true);
-        _kingdom.BeginRecruit();
+        _kingdom.RpcBeginRecruit();
 
         foreach (var playerManager in _gameManager.players.Keys) {
             var nbRecruits = _gameManager.turnRecruits;
@@ -278,7 +298,6 @@ public class TurnManager : NetworkBehaviour
     
     private void PlayersFinishRecruiting()
     {
-        print("PlayersFinishRecruiting");
         foreach (var owner in _gameManager.players.Keys)
         {
             owner.DiscardMoneyCards();

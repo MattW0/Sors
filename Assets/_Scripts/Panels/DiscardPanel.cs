@@ -49,6 +49,12 @@ public class DiscardPanel : NetworkBehaviour
         selectedCardsList.Clear();
     }
 
+    [ClientRpc]
+    public void RpcSetInactive()
+    {
+        gameObject.SetActive(false);
+    }
+
     public void CardToDiscardSelected(GameObject card, bool selected){
         if (selected) {
             _nbSelected++;

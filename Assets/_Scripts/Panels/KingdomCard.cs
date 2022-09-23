@@ -11,7 +11,14 @@ public class KingdomCard : MonoBehaviour
     private Kingdom _kingdom;
     public CardInfo cardInfo;
     
-    public bool isRecruitable;
+    private bool _isRecruitable;
+    public bool Recruitable {
+        get => _isRecruitable;
+        set {
+            _isRecruitable = value;
+            Highlight(value);
+        }
+    }
     private bool _isSelected;
     
     // UI
@@ -36,18 +43,12 @@ public class KingdomCard : MonoBehaviour
         defense.text = card.health.ToString();
     }
 
-    public void SetRecruitable(bool value)
-    {
-        isRecruitable = value;
-        Highlight(value);
-    }
-    
     private void EndRecruitPhase(){
-        isRecruitable = false;
+        _isRecruitable = false;
     }
 
     public void OnKingdomCardClick(){
-        if (!isRecruitable) return;
+        if (!_isRecruitable) return;
         
         // Deselecting
         if (_isSelected) {

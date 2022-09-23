@@ -458,11 +458,11 @@ GameObject:
   - component: {fileID: 2856754972007163730}
   - component: {fileID: 7173413632668903558}
   - component: {fileID: 5155140612128770232}
+  - component: {fileID: 3215327794571095695}
   - component: {fileID: 3424864328992555256}
   - component: {fileID: 1662656646801267718}
   - component: {fileID: -4575455535364612694}
   - component: {fileID: -2482358407959743578}
-  - component: {fileID: 3215327794571095695}
   m_Layer: 6
   m_Name: Card
   m_TagString: Untagged
@@ -606,6 +606,29 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &3215327794571095695
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5450374274839420802}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d24fd48e2b77c7e4aaaa9b9a3b953c8f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
+  owner: {fileID: 0}
+  cardInfo:
+    hash: 
+    title: 
+    isCreature: 0
+    cost: 0
+    attack: 0
+    health: 0
+    goID: 
 --- !u!114 &3424864328992555256
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -643,6 +666,7 @@ MonoBehaviour:
   _health: {fileID: 4399480099220149044}
   _image: {fileID: 5706841334308121695}
   _highlight: {fileID: 6942316134712413200}
+  standardHighlight: {r: 1, g: 1, b: 1, a: 1}
 --- !u!114 &-4575455535364612694
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -655,7 +679,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff33b9b350d6a2643b653392de663162, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _cards: {fileID: 0}
 --- !u!114 &-2482358407959743578
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -669,37 +692,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerHand: {fileID: 0}
-  playerDropZone: {fileID: 0}
+  playerPlayZone: {fileID: 0}
+  playerMoneyZone: {fileID: 0}
   playerDrawPile: {fileID: 0}
   playerDiscardPile: {fileID: 0}
   opponentHand: {fileID: 0}
-  opponentDropZone: {fileID: 0}
+  opponentPlayZone: {fileID: 0}
+  opponentMoneyZone: {fileID: 0}
   opponentDrawPile: {fileID: 0}
   opponentDiscardPile: {fileID: 0}
---- !u!114 &3215327794571095695
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5450374274839420802}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d24fd48e2b77c7e4aaaa9b9a3b953c8f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  syncMode: 0
-  syncInterval: 0.1
-  owner: {fileID: 0}
-  cardInfo:
-    hash: 
-    title: 
-    isCreature: 0
-    cost: 0
-    attack: 0
-    health: 0
-    goID: 
-  isInteractable: 0
 --- !u!1 &5650112559521258811
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1001 &4271494049773261386
+--- !u!1001 &2679676851856371355
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -9,7 +9,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1751124642552553800, guid: 5049089525d268b41ac4327a430b6221, type: 3}
       propertyPath: m_AssetId
-      value: 2d148f57d14cfc345bb5294be07cb84f
+      value: 0a0214f9f73b5e64e9cf9f30766b3fb8
       objectReference: {fileID: 0}
     - target: {fileID: 2754976486999726370, guid: 5049089525d268b41ac4327a430b6221, type: 3}
       propertyPath: m_Pivot.x
@@ -97,7 +97,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5450374274839420802, guid: 5049089525d268b41ac4327a430b6221, type: 3}
       propertyPath: m_Name
-      value: MoneyCard
+      value: CreatureCard
       objectReference: {fileID: 0}
     - target: {fileID: 7173413632668903558, guid: 5049089525d268b41ac4327a430b6221, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.size
@@ -110,18 +110,18 @@ PrefabInstance:
     - target: {fileID: 7173413632668903558, guid: 5049089525d268b41ac4327a430b6221, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[1].m_Target
       value: 
-      objectReference: {fileID: 8857118868058481437}
+      objectReference: {fileID: 148700576054575785}
     - target: {fileID: 7173413632668903558, guid: 5049089525d268b41ac4327a430b6221, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7173413632668903558, guid: 5049089525d268b41ac4327a430b6221, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
-      value: OnMoneyClick
+      value: OnDeployClick
       objectReference: {fileID: 0}
     - target: {fileID: 7173413632668903558, guid: 5049089525d268b41ac4327a430b6221, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
-      value: CardMoneyPlay, Assembly-CSharp
+      value: CardDeploy, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 7173413632668903558, guid: 5049089525d268b41ac4327a430b6221, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -129,22 +129,20 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5049089525d268b41ac4327a430b6221, type: 3}
---- !u!1 &8134903570611113416 stripped
+--- !u!1 &7967854417800556825 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5450374274839420802, guid: 5049089525d268b41ac4327a430b6221, type: 3}
-  m_PrefabInstance: {fileID: 4271494049773261386}
+  m_PrefabInstance: {fileID: 2679676851856371355}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &8857118868058481437
+--- !u!114 &148700576054575785
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8134903570611113416}
+  m_GameObject: {fileID: 7967854417800556825}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7c1db8d4e1d807f48bf6b36ae33799ec, type: 3}
+  m_Script: {fileID: 11500000, guid: 7009cada64791e34fb518f725cb30c89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  syncMode: 0
-  syncInterval: 0.1

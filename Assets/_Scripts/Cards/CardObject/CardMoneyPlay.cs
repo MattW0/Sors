@@ -4,7 +4,7 @@ using UnityEngine;
 using Mirror;
 using System;
 
-public class CardRecruit : NetworkBehaviour
+public class CardMoneyPlay : NetworkBehaviour
 {
     private PlayerManager _owner;
     private CardStats _cardStats;
@@ -14,7 +14,7 @@ public class CardRecruit : NetworkBehaviour
         _owner = _cardStats.owner;
     }
 
-    public void OnRecruitMoneyPlay(){
+    public void OnMoneyClick(){
         // Return if card can't be played (not in hand or no money card)
         if (!_cardStats.IsInteractable) return;
         

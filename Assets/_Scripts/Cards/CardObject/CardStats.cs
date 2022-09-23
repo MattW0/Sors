@@ -25,7 +25,7 @@ public class CardStats : NetworkBehaviour
         set {
             _discardable = value;
             if (value) _cardUI.Highlight(true, Color.red);
-            // else _cardUI.HighlightReset();
+            else _cardUI.HighlightReset();
         }
     }
     
@@ -38,7 +38,7 @@ public class CardStats : NetworkBehaviour
         {
             _deployable = value;
             if (value) _cardUI.Highlight(true, Color.cyan);
-            // else _cardUI.HighlightReset();
+            else _cardUI.HighlightReset();
         }
     }
     
