@@ -8,6 +8,7 @@ using Random = UnityEngine.Random;
 
 public class GameManager : NetworkBehaviour
 {
+    [Header("For Coding")]
     public bool debug = false;
     public bool animations = false;
 
