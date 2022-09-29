@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Mirror;
 using UnityEngine;
 
@@ -8,6 +9,7 @@ public class PlayerHandManager : NetworkBehaviour
 {
     public static PlayerHandManager Instance { get; private set; }
     private List<CardStats> _handCards;
+    public List<CardStats> GetHandCards => _handCards;
 
     private void Awake()
     {
@@ -17,9 +19,9 @@ public class PlayerHandManager : NetworkBehaviour
         _handCards = new List<CardStats>();
     }
 
-    private void UpdateHandsCardList(GameObject newCard, bool addingCard)
+    private void UpdateHandsCardList(GameObject card, bool addingCard)
     {
-        var stats = newCard.GetComponent<CardStats>();
+        var stats = card.GetComponent<CardStats>();
         if (addingCard) _handCards.Add(stats);
         else _handCards.Remove(stats);
     }
@@ -32,9 +34,10 @@ public class PlayerHandManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcHighlightMoney(bool isInteractable) {
-        foreach (var card in _handCards) {
-            if (card.cardInfo.isCreature) continue;
+    public void RpcHighlightMoney(bool isInteractable)
+    {
+        foreach (var card in _handCards.Where(card => !card.cardInfo.isCreature))
+        {
             card.IsInteractable = isInteractable;
         }
     }
@@ -42,9 +45,8 @@ public class PlayerHandManager : NetworkBehaviour
     [TargetRpc]
     public void TargetCheckDeployability(NetworkConnection target, int currentCash)
     {
-        foreach (var card in _handCards)
+        foreach (var card in _handCards.Where(card => card.cardInfo.isCreature))
         {
-            if (!card.cardInfo.isCreature) continue;
             card.IsDeployable = (currentCash >= card.cardInfo.cost);
         }
     }

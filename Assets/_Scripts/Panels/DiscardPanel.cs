@@ -17,6 +17,7 @@ public class DiscardPanel : NetworkBehaviour
     public GameObject waitingText;
 
     [SerializeField] private List<GameObject> selectedCardsList;
+    public static event Action OnDiscardPhaseEnded;
     
     private void Awake() {
         if (!Instance) Instance = this;
@@ -46,6 +47,8 @@ public class DiscardPanel : NetworkBehaviour
         waitingText.SetActive(false);
         
         gameObject.SetActive(false);
+        
+        OnDiscardPhaseEnded?.Invoke();
         selectedCardsList.Clear();
     }
 

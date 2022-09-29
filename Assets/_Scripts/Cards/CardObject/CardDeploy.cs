@@ -10,6 +10,9 @@ public class CardDeploy : MonoBehaviour
     private void Awake()
     {
         _cardStats = gameObject.GetComponent<CardStats>();
+        if (!_cardStats.cardInfo.isCreature) return;
+        
+        
     }
 
     public void OnDeployClick()
@@ -18,6 +21,6 @@ public class CardDeploy : MonoBehaviour
         
         print("Deploying " + _cardStats.cardInfo.title);
         
-        _cardStats.owner.CmdDeploy(_cardStats.cardInfo);
+        // _cardStats.owner.CmdDeploy(_cardStats.cardInfo);
     }
 }

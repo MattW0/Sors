@@ -1,9 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using Mirror;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayZoneManager : NetworkBehaviour
@@ -15,19 +13,21 @@ public class PlayZoneManager : NetworkBehaviour
     private TurnManager _turnManager;
     private GameManager _gameManager;
     
-    [SerializeField] private Dictionary<int, CardStats> playedCardsList;
+    private Dictionary<int, CardStats> _playedCardsList;
 
-    public void Prepare()
+    private void Awake()
     {
-        if (isServer && !_gameManager) _gameManager = GameManager.Instance;
+        if (!isMyZone) return;
         
-        battleZone.Prepare();
-        playedCardsList = new Dictionary<int, CardStats>();
+        _playedCardsList = new Dictionary<int, CardStats>();
         var nbCardHolders = battleZone.GetNbCardHolders();
-        for (int i = 0; i < nbCardHolders; i++)
+        
+        for (var i = 0; i < nbCardHolders; i++)
         {
-            playedCardsList.Add(i, null); // empty battlezone
+            _playedCardsList.Add(i, null); // empty battlezone
         }
+        
+        PlayZoneCardHolder.OnCardDeployed += HandleCardDeployed;
     }
 
     [ClientRpc]
@@ -37,19 +37,25 @@ public class PlayZoneManager : NetworkBehaviour
         
         foreach (var card in cards)
         {
-            card.GetComponent<CardMover>().MoveToDestination(isMyZone, CardLocations.Discard);
+            card.GetComponent<CardMover>().MoveToDestination(isMyZone, CardLocations.Discard, -1);
         }
     }
-
-    public void DeployToBattlezone()
+    
+    // gruuuuusig
+    [ClientRpc]
+    public void RpcShowCardPositionOptions(bool active)
     {
-        ShowCardPositionOptions();
-    }
-
-    private void ShowCardPositionOptions()
-    {
-        List<int> freeIds = new List<int>();
-        foreach (var (i, card) in playedCardsList)
+        if (!isMyZone) return;
+        
+        // Resetting at end of Deploy phase 
+        if (!active)
+        {
+            battleZone.ResetHighlight();
+            return;
+        }
+        
+        var freeIds = new List<int>();
+        foreach (var (i, card) in _playedCardsList)
         {
             if (card) continue;
             
@@ -57,5 +63,21 @@ public class PlayZoneManager : NetworkBehaviour
         }
         
         battleZone.HighlightCardHolders(freeIds.ToArray(), true);
+    }
+
+    private void HandleCardDeployed(GameObject card, int holderNumber)
+    {
+        var cardStats = card.GetComponent<CardStats>();
+        cardStats.IsDeployable = false;
+        _playedCardsList[holderNumber] = cardStats;
+        
+        var networkIdentity = NetworkClient.connection.identity;
+        var p = networkIdentity.GetComponent<PlayerManager>();
+        p.CmdDeployCard(card, holderNumber);
+    }
+
+    private void OnDestroy()
+    {
+        PlayZoneCardHolder.OnCardDeployed -= HandleCardDeployed;
     }
 }

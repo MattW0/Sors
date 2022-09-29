@@ -5,18 +5,19 @@ using UnityEngine;
 public class CardMover : MonoBehaviour
 {
     [Header("Playboard Transforms")]
-    // [SerializeField] private GameObject phaseSelectionPanel;
     [SerializeField] private Transform playerHand;
-    [SerializeField] private Transform playerPlayZone;
     [SerializeField] private Transform playerMoneyZone;
+    [SerializeField] private Transform playerPlayZone;
     [SerializeField] private Transform playerDrawPile;
     [SerializeField] private Transform playerDiscardPile;
     [SerializeField] private Transform opponentHand;
-    [SerializeField] private Transform opponentPlayZone;
     [SerializeField] private Transform opponentMoneyZone;
+    [SerializeField] private Transform opponentPlayZone;
     [SerializeField] private Transform opponentDrawPile;
     [SerializeField] private Transform opponentDiscardPile;
-
+    
+    // Need to access manager to play to specific cardHolder
+    
     private CardUI _cardUI;
     private Transform _transform;
 
@@ -35,7 +36,7 @@ public class CardMover : MonoBehaviour
         _cardUI = gameObject.GetComponent<CardUI>();
     }
 
-    public void MoveToDestination(bool hasAuthority, CardLocations destination)
+    public void MoveToDestination(bool hasAuthority, CardLocations destination, int cardHolder)
     {
         _transform = gameObject.transform;
         
@@ -56,11 +57,13 @@ public class CardMover : MonoBehaviour
             else _transform.SetParent(opponentHand, false);
             break;
         case CardLocations.PlayZone:
-            if (hasAuthority) _transform.SetParent(playerPlayZone, false);
+            if (cardHolder == -1) Debug.Log("Wrong CardHolder number!");
+            if (hasAuthority) _transform.SetParent(playerPlayZone.GetChild(cardHolder), false);
             else {
-                _transform.SetParent(opponentPlayZone, false);
+                _transform.SetParent(opponentPlayZone.GetChild(cardHolder), false);
                 _cardUI.CardFrontUp();
             }
+            _transform.localPosition = Vector3.zero;
             break;
         case CardLocations.MoneyZone:
             if (hasAuthority) _transform.SetParent(playerMoneyZone, false);

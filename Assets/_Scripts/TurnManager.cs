@@ -101,7 +101,6 @@ public class TurnManager : NetworkBehaviour
         _handManager = PlayerHandManager.Instance;
         _playZoneManagers = new List<PlayZoneManager>();
         _playZoneManagers.AddRange(FindObjectsOfType<PlayZoneManager>());
-        foreach (var pzm in _playZoneManagers) pzm.Prepare();
 
         PlayerManager.OnCashChanged += PlayerCashChanged;
 
@@ -214,11 +213,20 @@ public class TurnManager : NetworkBehaviour
             if (playerManager.playerChosenPhases.Contains(Phase.Deploy)) nbDeploys++;
             playerManager.Deploys = nbDeploys;
         }
+        
+        foreach (var zone in _playZoneManagers)
+        {
+            zone.RpcShowCardPositionOptions(true);
+        }
     }
 
-    public void PlayerSelectedDeploy(PlayerManager player, CardInfo card) {
-        // If player did not skip deploy (and clicked a card)
-        if (card.title != null) player.PlayCard(_gameManager.GetCardObject(card.goID), false);
+    public void PlayerDeployedCard(PlayerManager player, GameObject cardObject) {
+        // If player did not skip deploy (and deployed a card)
+        if (!cardObject) return;
+
+        var card = cardObject.GetComponent<CardStats>().cardInfo;
+        player.Deploys--;
+        player.Cash -= card.cost;
         
         // Waiting for player to use other deploys
         if (player.Deploys > 0) return;
@@ -228,8 +236,21 @@ public class TurnManager : NetworkBehaviour
         
         // Waiting for a player to finish recruiting
         if (_playersReady != _gameManager.players.Count) return;
-        print("Everybody recruited");
-        // NextPhase();
+        
+        EndDeploy();
+    }
+
+    private void EndDeploy()
+    {
+        print("Everybody deployed");
+
+        PlayersStatsResetAndDiscardMoney();
+        foreach (var zone in _playZoneManagers)
+        {
+            zone.RpcShowCardPositionOptions(false);
+        }
+        
+        UpdateTurnState(TurnState.NextPhase);
     }
 
     private void Combat(){
@@ -284,29 +305,29 @@ public class TurnManager : NetworkBehaviour
             }
         }
         
-        PlayersFinishRecruiting();
-
-        foreach (var zone in _playZoneManagers)
-        {
-            zone.RpcDiscardMoney();
-        }
-        
+        PlayersStatsResetAndDiscardMoney();
         _kingdom.EndRecruit();
-        _handManager.RpcHighlightMoney(false);
 
         UpdateTurnState(TurnState.NextPhase);
     }
     
-    private void PlayersFinishRecruiting()
+    private void PlayersStatsResetAndDiscardMoney()
     {
+        foreach (var zone in _playZoneManagers)
+        {
+            zone.RpcDiscardMoney();
+        }
+        _handManager.RpcHighlightMoney(false);
+
         foreach (var owner in _gameManager.players.Keys)
         {
             owner.DiscardMoneyCards();
-            
-            owner.Recruits = _gameManager.turnRecruits;
-            owner.Cash = _gameManager.turnCash;
-            
             owner.moneyCards.Clear();
+            
+            owner.Cash = _gameManager.turnCash;
+            owner.Deploys = _gameManager.turnDeploys;
+            owner.Recruits = _gameManager.turnRecruits;
+            
         }
     }
     #endregion 

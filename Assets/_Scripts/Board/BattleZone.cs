@@ -1,30 +1,28 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class BattleZone : MonoBehaviour
 {
-    public List<Image> highlights;
-    public int GetNbCardHolders() => highlights.Count;
+    [SerializeField] private List<PlayZoneCardHolder> cardHolders;
 
-    public void Prepare()
-    {
-        // foreach (Transform child in transform)
-        // {
-        //     _highlights.Add(child.GetChild(0).GetComponent<Image>());
-        // }
-    }
+    public int GetNbCardHolders() => cardHolders.Count;
 
-    public void HighlightCardHolders(int[] indexes, bool active)
+    public void HighlightCardHolders(IEnumerable<int> indexes, bool active)
     {
         foreach (var i in indexes)
         {
-            if (i == -1) continue;
-            
-            highlights[i].enabled = active;
+            cardHolders[i].Highlight(active);
+        }
+    }
+
+    public void ResetHighlight()
+    {
+        foreach (var ch in cardHolders)
+        {
+            ch.Highlight(false);
         }
     }
 }

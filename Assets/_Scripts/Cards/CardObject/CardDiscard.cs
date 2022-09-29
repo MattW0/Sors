@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Mirror;
 
 public class CardDiscard : MonoBehaviour
 {
@@ -15,6 +14,8 @@ public class CardDiscard : MonoBehaviour
     {
         _stats = gameObject.GetComponent<CardStats>();
         if(!_discardPanel) _discardPanel = DiscardPanel.Instance;
+
+        DiscardPanel.OnDiscardPhaseEnded += Reset;
     }
 
     public void OnDiscardClick(){
@@ -33,5 +34,11 @@ public class CardDiscard : MonoBehaviour
         _startPosition = trans.position;
         trans.position = _startPosition + Vector2.up * 10;
         _discardPanel.CardToDiscardSelected(gameObject, true);
+    }
+
+    public void Reset()
+    {
+        _isSelected = false;
+        _startPosition = Vector2.zero;
     }
 }

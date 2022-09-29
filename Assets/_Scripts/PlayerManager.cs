@@ -28,10 +28,7 @@ public class PlayerManager : NetworkBehaviour
     
     public static event Action OnCardPileChanged;
     public static event Action<PlayerManager, int> OnCashChanged;
-    public static event Action<GameObject, bool> OnHandChanged; 
-    // public static event Action<int> OnDeployChanged;
-
-    // public static event Action<int> OnRecruitChanged;
+    public static event Action<GameObject, bool> OnHandChanged;
 
 
     [Header("Turn Stats")]
@@ -110,7 +107,7 @@ public class PlayerManager : NetworkBehaviour
             cards.hand.Add(cardInfo);
 
             var cardObject = _gameManager.GetCardObject(cardInfo.goID);
-            RpcMoveCard(cardObject, CardLocations.Deck, CardLocations.Hand);
+            RpcMoveCard(cardObject, CardLocations.Deck, CardLocations.Hand, -1);
         }
     }
 
@@ -137,7 +134,7 @@ public class PlayerManager : NetworkBehaviour
             cards.hand.Add(cardInfo);
 
             var cardObject = _gameManager.GetCardObject(cardInfo.goID);
-            RpcMoveCard(cardObject, CardLocations.Deck, CardLocations.Hand);
+            RpcMoveCard(cardObject, CardLocations.Deck, CardLocations.Hand, -1);
         }
     }
 
@@ -150,7 +147,7 @@ public class PlayerManager : NetworkBehaviour
             cards.deck.Add(card);
 
             var cachedCard = _gameManager.GetCardObject(card.goID);
-            RpcMoveCard(cachedCard, CardLocations.Discard, CardLocations.Deck);
+            RpcMoveCard(cachedCard, CardLocations.Discard, CardLocations.Deck, -1);
         }
 
         foreach (var card in temp){
@@ -160,23 +157,23 @@ public class PlayerManager : NetworkBehaviour
         cards.deck.Shuffle();
     }
 
-    public void PlayCard(GameObject card, bool isMoney=false) {
+    public void PlayCard(GameObject card, bool isMoney=false, int cardHolder=-1) {
         
         var destination = CardLocations.PlayZone;
         if (isMoney) destination = CardLocations.MoneyZone;
         
-        if (isServer) RpcMoveCard(card, CardLocations.Hand, destination);
-        else CmdMoveCard(card, CardLocations.Hand, destination);
+        if (isServer) RpcMoveCard(card, CardLocations.Hand, destination, cardHolder);
+        else CmdMoveCard(card, CardLocations.Hand, destination, cardHolder);
     }
 
     [Command]
-    private void CmdMoveCard(GameObject card, CardLocations from, CardLocations to){
-        RpcMoveCard(card, from, to);
+    private void CmdMoveCard(GameObject card, CardLocations from, CardLocations to, int cardHolder){
+        RpcMoveCard(card, from, to, cardHolder);
     }
 
     [ClientRpc]
-    public void RpcMoveCard(GameObject card, CardLocations from, CardLocations to){
-        card.GetComponent<CardMover>().MoveToDestination(hasAuthority, to);
+    public void RpcMoveCard(GameObject card, CardLocations from, CardLocations to, int cardHolder){
+        card.GetComponent<CardMover>().MoveToDestination(hasAuthority, to, cardHolder);
 
         if (!hasAuthority) return;
         if (to == CardLocations.Hand) OnHandChanged?.Invoke(card, true);
@@ -215,7 +212,7 @@ public class PlayerManager : NetworkBehaviour
             cards.hand.Remove(cardInfo);
             cards.discard.Add(cardInfo);
 
-            RpcMoveCard(card, CardLocations.Hand, CardLocations.Discard);
+            RpcMoveCard(card, CardLocations.Hand, CardLocations.Discard, -1);
         }
         _discardSelection.Clear();
     }
@@ -228,8 +225,10 @@ public class PlayerManager : NetworkBehaviour
         cards.hand.Remove(cardInfo);
     }
 
-    // [ClientRpc]
-    public void DiscardMoneyCards() {
+    public void DiscardMoneyCards()
+    {
+        if (moneyCards.Count == 0) return;
+        
         foreach (var card in moneyCards)
         {
             cards.discard.Add(card);
@@ -238,14 +237,16 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Command]
-    public void CmdDeploy(CardInfo card)
+    public void CmdDeployCard(GameObject card, int holderNumber)
     {
-        Deploys--;
-        if (card.title != null) Cash -= card.cost;
-        
-        _myPlayZone.DeployToBattlezone();
-        
-        // TurnManager.Instance.PlayerSelectedDeploy(this, card);
+        TurnManager.Instance.PlayerDeployedCard(this, card);
+        PlayCard(card, cardHolder:holderNumber);
+    }
+
+    [TargetRpc]
+    public void TargetDeployCard(NetworkConnection target)
+    {
+        // _myPlayZone.DeployToBattlezone();
     }
 
     [Command]

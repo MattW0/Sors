@@ -5,42 +5,40 @@ using UnityEngine.EventSystems;
 using Mirror;
 using DG.Tweening;
 
-public class DragDrop : NetworkBehaviour, IBeginDragHandler, IEndDragHandler, IDragHandler {
+public class DragDrop : MonoBehaviour, IBeginDragHandler, IPointerUpHandler, IDragHandler {
 
     private GameObject _board;
-    private GameObject _startParent;
+    private Transform _startTransform;
+    private Transform _endTransform;
 
     private Vector2 _startPosition;
     private Vector2 _dragOffset;
-    private RectTransform _rectTransform;
+    private RectTransform _transform;
     private CanvasGroup _canvasGroup;
 
-    public float returnDuration = 0.6f;
-    public float timeStartReturn = 0f;
+    public float returnDuration = 0.3f;
 
-    [Header("Permissions")]
-    [SerializeField] private bool isDraggable = false;
-    [SerializeField] private bool isOverDropZone = false;
+    private CardStats _cardStats;
+    private bool _isOverDropZone;
+    private int _collisionCount;
 
     private void Awake()
     {
         _board = GameObject.Find("PlayBoard");
-        _rectTransform = GetComponent<RectTransform>();
+        _transform = GetComponent<RectTransform>();
         _canvasGroup = GetComponent<CanvasGroup>();
-    }
 
-    public void ChangeDragPermission(bool draggable)
-    {
-        isDraggable = draggable;
+        _cardStats = gameObject.GetComponent<CardStats>();
     }
 
     public void OnBeginDrag(PointerEventData eventData){
-        if (!isDraggable || !hasAuthority) return;
+        if (!_cardStats.IsDeployable) return;
 
         var cardTransform = transform;
-        _startParent = cardTransform.parent.gameObject;
+        _startTransform = cardTransform.parent.gameObject.transform;
         _startPosition = cardTransform.position;
         _dragOffset = _startPosition - eventData.position;
+        
         _canvasGroup.blocksRaycasts = false;
         _canvasGroup.alpha = 0.7f;
 
@@ -48,33 +46,37 @@ public class DragDrop : NetworkBehaviour, IBeginDragHandler, IEndDragHandler, ID
     }
 
     public void OnDrag(PointerEventData eventData){
-        if (!isDraggable || !hasAuthority) return;
+        if (!_cardStats.IsDeployable) return;
 
-        _rectTransform.position = eventData.position + _dragOffset;
+        _transform.position = eventData.position + _dragOffset;
     }
 
-    public void OnEndDrag(PointerEventData eventData){
-        if (!isDraggable || !hasAuthority) return;
-
-        if (isOverDropZone) {
-            _canvasGroup.alpha = 1f;
-            
-            var networkIdentity = NetworkClient.connection.identity;
-            var p = networkIdentity.GetComponent<PlayerManager>();
-            p.PlayCard(gameObject);
-
-            return;
-        }
+    public void OnPointerUp(PointerEventData eventData){
+        if (!_cardStats.IsDeployable) return;
 
         // If not over dropzone, return to start position
-        transform.DOMove(_startPosition, returnDuration).OnComplete(() => {
-            transform.SetParent(_startParent.transform, true);
-            _canvasGroup.blocksRaycasts = true;
-            _canvasGroup.alpha = 1f;
-        });
+        if (!_isOverDropZone){
+            _transform.DOMove(_startPosition, returnDuration).OnComplete(() =>
+            {
+                _transform.SetParent(_startTransform, true);
+            });
+        }
+        
+        _canvasGroup.blocksRaycasts = true;
+        _canvasGroup.alpha = 1f;
     }
 
     // For detection if card is over dropzone
-    private void OnCollisionEnter2D(Collision2D collision) => isOverDropZone = true;
-    private void OnCollisionExit2D(Collision2D collision) => isOverDropZone = false;
+    private void OnCollisionEnter2D()
+    {
+        _collisionCount++;
+        _isOverDropZone = true;
+    }
+    private void OnCollisionExit2D()
+    {
+        _collisionCount--;
+
+        if (_collisionCount > 0) return;
+        _isOverDropZone = false;
+    }
 }
