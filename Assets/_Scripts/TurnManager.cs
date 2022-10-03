@@ -11,18 +11,20 @@ public class TurnManager : NetworkBehaviour
 
     [Header("Entities")]
     private GameManager _gameManager;
-    private PlayerManager _serverPlayer;
     private Kingdom _kingdom;
     private DiscardPanel _discardPanel;
     private PlayerHandManager _handManager;
     private List<PlayZoneManager> _playZoneManagers;
+    [SerializeField] private CombatManager combatManager;
     
     [Header("Turn state")]
     [SerializeField] private TurnState state;
-    public List<Phase> chosenPhases = new List<Phase>();
-    private Dictionary<PlayerManager, List<CardInfo>> _recruitedCards;
-    private static int _playersReady = 0;
+    public List<Phase> chosenPhases;
+    private static int _playersReady;
 
+    [Header("Helper Fields")]
+    private Dictionary<PlayerManager, List<CardInfo>> _recruitedCards;
+    
     // Events
     public static event Action<TurnState> OnTurnStateChanged;
 
@@ -92,7 +94,6 @@ public class TurnManager : NetworkBehaviour
 
     private void Prepare() {
         _gameManager = GameManager.Instance;
-        _serverPlayer = _gameManager.players.Keys.First();
         _kingdom = Kingdom.Instance;
         
         _discardPanel = DiscardPanel.Instance;
@@ -125,13 +126,15 @@ public class TurnManager : NetworkBehaviour
                 chosenPhases.Add(phase);
             }
         }
-        
+
         if (_playersReady != _gameManager.players.Count) return;
 
-        // Starting the selected phases
-        NetworkServer.Destroy(_phasePanel);
+        // Combat each round
+        chosenPhases.Add(Phase.Combat);
         chosenPhases.Sort();
         print($"<color=white>Chosen Phases: {string.Join(", ", chosenPhases)}</color>");
+        
+        NetworkServer.Destroy(_phasePanel);
         UpdateTurnState(TurnState.NextPhase);
     }
 
@@ -201,6 +204,8 @@ public class TurnManager : NetworkBehaviour
         print("<color=yellow>Develop not yet implemented</color>");
         UpdateTurnState(TurnState.NextPhase);
     }
+    
+    #region Deploy
 
     private void Deploy()
     {
@@ -252,9 +257,16 @@ public class TurnManager : NetworkBehaviour
         
         UpdateTurnState(TurnState.NextPhase);
     }
+    
+    #endregion
 
-    private void Combat(){
-        print("<color=yellow>Combat not yet implemented</color>");
+    private void Combat()
+    {
+        combatManager.UpdateCombatState(CombatState.Attackers);
+    }
+
+    public void CombatCleanUp()
+    {
         UpdateTurnState(TurnState.NextPhase);
     }
     
@@ -310,26 +322,6 @@ public class TurnManager : NetworkBehaviour
 
         UpdateTurnState(TurnState.NextPhase);
     }
-    
-    private void PlayersStatsResetAndDiscardMoney()
-    {
-        foreach (var zone in _playZoneManagers)
-        {
-            zone.RpcDiscardMoney();
-        }
-        _handManager.RpcHighlightMoney(false);
-
-        foreach (var owner in _gameManager.players.Keys)
-        {
-            owner.DiscardMoneyCards();
-            owner.moneyCards.Clear();
-            
-            owner.Cash = _gameManager.turnCash;
-            owner.Deploys = _gameManager.turnDeploys;
-            owner.Recruits = _gameManager.turnRecruits;
-            
-        }
-    }
     #endregion 
 
     private void Prevail(){
@@ -352,6 +344,26 @@ public class TurnManager : NetworkBehaviour
             case TurnState.Recruit:
                 _kingdom.TargetCheckRecruitability(_gameManager.players[player].connectionToClient, newAmount);
                 break;
+        }
+    }
+    
+    private void PlayersStatsResetAndDiscardMoney()
+    {
+        foreach (var zone in _playZoneManagers)
+        {
+            zone.RpcDiscardMoney();
+        }
+        _handManager.RpcHighlightMoney(false);
+
+        foreach (var owner in _gameManager.players.Keys)
+        {
+            owner.DiscardMoneyCards();
+            owner.moneyCards.Clear();
+            
+            owner.Cash = _gameManager.turnCash;
+            owner.Deploys = _gameManager.turnDeploys;
+            owner.Recruits = _gameManager.turnRecruits;
+            
         }
     }
 }
@@ -378,6 +390,7 @@ public enum Phase
     DrawI,
     Develop,
     Deploy,
+    Combat,
     DrawII,
     Recruit,
     Prevail,

@@ -8,11 +8,12 @@ public class PhaseItemUI : MonoBehaviour
 {
     public TMP_Text phaseName;
     public Image outline;
-    public bool isSelected = false;
-    public bool selectionConfirmed = false;
+    public bool isSelected;
+    public bool selectionConfirmed;
+    
     public PhasePanel phasePanel;
 
-    void Start()
+    private void Start()
     {
         outline.enabled = false;
     }

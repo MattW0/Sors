@@ -8,14 +8,14 @@ using TMPro;
 
 public class PhasePanel : NetworkBehaviour
 {
-    private TurnManager turnManager;
     public PhaseItemUI[] phaseItems;
 
     [Header("Turn screen")]
-    [SerializeField] private TMP_Text _turnText;
+    [SerializeField] private TMP_Text turnText;
     [SerializeField] private GameObject overlayObject;
-    [SerializeField] private int _turnScreenWaitTime = 1;
-    [SerializeField] private float _turnScreenFadeTime = 0.5f;
+    
+    [SerializeField] private int turnScreenWaitTime = 1;
+    [SerializeField] private float turnScreenFadeTime = 0.5f;
 
     private int _nbActive;
     public bool disableSelection;
@@ -23,17 +23,16 @@ public class PhasePanel : NetworkBehaviour
     
     private void Awake() {
         gameObject.transform.SetParent(GameObject.Find("UI").transform, false);
-        turnManager = TurnManager.Instance;
 
         _nbActive = 0;
         phaseItems = GetComponentsInChildren<PhaseItemUI>();
     }
 
     private void Start() {
-        _turnText.text = $"Turn {GameManager.Instance.turnNb}";
+        turnText.text = $"Turn {GameManager.Instance.turnNb}";
         if(!GameManager.Instance.animations) {
-            _turnScreenWaitTime = 0;
-            _turnScreenFadeTime = 0f;
+            turnScreenWaitTime = 0;
+            turnScreenFadeTime = 0f;
         }
         StartCoroutine(WaitAndFade());
     }
@@ -41,22 +40,22 @@ public class PhasePanel : NetworkBehaviour
     private IEnumerator WaitAndFade() {
         
         // "Background" color
-        Image _sprite = overlayObject.transform.GetChild(0).GetComponent<Image>();
+        var sprite = overlayObject.transform.GetChild(0).GetComponent<Image>();
 
         // Wait and fade
-        yield return new WaitForSeconds(_turnScreenWaitTime);
-        _sprite.CrossFadeAlpha(0f, _turnScreenFadeTime, false);
-        _turnText.CrossFadeAlpha(0f, _turnScreenFadeTime, false);
+        yield return new WaitForSeconds(turnScreenWaitTime);
+        sprite.CrossFadeAlpha(0f, turnScreenFadeTime, false);
+        turnText.CrossFadeAlpha(0f, turnScreenFadeTime, false);
 
         // Wait and disable
-        yield return new WaitForSeconds(_turnScreenFadeTime);
+        yield return new WaitForSeconds(turnScreenFadeTime);
         overlayObject.SetActive(false);
     }
 
     public void UpdateActive()
     {
         _nbActive = 0;
-        foreach (PhaseItemUI phaseItem in phaseItems)
+        foreach (var phaseItem in phaseItems)
         {
             if (phaseItem.isSelected) _nbActive++;
         }
@@ -73,9 +72,9 @@ public class PhasePanel : NetworkBehaviour
     public void ConfirmButtonPressed(){
         confirm.interactable = false;
 
-        List<Phase> selectedItems = new List<Phase>();
-        int i = 0;
-        foreach (PhaseItemUI phaseItem in phaseItems)
+        var selectedItems = new List<Phase>();
+        var i = 0;
+        foreach (var phaseItem in phaseItems)
         {
             if (phaseItem.isSelected){
                 selectedItems.Add((Phase) i); // converting to enum type (defined in TurnManager)

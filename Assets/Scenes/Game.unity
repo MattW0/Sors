@@ -2996,6 +2996,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
+  combatManager: {fileID: 6319069573471266856}
   state: 0
   chosenPhases: 
   _phasePanelPrefab: {fileID: 6245966277038001864, guid: 634e6b2c0192f0f4ca1b37244c505feb, type: 3}
@@ -3042,6 +3043,7 @@ GameObject:
   - component: {fileID: 6319069573471266854}
   - component: {fileID: 6319069573471266841}
   - component: {fileID: 6319069573471266840}
+  - component: {fileID: 6319069573471266856}
   m_Layer: 0
   m_Name: TurnManager
   m_TagString: Untagged
@@ -3049,6 +3051,19 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &6319069573471266856
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6319069573471266855}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8b89afc1e18e834086f1c3d432800aa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  state: 0
 --- !u!224 &6822816930630696410 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 800453751025276056, guid: e461b4738d1d58d4992efa4bef60aeab, type: 3}

@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 using Mirror;
 using DG.Tweening;
 
-public class DragDrop : MonoBehaviour, IBeginDragHandler, IPointerUpHandler, IDragHandler {
+public class DragDrop : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler {
 
     private GameObject _board;
     private Transform _startTransform;
@@ -13,7 +13,7 @@ public class DragDrop : MonoBehaviour, IBeginDragHandler, IPointerUpHandler, IDr
 
     private Vector2 _startPosition;
     private Vector2 _dragOffset;
-    private RectTransform _transform;
+    private Transform _transform;
     private CanvasGroup _canvasGroup;
 
     public float returnDuration = 0.3f;
@@ -25,13 +25,13 @@ public class DragDrop : MonoBehaviour, IBeginDragHandler, IPointerUpHandler, IDr
     private void Awake()
     {
         _board = GameObject.Find("PlayBoard");
-        _transform = GetComponent<RectTransform>();
+        _transform = GetComponent<Transform>();
         _canvasGroup = GetComponent<CanvasGroup>();
 
         _cardStats = gameObject.GetComponent<CardStats>();
     }
 
-    public void OnBeginDrag(PointerEventData eventData){
+    public void OnPointerDown(PointerEventData eventData){
         if (!_cardStats.IsDeployable) return;
 
         var cardTransform = transform;
@@ -66,7 +66,7 @@ public class DragDrop : MonoBehaviour, IBeginDragHandler, IPointerUpHandler, IDr
         _canvasGroup.alpha = 1f;
     }
 
-    // For detection if card is over dropzone
+    // Collision detection with dropzone collider
     private void OnCollisionEnter2D()
     {
         _collisionCount++;
