@@ -18,22 +18,15 @@ public class PlayerUI : MonoBehaviour
     public TMP_Text turnDeploys;
     public TMP_Text turnRecruits;
 
-    public Button readyButton;
-
-    private void Awake() {
-
-    }
-
-    public void SetPlayerUI(string name, string startHealth, string startScore){
+    public void SetPlayerUI(string chosenName, string startHealth, string startScore){
         isMine = true;
-        playerName.text = name;
+        playerName.text = chosenName;
         playerHealth.text = startHealth;
         playerScore.text = startScore;
-        readyButton.gameObject.SetActive(true);
     }
 
-    public void SetOpponentUI(string name, string startHealth, string startScore){
-        playerName.text = name;
+    public void SetOpponentUI(string chosenName, string startHealth, string startScore){
+        playerName.text = chosenName;
         playerHealth.text = startHealth;
         playerScore.text = startScore;
     }

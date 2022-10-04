@@ -10,21 +10,22 @@ public class PlayZoneManager : NetworkBehaviour
     [SerializeField] private MoneyZone moneyZone;
     [SerializeField] private BattleZone battleZone;
     
-    private TurnManager _turnManager;
-    private GameManager _gameManager;
+    // private TurnManager _turnManager;
+    // private GameManager _gameManager;
     
-    private Dictionary<int, CardStats> _playedCardsList;
+    private Dictionary<int, CardStats> _battleZoneCards;
 
     private void Awake()
     {
         if (!isMyZone) return;
         
-        _playedCardsList = new Dictionary<int, CardStats>();
-        var nbCardHolders = battleZone.GetNbCardHolders();
+        _battleZoneCards = new Dictionary<int, CardStats>();
         
+        // Disgusting but allows for easy extension
+        var nbCardHolders = battleZone.GetNbCardHolders();
         for (var i = 0; i < nbCardHolders; i++)
         {
-            _playedCardsList.Add(i, null); // empty battlezone
+            _battleZoneCards.Add(i, null); // empty battlezone
         }
         
         PlayZoneCardHolder.OnCardDeployed += HandleCardDeployed;
@@ -55,7 +56,7 @@ public class PlayZoneManager : NetworkBehaviour
         }
         
         var freeIds = new List<int>();
-        foreach (var (i, card) in _playedCardsList)
+        foreach (var (i, card) in _battleZoneCards)
         {
             if (card) continue;
             
@@ -69,7 +70,7 @@ public class PlayZoneManager : NetworkBehaviour
     {
         var cardStats = card.GetComponent<CardStats>();
         cardStats.IsDeployable = false;
-        _playedCardsList[holderNumber] = cardStats;
+        _battleZoneCards[holderNumber] = cardStats;
         
         var networkIdentity = NetworkClient.connection.identity;
         var p = networkIdentity.GetComponent<PlayerManager>();

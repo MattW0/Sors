@@ -76,7 +76,7 @@ public class PlayerManager : NetworkBehaviour
         if(!hasAuthority) return;
 
         var players = FindObjectsOfType<PlayerManager>();
-        _myPlayZone = GameObject.Find("PlayerDropZone").GetComponent<PlayZoneManager>();
+        _myPlayZone = GameObject.Find("PlayerPlayZone").GetComponent<PlayZoneManager>();
         
         if(!debug) opponent = players[0] == this ? players[1] : players[0];
     }

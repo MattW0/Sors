@@ -26,7 +26,7 @@ public class TurnManager : NetworkBehaviour
     private Dictionary<PlayerManager, List<CardInfo>> _recruitedCards;
     
     // Events
-    public static event Action<TurnState> OnTurnStateChanged;
+    public static event Action<TurnState> OnPhaseChanged;
 
     [Header("Objects")]
     [SerializeField] private GameObject _phasePanelPrefab;
@@ -88,8 +88,6 @@ public class TurnManager : NetworkBehaviour
                 print("<color=red>Invalid turn state</color>");
                 throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
         }
-
-        OnTurnStateChanged?.Invoke(state);
     }
 
     private void Prepare() {
@@ -149,6 +147,8 @@ public class TurnManager : NetworkBehaviour
 
         Enum.TryParse(chosenPhases[0].ToString(), out TurnState nextPhase);
         chosenPhases.RemoveAt(0);
+        
+        OnPhaseChanged?.Invoke(nextPhase);
         UpdateTurnState(nextPhase);
     }
     #endregion

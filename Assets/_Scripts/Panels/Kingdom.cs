@@ -20,17 +20,18 @@ public class Kingdom : NetworkBehaviour
     // UI
     public Button confirm;
     public Button skip;
-    [SerializeField] private GameObject minView, maxView;
+    [SerializeField] private GameObject maxView;
 
     private void Awake()
     {
         if (Instance == null) Instance = this;
-        gameObject.transform.SetParent(GameObject.Find("UI").transform, false);
     }
 
     [ClientRpc]
     public void RpcSetKingdomCards(CardInfo[] kingdomCardsInfo)
     {   
+        maxView.SetActive(false);
+
         kingdomCards = new KingdomCard[kingdomCardsInfo.Length];
         kingdomCards = cardGrid.GetComponentsInChildren<KingdomCard>();
 
@@ -100,21 +101,13 @@ public class Kingdom : NetworkBehaviour
         RpcMinButton();
     }
 
-    public void MinButton()
-    {
-        minView.SetActive(true);
-        maxView.SetActive(false);
-    }
+    public void MinButton() => maxView.SetActive(false);
 
-    public void MaxButton()
-    {
-        minView.SetActive(false);
-        maxView.SetActive(true);
+    public void MaxButton() {
+        if (maxView.activeSelf) MinButton();
+        else maxView.SetActive(true);
     }
 
     [ClientRpc]
-    private void RpcMinButton()
-    {
-        MinButton();
-    }
+    private void RpcMinButton() => MinButton();
 }

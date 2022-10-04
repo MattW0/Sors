@@ -14,7 +14,6 @@ public class GameManager : NetworkBehaviour
 
     public static GameManager Instance { get; private set; }
     private TurnManager _turnManager;
-    private Kingdom _kingdom;
     public Dictionary<PlayerManager, NetworkIdentity> players;
 
     [Header("Game state")]
@@ -29,7 +28,7 @@ public class GameManager : NetworkBehaviour
     public int turnRecruits = 1;
 
     [Header("Game start settings")]
-    [SerializeField] private int nbKingdomCards = 16;
+    [SerializeField] private int nbKingdomCards = 12;
     public int initialDeckSize = 10;
     public int nbCreatures = 2;
     public int initialHandSize = 4;
@@ -77,7 +76,6 @@ public class GameManager : NetworkBehaviour
     private void KingdomSetup(){
         var kingdomObject = Instantiate(kingdomPrefab, transform);
         NetworkServer.Spawn(kingdomObject, connectionToClient);
-        _kingdom = Kingdom.Instance;
 
         var kingdomCards = new CardInfo[nbKingdomCards];
         
@@ -87,7 +85,7 @@ public class GameManager : NetworkBehaviour
             kingdomCards[i] = new CardInfo(card);
         }
 
-        _kingdom.RpcSetKingdomCards(kingdomCards);
+        Kingdom.Instance.RpcSetKingdomCards(kingdomCards);
     }
 
     private void PanelSetup()
