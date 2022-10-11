@@ -1,71 +1,81 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class PhaseVisualsUI : MonoBehaviour
 {
-    [SerializeField] private Image[] extendedHighlights;
-    [SerializeField] private Image[] phaseHighlights;
-    [SerializeField] private Image[] combatHighlights;
+    public static PhaseVisualsUI Instance { get; private set; }
+    private PlayerInterfaceManager _playerInterfaceManager;
+
+    [SerializeField] private List<Image> extendedHighlights;
+    [SerializeField] private List<Image> phaseHighlights;
 
     [SerializeField] private Color phaseHighlightColor;
-    [SerializeField] private Color combatHighlightColor;
 
     [SerializeField] private float fadeDuration = 1f;
     private Image _oldHighlight;
     private Image _newHighlight;
-    
+
     private void Awake()
     {
-        _oldHighlight = phaseHighlights[0];
-        TurnManager.OnPhaseChanged += UpdatePhaseHighlight;
+        if (!Instance) Instance = this;
+        
+        _playerInterfaceManager = PlayerInterfaceManager.Instance;
     }
 
-    private void UpdatePhaseHighlight(TurnState newState)
+    public void PrepareUI()
     {
-        print("TurnChange");
-        _newHighlight = newState switch
-        {
-            TurnState.DrawI => phaseHighlights[0],
-            TurnState.Develop => phaseHighlights[1],
-            TurnState.Deploy => phaseHighlights[2],
-            TurnState.DrawII => phaseHighlights[3],
-            TurnState.Recruit => phaseHighlights[4],
-            TurnState.Prevail => phaseHighlights[5],
-            _ => _newHighlight
-        };
+        print("Preparing UI");
+        
+        GetHighlightImages();
+        _oldHighlight = phaseHighlights[0];
 
+        foreach (var img in phaseHighlights)
+        {
+            img.color = phaseHighlightColor;
+            img.CrossFadeAlpha(0f, 0f, true);
+        }
+    }
+
+    public void UpdatePhaseHighlight(int newHighlightIndex)
+    {
+        switch (newHighlightIndex) {
+            case -1:  // No highlightable phase
+                return;
+            case -2: // In CleanUp or PhaseSelection
+                HighlightTransition(_oldHighlight, null, true);
+                return;
+        }
+        _newHighlight = phaseHighlights[newHighlightIndex];
         HighlightTransition(_oldHighlight, _newHighlight);
         _oldHighlight = _newHighlight;
     }
     
-    private void HighlightTransition(Graphic oldImg, Graphic newImg)
+    private void HighlightTransition(Graphic oldImg, Graphic newImg, bool phaseSelection=false)
     {
-        var oldCol = oldImg.color;
-        oldCol.a = 0;
+        oldImg.CrossFadeAlpha(0f, fadeDuration, false);
+
+        if (phaseSelection) return;
         
-        var newCol = phaseHighlightColor;
-        newCol.a = 1;
-
-        StartCoroutine(ColorLerp(oldImg, oldCol, fadeDuration));
-        StartCoroutine(ColorLerp(newImg, newCol, fadeDuration));
+        newImg.CrossFadeAlpha(1f, fadeDuration, false);
     }
 
-    private static IEnumerator ColorLerp(Graphic img, Color endValue, float duration)
+    private void GetHighlightImages()
     {
-        float time = 0;
-        var startValue = img.color;
-        while (time < duration)
-        {
-            img.color = Color.Lerp(startValue, endValue, time / duration);
-            time += Time.deltaTime;
-            yield return null;
+        // Maybe implement in Unity Editor ?
+        var gridTransform = gameObject.transform.GetChild(1);
+
+        foreach (Transform child in gridTransform) {
+            extendedHighlights.Add(child.GetComponent<Image>());
+
+            foreach (Transform imgTransform in child)
+            {
+                phaseHighlights.Add(imgTransform.GetComponent<Image>());
+            }
         }
-        img.color = endValue;
-    }
-
-    private void OnDestroy()
-    {
-        TurnManager.OnPhaseChanged -= UpdatePhaseHighlight;
+        
     }
 }

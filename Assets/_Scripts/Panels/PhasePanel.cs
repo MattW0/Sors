@@ -13,6 +13,7 @@ public class PhasePanel : NetworkBehaviour
     [Header("Turn screen")]
     [SerializeField] private TMP_Text turnText;
     [SerializeField] private GameObject overlayObject;
+    private Image _backgroundImage;
     
     [SerializeField] private int turnScreenWaitTime = 1;
     [SerializeField] private float turnScreenFadeTime = 0.5f;
@@ -30,21 +31,22 @@ public class PhasePanel : NetworkBehaviour
 
     private void Start() {
         turnText.text = $"Turn {GameManager.Instance.turnNb}";
+        
         if(!GameManager.Instance.animations) {
             turnScreenWaitTime = 0;
             turnScreenFadeTime = 0f;
         }
+        
+        // "Background" color
+        _backgroundImage = overlayObject.transform.GetChild(0).GetComponent<Image>();
         StartCoroutine(WaitAndFade());
     }
 
     private IEnumerator WaitAndFade() {
         
-        // "Background" color
-        var sprite = overlayObject.transform.GetChild(0).GetComponent<Image>();
-
         // Wait and fade
         yield return new WaitForSeconds(turnScreenWaitTime);
-        sprite.CrossFadeAlpha(0f, turnScreenFadeTime, false);
+        _backgroundImage.CrossFadeAlpha(0f, turnScreenFadeTime, false);
         turnText.CrossFadeAlpha(0f, turnScreenFadeTime, false);
 
         // Wait and disable

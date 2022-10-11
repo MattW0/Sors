@@ -26,6 +26,7 @@ public class TurnManager : NetworkBehaviour
     private Dictionary<PlayerManager, List<CardInfo>> _recruitedCards;
     
     // Events
+    public static event Action OnGameStarting; 
     public static event Action<TurnState> OnPhaseChanged;
 
     [Header("Objects")]
@@ -102,7 +103,8 @@ public class TurnManager : NetworkBehaviour
         _playZoneManagers.AddRange(FindObjectsOfType<PlayZoneManager>());
 
         PlayerManager.OnCashChanged += PlayerCashChanged;
-
+        
+        OnGameStarting?.Invoke();
         UpdateTurnState(TurnState.PhaseSelection);
     }
     
@@ -142,6 +144,7 @@ public class TurnManager : NetworkBehaviour
         
         if (chosenPhases.Count == 0) {
             UpdateTurnState(TurnState.CleanUp);
+            OnPhaseChanged?.Invoke(TurnState.CleanUp);
             return;
         }
 

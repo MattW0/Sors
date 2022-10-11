@@ -1,13 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class CombatManager : MonoBehaviour
 {
     [SerializeField] private CombatState state;
-    
+    public static event Action<CombatState> OnCombatStateChanged;
+
     public void UpdateCombatState(CombatState newState){
         state = newState;
+        
+        OnCombatStateChanged?.Invoke(state);
 
         switch(state){
             case CombatState.Idle:

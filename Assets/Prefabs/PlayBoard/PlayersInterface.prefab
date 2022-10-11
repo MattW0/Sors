@@ -318,7 +318,7 @@ GameObject:
   - component: {fileID: 8196928300638307279}
   - component: {fileID: 6793430531372544523}
   m_Layer: 5
-  m_Name: Holder (1)
+  m_Name: Develop
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -754,7 +754,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.62352943, g: 0.37254903, b: 0.48627454, a: 1}
+  m_Color: {r: 0.32156864, g: 0.32156864, b: 0.32156864, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -837,7 +837,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 8e8a6c1938ccddb4ab7b3556a5bacdea, type: 3}
+  m_Sprite: {fileID: 21300000, guid: fef295dbcdbdb7f499195035fb80efcf, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -859,7 +859,7 @@ GameObject:
   - component: {fileID: 4502508475097703876}
   - component: {fileID: 5707061971546987953}
   m_Layer: 5
-  m_Name: Holder (6)
+  m_Name: Prevail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -936,7 +936,7 @@ GameObject:
   - component: {fileID: 8127579400747963125}
   - component: {fileID: 2105523318581840707}
   m_Layer: 5
-  m_Name: Holder (2)
+  m_Name: Deploy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1013,7 +1013,7 @@ GameObject:
   - component: {fileID: 3804085149828207655}
   - component: {fileID: 2678240969272408548}
   m_Layer: 5
-  m_Name: Holder (4)
+  m_Name: DrawII
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1090,7 +1090,7 @@ GameObject:
   - component: {fileID: 5442828775840400649}
   - component: {fileID: 3420263816131713532}
   m_Layer: 5
-  m_Name: Holder (3)
+  m_Name: Defend
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1352,7 +1352,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 3404822854666618317}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1686431077}
+        m_TargetAssemblyTypeName: PlayerInterfaceManager, Assembly-CSharp
+        m_MethodName: OnResignButtonPressed
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &3686546836810675238
 GameObject:
   m_ObjectHideFlags: 0
@@ -1498,9 +1510,7 @@ GameObject:
   m_Component:
   - component: {fileID: 427013052400909499}
   - component: {fileID: 6825715763925987009}
-  - component: {fileID: 3612253179839987949}
   - component: {fileID: 2082811137605914524}
-  - component: {fileID: 1661280371134144180}
   m_Layer: 5
   m_Name: Grid
   m_TagString: Untagged
@@ -1539,36 +1549,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3851709333191248889}
   m_CullTransparentMesh: 1
---- !u!114 &3612253179839987949
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3851709333191248889}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.5019608}
-  m_RaycastTarget: 1
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
 --- !u!114 &2082811137605914524
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1595,34 +1575,6 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!114 &1661280371134144180
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3851709333191248889}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e29f368259f27474aac8cdd69352a338, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  extendedHighlights:
-  - {fileID: 3447289149710881350}
-  - {fileID: 1797773401561664504}
-  - {fileID: 2333322436928574256}
-  phaseHighlights:
-  - {fileID: 4735467791366057422}
-  - {fileID: 6793430531372544523}
-  - {fileID: 2105523318581840707}
-  - {fileID: 4913741544080852445}
-  - {fileID: 3420263816131713532}
-  - {fileID: 2678240969272408548}
-  - {fileID: 3837986639357606318}
-  - {fileID: 5707061971546987953}
-  combatHighlights: []
-  phaseHighlightColor: {r: 0, g: 0, b: 0, a: 0}
-  combatHighlightColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!1 &4126367792294935501
 GameObject:
   m_ObjectHideFlags: 0
@@ -1808,22 +1760,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e29f368259f27474aac8cdd69352a338, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  extendedHighlights:
-  - {fileID: 3447289149710881350}
-  - {fileID: 1797773401561664504}
-  - {fileID: 2333322436928574256}
-  phaseHighlights:
-  - {fileID: 4735467791366057422}
-  - {fileID: 6793430531372544523}
-  - {fileID: 2105523318581840707}
-  - {fileID: 2678240969272408548}
-  - {fileID: 3837986639357606318}
-  - {fileID: 5707061971546987953}
-  combatHighlights:
-  - {fileID: 4913741544080852445}
-  - {fileID: 3420263816131713532}
-  phaseHighlightColor: {r: 1, g: 1, b: 0, a: 0}
-  combatHighlightColor: {r: 1, g: 0.4051714, b: 0, a: 0}
+  extendedHighlights: []
+  phaseHighlights: []
+  phaseHighlightColor: {r: 1, g: 1, b: 0.76841676, a: 1}
+  fadeDuration: 1
 --- !u!1 &4480623990212109766
 GameObject:
   m_ObjectHideFlags: 0
@@ -1945,7 +1885,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 4649786368055462564}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1686431077}
+        m_TargetAssemblyTypeName: PlayerInterfaceManager, Assembly-CSharp
+        m_MethodName: OnReadyButtonPressed
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &4868199300950184277
 GameObject:
   m_ObjectHideFlags: 0
@@ -2641,7 +2593,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 7064934469481652585}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1686431077}
+        m_TargetAssemblyTypeName: PlayerInterfaceManager, Assembly-CSharp
+        m_MethodName: OnSkipButtonPressed
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &5916312716512764248
 GameObject:
   m_ObjectHideFlags: 0
@@ -2773,7 +2737,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: fef295dbcdbdb7f499195035fb80efcf, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 8e8a6c1938ccddb4ab7b3556a5bacdea, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2795,7 +2759,7 @@ GameObject:
   - component: {fileID: 5591781544003761582}
   - component: {fileID: 3837986639357606318}
   m_Layer: 5
-  m_Name: Holder (5)
+  m_Name: Recruit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3083,7 +3047,7 @@ GameObject:
   - component: {fileID: 6227661092441649413}
   - component: {fileID: 4913741544080852445}
   m_Layer: 5
-  m_Name: Holder (2)
+  m_Name: Attack
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3370,6 +3334,7 @@ GameObject:
   - component: {fileID: 5928162012216293612}
   - component: {fileID: 4497890287647362087}
   - component: {fileID: 7724270400638733485}
+  - component: {fileID: 1686431077}
   m_Layer: 5
   m_Name: PlayersInterface
   m_TagString: Untagged
@@ -3438,7 +3403,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.6226415, g: 0.3727166, b: 0.48508587, a: 1}
+  m_Color: {r: 0.3207547, g: 0.3207547, b: 0.3207547, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -3455,6 +3420,21 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &1686431077
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8518550045047954213}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db7aaa30f066b2d488837cac03055cf7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
+  phaseVisualsUI: {fileID: 0}
 --- !u!1 &8522749690598040758
 GameObject:
   m_ObjectHideFlags: 0
@@ -3707,7 +3687,7 @@ GameObject:
   - component: {fileID: 4885832037393955054}
   - component: {fileID: 4735467791366057422}
   m_Layer: 5
-  m_Name: Holder
+  m_Name: DrawI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
