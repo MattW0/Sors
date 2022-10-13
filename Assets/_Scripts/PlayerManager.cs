@@ -9,6 +9,7 @@ public class PlayerManager : NetworkBehaviour
 {
     [Header("Entities")]
     private GameManager _gameManager;
+    private TurnManager _turnManager;
     public string playerName;
     public PlayerManager opponent;
     
@@ -67,8 +68,10 @@ public class PlayerManager : NetworkBehaviour
 
         cards = GetComponent<CardCollection>();
         // cards.deck.Callback += cards.OnDeckListChange;
-        
-        if (isServer) _gameManager = GameManager.Instance;
+
+        if (!isServer) return;
+        _gameManager = GameManager.Instance;
+        _turnManager = TurnManager.Instance;
     }
 
     [ClientRpc]
@@ -316,5 +319,21 @@ public class PlayerManager : NetworkBehaviour
     }
     
     #endregion UI
+    
+    public static PlayerManager GetPlayerManager()
+    {
+        var networkIdentity = NetworkClient.connection.identity;
+        return networkIdentity.GetComponent<PlayerManager>();
+    }
 
+    public void PlayerPressedReadyButton()
+    {
+        if (isServer) _turnManager.PlayerPressedReadyButton(this);
+        else CmdPlayerPressedReadyButton();
+    }
+    
+    [Command]
+    private void CmdPlayerPressedReadyButton() {
+        _turnManager.PlayerPressedReadyButton(this);
+    }
 }

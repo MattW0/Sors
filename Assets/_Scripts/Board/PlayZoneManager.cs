@@ -10,75 +10,60 @@ public class PlayZoneManager : NetworkBehaviour
     [SerializeField] private MoneyZone moneyZone;
     [SerializeField] private BattleZone battleZone;
     
-    // private TurnManager _turnManager;
-    // private GameManager _gameManager;
-    
-    private Dictionary<int, CardStats> _battleZoneCards;
-
     private void Awake()
     {
         if (!isMyZone) return;
-        
-        _battleZoneCards = new Dictionary<int, CardStats>();
-        
-        // Disgusting but allows for easy extension
-        var nbCardHolders = battleZone.GetNbCardHolders();
-        for (var i = 0; i < nbCardHolders; i++)
-        {
-            _battleZoneCards.Add(i, null); // empty battlezone
-        }
-        
-        PlayZoneCardHolder.OnCardDeployed += HandleCardDeployed;
+
+        CombatManager.OnDeclareAttackers += RpcDeclareAttackers;
+        CombatManager.OnDeclareBlockers += RpcDeclareBlockers;
     }
 
     [ClientRpc]
     public void RpcDiscardMoney()
     {
         var cards = moneyZone.GetCards();
-        
-        foreach (var card in cards)
-        {
+        foreach (var card in cards) {
             card.GetComponent<CardMover>().MoveToDestination(isMyZone, CardLocations.Discard, -1);
         }
     }
     
-    // gruuuuusig
     [ClientRpc]
     public void RpcShowCardPositionOptions(bool active)
     {
         if (!isMyZone) return;
         
         // Resetting at end of Deploy phase 
-        if (!active)
-        {
+        if (!active) {
             battleZone.ResetHighlight();
-            return;
+        } else {
+            battleZone.HighlightCardHolders();
         }
-        
-        var freeIds = new List<int>();
-        foreach (var (i, card) in _battleZoneCards)
-        {
-            if (card) continue;
-            
-            freeIds.Add(i);
-        }
-        
-        battleZone.HighlightCardHolders(freeIds.ToArray(), true);
     }
-
-    private void HandleCardDeployed(GameObject card, int holderNumber)
+    
+    public static void DeployCard(GameObject card, int holderNumber)
     {
-        var cardStats = card.GetComponent<CardStats>();
-        cardStats.IsDeployable = false;
-        _battleZoneCards[holderNumber] = cardStats;
-        
         var networkIdentity = NetworkClient.connection.identity;
         var p = networkIdentity.GetComponent<PlayerManager>();
         p.CmdDeployCard(card, holderNumber);
     }
+    
+    [ClientRpc]
+    private void RpcDeclareAttackers() {
+        if (!isMyZone) return;
+        print("Declare attackers!");
+        
+        print(battleZone.GetCards.Count + " cards on field");
+    }
 
+    [ClientRpc]
+    private void RpcDeclareBlockers() {
+        if (!isMyZone) return;
+        print("Declare blockers!");
+    }
+    
     private void OnDestroy()
     {
-        PlayZoneCardHolder.OnCardDeployed -= HandleCardDeployed;
+        CombatManager.OnDeclareAttackers -= RpcDeclareAttackers;
+        CombatManager.OnDeclareBlockers -= RpcDeclareBlockers;
     }
 }

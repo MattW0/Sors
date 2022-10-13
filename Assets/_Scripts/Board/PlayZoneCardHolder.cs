@@ -7,8 +7,10 @@ public class PlayZoneCardHolder : MonoBehaviour, IDropHandler
 {
     public static event Action<GameObject, int> OnCardDeployed;
     [SerializeField] private Image highlight;
-    [SerializeField] private BoxCollider2D boxCollider2D; 
+    [SerializeField] private BoxCollider2D boxCollider2D;
 
+    private bool _containsCard;
+    
     private void Awake()
     {
         highlight.enabled = false;
@@ -16,6 +18,12 @@ public class PlayZoneCardHolder : MonoBehaviour, IDropHandler
 
     public void Highlight(bool active)
     {
+        if (_containsCard)
+        {
+            highlight.enabled = false;
+            return;
+        }
+        
         highlight.enabled = active;
     }
 
@@ -28,6 +36,7 @@ public class PlayZoneCardHolder : MonoBehaviour, IDropHandler
         
         boxCollider2D.enabled = false;
         Highlight(false);
+        _containsCard = true;
         
         // holderNumber - 1 due to numbering in Unity Editor
         OnCardDeployed?.Invoke(cardObject, holderNumber - 1);

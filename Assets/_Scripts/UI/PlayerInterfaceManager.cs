@@ -4,7 +4,10 @@ using UnityEngine;
 public class PlayerInterfaceManager : NetworkBehaviour
 {
     public static PlayerInterfaceManager Instance { get; private set; }
-    [SerializeField] private PhaseVisualsUI phaseVisualsUI;
+
+    private TurnManager _turnManager;
+    private PhaseVisualsUI _phaseVisualsUI;
+    
     
     private void Awake()
     {
@@ -13,13 +16,15 @@ public class PlayerInterfaceManager : NetworkBehaviour
         TurnManager.OnGameStarting += RpcPrepareUIs;
         TurnManager.OnPhaseChanged += RpcUpdatePhaseHighlight;
         CombatManager.OnCombatStateChanged += RpcUpdateCombatHighlight;
+        
+        _turnManager = TurnManager.Instance;
     }
 
     [ClientRpc]
     private void RpcPrepareUIs()
     {
-        phaseVisualsUI = PhaseVisualsUI.Instance;
-        phaseVisualsUI.PrepareUI();
+        _phaseVisualsUI = PhaseVisualsUI.Instance;
+        _phaseVisualsUI.PrepareUI();
     }
     
     [ClientRpc]
@@ -36,7 +41,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
             _ => -1
         };
 
-        phaseVisualsUI.UpdatePhaseHighlight(newHighlightIndex);
+        _phaseVisualsUI.UpdatePhaseHighlight(newHighlightIndex);
     }
     
     [ClientRpc]
@@ -48,21 +53,21 @@ public class PlayerInterfaceManager : NetworkBehaviour
             _ => -1
         };
         
-        phaseVisualsUI.UpdatePhaseHighlight(newHighlightIndex);
+        _phaseVisualsUI.UpdatePhaseHighlight(newHighlightIndex);
     }
 
 
     public void OnResignButtonPressed() {
-        var player = GameManager.GetPlayerManager();
-        print(player.name);
+        var player = PlayerManager.GetPlayerManager();
     }
     
-    public void OnSkipButtonPressed() {
-        var player = GameManager.GetPlayerManager();
+    public void OnUndoButtonPressed() {
+        var player = PlayerManager.GetPlayerManager();
     }
     
     public void OnReadyButtonPressed() {
-        var player = GameManager.GetPlayerManager();
+        var player = PlayerManager.GetPlayerManager();
+        player.PlayerPressedReadyButton();
     }
 
     private void OnDestroy()

@@ -19,6 +19,7 @@ public class TurnManager : NetworkBehaviour
     
     [Header("Turn state")]
     [SerializeField] private TurnState state;
+    public TurnState CurrentState => state;
     public List<Phase> chosenPhases;
     private static int _playersReady;
 
@@ -230,11 +231,11 @@ public class TurnManager : NetworkBehaviour
 
     public void PlayerDeployedCard(PlayerManager player, GameObject cardObject) {
         // If player did not skip deploy (and deployed a card)
-        if (!cardObject) return;
-
-        var card = cardObject.GetComponent<CardStats>().cardInfo;
+        if (cardObject) {
+            var card = cardObject.GetComponent<CardStats>().cardInfo;
+            player.Cash -= card.cost;
+        }
         player.Deploys--;
-        player.Cash -= card.cost;
         
         // Waiting for player to use other deploys
         if (player.Deploys > 0) return;
@@ -367,6 +368,17 @@ public class TurnManager : NetworkBehaviour
             owner.Deploys = _gameManager.turnDeploys;
             owner.Recruits = _gameManager.turnRecruits;
             
+        }
+    }
+
+    public void PlayerPressedReadyButton(PlayerManager player) {
+        print("Player " + player.playerName + " is ready in phase " + state);
+
+        switch (state)
+        {
+            case TurnState.Deploy:
+                PlayerDeployedCard(player, null);
+                break;
         }
     }
 }

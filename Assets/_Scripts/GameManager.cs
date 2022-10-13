@@ -177,12 +177,6 @@ public class GameManager : NetworkBehaviour
         var cardObject = Instantiate(creatureCardPrefab);
         SpawnCacheAndMoveCard(player, cardObject, scriptableCard, CardLocations.Discard);
     }
-    
-    public static PlayerManager GetPlayerManager()
-    {
-        var networkIdentity = NetworkClient.connection.identity;
-        return networkIdentity.GetComponent<PlayerManager>();
-    }
 }
 
 public enum CardLocations{

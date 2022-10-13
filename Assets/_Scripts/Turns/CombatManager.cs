@@ -7,6 +7,8 @@ public class CombatManager : MonoBehaviour
 {
     [SerializeField] private CombatState state;
     public static event Action<CombatState> OnCombatStateChanged;
+    public static event Action OnDeclareAttackers;
+    public static event Action OnDeclareBlockers;
 
     public void UpdateCombatState(CombatState newState){
         state = newState;
@@ -36,11 +38,13 @@ public class CombatManager : MonoBehaviour
 
     private void DeclaringAttackers()
     {
+        OnDeclareAttackers?.Invoke();
         UpdateCombatState(CombatState.Blockers);
     }
     
     private void DeclaringBlockers()
     {
+        OnDeclareBlockers?.Invoke();
         UpdateCombatState(CombatState.Damage);
     }
     
