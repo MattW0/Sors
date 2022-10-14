@@ -23,7 +23,7 @@ public class PlayerManager : NetworkBehaviour
     public int Health { get => health; set => health = value; }
     public int Score { get => score; set => score = value; }
 
-    public List<Phase> playerChosenPhases = new List<Phase>() {Phase.DrawI, Phase.DrawII};
+    public List<Phase> playerChosenPhases = new() {Phase.DrawI, Phase.DrawII};
     private List<GameObject> _discardSelection;
     public List<CardInfo> moneyCards;
     

@@ -2340,6 +2340,10 @@ PrefabInstance:
       propertyPath: isMyZone
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 4636612441448094327, guid: e461b4738d1d58d4992efa4bef60aeab, type: 3}
+      propertyPath: combatManager
+      value: 
+      objectReference: {fileID: 6319069573471266856}
     - target: {fileID: 4677833278381276188, guid: e461b4738d1d58d4992efa4bef60aeab, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -2868,6 +2872,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7323840163285612653, guid: e461b4738d1d58d4992efa4bef60aeab, type: 3}
+      propertyPath: combatManager
+      value: 
+      objectReference: {fileID: 6319069573471266856}
     - target: {fileID: 7332420394478494987, guid: e461b4738d1d58d4992efa4bef60aeab, type: 3}
       propertyPath: m_Name
       value: PlayerPlayZone
@@ -3254,6 +3262,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8b89afc1e18e834086f1c3d432800aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
   state: 0
 --- !u!224 &6822816930630696410 stripped
 RectTransform:

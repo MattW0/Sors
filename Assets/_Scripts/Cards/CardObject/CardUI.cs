@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using DG.Tweening;
 
 public class CardUI : MonoBehaviour {
 
@@ -16,12 +17,20 @@ public class CardUI : MonoBehaviour {
     
     public Color standardHighlight = Color.white;
 
+    private Transform _transform;
+    [SerializeField] private Vector3 attackRotation;
+    private const float TappingDuration = 1f;
+    
     private GameObject _front;
     private GameObject _back;
     
     private void Awake(){
-        _front = gameObject.transform.Find("CardFront").gameObject;
-        _back = gameObject.transform.Find("CardBack").gameObject;
+        _transform = gameObject.transform;
+        _transform.eulerAngles = Vector3.zero;
+        attackRotation = new Vector3(0, 0, -90);
+        
+        _front = _transform.Find("CardFront").gameObject;
+        _back = _transform.Find("CardBack").gameObject;
     }
 
     public void SetCardUI(CardInfo cardInfo){
@@ -29,13 +38,23 @@ public class CardUI : MonoBehaviour {
         _cost.text = cardInfo.cost.ToString();
         
         if (cardInfo.isCreature){
-            gameObject.transform.Find("CardFront/Special").gameObject.SetActive(true);
+            _transform.Find("CardFront/Special").gameObject.SetActive(true);
             _description.text = cardInfo.hash;
             _attack.text = cardInfo.attack.ToString();
             _health.text = cardInfo.health.ToString();
         } else {
-            gameObject.transform.Find("CardFront").GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/Copper");
+            _transform.Find("CardFront").GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/Copper");
         }
+    }
+    
+    public void TapCreature()
+    {
+        _transform.DORotate(attackRotation, TappingDuration).OnComplete(HighlightReset);
+    }
+
+    public void UntapCreature()
+    {
+        _transform.DORotate(Vector3.zero, TappingDuration);
     }
 
     public void CardBackUp()

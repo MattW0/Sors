@@ -15,7 +15,8 @@ public class GameManager : NetworkBehaviour
     public static GameManager Instance { get; private set; }
     private TurnManager _turnManager;
     public Dictionary<PlayerManager, NetworkIdentity> players;
-
+    public static event Action OnGameStart;
+    
     [Header("Game state")]
     [SyncVar] public int turnNb = 0;
 
@@ -64,13 +65,13 @@ public class GameManager : NetworkBehaviour
 
     public void GameSetup()
     {
-        _turnManager = TurnManager.Instance;
-
+        // _turnManager = TurnManager.Instance;
+        
         KingdomSetup();
         PanelSetup();
         PlayerSetup();
-
-        _turnManager.UpdateTurnState(TurnState.Prepare);
+        
+        OnGameStart?.Invoke();
     }
 
     private void KingdomSetup(){

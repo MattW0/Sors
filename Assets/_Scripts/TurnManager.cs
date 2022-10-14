@@ -37,6 +37,8 @@ public class TurnManager : NetworkBehaviour
 
     private void Awake() {
         if (Instance == null) Instance = this;
+        
+        GameManager.OnGameStart += Prepare;
     }
 
     public void UpdateTurnState(TurnState newState){
@@ -48,9 +50,6 @@ public class TurnManager : NetworkBehaviour
 
         switch(state){
             // --- Preparation and transition ---
-            case TurnState.Prepare:
-                Prepare();
-                break;
             case TurnState.PhaseSelection:
                 PhaseSelection();
                 break;
@@ -230,6 +229,7 @@ public class TurnManager : NetworkBehaviour
     }
 
     public void PlayerDeployedCard(PlayerManager player, GameObject cardObject) {
+        
         // If player did not skip deploy (and deployed a card)
         if (cardObject) {
             var card = cardObject.GetComponent<CardStats>().cardInfo;
@@ -371,7 +371,10 @@ public class TurnManager : NetworkBehaviour
         }
     }
 
-    public void PlayerPressedReadyButton(PlayerManager player) {
+    public void PlayerPressedReadyButton(PlayerManager player)
+    {
+        if (player.Recruits <= 0 && player.Deploys <= 0) return;
+        
         print("Player " + player.playerName + " is ready in phase " + state);
 
         switch (state)
@@ -379,13 +382,20 @@ public class TurnManager : NetworkBehaviour
             case TurnState.Deploy:
                 PlayerDeployedCard(player, null);
                 break;
+            case TurnState.Combat:
+                combatManager.PlayerPressedReadyButton(player);
+                break;
         }
+    }
+
+    private void OnDestroy()
+    {
+        GameManager.OnGameStart -= Prepare;
     }
 }
 
 public enum TurnState
 {
-    Prepare,
     NextPhase,
     WaitingForReady,
     PhaseSelection,

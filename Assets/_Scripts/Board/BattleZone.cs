@@ -8,22 +8,22 @@ public class BattleZone : MonoBehaviour
     [SerializeField] private PlayZoneManager playZoneManager; 
     [SerializeField] private List<PlayZoneCardHolder> cardHolders;
     
-    private Dictionary<int, CardStats> _battleZoneCards;
-    public List<CardStats> GetCards => _battleZoneCards.Values.ToList();
+    private Dictionary<int, BattleZoneEntity> _battleZoneCards;
+    public List<BattleZoneEntity> GetEntities => _battleZoneCards.Values.ToList();
 
     private void Awake()
     {
         PlayZoneCardHolder.OnCardDeployed += HandleCardDeployed;
-        _battleZoneCards = new Dictionary<int, CardStats>();
+        _battleZoneCards = new Dictionary<int, BattleZoneEntity>();
     }
 
     private void HandleCardDeployed(GameObject card, int holderNumber)
     {
         if (!playZoneManager.isMyZone) return;
         
-        var cardStats = card.GetComponent<CardStats>();
-        cardStats.IsDeployable = false;
-        _battleZoneCards.Add(holderNumber, cardStats);
+        var fieldEntity = card.GetComponent<BattleZoneEntity>();
+        fieldEntity.IsDeployed = true;
+        _battleZoneCards.Add(holderNumber, fieldEntity);
 
         PlayZoneManager.DeployCard(card, holderNumber);
     }
