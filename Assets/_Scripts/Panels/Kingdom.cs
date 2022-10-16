@@ -35,7 +35,7 @@ public class Kingdom : NetworkBehaviour
         kingdomCards = new KingdomCard[kingdomCardsInfo.Length];
         kingdomCards = cardGrid.GetComponentsInChildren<KingdomCard>();
 
-        for (int i = 0; i < kingdomCardsInfo.Length; i++)
+        for (var i = 0; i < kingdomCardsInfo.Length; i++)
         {
             kingdomCards[i].SetCard(kingdomCardsInfo[i]);
         }

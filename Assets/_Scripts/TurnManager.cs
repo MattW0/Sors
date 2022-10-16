@@ -14,7 +14,7 @@ public class TurnManager : NetworkBehaviour
     private Kingdom _kingdom;
     private DiscardPanel _discardPanel;
     private PlayerHandManager _handManager;
-    private List<PlayZoneManager> _playZoneManagers;
+    private BoardManager _boardManager;
     [SerializeField] private CombatManager combatManager;
     
     [Header("Turn state")]
@@ -27,8 +27,9 @@ public class TurnManager : NetworkBehaviour
     private Dictionary<PlayerManager, List<CardInfo>> _recruitedCards;
     
     // Events
-    public static event Action OnGameStarting; 
     public static event Action<TurnState> OnPhaseChanged;
+    public static event Action OnTursStarting;
+
 
     [Header("Objects")]
     [SerializeField] private GameObject _phasePanelPrefab;
@@ -41,7 +42,7 @@ public class TurnManager : NetworkBehaviour
         GameManager.OnGameStart += Prepare;
     }
 
-    public void UpdateTurnState(TurnState newState){
+    private void UpdateTurnState(TurnState newState){
         state = newState;
 
         if (newState != TurnState.NextPhase) {
@@ -99,12 +100,11 @@ public class TurnManager : NetworkBehaviour
         _discardPanel.RpcSetInactive(); // Must do this for clients
         
         _handManager = PlayerHandManager.Instance;
-        _playZoneManagers = new List<PlayZoneManager>();
-        _playZoneManagers.AddRange(FindObjectsOfType<PlayZoneManager>());
+        _boardManager = BoardManager.Instance;
 
         PlayerManager.OnCashChanged += PlayerCashChanged;
         
-        OnGameStarting?.Invoke();
+        OnTursStarting?.Invoke();
         UpdateTurnState(TurnState.PhaseSelection);
     }
     
@@ -222,18 +222,17 @@ public class TurnManager : NetworkBehaviour
             playerManager.Deploys = nbDeploys;
         }
         
-        foreach (var zone in _playZoneManagers)
-        {
-            zone.RpcShowCardPositionOptions(true);
-        }
+        _boardManager.ShowCardPositionOptions(true);
     }
 
-    public void PlayerDeployedCard(PlayerManager player, GameObject cardObject) {
+    public void PlayerDeployedCard(PlayerManager player, CardInfo cardInfo, int holderNumber) {
         
         // If player did not skip deploy (and deployed a card)
-        if (cardObject) {
-            var card = cardObject.GetComponent<CardStats>().cardInfo;
-            player.Cash -= card.cost;
+        if (cardInfo.title != null)
+        {
+            var entity = _gameManager.SpawnFieldEntity(player, cardInfo, holderNumber);
+            _boardManager.AddEntity(player, entity);
+            player.Cash -= cardInfo.cost;
         }
         player.Deploys--;
         
@@ -254,10 +253,7 @@ public class TurnManager : NetworkBehaviour
         print("Everybody deployed");
 
         PlayersStatsResetAndDiscardMoney();
-        foreach (var zone in _playZoneManagers)
-        {
-            zone.RpcShowCardPositionOptions(false);
-        }
+        _boardManager.ShowCardPositionOptions(false);
         
         UpdateTurnState(TurnState.NextPhase);
     }
@@ -316,7 +312,7 @@ public class TurnManager : NetworkBehaviour
     {
         foreach (var (owner, cards) in _recruitedCards) {
             foreach (var cardInfo in cards) {
-                _gameManager.SpawnCreature(owner, _gameManager.players[owner], cardInfo);
+                _gameManager.SpawnCreature(owner, cardInfo);
                 print("<color=white>" + owner.playerName + " recruits " + cardInfo.title + "</color>");
             }
         }
@@ -353,10 +349,7 @@ public class TurnManager : NetworkBehaviour
     
     private void PlayersStatsResetAndDiscardMoney()
     {
-        foreach (var zone in _playZoneManagers)
-        {
-            zone.RpcDiscardMoney();
-        }
+        _boardManager.DiscardMoney();
         _handManager.RpcHighlightMoney(false);
 
         foreach (var owner in _gameManager.players.Keys)
@@ -380,7 +373,7 @@ public class TurnManager : NetworkBehaviour
         switch (state)
         {
             case TurnState.Deploy:
-                PlayerDeployedCard(player, null);
+                PlayerDeployedCard(player, new CardInfo(), -1);
                 break;
             case TurnState.Combat:
                 combatManager.PlayerPressedReadyButton(player);
@@ -397,7 +390,6 @@ public class TurnManager : NetworkBehaviour
 public enum TurnState
 {
     NextPhase,
-    WaitingForReady,
     PhaseSelection,
     DrawI,
     Discard,

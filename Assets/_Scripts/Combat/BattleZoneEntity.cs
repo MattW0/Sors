@@ -1,29 +1,12 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using CardDecoder;
 using Mirror;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
 {
-    [SerializeField] private bool isPlayer;
-    [SerializeField, SyncVar] private bool isDeployed;
-
     public static event Action<BattleZoneEntity, bool> Attack;
-    private List<BattleZoneEntity> _attackers;
-
-    public bool IsDeployed
-    {
-        get => isDeployed;
-        set
-        {
-            isDeployed = value;
-            if (isDeployed) Deploy();
-            else GoToDiscard();
-        }
-    }
 
     private bool _canAct;
     private bool _isAttacking;
@@ -31,7 +14,8 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
 
     private PlayerManager _player;
     private CardStats _cardStats;
-    private CardUI _cardUI;
+
+    [SerializeField] private EntityUI entityUI;
 
     [field: SyncVar]
     public string Title { get; private set; }
@@ -39,42 +23,36 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     [SyncVar] private int _attack;
     [SyncVar] private int _health;
 
-    private void Awake()
+    [ClientRpc]
+    public void RpcSpawnEntity(CardInfo cardInfo, int holderNumber)
     {
-        _cardUI = gameObject.GetComponent<CardUI>();
+        SetStats(cardInfo);
+        entityUI.MoveToHolder(holderNumber, hasAuthority);
     }
 
-    private void Deploy()
+    private void SetStats(CardInfo cardInfo)
     {
-        if (isPlayer) {
-            _player = gameObject.GetComponent<PlayerManager>();
-            Title = _player.playerName;
-            _attack = 0;
-            _health = _player.Health;
-        } else {
-            _cardStats = gameObject.GetComponent<CardStats>();
-            Title = _cardStats.cardInfo.title;
-            _attack = _cardStats.cardInfo.attack;
-            _health = _cardStats.cardInfo.health;
-        }
+        Title = cardInfo.title;
+        _attack = cardInfo.attack;
+        _health = cardInfo.health;
+        
+        entityUI.SetEntityUI(cardInfo);
     }
     
     public void CanAct(CombatState combatState)
     {
         _currentState = combatState;
+        print("Can " + Title + " act?");
         
-        if (!hasAuthority) return;
-        if (!isDeployed) return;
-        if (_isAttacking) return;
-
+        if (!hasAuthority || _isAttacking) return;
+        
         _canAct = true;
-        _cardUI.Highlight(true, Color.white);
+        entityUI.Highlight(true);
     }
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        if (!hasAuthority) return;
-        if (!_canAct) return;
+        if (!hasAuthority || !_canAct) return;
 
         switch (_currentState)
         {
@@ -92,11 +70,11 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
         if (!_isAttacking) {
             _isAttacking = true;
             Attack?.Invoke(this, true);
-            _cardUI.TapCreature();
+            entityUI.TapCreature();
         } else {
             _isAttacking = false;
             Attack?.Invoke(this, false);
-            _cardUI.UntapCreature();
+            entityUI.UntapCreature();
         }
     }
 
@@ -120,7 +98,6 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     private void Die()
     {
         print("Entity " + Title + " dies.");
-        IsDeployed = false;
     }
 
     private void GoToDiscard()

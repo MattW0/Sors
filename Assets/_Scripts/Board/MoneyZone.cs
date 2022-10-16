@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class MoneyZone : MonoBehaviour
 {
+    
+    
     public List<GameObject> GetCards()
     {
         var cards = new List<GameObject>();

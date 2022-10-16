@@ -89,7 +89,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef098ef3c16509249a11ef3346bdde27, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playZoneManager: {fileID: 4332542091008317177}
+  entityManager: {fileID: 3929274889224976313}
   cardHolders:
   - {fileID: 4583602570307099971}
   - {fileID: 1512653136926739122}
@@ -97,6 +97,69 @@ MonoBehaviour:
   - {fileID: 9195026081433868633}
   - {fileID: 9088448248839499125}
   - {fileID: 3937971006096238827}
+--- !u!1 &1164563724251753639
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 453214911389621060}
+  - component: {fileID: 3544982790619966401}
+  m_Layer: 5
+  m_Name: CardsInPlay
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &453214911389621060
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1164563724251753639}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1853577727411054980}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -1215, y: 0}
+  m_SizeDelta: {x: 110, y: 180}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &3544982790619966401
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1164563724251753639}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 0
+  m_Spacing: 0
+  m_ChildForceExpandWidth: 1
+  m_ChildForceExpandHeight: 1
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
 --- !u!1 &1853577727411054981
 GameObject:
   m_ObjectHideFlags: 0
@@ -108,8 +171,8 @@ GameObject:
   - component: {fileID: 1853577727411054980}
   - component: {fileID: 1853577727411054977}
   - component: {fileID: 1853577727411054978}
-  - component: {fileID: 4332542091008317177}
   - component: {fileID: 4883188997642515984}
+  - component: {fileID: 3929274889224976313}
   m_Layer: 5
   m_Name: PlayZone
   m_TagString: Untagged
@@ -131,6 +194,7 @@ RectTransform:
   m_Children:
   - {fileID: 5430105059708296010}
   - {fileID: 5837340688099709669}
+  - {fileID: 453214911389621060}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -177,23 +241,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &4332542091008317177
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1853577727411054981}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b80c7e82f926c274d9960a524cb41e36, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  syncMode: 0
-  syncInterval: 0.1
-  isMyZone: 0
-  moneyZone: {fileID: 7415163603668639706}
-  battleZone: {fileID: 8616652545055585840}
 --- !u!114 &4883188997642515984
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -211,6 +258,22 @@ MonoBehaviour:
   visible: 0
   m_AssetId: 03d34c09c1befe646a031791793f3517
   hasSpawned: 0
+--- !u!114 &3929274889224976313
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1853577727411054981}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96896afd0052c0244a933c683060e320, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
+  battleZone: {fileID: 8616652545055585840}
+  moneyZone: {fileID: 7415163603668639706}
 --- !u!1 &3999249032114023784
 GameObject:
   m_ObjectHideFlags: 0

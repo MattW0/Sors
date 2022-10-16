@@ -12,9 +12,7 @@ public class PlayerManager : NetworkBehaviour
     private TurnManager _turnManager;
     public string playerName;
     public PlayerManager opponent;
-    
-    [Header("Board Objects")]
-    private PlayZoneManager _myPlayZone;
+
 
     [Header("Game Stats")]
     public CardCollection cards;
@@ -79,7 +77,6 @@ public class PlayerManager : NetworkBehaviour
         if(!hasAuthority) return;
 
         var players = FindObjectsOfType<PlayerManager>();
-        _myPlayZone = GameObject.Find("PlayerPlayZone").GetComponent<PlayZoneManager>();
         
         if(!debug) opponent = players[0] == this ? players[1] : players[0];
     }
@@ -110,7 +107,7 @@ public class PlayerManager : NetworkBehaviour
             cards.hand.Add(cardInfo);
 
             var cardObject = _gameManager.GetCardObject(cardInfo.goID);
-            RpcMoveCard(cardObject, CardLocations.Deck, CardLocations.Hand, -1);
+            RpcMoveCard(cardObject, CardLocations.Deck, CardLocations.Hand);
         }
     }
 
@@ -137,7 +134,7 @@ public class PlayerManager : NetworkBehaviour
             cards.hand.Add(cardInfo);
 
             var cardObject = _gameManager.GetCardObject(cardInfo.goID);
-            RpcMoveCard(cardObject, CardLocations.Deck, CardLocations.Hand, -1);
+            RpcMoveCard(cardObject, CardLocations.Deck, CardLocations.Hand);
         }
     }
 
@@ -150,7 +147,7 @@ public class PlayerManager : NetworkBehaviour
             cards.deck.Add(card);
 
             var cachedCard = _gameManager.GetCardObject(card.goID);
-            RpcMoveCard(cachedCard, CardLocations.Discard, CardLocations.Deck, -1);
+            RpcMoveCard(cachedCard, CardLocations.Discard, CardLocations.Deck);
         }
 
         foreach (var card in temp){
@@ -160,23 +157,23 @@ public class PlayerManager : NetworkBehaviour
         cards.deck.Shuffle();
     }
 
-    public void PlayCard(GameObject card, bool isMoney=false, int cardHolder=-1) {
+    public void PlayCard(GameObject card, bool isMoney=false) {
         
         var destination = CardLocations.PlayZone;
         if (isMoney) destination = CardLocations.MoneyZone;
         
-        if (isServer) RpcMoveCard(card, CardLocations.Hand, destination, cardHolder);
-        else CmdMoveCard(card, CardLocations.Hand, destination, cardHolder);
+        if (isServer) RpcMoveCard(card, CardLocations.Hand, destination);
+        else CmdMoveCard(card, CardLocations.Hand, destination);
     }
 
     [Command]
-    private void CmdMoveCard(GameObject card, CardLocations from, CardLocations to, int cardHolder){
-        RpcMoveCard(card, from, to, cardHolder);
+    private void CmdMoveCard(GameObject card, CardLocations from, CardLocations to){
+        RpcMoveCard(card, from, to);
     }
 
     [ClientRpc]
-    public void RpcMoveCard(GameObject card, CardLocations from, CardLocations to, int cardHolder){
-        card.GetComponent<CardMover>().MoveToDestination(hasAuthority, to, cardHolder);
+    public void RpcMoveCard(GameObject card, CardLocations from, CardLocations to){
+        card.GetComponent<CardMover>().MoveToDestination(hasAuthority, to);
 
         if (!hasAuthority) return;
         if (to == CardLocations.Hand) OnHandChanged?.Invoke(card, true);
@@ -215,7 +212,7 @@ public class PlayerManager : NetworkBehaviour
             cards.hand.Remove(cardInfo);
             cards.discard.Add(cardInfo);
 
-            RpcMoveCard(card, CardLocations.Hand, CardLocations.Discard, -1);
+            RpcMoveCard(card, CardLocations.Hand, CardLocations.Discard);
         }
         _discardSelection.Clear();
     }
@@ -242,8 +239,10 @@ public class PlayerManager : NetworkBehaviour
     [Command]
     public void CmdDeployCard(GameObject card, int holderNumber)
     {
-        TurnManager.Instance.PlayerDeployedCard(this, card);
-        PlayCard(card, cardHolder:holderNumber);
+        var cardInfo = card.GetComponent<CardStats>().cardInfo;
+        TurnManager.Instance.PlayerDeployedCard(this, cardInfo, holderNumber);
+        
+        PlayCard(card);
     }
 
     [TargetRpc]

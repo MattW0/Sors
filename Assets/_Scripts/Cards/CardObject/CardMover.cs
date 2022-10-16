@@ -26,8 +26,8 @@ public class CardMover : MonoBehaviour
         opponentDrawPile = GameObject.Find("OpponentDrawPile").transform.GetChild(0);
         playerHand = GameObject.Find("PlayerHand").transform;
         opponentHand = GameObject.Find("OpponentHand").transform;
-        playerPlayZone = GameObject.Find("PlayerPlayZone").transform.GetChild(1);
-        opponentPlayZone = GameObject.Find("OpponentPlayZone").transform.GetChild(1);
+        playerPlayZone = GameObject.Find("PlayerPlayZone").transform.GetChild(2);
+        opponentPlayZone = GameObject.Find("OpponentPlayZone").transform.GetChild(2);
         playerMoneyZone = GameObject.Find("PlayerMoneyZone").transform.GetChild(1);
         opponentMoneyZone = GameObject.Find("OpponentMoneyZone").transform.GetChild(1);
         playerDiscardPile = GameObject.Find("PlayerDiscardPile").transform.GetChild(0);
@@ -36,7 +36,7 @@ public class CardMover : MonoBehaviour
         _cardUI = gameObject.GetComponent<CardUI>();
     }
 
-    public void MoveToDestination(bool hasAuthority, CardLocations destination, int cardHolder)
+    public void MoveToDestination(bool hasAuthority, CardLocations destination)
     {
         _transform = gameObject.transform;
         
@@ -57,13 +57,7 @@ public class CardMover : MonoBehaviour
             else _transform.SetParent(opponentHand, false);
             break;
         case CardLocations.PlayZone:
-            if (cardHolder == -1) Debug.Log("Wrong CardHolder number!");
-            if (hasAuthority) _transform.SetParent(playerPlayZone.GetChild(cardHolder), false);
-            else {
-                _transform.SetParent(opponentPlayZone.GetChild(cardHolder), false);
-                _cardUI.CardFrontUp();
-            }
-            _transform.localPosition = Vector3.zero;
+            _transform.SetParent(hasAuthority ? playerPlayZone : opponentPlayZone, false);
             break;
         case CardLocations.MoneyZone:
             if (hasAuthority) _transform.SetParent(playerMoneyZone, false);
@@ -75,6 +69,7 @@ public class CardMover : MonoBehaviour
         case CardLocations.Discard:
             if (hasAuthority) _transform.SetParent(playerDiscardPile, false);
             else _transform.SetParent(opponentDiscardPile, false);
+            
             _cardUI.CardFrontUp();
             _transform.localPosition = Vector3.zero;
             break;

@@ -21,7 +21,7 @@ public class CardCollection : NetworkBehaviour
 public class SyncListCard : SyncList<CardInfo> {
     
     public void Shuffle(){
-        RNGCryptoServiceProvider provider = new RNGCryptoServiceProvider();
+        var provider = new RNGCryptoServiceProvider();
         int n = Count;
         while (n > 1) {
             byte[] box = new byte[1];

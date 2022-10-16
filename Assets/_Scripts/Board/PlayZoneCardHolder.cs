@@ -10,7 +10,7 @@ public class PlayZoneCardHolder : MonoBehaviour, IDropHandler
     [SerializeField] private BoxCollider2D boxCollider2D;
 
     private bool _containsCard;
-    
+
     private void Awake()
     {
         highlight.enabled = false;
@@ -31,14 +31,23 @@ public class PlayZoneCardHolder : MonoBehaviour, IDropHandler
     {
         if (!boxCollider2D.enabled) return;
         
+        // gets the holder object name (0, 1, ..) to know position
         var cardObject = data.pointerPress;
         int.TryParse(gameObject.name, out var holderNumber);
-        
+
+        PlaceCard();
+
+        // holderNumber - 1 due to numbering in Unity Editor
+        print("OnCardDeployed invocation");
+
+        OnCardDeployed?.Invoke(cardObject, holderNumber - 1);
+        EntityManager.PlayerDeployCard(cardObject, holderNumber - 1);
+    }
+
+    private void PlaceCard()
+    {
+        _containsCard = true;
         boxCollider2D.enabled = false;
         Highlight(false);
-        _containsCard = true;
-        
-        // holderNumber - 1 due to numbering in Unity Editor
-        OnCardDeployed?.Invoke(cardObject, holderNumber - 1);
     }
 }

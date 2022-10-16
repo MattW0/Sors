@@ -14,8 +14,8 @@ public class CombatManager : NetworkBehaviour
     public static event Action OnDeclareBlockers;
 
     private GameManager _gameManager;
-    [SerializeField] private List<PlayZoneManager> _playZoneManagers;
-    private Dictionary<PlayerManager, List<BattleZoneEntity>> _attackers;
+    private TurnManager _turnManager;
+    private BoardManager _boardManager;
 
     private int _playersReady;
 
@@ -55,8 +55,8 @@ public class CombatManager : NetworkBehaviour
     private void Prepare()
     {
         _gameManager = GameManager.Instance;
-        _playZoneManagers = new List<PlayZoneManager>();
-        _playZoneManagers.AddRange(FindObjectsOfType<PlayZoneManager>());
+        _turnManager = TurnManager.Instance;
+        _boardManager = BoardManager.Instance;
     }
 
     private void DeclaringAttackers()
@@ -76,16 +76,16 @@ public class CombatManager : NetworkBehaviour
     {
         print("Attackers declared");
 
-        foreach (var pzm in _playZoneManagers)
-        {
-            var attackers = pzm.Attackers;
-            if (attackers is { Count: 0 }) continue;
-            
-            foreach (var attacker in attackers)
-            {
-                print("Attacking with " + attacker.Title);
-            }
-        }
+        // foreach (var pzm in _playZoneManagers.Values)
+        // {
+        //     var attackers = pzm.Attackers;
+        //     if (attackers is { Count: 0 }) continue;
+        //     
+        //     foreach (var attacker in attackers)
+        //     {
+        //         print("Attacking with " + attacker.Title);
+        //     }
+        // }
         
         _playersReady = 0;
         UpdateCombatState(CombatState.Blockers);

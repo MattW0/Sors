@@ -46,6 +46,7 @@ public class GameManager : NetworkBehaviour
     [SerializeField] private GameObject discardPanelPrefab;
     [SerializeField] private GameObject creatureCardPrefab;
     [SerializeField] private GameObject moneyCardPrefab;
+    [SerializeField] private GameObject entityObjectPrefab;
 
     // Caching all gameObjects of cards in game
     private Dictionary<string, GameObject> Cache { get; set; }
@@ -101,6 +102,12 @@ public class GameManager : NetworkBehaviour
         players = new Dictionary<PlayerManager, NetworkIdentity>();
         var playerManagers = FindObjectsOfType<PlayerManager>();
 
+        // Making sure that host is playerManager[0]
+        // if (!playerManagers[0].GetComponent<NetworkIdentity>().isServer)
+        // {
+        //     (playerManagers[0], playerManagers[1]) = (playerManagers[1], playerManagers[0]);
+        // }
+        
         foreach (var player in playerManagers)
         {
             var playerNetworkId = player.GetComponent<NetworkIdentity>();
@@ -140,7 +147,7 @@ public class GameManager : NetworkBehaviour
     private void SpawnCacheAndMoveCard(PlayerManager owner, GameObject cardObject,
                                        ScriptableCard scriptableCard, CardLocations destination){
 
-        string instanceID = cardObject.GetInstanceID().ToString();
+        var instanceID = cardObject.GetInstanceID().ToString();
         cardObject.name = instanceID;
         Cache.Add(instanceID, cardObject);
 
@@ -170,13 +177,25 @@ public class GameManager : NetworkBehaviour
             default:
                 throw new ArgumentOutOfRangeException(nameof(destination), destination, null);
         }
-        owner.RpcMoveCard(cardObject, CardLocations.Spawned, destination, -1);
+        owner.RpcMoveCard(cardObject, CardLocations.Spawned, destination);
     }
 
-    public void SpawnCreature(PlayerManager player, NetworkIdentity playerNetworkId, CardInfo cardInfo){
+    public void SpawnCreature(PlayerManager player, CardInfo cardInfo){
         var scriptableCard = Resources.Load<ScriptableCard>("CreatureCards/" + cardInfo.title);
         var cardObject = Instantiate(creatureCardPrefab);
         SpawnCacheAndMoveCard(player, cardObject, scriptableCard, CardLocations.Discard);
+    }
+
+    public BattleZoneEntity SpawnFieldEntity(PlayerManager owner, CardInfo cardInfo, int cardHolder)
+    {
+        var entityObject = Instantiate(entityObjectPrefab);
+        NetworkServer.Spawn(entityObject, connectionToClient);
+        entityObject.GetComponent<NetworkIdentity>().AssignClientAuthority(players[owner].connectionToClient);
+
+        var entity = entityObject.GetComponent<BattleZoneEntity>();
+        entity.RpcSpawnEntity(cardInfo, cardHolder);
+
+        return entity;
     }
 }
 

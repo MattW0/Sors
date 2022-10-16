@@ -641,12 +641,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d3bc2104d0c7c246836b31e9c87f133, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  syncMode: 0
-  syncInterval: 0.1
   returnDuration: 0.9
-  timeStartReturn: 0
-  isDraggable: 0
-  isOverDropZone: 0
 --- !u!114 &1662656646801267718
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -667,6 +662,7 @@ MonoBehaviour:
   _image: {fileID: 5706841334308121695}
   _highlight: {fileID: 6942316134712413200}
   standardHighlight: {r: 1, g: 1, b: 1, a: 1}
+  attackRotation: {x: 0, y: 0, z: 0}
 --- !u!114 &-4575455535364612694
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -692,13 +688,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerHand: {fileID: 0}
-  playerPlayZone: {fileID: 0}
   playerMoneyZone: {fileID: 0}
+  playerPlayZone: {fileID: 0}
   playerDrawPile: {fileID: 0}
   playerDiscardPile: {fileID: 0}
   opponentHand: {fileID: 0}
-  opponentPlayZone: {fileID: 0}
   opponentMoneyZone: {fileID: 0}
+  opponentPlayZone: {fileID: 0}
   opponentDrawPile: {fileID: 0}
   opponentDiscardPile: {fileID: 0}
 --- !u!1 &5650112559521258811

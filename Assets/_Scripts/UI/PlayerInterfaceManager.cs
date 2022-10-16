@@ -13,7 +13,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
     {
         if (!Instance) Instance = this;
         
-        TurnManager.OnGameStarting += RpcPrepareUIs;
+        GameManager.OnGameStart += RpcPrepareUIs;
         TurnManager.OnPhaseChanged += RpcUpdatePhaseHighlight;
         CombatManager.OnCombatStateChanged += RpcUpdateCombatHighlight;
         
@@ -72,7 +72,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
 
     private void OnDestroy()
     {
-        TurnManager.OnGameStarting -= RpcPrepareUIs;
+        GameManager.OnGameStart -= RpcPrepareUIs;
         TurnManager.OnPhaseChanged -= RpcUpdatePhaseHighlight;
         CombatManager.OnCombatStateChanged -= RpcUpdateCombatHighlight;
     }
