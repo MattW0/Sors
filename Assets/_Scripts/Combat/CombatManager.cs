@@ -24,6 +24,7 @@ public class CombatManager : NetworkBehaviour
         if (!Instance) Instance = this;
         
         GameManager.OnGameStart += Prepare;
+        BoardManager.OnSkipCombatPhase += PlayerIsReady;
     }
 
     public void UpdateCombatState(CombatState newState){
@@ -59,7 +60,7 @@ public class CombatManager : NetworkBehaviour
         _boardManager = BoardManager.Instance;
     }
 
-    private void DeclaringAttackers()
+    private static void DeclaringAttackers()
     {
         OnDeclareAttackers?.Invoke();
     }
@@ -68,25 +69,8 @@ public class CombatManager : NetworkBehaviour
     {
         _playersReady++;
         if (_playersReady != _gameManager.players.Count) return;
-
-        AttackersDeclared();
-    }
-
-    private void AttackersDeclared()
-    {
-        print("Attackers declared");
-
-        // foreach (var pzm in _playZoneManagers.Values)
-        // {
-        //     var attackers = pzm.Attackers;
-        //     if (attackers is { Count: 0 }) continue;
-        //     
-        //     foreach (var attacker in attackers)
-        //     {
-        //         print("Attacking with " + attacker.Title);
-        //     }
-        // }
         
+        print("Attackers declared");
         _playersReady = 0;
         UpdateCombatState(CombatState.Blockers);
     }
@@ -119,10 +103,8 @@ public class CombatManager : NetworkBehaviour
         TurnManager.Instance.CombatCleanUp();
     }
 
-    public void PlayerPressedReadyButton(PlayerManager player)
+    public void PlayerIsReady()
     {
-        print("Player " + player.playerName + " is ready in phase " + state);
-
         switch (state)
         {
             case CombatState.Attackers:
@@ -134,19 +116,10 @@ public class CombatManager : NetworkBehaviour
         }
     }
 
-    [Command]
-    public void CmdPlayerSkipsPhase()
-    {
-        print("Player has an empty board and skips.");
-        _playersReady++;
-
-        if (_playersReady != _gameManager.players.Count) return;
-        AttackersDeclared();
-    }
-
     private void OnDestroy()
     {
         GameManager.OnGameStart -= Prepare;
+        BoardManager.OnSkipCombatPhase -= PlayerIsReady;
     }
 }
 

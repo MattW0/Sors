@@ -10,12 +10,13 @@ public class EntityManager : NetworkBehaviour
     [SerializeField] private BattleZone battleZone;
     [SerializeField] private MoneyZone moneyZone;
 
-    private List<BattleZoneEntity> _battleZoneEntities;
+    [SerializeField] private List<BattleZoneEntity> _battleZoneEntities;
     public List<BattleZoneEntity> GetEntities() => _battleZoneEntities;
 
     private void Awake()
     {
         _battleZoneEntities = new List<BattleZoneEntity>();
+        BoardManager.OnEntityAdded += RpcEntityAdded;
     }
 
     public static void PlayerDeployCard(GameObject card, int holderNumber)
@@ -24,6 +25,35 @@ public class EntityManager : NetworkBehaviour
         var player = networkIdentity.GetComponent<PlayerManager>();
         
         player.CmdDeployCard(card, holderNumber);
+    }
+    
+    [ClientRpc]
+    private void RpcEntityAdded(BattleZoneEntity entity)
+    {
+        if (!entity.hasAuthority || !myZone) return;
+        _battleZoneEntities.Add(entity);
+    }
+    
+    [ClientRpc]
+    public void RpcDeclareAttackers()
+    {
+        if (!myZone) return;
+        
+        foreach (var entity in _battleZoneEntities)
+        {
+            entity.CanAct(CombatState.Attackers);
+        }
+    }
+    
+    [ClientRpc]
+    public void RpcDeclareBlockers()
+    {
+        if (!myZone) return;
+        
+        foreach (var entity in _battleZoneEntities)
+        {
+            entity.CanAct(CombatState.Blockers);
+        }
     }
 
     [ClientRpc]
@@ -39,5 +69,10 @@ public class EntityManager : NetworkBehaviour
         foreach (var card in cards) {
             card.GetComponent<CardMover>().MoveToDestination(myZone, CardLocations.Discard);
         }
+    }
+
+    private void OnDestroy()
+    {
+        BoardManager.OnEntityAdded -= RpcEntityAdded;
     }
 }

@@ -97,11 +97,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aba4e48fc24ff7d42b4a1cab8679fa1f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  attackingColor: {r: 0.14150941, g: 0.14150941, b: 0.14150941, a: 1}
   title: {fileID: 9119987360174596922}
   cost: {fileID: 7321439440040603280}
   attack: {fileID: 67846129914811778}
   health: {fileID: 8266281053039831513}
   highlight: {fileID: 3934348760645149788}
+  attackerHighlight: {fileID: 140034960745397291}
   playerPlayZone: {fileID: 0}
   opponentPlayZone: {fileID: 0}
 --- !u!61 &7514559014522091576
@@ -266,7 +268,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.3018868, g: 0.3018868, b: 0.3018868, a: 1}
+  m_Color: {r: 0.3137255, g: 0.3137255, b: 0.3137255, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

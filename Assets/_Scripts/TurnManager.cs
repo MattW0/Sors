@@ -230,8 +230,7 @@ public class TurnManager : NetworkBehaviour
         // If player did not skip deploy (and deployed a card)
         if (cardInfo.title != null)
         {
-            var entity = _gameManager.SpawnFieldEntity(player, cardInfo, holderNumber);
-            _boardManager.AddEntity(player, entity);
+            _gameManager.SpawnFieldEntity(player, cardInfo, holderNumber);
             player.Cash -= cardInfo.cost;
         }
         player.Deploys--;
@@ -376,7 +375,7 @@ public class TurnManager : NetworkBehaviour
                 PlayerDeployedCard(player, new CardInfo(), -1);
                 break;
             case TurnState.Combat:
-                combatManager.PlayerPressedReadyButton(player);
+                combatManager.PlayerIsReady();
                 break;
         }
     }

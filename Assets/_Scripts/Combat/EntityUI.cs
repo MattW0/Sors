@@ -5,11 +5,15 @@ using UnityEngine.UI;
 
 public class EntityUI : MonoBehaviour
 {
+    [SerializeField] private Color attackingColor;
+    private Color _idleColor = new Color32( 0x50, 0x50, 0x50, 0xFF );
+
     [SerializeField] private TMP_Text title;
     [SerializeField] private TMP_Text cost;
     [SerializeField] private TMP_Text attack;
     [SerializeField] private TMP_Text health;
     [SerializeField] private Image highlight;
+    [SerializeField] private Image attackerHighlight;
 
     private Transform _transform;
     [SerializeField] private Transform playerPlayZone;
@@ -25,12 +29,6 @@ public class EntityUI : MonoBehaviour
         playerPlayZone = GameObject.Find("PlayerPlayZone").transform.GetChild(1);
         opponentPlayZone = GameObject.Find("OpponentPlayZone").transform.GetChild(1);
     }
-
-    public void Highlight(bool active)
-    {
-        highlight.enabled = active;
-    }
-
     public void SetEntityUI(CardInfo cardInfo)
     {
         title.text = cardInfo.title;
@@ -38,6 +36,17 @@ public class EntityUI : MonoBehaviour
         attack.text = cardInfo.attack.ToString();
         health.text = cardInfo.health.ToString();
     }
+
+    public void Highlight(bool active)
+    {
+        highlight.enabled = active;
+    }
+
+    public void HighlightAttacker(bool active)
+    {
+        attackerHighlight.color = active ? attackingColor : _idleColor;
+    }
+
 
     public void TapCreature() {
         _transform.DOLocalMove(_tappedPosition, _tappingDuration).OnComplete(

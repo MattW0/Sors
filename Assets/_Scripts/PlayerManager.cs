@@ -262,6 +262,13 @@ public class PlayerManager : NetworkBehaviour
 
     #endregion TurnActions
 
+    #region Combat
+
+    
+
+    #endregion
+    
+    
     #region UI
     private void SetCashValue(int value){
         if (isServer) RpcSetCashValue(value);
@@ -318,7 +325,9 @@ public class PlayerManager : NetworkBehaviour
     }
     
     #endregion UI
-    
+
+    #region Utils
+
     public static PlayerManager GetPlayerManager()
     {
         var networkIdentity = NetworkClient.connection.identity;
@@ -335,4 +344,6 @@ public class PlayerManager : NetworkBehaviour
     private void CmdPlayerPressedReadyButton() {
         _turnManager.PlayerPressedReadyButton(this);
     }
+
+    #endregion
 }

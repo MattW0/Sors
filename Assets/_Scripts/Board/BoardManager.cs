@@ -13,21 +13,26 @@ public class BoardManager : NetworkBehaviour
     [SerializeField] private List<EntityManager> entityManagers;
 
     private Dictionary<PlayerManager, List<BattleZoneEntity>> _battleZoneEntities;
+    [SerializeField] private List<BattleZoneEntity> attackers;
+
     private CombatManager _combatManager;
     private GameManager _gameManager;
     private TurnManager _turnManager;
     // public List<BattleZoneEntity> Attackers { get; private set; }
 
+    public static event Action<BattleZoneEntity> OnEntityAdded;
+    public static event Action OnSkipCombatPhase; 
+
     private void Awake()
     {
         if (!Instance) Instance = this;
 
+        GameManager.OnEntitySpawned += AddEntity;
         TurnManager.OnTursStarting += Prepare;
         CombatManager.OnDeclareAttackers += DeclareAttackers;
-        CombatManager.OnDeclareBlockers += RpcDeclareBlockers;
+        CombatManager.OnDeclareBlockers += DeclareBlockers;
     }
 
-    [Server]
     private void Prepare() {
         
         _combatManager = CombatManager.Instance;
@@ -35,6 +40,8 @@ public class BoardManager : NetworkBehaviour
         _turnManager = TurnManager.Instance;
         
         _battleZoneEntities = new Dictionary<PlayerManager, List<BattleZoneEntity>>();
+        attackers = new List<BattleZoneEntity>();
+
         foreach (var player in _gameManager.players.Keys)
         {
             print("Adding Entity list to player");
@@ -42,10 +49,10 @@ public class BoardManager : NetworkBehaviour
         }
     }
 
-    [Server]
-    public void AddEntity(PlayerManager player, BattleZoneEntity entity)
+    private void AddEntity(PlayerManager player, BattleZoneEntity entity)
     {
         _battleZoneEntities[player].Add(entity);
+        OnEntityAdded?.Invoke(entity);
     }
     
     public void DiscardMoney()
@@ -62,51 +69,54 @@ public class BoardManager : NetworkBehaviour
         entityManagers[0].RpcHighlight(active); 
     }
 
-    [ClientRpc]
     private void DeclareAttackers() {
         
-        print(_battleZoneEntities.Count + " cards on field");
-
-        foreach (var entitiesList in _battleZoneEntities.Values)
+        foreach (var entityManager in entityManagers)
         {
-            if (entitiesList.Count == 0)
-            {
-                print("No entity on battlefield");
-                //     combatManager.CmdPlayerSkipsPhase();
-                continue;
-            }
+            entityManager.RpcDeclareAttackers();
+        }
+        
+        // Auto-skipping if player has empty board
+        foreach (var list in _battleZoneEntities.Values)
+        {
+            if (list.Count > 0) continue;
             
-            foreach (var entity in entitiesList)
-            {
-                entity.CanAct(CombatState.Attackers);
-            }
+            OnSkipCombatPhase?.Invoke();
+            print("Skipping due to empty board");
         }
     }
     
-    private void AttackerDeclared(BattleZoneEntity attacker, bool adding)
+    public void AttackerDeclared(BattleZoneEntity attacker, bool adding)
     {
-        print("Adding attacker "+ attacker.Title + ": " + adding);
-        
-        // if (!adding)
-        // {
-        //     Attackers.Remove(attacker);
-        //     return;
-        // }
-        //
-        // Attackers.Add(attacker);
+        if (adding) attackers.Add(attacker); 
+        else attackers.Remove(attacker);
     }
 
-    [ClientRpc]
-    private void RpcDeclareBlockers() {
-        if (!hasAuthority) return;
+    private void DeclareBlockers() {
+        
+        foreach (var entity in attackers)
+        {
+            entity.RpcHighlightAttacker();
+        }
+        
         print("Declare blockers!");
+        foreach (var entityManager in entityManagers)
+        {
+            if (entityManager.GetEntities().Count == 0)
+            {
+                OnSkipCombatPhase?.Invoke();
+                return;
+            }
+            entityManager.RpcDeclareBlockers();
+        }
         
     }
     
     private void OnDestroy()
     {
+        GameManager.OnEntitySpawned -= AddEntity;
         TurnManager.OnTursStarting -= Prepare;
         CombatManager.OnDeclareAttackers -= DeclareAttackers;
-        CombatManager.OnDeclareBlockers -= RpcDeclareBlockers;
+        CombatManager.OnDeclareBlockers -= DeclareBlockers;
     }
 }

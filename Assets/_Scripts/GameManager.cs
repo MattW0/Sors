@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 using Mirror;
 using Random = UnityEngine.Random;
@@ -16,7 +17,8 @@ public class GameManager : NetworkBehaviour
     private TurnManager _turnManager;
     public Dictionary<PlayerManager, NetworkIdentity> players;
     public static event Action OnGameStart;
-    
+    public static event Action<PlayerManager, BattleZoneEntity> OnEntitySpawned; 
+
     [Header("Game state")]
     [SyncVar] public int turnNb = 0;
 
@@ -186,16 +188,16 @@ public class GameManager : NetworkBehaviour
         SpawnCacheAndMoveCard(player, cardObject, scriptableCard, CardLocations.Discard);
     }
 
-    public BattleZoneEntity SpawnFieldEntity(PlayerManager owner, CardInfo cardInfo, int cardHolder)
+    public void SpawnFieldEntity(PlayerManager owner, CardInfo cardInfo, int cardHolder)
     {
         var entityObject = Instantiate(entityObjectPrefab);
         NetworkServer.Spawn(entityObject, connectionToClient);
         entityObject.GetComponent<NetworkIdentity>().AssignClientAuthority(players[owner].connectionToClient);
 
         var entity = entityObject.GetComponent<BattleZoneEntity>();
-        entity.RpcSpawnEntity(cardInfo, cardHolder);
+        entity.RpcSpawnEntity(owner, cardInfo, cardHolder);
 
-        return entity;
+        OnEntitySpawned?.Invoke(owner, entity);
     }
 }
 

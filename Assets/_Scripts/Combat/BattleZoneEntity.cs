@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Mirror;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -6,13 +7,14 @@ using UnityEngine.UI;
 
 public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
 {
-    public static event Action<BattleZoneEntity, bool> Attack;
+    private BoardManager _boardManager;
 
     private bool _canAct;
     private bool _isAttacking;
     private CombatState _currentState;
 
-    private PlayerManager _player;
+    public PlayerManager Owner { get; private set; }
+
     private CardStats _cardStats;
 
     [SerializeField] private EntityUI entityUI;
@@ -24,8 +26,11 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     [SyncVar] private int _health;
 
     [ClientRpc]
-    public void RpcSpawnEntity(CardInfo cardInfo, int holderNumber)
+    public void RpcSpawnEntity(PlayerManager owner, CardInfo cardInfo, int holderNumber)
     {
+        _boardManager = BoardManager.Instance;
+        
+        Owner = owner;
         SetStats(cardInfo);
         entityUI.MoveToHolder(holderNumber, hasAuthority);
     }
@@ -42,8 +47,6 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     public void CanAct(CombatState combatState)
     {
         _currentState = combatState;
-        print("Can " + Title + " act?");
-        
         if (!hasAuthority || _isAttacking) return;
         
         _canAct = true;
@@ -69,13 +72,26 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     {
         if (!_isAttacking) {
             _isAttacking = true;
-            Attack?.Invoke(this, true);
             entityUI.TapCreature();
         } else {
             _isAttacking = false;
-            Attack?.Invoke(this, false);
             entityUI.UntapCreature();
         }
+
+        if (isServer) _boardManager.AttackerDeclared(this, _isAttacking);
+        else CmdAttackerDeclared(_isAttacking);
+    }
+
+    [Command]
+    private void CmdAttackerDeclared(bool isAttacking)
+    {
+        _boardManager.AttackerDeclared(this, isAttacking);
+    }
+    
+    [ClientRpc]
+    public void RpcHighlightAttacker()
+    {
+        entityUI.HighlightAttacker(true);
     }
 
     private void ClickBlocker()

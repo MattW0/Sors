@@ -37,9 +37,6 @@ public class PlayZoneCardHolder : MonoBehaviour, IDropHandler
 
         PlaceCard();
 
-        // holderNumber - 1 due to numbering in Unity Editor
-        print("OnCardDeployed invocation");
-
         OnCardDeployed?.Invoke(cardObject, holderNumber - 1);
         EntityManager.PlayerDeployCard(cardObject, holderNumber - 1);
     }
