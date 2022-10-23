@@ -8,16 +8,19 @@ using UnityEngine.UI;
 public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
 {
     private BoardManager _boardManager;
+    public PlayerManager Owner { get; private set; }
 
+    public BattleZoneEntity target;
+    
     private bool _canAct;
     private bool _isAttacking;
-    private CombatState _currentState;
-
-    public PlayerManager Owner { get; private set; }
+    private bool _isBlocking;
+    public CombatState CurrentState { get; private set; }
 
     private CardStats _cardStats;
 
     [SerializeField] private EntityUI entityUI;
+    [SerializeField] private BlockerArrowHandler arrowSpawner;
 
     [field: SyncVar]
     public string Title { get; private set; }
@@ -46,7 +49,7 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     
     public void CanAct(CombatState combatState)
     {
-        _currentState = combatState;
+        CurrentState = combatState;
         if (!hasAuthority || _isAttacking) return;
         
         _canAct = true;
@@ -57,7 +60,7 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     {
         if (!hasAuthority || !_canAct) return;
 
-        switch (_currentState)
+        switch (CurrentState)
         {
             case CombatState.Attackers:
                 ClickAttacker();
@@ -96,7 +99,7 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
 
     private void ClickBlocker()
     {
-        
+        _isBlocking = !_isBlocking;
     }
 
     private void ChangeAttack(int amount)

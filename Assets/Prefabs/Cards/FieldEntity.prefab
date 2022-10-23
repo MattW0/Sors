@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 3832082598974657053}
   - component: {fileID: 7890556389027737346}
   - component: {fileID: 8003351115639585403}
+  - component: {fileID: 929728789088207203}
   - component: {fileID: 7514559014522091576}
   m_Layer: 0
   m_Name: FieldEntity
@@ -84,7 +85,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
+  target: {fileID: 0}
   entityUI: {fileID: 8003351115639585403}
+  arrowSpawner: {fileID: 0}
 --- !u!114 &8003351115639585403
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -106,6 +109,20 @@ MonoBehaviour:
   attackerHighlight: {fileID: 140034960745397291}
   playerPlayZone: {fileID: 0}
   opponentPlayZone: {fileID: 0}
+--- !u!114 &929728789088207203
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 23084215047643341}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aaea80a376733c843908dd2f2e72e4d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  entity: {fileID: 7890556389027737346}
+  arrowPrefab: {fileID: 8504572926000257644, guid: 9093dd2e844a44240ac45296dc7a778b, type: 3}
 --- !u!61 &7514559014522091576
 BoxCollider2D:
   m_ObjectHideFlags: 0

@@ -5,9 +5,6 @@ using UnityEngine.UI;
 
 public class EntityUI : MonoBehaviour
 {
-    [SerializeField] private Color attackingColor;
-    private Color _idleColor = new Color32( 0x50, 0x50, 0x50, 0xFF );
-
     [SerializeField] private TMP_Text title;
     [SerializeField] private TMP_Text cost;
     [SerializeField] private TMP_Text attack;
@@ -19,8 +16,11 @@ public class EntityUI : MonoBehaviour
     [SerializeField] private Transform playerPlayZone;
     [SerializeField] private Transform opponentPlayZone;
     
-    private Vector3 _tappedPosition = new Vector3(0f, 60f, 0f);
-    private float _tappingDuration = 0.3f;
+    private readonly Vector3 _tappedPosition = new Vector3(0f, 60f, 0f);
+    private readonly float _tappingDuration = 0.3f;
+    
+    [SerializeField] private Color attackingColor;
+    private readonly Color _idleColor = new Color32( 0x50, 0x50, 0x50, 0xFF );
     
     private void Awake()
     {
@@ -46,7 +46,6 @@ public class EntityUI : MonoBehaviour
     {
         attackerHighlight.color = active ? attackingColor : _idleColor;
     }
-
 
     public void TapCreature() {
         _transform.DOLocalMove(_tappedPosition, _tappingDuration).OnComplete(

@@ -33,8 +33,9 @@ public class PlayZoneCardHolder : MonoBehaviour, IDropHandler
         
         // gets the holder object name (0, 1, ..) to know position
         var cardObject = data.pointerPress;
+        if (!cardObject.GetComponent<CardStats>().cardInfo.isCreature) return;
+        
         int.TryParse(gameObject.name, out var holderNumber);
-
         PlaceCard();
 
         OnCardDeployed?.Invoke(cardObject, holderNumber - 1);

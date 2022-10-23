@@ -52,7 +52,8 @@ public class CardStats : NetworkBehaviour
     [ClientRpc]
     public void RpcSetCardStats(CardInfo card)
     {
-        this.cardInfo = card;
+        cardInfo = card;
+        if (!cardInfo.isCreature) IsDeployable = false;
         _cardUI.SetCardUI(card);
     }
 }

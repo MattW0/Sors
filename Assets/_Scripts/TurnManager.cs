@@ -238,6 +238,7 @@ public class TurnManager : NetworkBehaviour
         // Waiting for player to use other deploys
         if (player.Deploys > 0) return;
         
+        _handManager.TargetHighlightMoney(_gameManager.players[player].connectionToClient, false);
         _playersReady++;
         print($"{_playersReady}/{_gameManager.players.Count} players ready");
         

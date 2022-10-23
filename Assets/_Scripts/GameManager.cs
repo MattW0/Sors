@@ -78,9 +78,6 @@ public class GameManager : NetworkBehaviour
     }
 
     private void KingdomSetup(){
-        var kingdomObject = Instantiate(kingdomPrefab, transform);
-        NetworkServer.Spawn(kingdomObject, connectionToClient);
-
         var kingdomCards = new CardInfo[nbKingdomCards];
         
         for (var i = 0; i < nbKingdomCards; i++)

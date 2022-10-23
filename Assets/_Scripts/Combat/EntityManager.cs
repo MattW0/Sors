@@ -10,12 +10,12 @@ public class EntityManager : NetworkBehaviour
     [SerializeField] private BattleZone battleZone;
     [SerializeField] private MoneyZone moneyZone;
 
-    [SerializeField] private List<BattleZoneEntity> _battleZoneEntities;
-    public List<BattleZoneEntity> GetEntities() => _battleZoneEntities;
+    [SerializeField] private List<BattleZoneEntity> battleZoneEntities;
+    public List<BattleZoneEntity> GetEntities() => battleZoneEntities;
 
     private void Awake()
     {
-        _battleZoneEntities = new List<BattleZoneEntity>();
+        battleZoneEntities = new List<BattleZoneEntity>();
         BoardManager.OnEntityAdded += RpcEntityAdded;
     }
 
@@ -31,7 +31,7 @@ public class EntityManager : NetworkBehaviour
     private void RpcEntityAdded(BattleZoneEntity entity)
     {
         if (!entity.hasAuthority || !myZone) return;
-        _battleZoneEntities.Add(entity);
+        battleZoneEntities.Add(entity);
     }
     
     [ClientRpc]
@@ -39,7 +39,7 @@ public class EntityManager : NetworkBehaviour
     {
         if (!myZone) return;
         
-        foreach (var entity in _battleZoneEntities)
+        foreach (var entity in battleZoneEntities)
         {
             entity.CanAct(CombatState.Attackers);
         }
@@ -49,15 +49,14 @@ public class EntityManager : NetworkBehaviour
     public void RpcDeclareBlockers()
     {
         if (!myZone) return;
-        
-        foreach (var entity in _battleZoneEntities)
+        foreach (var entity in battleZoneEntities)
         {
             entity.CanAct(CombatState.Blockers);
         }
     }
 
     [ClientRpc]
-    public void RpcHighlight(bool active)
+    public void RpcHighlightEntities(bool active)
     {
         battleZone.Highlight(active);
     }

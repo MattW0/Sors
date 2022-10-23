@@ -66,7 +66,8 @@ public class BoardManager : NetworkBehaviour
     public void ShowCardPositionOptions(bool active)
     {
         // Resetting with active=false at end of Deploy phase
-        entityManagers[0].RpcHighlight(active); 
+        // entityManagers[0] = PlayerDropZone (not opponents)
+        entityManagers[0].RpcHighlightEntities(active); 
     }
 
     private void DeclareAttackers() {
@@ -99,17 +100,21 @@ public class BoardManager : NetworkBehaviour
             entity.RpcHighlightAttacker();
         }
         
-        print("Declare blockers!");
         foreach (var entityManager in entityManagers)
         {
-            if (entityManager.GetEntities().Count == 0)
-            {
-                OnSkipCombatPhase?.Invoke();
-                return;
-            }
             entityManager.RpcDeclareBlockers();
         }
-        
+
+        // Auto-skipping if player has empty board
+        foreach (var list in _battleZoneEntities.Values)
+        {
+            // Skip if either player has empty board or has declared all attackers
+            var allAreAttacking = list.Count != attackers.Count;
+            if (list.Count > 0 && allAreAttacking) continue; 
+            
+            print("No blockers available");
+            for (var i=0; i<_gameManager.players.Count; i++) OnSkipCombatPhase?.Invoke();
+        }
     }
     
     private void OnDestroy()
