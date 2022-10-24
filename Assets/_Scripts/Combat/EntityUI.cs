@@ -37,6 +37,11 @@ public class EntityUI : MonoBehaviour
         health.text = cardInfo.health.ToString();
     }
 
+    public void UpdateHealth(int newHealth)
+    {
+        
+    }
+
     public void Highlight(bool active)
     {
         highlight.enabled = active;

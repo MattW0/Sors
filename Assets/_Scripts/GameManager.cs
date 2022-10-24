@@ -44,7 +44,6 @@ public class GameManager : NetworkBehaviour
     public ScriptableCard[] moneyCards;
     
     [Header("Prefabs")]
-    [SerializeField] private GameObject kingdomPrefab;
     [SerializeField] private GameObject discardPanelPrefab;
     [SerializeField] private GameObject creatureCardPrefab;
     [SerializeField] private GameObject moneyCardPrefab;

@@ -10,6 +10,7 @@ public class PlayerManager : NetworkBehaviour
     [Header("Entities")]
     private GameManager _gameManager;
     private TurnManager _turnManager;
+    private CombatManager _combatManager;
     public string playerName;
     public PlayerManager opponent;
 
@@ -18,7 +19,18 @@ public class PlayerManager : NetworkBehaviour
     public CardCollection cards;
     [SyncVar, SerializeField] private int health;
     [SyncVar, SerializeField] private int score;
-    public int Health { get => health; set => health = value; }
+
+    public int Health
+    {
+        get => health;
+        set
+        {
+            print(playerName + " takes damage: " + value);
+            health -= value;
+            SetHealthValue(health);
+            if (health <= 0) PlayerDies();
+        } 
+    }
     public int Score { get => score; set => score = value; }
 
     public List<Phase> playerChosenPhases = new() {Phase.DrawI, Phase.DrawII};
@@ -31,12 +43,12 @@ public class PlayerManager : NetworkBehaviour
 
 
     [Header("Turn Stats")]
-    [SyncVar, SerializeField] private int cash;
+    [SyncVar] private int _cash;
     public int Cash { 
-        get => cash;
+        get => _cash;
         set{
-            cash = value;
-            SetCashValue(cash); // Invoke OnCashChanged and update UI
+            _cash = value;
+            SetCashValue(_cash); // Invoke OnCashChanged and update UI
         }
     }
     [SyncVar] private int _recruits = 1;
@@ -50,17 +62,20 @@ public class PlayerManager : NetworkBehaviour
     
     [SyncVar] private int _deploys = 1;
     public int Deploys { 
-        get => _deploys; 
+        get => _deploys;
         set{
             _deploys = value;
             SetDeployValue(_deploys);
         }
     }
 
+    public bool PlayerIsChoosingBlockers { get; private set; }
+    private List<BattleZoneEntity> _blockers = new();
+    
     public PlayerUI playerUI;
     public PlayerUI opponentUI;
 
-    #region GameSetup
+    #region GameSetupAndEnd
     public override void OnStartClient(){
         base.OnStartClient();
 
@@ -70,6 +85,7 @@ public class PlayerManager : NetworkBehaviour
         if (!isServer) return;
         _gameManager = GameManager.Instance;
         _turnManager = TurnManager.Instance;
+        _combatManager = CombatManager.Instance;
     }
 
     [ClientRpc]
@@ -83,7 +99,7 @@ public class PlayerManager : NetworkBehaviour
 
     [ClientRpc]
     public void RpcSetPlayerStats(int startHealth, int startScore){   
-        playerName = hasAuthority ? "Host" : "Client";
+        playerName = isServer ? "Host" : "Client";
         var opponentName = !isServer ? "Host" : "Client"; // inverse of my name
         
         playerUI = GameObject.Find("PlayerInfo").GetComponent<PlayerUI>();
@@ -111,7 +127,12 @@ public class PlayerManager : NetworkBehaviour
         }
     }
 
-    #endregion GameSetup
+    private void PlayerDies()
+    {
+        print("Player dies!");
+    }
+
+    #endregion GameSetupAndEnd
 
     #region Cards
 
@@ -264,12 +285,54 @@ public class PlayerManager : NetworkBehaviour
 
     #region Combat
 
-    
+    public void PlayerChoosesBlocker(BattleZoneEntity blocker)
+    {
+        PlayerIsChoosingBlockers = true;
+        _blockers.Add(blocker);
+    }
+
+    public void PlayerRemovesBlocker(BattleZoneEntity blocker)
+    {
+        _blockers.Remove(blocker);
+        if (_blockers.Count == 0) PlayerIsChoosingBlockers = false;
+    }
+
+    public void PlayerChoosesAttackerToBlock(BattleZoneEntity target)
+    {
+        if (isServer) _combatManager.PlayerChoosesBlocker(this, target, _blockers);
+        else CmdPlayerChoosesBlocker(this, target, _blockers);
+        
+        _blockers.Clear();
+        PlayerIsChoosingBlockers = false;
+    }
+
+    [Command]
+    private void CmdPlayerChoosesBlocker(PlayerManager blockingPlayer,
+        BattleZoneEntity target, List<BattleZoneEntity> blockers)
+    {
+        _combatManager.PlayerChoosesBlocker(blockingPlayer, target, blockers);
+    }
 
     #endregion
-    
-    
+
     #region UI
+    
+    private void SetHealthValue(int value){
+        if (isServer) RpcSetHealthValue(value);
+        else CmdSetHealthValue(value);
+    }
+
+    [Command]
+    private void CmdSetHealthValue(int value){
+        RpcSetHealthValue(value);
+    }
+
+    [ClientRpc]
+    private void RpcSetHealthValue(int value){
+        if(hasAuthority) playerUI.SetHealth(value);
+        else opponentUI.SetHealth(value);
+    }
+        
     private void SetCashValue(int value){
         if (isServer) RpcSetCashValue(value);
         else CmdSetCashValue(value);

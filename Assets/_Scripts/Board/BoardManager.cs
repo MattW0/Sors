@@ -13,7 +13,7 @@ public class BoardManager : NetworkBehaviour
     [SerializeField] private List<EntityManager> entityManagers;
 
     private Dictionary<PlayerManager, List<BattleZoneEntity>> _battleZoneEntities;
-    [SerializeField] private List<BattleZoneEntity> attackers;
+    public List<BattleZoneEntity> attackers { get; private set; }
 
     private CombatManager _combatManager;
     private GameManager _gameManager;
@@ -105,12 +105,12 @@ public class BoardManager : NetworkBehaviour
             entityManager.RpcDeclareBlockers();
         }
 
-        // Auto-skipping if player has empty board
+        // Auto-skipp
         foreach (var list in _battleZoneEntities.Values)
         {
             // Skip if either player has empty board or has declared all attackers
-            var allAreAttacking = list.Count != attackers.Count;
-            if (list.Count > 0 && allAreAttacking) continue; 
+            var allAreAttacking = list.Count == attackers.Count;
+            if (list.Count > 0 || !allAreAttacking) continue; 
             
             print("No blockers available");
             for (var i=0; i<_gameManager.players.Count; i++) OnSkipCombatPhase?.Invoke();

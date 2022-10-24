@@ -13,20 +13,39 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     public BattleZoneEntity target;
     
     private bool _canAct;
-    private bool _isAttacking;
-    private bool _isBlocking;
-    public CombatState CurrentState { get; private set; }
+    [field: SyncVar, SerializeField] public bool IsAttacking { get; private set; }
+    [field: SyncVar] public bool IsBlocking { get; private set; }
+
+    [SerializeField] private CombatState currentState;
+
+    // private CombatState CurrentState
+    // {
+    //     get => currentState;
+    //     set => currentState = value;
+    // }
 
     private CardStats _cardStats;
 
     [SerializeField] private EntityUI entityUI;
-    [SerializeField] private BlockerArrowHandler arrowSpawner;
+    [SerializeField] private BlockerArrowHandler arrowHandler;
 
     [field: SyncVar]
     public string Title { get; private set; }
 
-    [SyncVar] private int _attack;
+    [SyncVar] public int attack;
+
     [SyncVar] private int _health;
+    public int Health
+    {
+        get => _health;
+        set
+        {
+            print(Title + " takes damage: " + value);
+            _health -= value;
+            entityUI.UpdateHealth(_health);
+            if (_health <= 0) Die();
+        }
+    }
 
     [ClientRpc]
     public void RpcSpawnEntity(PlayerManager owner, CardInfo cardInfo, int holderNumber)
@@ -41,7 +60,7 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     private void SetStats(CardInfo cardInfo)
     {
         Title = cardInfo.title;
-        _attack = cardInfo.attack;
+        attack = cardInfo.attack;
         _health = cardInfo.health;
         
         entityUI.SetEntityUI(cardInfo);
@@ -49,8 +68,8 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     
     public void CanAct(CombatState combatState)
     {
-        CurrentState = combatState;
-        if (!hasAuthority || _isAttacking) return;
+        currentState = combatState;
+        if (!hasAuthority || IsAttacking) return;
         
         _canAct = true;
         entityUI.Highlight(true);
@@ -60,7 +79,7 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     {
         if (!hasAuthority || !_canAct) return;
 
-        switch (CurrentState)
+        switch (currentState)
         {
             case CombatState.Attackers:
                 ClickAttacker();
@@ -73,16 +92,16 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
 
     private void ClickAttacker()
     {
-        if (!_isAttacking) {
-            _isAttacking = true;
+        if (!IsAttacking) {
+            IsAttacking = true;
             entityUI.TapCreature();
         } else {
-            _isAttacking = false;
+            IsAttacking = false;
             entityUI.UntapCreature();
         }
 
-        if (isServer) _boardManager.AttackerDeclared(this, _isAttacking);
-        else CmdAttackerDeclared(_isAttacking);
+        if (isServer) _boardManager.AttackerDeclared(this, IsAttacking);
+        else CmdAttackerDeclared(IsAttacking);
     }
 
     [Command]
@@ -99,19 +118,22 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
 
     private void ClickBlocker()
     {
-        _isBlocking = !_isBlocking;
-    }
-
-    private void ChangeAttack(int amount)
-    {
-        _attack += amount;
-        _attack = Math.Max(0, _attack);
+        IsBlocking = !IsBlocking;
     }
     
-    private void ChangeHealth(int amount)
+    [ClientRpc]
+    public void RpcBlockerDeclared(BattleZoneEntity attacker)
     {
-        _health += amount;
-        if (_health <= 0) Die();
+        if (hasAuthority)
+        {
+            arrowHandler.HandleFoundEnemyTarget(attacker);
+        }
+    }
+
+    [ClientRpc]
+    public void RpcTakesDamage(int value)
+    {
+        Health -= value;
     }
 
     private void Die()
@@ -123,5 +145,11 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     {
         print("Entity " + Title + " is put into Discard.");
         // gameObject.GetComponent<CardMover>().MoveToDestination()
+    }
+    
+    [Server]
+    public bool ServerIsAttacker()
+    {
+        return _boardManager.attackers.Contains(this);
     }
 }

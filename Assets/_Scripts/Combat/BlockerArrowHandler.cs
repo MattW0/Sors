@@ -1,16 +1,28 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using DG.Tweening;
+using Mirror;
+using UnityEngine.UI;
 
-public class BlockerArrowHandler : MonoBehaviour, IPointerDownHandler
+public class BlockerArrowHandler : NetworkBehaviour
 {
     [SerializeField] private BattleZoneEntity entity;
     [SerializeField] private GameObject arrowPrefab;
 
     private Arrow _arrow;
-    private bool _hasValidTarget;
+    private CombatState _currentState;
+    private bool _hasTarget;
+
+    private void Awake()
+    {
+        CombatManager.OnCombatStateChanged += RpcCombatStateChanged;
+    }
+
+    [ClientRpc]
+    private void RpcCombatStateChanged(CombatState newState)
+    {
+        _currentState = newState;
+    }
     
     private void SpawnArrow()
     {
@@ -19,23 +31,52 @@ public class BlockerArrowHandler : MonoBehaviour, IPointerDownHandler
         _arrow.SetAnchor(entity.transform.position);
     }
 
-    public void DestroyArrow()
+    public void OnClickEntity()
     {
+        // return if not in Blockers Phase
+        if (_currentState != CombatState.Blockers) return;
+
+        if (entity.hasAuthority) HandleClickedMyCreature();
+        else HandleClickedOpponentCreature();
+    }
+    
+    private void HandleClickedMyCreature(){
         
+        if (entity.IsAttacking || _hasTarget) return;
+        
+        if (!_arrow) {
+            SpawnArrow();
+            entity.Owner.PlayerChoosesBlocker(entity);
+            return;
+        }
+        
+        entity.Owner.PlayerRemovesBlocker(entity);
+        _arrow.DestroyArrow();
+        _arrow = null;
     }
 
-    public void OnPointerDown(PointerEventData eventData)
+    private void HandleClickedOpponentCreature()
     {
-        if (entity.CurrentState != CombatState.Blockers) return;
-        
-        if (!_hasValidTarget){
-            SpawnArrow();
+        if (isServer) {
+            if (!entity.ServerIsAttacker()) return;
         }
+        else if (!entity.IsAttacking) return;
 
-        if (_hasValidTarget)
-        {
-            var targetObject = eventData.pointerPress;
-            entity.target = targetObject.GetComponent<BattleZoneEntity>();
-        }
+        var clicker = PlayerManager.GetPlayerManager();
+        if (!clicker.PlayerIsChoosingBlockers) return;
+        
+        clicker.PlayerChoosesAttackerToBlock(entity);
+    }
+
+    public void HandleFoundEnemyTarget(BattleZoneEntity target)
+    {
+        print("Blocking attacker " + target.Title + " with " + entity.Title);
+        _hasTarget = true;
+        _arrow.FoundTarget(target.transform.position);
+    }
+
+    private void OnDestroy()
+    {
+        CombatManager.OnCombatStateChanged += RpcCombatStateChanged;
     }
 }

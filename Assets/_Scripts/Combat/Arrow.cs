@@ -13,45 +13,50 @@ public class Arrow : MonoBehaviour
     // private Camera _cam;
     [SerializeField] private RectTransform lineTransform;
     private Vector3 _anchorPoint, _targetPoint;
-    public void SetAnchor(Vector3 point)
-    {
-        print("Updated anchor with: " + point);
-        _anchorPoint = point;
-        lineTransform.position = _anchorPoint;
-    } 
-    
-    private Vector2 _sd;
-    
-    private readonly float _initialLength = 100f;
+
+    private const float InitialLength = 100f;
     private readonly Vector3 _horizontalLeft = new(0f, 0f, 90f);
     private readonly Vector3 _horizontalRight = new(0f, 0f, -90f);
+    private Vector2 _sd;
+    private bool _foundTarget;
  
     private void Awake() {
-        // _anchorPoint = transform.position;
         _sd = lineTransform.sizeDelta;
-
-        // _cam = Camera.main;
-        // lineRenderer.enabled = true;
-        // lineRenderer.sortingOrder = 1;
-        // lineRenderer.material = new Material (Shader.Find ("Sprites/Default"))
-        // {
-        //     color = color
-        // };
-        // lineRenderer.widthMultiplier = width;
-        // lineRenderer.positionCount = _linePoints.Length;
-
     }
+    
+    public void SetAnchor(Vector3 point)
+    {
+        _anchorPoint = point;
+        lineTransform.position = _anchorPoint;
+    }
+
+    public void FoundTarget(Vector3 targetPoint)
+    {
+        _foundTarget = true;
+        ChangeRectShape(targetPoint);
+    }
+    
     private void LateUpdate () {
-        // _anchorPoint = Vector3.zero;
+        if (_foundTarget) return;
+        
         _targetPoint = Input.mousePosition;
-        var distance = _targetPoint - _anchorPoint;
+        ChangeRectShape(_targetPoint);
+    }
+
+    private void ChangeRectShape(Vector3 targetPoint)
+    {
+        var distance = targetPoint - _anchorPoint;
 
         // Change height
-        var mag = distance.magnitude;
-        var lengthChange = mag - _initialLength;
+        var magnitude = distance.magnitude;
+        var lengthChange = magnitude - InitialLength;
         lineTransform.sizeDelta = new Vector2(_sd.x, _sd.y + lengthChange);
+        
+        UpdateRotation(distance, magnitude);
+    }
 
-        // Change rotation
+    private void UpdateRotation(Vector3 distance, float mag)
+    {
         var rot = new Quaternion();
         if (distance.y < 0) // clamp orientation in "forward" direction
         {
@@ -61,11 +66,14 @@ public class Arrow : MonoBehaviour
         }
         
         var angleChange = MathF.Acos(distance.x / mag) * Mathf.Rad2Deg;
-        if (angleChange is Single.NaN) return;
+        if (angleChange is float.NaN) return;
 
         rot.eulerAngles = new Vector3(0f, 0f, angleChange - 90f); // dafuq
         lineTransform.rotation = rot;
+    }
 
-        // lineRenderer.SetPositions (_linePoints);
+    public void DestroyArrow()
+    {
+        Destroy(this);
     }
 }

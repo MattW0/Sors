@@ -15,7 +15,8 @@ GameObject:
   - component: {fileID: 8003351115639585403}
   - component: {fileID: 929728789088207203}
   - component: {fileID: 7514559014522091576}
-  m_Layer: 0
+  - component: {fileID: 463849025856165382}
+  m_Layer: 7
   m_Name: FieldEntity
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -86,8 +87,11 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   target: {fileID: 0}
+  _currentState: 0
   entityUI: {fileID: 8003351115639585403}
-  arrowSpawner: {fileID: 0}
+  arrowHandler: {fileID: 929728789088207203}
+  attack: 0
+  health: 0
 --- !u!114 &8003351115639585403
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -100,7 +104,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aba4e48fc24ff7d42b4a1cab8679fa1f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  attackingColor: {r: 0.14150941, g: 0.14150941, b: 0.14150941, a: 1}
   title: {fileID: 9119987360174596922}
   cost: {fileID: 7321439440040603280}
   attack: {fileID: 67846129914811778}
@@ -109,6 +112,7 @@ MonoBehaviour:
   attackerHighlight: {fileID: 140034960745397291}
   playerPlayZone: {fileID: 0}
   opponentPlayZone: {fileID: 0}
+  attackingColor: {r: 0.14150941, g: 0.14150941, b: 0.14150941, a: 1}
 --- !u!114 &929728789088207203
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -149,6 +153,62 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 180, y: 120}
   m_EdgeRadius: 0
+--- !u!114 &463849025856165382
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 23084215047643341}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 0}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 929728789088207203}
+        m_TargetAssemblyTypeName: BlockerArrowHandler, Assembly-CSharp
+        m_MethodName: OnClickEntity
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &43426150844274239
 GameObject:
   m_ObjectHideFlags: 0
@@ -160,7 +220,7 @@ GameObject:
   - component: {fileID: 2183229265235871728}
   - component: {fileID: 4857473659498817586}
   - component: {fileID: 5842524677475265640}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: Attack
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -313,7 +373,7 @@ GameObject:
   - component: {fileID: 585191556581277301}
   - component: {fileID: 938583973921085992}
   - component: {fileID: 3871703613524376376}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: Cost
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -601,7 +661,7 @@ GameObject:
   - component: {fileID: 2052100014143657755}
   - component: {fileID: 1333541833278654576}
   - component: {fileID: 3004165314501630413}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: Defense
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -678,7 +738,7 @@ GameObject:
   - component: {fileID: 1577806389035399373}
   - component: {fileID: 3570545353270273226}
   - component: {fileID: 8266281053039831513}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: DefenseText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -813,7 +873,7 @@ GameObject:
   - component: {fileID: 7482700077557440702}
   - component: {fileID: 7351949792708037062}
   - component: {fileID: 67846129914811778}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: AttackText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -948,7 +1008,7 @@ GameObject:
   - component: {fileID: 5258621148227222670}
   - component: {fileID: 5038077039978737500}
   - component: {fileID: 7321439440040603280}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: CostText
   m_TagString: Untagged
   m_Icon: {fileID: 0}

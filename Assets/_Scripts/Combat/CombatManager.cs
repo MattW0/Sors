@@ -2,21 +2,25 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Linq;
 using Mirror;
+using UnityEditor;
 
 public class CombatManager : NetworkBehaviour
 {
     public static CombatManager Instance { get; private set; }
-    
-    [SerializeField] private CombatState state;
+    private static CombatState state { get; set; }
+
+    [SerializeField] private float combatDamageWaitTime = 0.8f;
     public static event Action<CombatState> OnCombatStateChanged;
     public static event Action OnDeclareAttackers;
     public static event Action OnDeclareBlockers;
 
+    private Dictionary<BattleZoneEntity, List<BattleZoneEntity>> _attackersBlockers = new ();
+
     private GameManager _gameManager;
     private TurnManager _turnManager;
     private BoardManager _boardManager;
-
     private int _playersReady;
 
     private void Awake()
@@ -36,10 +40,10 @@ public class CombatManager : NetworkBehaviour
             case CombatState.Idle:
                 break;
             case CombatState.Attackers:
-                DeclaringAttackers();
+                OnDeclareAttackers?.Invoke();
                 break;
             case CombatState.Blockers:
-                DeclaringBlockers();
+                OnDeclareBlockers?.Invoke();
                 break;
             case CombatState.Damage:
                 DealDamage();
@@ -60,24 +64,29 @@ public class CombatManager : NetworkBehaviour
         _boardManager = BoardManager.Instance;
     }
 
-    private static void DeclaringAttackers()
-    {
-        OnDeclareAttackers?.Invoke();
-    }
-
     private void PlayerDeclaredAttackers()
     {
         _playersReady++;
         if (_playersReady != _gameManager.players.Count) return;
         
         print("Attackers declared");
+        foreach (var attacker in _boardManager.attackers)
+        {
+            _attackersBlockers.Add(attacker, new List<BattleZoneEntity>());
+        }
+        
         _playersReady = 0;
         UpdateCombatState(CombatState.Blockers);
     }
-    
-    private void DeclaringBlockers()
+
+    public void PlayerChoosesBlocker(PlayerManager blockingPlayer,
+        BattleZoneEntity attacker, List<BattleZoneEntity> blockers)
     {
-        OnDeclareBlockers?.Invoke();
+        _attackersBlockers[attacker] = blockers;
+        foreach (var blocker in blockers)
+        {
+            blocker.RpcBlockerDeclared(attacker);
+        }
     }
 
     private void PlayerDeclaredBlockers()
@@ -92,16 +101,52 @@ public class CombatManager : NetworkBehaviour
     
     private void DealDamage()
     {
+        print("Resolving damage");
+        var attackers = _boardManager.attackers;
+        print("Total attackers: " + attackers.Count);
+        print("Total _attackersBlockers: " + _attackersBlockers.Count);
+        // StartCoroutine(ResolveDamage(attackers));
+        
+        // Wait between each damage being dealt
+        foreach (var attacker in attackers)
+        {
+            // player takes damage
+            if (!_attackersBlockers.Keys.Contains(attacker))
+            {
+                var targetPlayer = attacker.Owner;
+                print(targetPlayer.playerName + "takes damage: " + attacker.attack);
+                targetPlayer.Health = attacker.attack;
+            }
+
+            foreach (var blocker in _attackersBlockers[attacker])
+            {
+                blocker.RpcTakesDamage(attacker.attack);
+                attacker.RpcTakesDamage(blocker.attack);
+            }
+            
+            // WaitForSeconds(combatDamageWaitTime);
+        }
+        
         UpdateCombatState(CombatState.CleanUp);
     }
     
+    private IEnumerator ResolveDamage(List<BattleZoneEntity> attackers) {
+        
+        
+
+        // Wait and disable
+        yield return null;
+    }
+
     private void ResolveCombat()
     {
         print("Combat finished");
-        
+
         UpdateCombatState(CombatState.Idle);
-        TurnManager.Instance.CombatCleanUp();
+        _turnManager.CombatCleanUp();
     }
+    
+    
 
     public void PlayerIsReady()
     {

@@ -31,6 +31,7 @@ public class PlayerUI : MonoBehaviour
         playerScore.text = startScore;
     }
 
+    public void SetHealth(int value) => playerHealth.text = value.ToString();
     public void SetCash(int value) => turnCash.text = value.ToString();
     public void SetDeploys(int value) => turnDeploys.text = value.ToString();
     public void SetRecruits(int value) => turnRecruits.text = value.ToString();

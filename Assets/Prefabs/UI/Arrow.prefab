@@ -167,7 +167,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: f47c7dee5af8c7742aa76e7558f02be4, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -188,6 +188,7 @@ GameObject:
   - component: {fileID: 4110302830760876453}
   - component: {fileID: 8368310613785693434}
   - component: {fileID: 4656948056907442199}
+  - component: {fileID: 5968226003431766430}
   m_Layer: 0
   m_Name: Arrow
   m_TagString: Untagged
@@ -234,3 +235,15 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8504572926000257644}
   m_CullTransparentMesh: 1
+--- !u!225 &5968226003431766430
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8504572926000257644}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0

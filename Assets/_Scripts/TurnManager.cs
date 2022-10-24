@@ -366,9 +366,9 @@ public class TurnManager : NetworkBehaviour
 
     public void PlayerPressedReadyButton(PlayerManager player)
     {
-        if (player.Recruits <= 0 && player.Deploys <= 0) return;
+        if (player.Recruits <= 0 || player.Deploys <= 0) return;
         
-        print("Player " + player.playerName + " is ready in phase " + state);
+        // print("Player " + player.playerName + " is ready in phase " + state);
 
         switch (state)
         {
