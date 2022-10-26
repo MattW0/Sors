@@ -12,7 +12,7 @@ public class PlayerManager : NetworkBehaviour
     private TurnManager _turnManager;
     private CombatManager _combatManager;
     public string playerName;
-    public PlayerManager opponent;
+    public PlayerManager opponent { get; private set; }
 
 
     [Header("Game Stats")]
@@ -299,18 +299,18 @@ public class PlayerManager : NetworkBehaviour
 
     public void PlayerChoosesAttackerToBlock(BattleZoneEntity target)
     {
-        if (isServer) _combatManager.PlayerChoosesBlocker(this, target, _blockers);
-        else CmdPlayerChoosesBlocker(this, target, _blockers);
+        print("choosing to block with " + _blockers.Count);
+        if (isServer) _combatManager.PlayerChoosesAttackerToBlock(target, _blockers);
+        else CmdPlayerChoosesAttackerToBlock(target, _blockers);
         
         _blockers.Clear();
         PlayerIsChoosingBlockers = false;
     }
 
     [Command]
-    private void CmdPlayerChoosesBlocker(PlayerManager blockingPlayer,
-        BattleZoneEntity target, List<BattleZoneEntity> blockers)
+    private void CmdPlayerChoosesAttackerToBlock(BattleZoneEntity target, List<BattleZoneEntity> blockers)
     {
-        _combatManager.PlayerChoosesBlocker(blockingPlayer, target, blockers);
+        _combatManager.PlayerChoosesAttackerToBlock(target, blockers);
     }
 
     #endregion

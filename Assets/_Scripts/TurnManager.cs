@@ -376,7 +376,7 @@ public class TurnManager : NetworkBehaviour
                 PlayerDeployedCard(player, new CardInfo(), -1);
                 break;
             case TurnState.Combat:
-                combatManager.PlayerIsReady();
+                combatManager.PlayerIsReady(player);
                 break;
         }
     }

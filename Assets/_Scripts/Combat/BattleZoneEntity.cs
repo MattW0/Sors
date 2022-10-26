@@ -3,14 +3,14 @@ using System.Threading.Tasks;
 using Mirror;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using System.Linq;
 using UnityEngine.UI;
 
 public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
 {
     private BoardManager _boardManager;
     public PlayerManager Owner { get; private set; }
-
-    public BattleZoneEntity target;
+    public PlayerManager Target { get; private set; }
     
     private bool _canAct;
     [field: SyncVar, SerializeField] public bool IsAttacking { get; private set; }
@@ -42,7 +42,7 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
         {
             print(Title + " takes damage: " + value);
             _health -= value;
-            entityUI.UpdateHealth(_health);
+            entityUI.SetHealth(_health);
             if (_health <= 0) Die();
         }
     }
@@ -53,6 +53,8 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
         _boardManager = BoardManager.Instance;
         
         Owner = owner;
+        Target = owner.opponent;
+        
         SetStats(cardInfo);
         entityUI.MoveToHolder(holderNumber, hasAuthority);
     }
@@ -111,9 +113,15 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     }
     
     [ClientRpc]
-    public void RpcHighlightAttacker()
+    public void RpcIsAttacker()
     {
-        entityUI.HighlightAttacker(true);
+        entityUI.ShowAsAttacker(true);
+    }
+    
+    [TargetRpc]
+    public void TargetIsAttacker(NetworkConnection connection)
+    {
+        entityUI.ShowAsAttacker(true);
     }
 
     private void ClickBlocker()
@@ -150,6 +158,13 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     [Server]
     public bool ServerIsAttacker()
     {
+        // Special case if server is attacking: 
+        // IsAttacking is not correctly updated there,
+        // thus we check if this entity is an attacker
+        // ie. is in _boardManager.attackers
+        //
+        // if yes: return true -> we do not block anything
         return _boardManager.attackers.Contains(this);
+        // grausig ...
     }
 }

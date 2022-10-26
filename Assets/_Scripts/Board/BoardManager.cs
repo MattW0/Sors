@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Mirror;
 using Unity.VisualScripting.Dependencies.Sqlite;
 using UnityEngine;
@@ -12,7 +13,9 @@ public class BoardManager : NetworkBehaviour
     [SerializeField] private List<MoneyZone> moneyZones;
     [SerializeField] private List<EntityManager> entityManagers;
 
+    // Owner, entities
     private Dictionary<PlayerManager, List<BattleZoneEntity>> _battleZoneEntities;
+    // Attacking entity, target player
     public List<BattleZoneEntity> attackers { get; private set; }
 
     private CombatManager _combatManager;
@@ -89,15 +92,24 @@ public class BoardManager : NetworkBehaviour
     
     public void AttackerDeclared(BattleZoneEntity attacker, bool adding)
     {
-        if (adding) attackers.Add(attacker); 
+        if (adding) attackers.Add(attacker);
         else attackers.Remove(attacker);
+    }
+
+    public void PlayerFinishedChoosingAttackers(PlayerManager player)
+    {
+        
+        foreach (var entity in _battleZoneEntities[player])
+        {
+            entity.TargetIsAttacker(player.connectionToClient);
+        }
     }
 
     private void DeclareBlockers() {
         
         foreach (var entity in attackers)
         {
-            entity.RpcHighlightAttacker();
+            entity.RpcIsAttacker();
         }
         
         foreach (var entityManager in entityManagers)

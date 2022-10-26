@@ -28,7 +28,7 @@ public class CombatManager : NetworkBehaviour
         if (!Instance) Instance = this;
         
         GameManager.OnGameStart += Prepare;
-        BoardManager.OnSkipCombatPhase += PlayerIsReady;
+        BoardManager.OnSkipCombatPhase += SkipCombatPhase;
     }
 
     public void UpdateCombatState(CombatState newState){
@@ -79,19 +79,20 @@ public class CombatManager : NetworkBehaviour
         UpdateCombatState(CombatState.Blockers);
     }
 
-    public void PlayerChoosesBlocker(PlayerManager blockingPlayer,
-        BattleZoneEntity attacker, List<BattleZoneEntity> blockers)
+    public void PlayerChoosesAttackerToBlock(BattleZoneEntity attacker, List<BattleZoneEntity> blockers)
     {
-        _attackersBlockers[attacker] = blockers;
+        _attackersBlockers[attacker].AddRange(blockers);
         foreach (var blocker in blockers)
         {
             blocker.RpcBlockerDeclared(attacker);
         }
     }
 
-    private void PlayerDeclaredBlockers()
+    private void PlayerDeclaredBlockers(PlayerManager player)
     {
         _playersReady++;
+        if (player) _boardManager.PlayerFinishedChoosingAttackers(player);
+        
         if (_playersReady != _gameManager.players.Count) return;
         
         print("Blockers declared");
@@ -101,41 +102,38 @@ public class CombatManager : NetworkBehaviour
     
     private void DealDamage()
     {
-        print("Resolving damage");
-        var attackers = _boardManager.attackers;
-        print("Total attackers: " + attackers.Count);
-        print("Total _attackersBlockers: " + _attackersBlockers.Count);
-        // StartCoroutine(ResolveDamage(attackers));
-        
-        // Wait between each damage being dealt
-        foreach (var attacker in attackers)
+        foreach (var attacker in _boardManager.attackers)
         {
-            // player takes damage
-            if (!_attackersBlockers.Keys.Contains(attacker))
-            {
-                var targetPlayer = attacker.Owner;
-                print(targetPlayer.playerName + "takes damage: " + attacker.attack);
-                targetPlayer.Health = attacker.attack;
-            }
-
+            // blockers and attackers battle
             foreach (var blocker in _attackersBlockers[attacker])
             {
                 blocker.RpcTakesDamage(attacker.attack);
                 attacker.RpcTakesDamage(blocker.attack);
+                
+                // Wait between each damage being dealt
+                StartCoroutine(WaitBetweenDamage(combatDamageWaitTime));
             }
             
-            // WaitForSeconds(combatDamageWaitTime);
+            if (_attackersBlockers.Keys.Contains(attacker)) continue;
+            
+            // player takes damage from unblocked creatures
+            var targetPlayer = attacker.Target;
+            print(targetPlayer.playerName + "takes damage: " + attacker.attack);
+            targetPlayer.Health = attacker.attack;
+
+            StartCoroutine(WaitBetweenDamage(combatDamageWaitTime));
         }
         
-        UpdateCombatState(CombatState.CleanUp);
+        // UpdateCombatState(CombatState.CleanUp);
     }
     
-    private IEnumerator ResolveDamage(List<BattleZoneEntity> attackers) {
-        
-        
-
-        // Wait and disable
-        yield return null;
+    private static IEnumerator WaitBetweenDamage(float waitTime)
+    {
+        var startTime = Time.time;
+        while (startTime < startTime + waitTime) {
+            startTime = Time.time;
+            yield return null; // wait 1 frame then check the time again...
+        }
     }
 
     private void ResolveCombat()
@@ -148,7 +146,7 @@ public class CombatManager : NetworkBehaviour
     
     
 
-    public void PlayerIsReady()
+    public void PlayerIsReady(PlayerManager player)
     {
         switch (state)
         {
@@ -156,15 +154,20 @@ public class CombatManager : NetworkBehaviour
                 PlayerDeclaredAttackers();
                 break;
             case CombatState.Blockers:
-                PlayerDeclaredBlockers();
+                PlayerDeclaredBlockers(player);
                 break;
         }
+    }
+
+    private void SkipCombatPhase()
+    {
+        PlayerIsReady(null);
     }
 
     private void OnDestroy()
     {
         GameManager.OnGameStart -= Prepare;
-        BoardManager.OnSkipCombatPhase -= PlayerIsReady;
+        BoardManager.OnSkipCombatPhase -= SkipCombatPhase;
     }
 }
 
