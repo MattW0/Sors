@@ -11,7 +11,6 @@ public class EntityManager : NetworkBehaviour
     [SerializeField] private MoneyZone moneyZone;
 
     [SerializeField] private List<BattleZoneEntity> battleZoneEntities;
-    public List<BattleZoneEntity> GetEntities() => battleZoneEntities;
 
     private void Awake()
     {
@@ -56,9 +55,15 @@ public class EntityManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcHighlightEntities(bool active)
+    public void RpcHighlightCardHolders(bool active)
     {
-        battleZone.Highlight(active);
+        battleZone.Highlights(active);
+    }
+    
+    [ClientRpc]
+    public void RpcResetHolders()
+    {
+        battleZone.ResetHighlights();
     }
     
     [ClientRpc]

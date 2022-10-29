@@ -1,68 +1,80 @@
 using System;
-using System.Threading.Tasks;
+using System.Collections.Generic;
 using Mirror;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using System.Linq;
-using UnityEngine.UI;
 
 public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
 {
-    private BoardManager _boardManager;
     public PlayerManager Owner { get; private set; }
     public PlayerManager Target { get; private set; }
-    
+
+    [Header("Combat Stats")]
     private bool _canAct;
     [field: SyncVar, SerializeField] public bool IsAttacking { get; private set; }
     [field: SyncVar] public bool IsBlocking { get; private set; }
-
     [SerializeField] private CombatState currentState;
-
-    // private CombatState CurrentState
-    // {
-    //     get => currentState;
-    //     set => currentState = value;
-    // }
-
-    private CardStats _cardStats;
-
+    
+    [Header("Other scripts")]
     [SerializeField] private EntityUI entityUI;
-    [SerializeField] private BlockerArrowHandler arrowHandler;
+    public BlockerArrowHandler arrowHandler;
 
     [field: SyncVar]
     public string Title { get; private set; }
 
-    [SyncVar] public int attack;
-
+    [SyncVar] private int _attack;
+    public int Attack
+    {
+        get => _attack;
+        set
+        {
+            _attack = value;
+            entityUI.SetAttack(_attack);
+        }
+    }
+    
     [SyncVar] private int _health;
-    public int Health
+    private int Health
     {
         get => _health;
         set
         {
-            print(Title + " takes damage: " + value);
-            _health -= value;
+            _health = value;
             entityUI.SetHealth(_health);
             if (_health <= 0) Die();
         }
     }
+    
+    private BoardManager _boardManager;
+    public event Action<BattleZoneEntity> OnDeath;
 
     [ClientRpc]
-    public void RpcSpawnEntity(PlayerManager owner, CardInfo cardInfo, int holderNumber)
+    public void RpcSpawnEntity(PlayerManager owner, PlayerManager opponent,
+        CardInfo cardInfo, int holderNumber)
     {
         _boardManager = BoardManager.Instance;
         
         Owner = owner;
-        Target = owner.opponent;
+        Target = opponent;
         
         SetStats(cardInfo);
         entityUI.MoveToHolder(holderNumber, hasAuthority);
     }
 
+    [ClientRpc]
+    public void RpcShowOpponentsBlockers(List<BattleZoneEntity> blockers)
+    {
+        if (!hasAuthority) return;
+        foreach (var blocker in blockers)
+        {
+            arrowHandler.ShowOpponentBlocker(blocker.gameObject);
+        }
+    }
+
     private void SetStats(CardInfo cardInfo)
     {
         Title = cardInfo.title;
-        attack = cardInfo.attack;
+        _attack = cardInfo.attack;
         _health = cardInfo.health;
         
         entityUI.SetEntityUI(cardInfo);
@@ -146,16 +158,21 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
 
     private void Die()
     {
-        print("Entity " + Title + " dies.");
+        OnDeath?.Invoke(this);
     }
 
-    private void GoToDiscard()
+    [ClientRpc]
+    public void RpcResetAfterCombat()
     {
-        print("Entity " + Title + " is put into Discard.");
-        // gameObject.GetComponent<CardMover>().MoveToDestination()
+        _canAct = false;
+        IsAttacking = false;
+        IsBlocking = false;
+        
+        entityUI.ShowAsAttacker(false);
+        entityUI.Highlight(false);
     }
     
-    [Server]
+    [Server] // grausig ...
     public bool ServerIsAttacker()
     {
         // Special case if server is attacking: 
@@ -165,6 +182,5 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
         //
         // if yes: return true -> we do not block anything
         return _boardManager.attackers.Contains(this);
-        // grausig ...
     }
 }

@@ -5,26 +5,30 @@ using UnityEngine.EventSystems;
 
 public class PlayZoneCardHolder : MonoBehaviour, IDropHandler
 {
-    public static event Action<GameObject, int> OnCardDeployed;
     [SerializeField] private Image highlight;
     [SerializeField] private BoxCollider2D boxCollider2D;
 
     private bool _containsCard;
-
+    private short _initialChilds;
+    
     private void Awake()
     {
         highlight.enabled = false;
+        _initialChilds = (short) transform.childCount;
     }
 
-    public void Highlight(bool active)
+    public void Highlight()
     {
-        if (_containsCard)
-        {
-            highlight.enabled = false;
-            return;
-        }
-        
-        highlight.enabled = active;
+        highlight.enabled = !_containsCard;
+    }
+
+    public void ResetHighlight()
+    {
+        highlight.enabled = false;
+
+        if (transform.childCount > _initialChilds) return;
+        boxCollider2D.enabled = true;
+        _containsCard = false;
     }
 
     public void OnDrop(PointerEventData data)
@@ -38,7 +42,6 @@ public class PlayZoneCardHolder : MonoBehaviour, IDropHandler
         int.TryParse(gameObject.name, out var holderNumber);
         PlaceCard();
 
-        OnCardDeployed?.Invoke(cardObject, holderNumber - 1);
         EntityManager.PlayerDeployCard(cardObject, holderNumber - 1);
     }
 
@@ -46,6 +49,6 @@ public class PlayZoneCardHolder : MonoBehaviour, IDropHandler
     {
         _containsCard = true;
         boxCollider2D.enabled = false;
-        Highlight(false);
+        highlight.enabled = false;
     }
 }

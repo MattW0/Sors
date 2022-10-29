@@ -11,7 +11,9 @@ public class PlayerManager : NetworkBehaviour
     private GameManager _gameManager;
     private TurnManager _turnManager;
     private CombatManager _combatManager;
-    public string playerName;
+    
+    
+    [SyncVar] public string playerName;
     public PlayerManager opponent { get; private set; }
 
 
@@ -25,8 +27,7 @@ public class PlayerManager : NetworkBehaviour
         get => health;
         set
         {
-            print(playerName + " takes damage: " + value);
-            health -= value;
+            health = value;
             SetHealthValue(health);
             if (health <= 0) PlayerDies();
         } 
@@ -93,8 +94,9 @@ public class PlayerManager : NetworkBehaviour
         if(!hasAuthority) return;
 
         var players = FindObjectsOfType<PlayerManager>();
-        
-        if(!debug) opponent = players[0] == this ? players[1] : players[0];
+
+        if (debug) return;
+        opponent = players[0] == this ? players[1] : players[0];
     }
 
     [ClientRpc]
@@ -106,8 +108,6 @@ public class PlayerManager : NetworkBehaviour
         opponentUI = GameObject.Find("OpponentInfo").GetComponent<PlayerUI>();
 
         if (hasAuthority){
-            health = startHealth;
-            score = startScore;
             playerUI.SetPlayerUI(playerName, startHealth.ToString(), startScore.ToString());
         } else {
             opponentUI.SetOpponentUI(opponentName, startHealth.ToString(), startScore.ToString());
@@ -260,9 +260,7 @@ public class PlayerManager : NetworkBehaviour
     [Command]
     public void CmdDeployCard(GameObject card, int holderNumber)
     {
-        var cardInfo = card.GetComponent<CardStats>().cardInfo;
-        TurnManager.Instance.PlayerDeployedCard(this, cardInfo, holderNumber);
-        
+        TurnManager.Instance.PlayerDeployedCard(this, card, holderNumber);
         PlayCard(card);
     }
 
@@ -385,6 +383,15 @@ public class PlayerManager : NetworkBehaviour
 
         if(hasAuthority) playerUI.SetRecruits(value);
         else opponentUI.SetRecruits(value);
+    }
+    
+    [ClientRpc] // ugh ds gieng sicher besser...
+    public void RpcDestroyArrows()
+    {
+        if (!hasAuthority) return;
+        
+        var arrows = FindObjectsOfType<Arrow>();
+        foreach(var arrow in arrows) Destroy(arrow.gameObject);
     }
     
     #endregion UI

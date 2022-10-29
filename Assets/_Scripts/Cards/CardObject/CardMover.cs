@@ -45,8 +45,7 @@ public class CardMover : MonoBehaviour
             print("<color=orange> Unknown card destination </color>");
             break;
         case CardLocations.Deck:
-            if (hasAuthority) _transform.SetParent(playerDrawPile, false);
-            else _transform.SetParent(opponentDrawPile, false);
+            _transform.SetParent(hasAuthority ? playerDrawPile : opponentDrawPile, false);
             _cardUI.CardBackUp();
             break;
         case CardLocations.Hand:

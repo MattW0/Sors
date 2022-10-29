@@ -17,7 +17,8 @@ public class CombatManager : NetworkBehaviour
     public static event Action OnDeclareBlockers;
 
     private Dictionary<BattleZoneEntity, List<BattleZoneEntity>> _attackersBlockers = new ();
-
+    private List<BattleZoneEntity> _unblockedAttackers = new();
+    
     private GameManager _gameManager;
     private TurnManager _turnManager;
     private BoardManager _boardManager;
@@ -46,7 +47,7 @@ public class CombatManager : NetworkBehaviour
                 OnDeclareBlockers?.Invoke();
                 break;
             case CombatState.Damage:
-                DealDamage();
+                ResolveDamage();
                 break;
             case CombatState.CleanUp:
                 ResolveCombat();
@@ -64,12 +65,13 @@ public class CombatManager : NetworkBehaviour
         _boardManager = BoardManager.Instance;
     }
 
-    private void PlayerDeclaredAttackers()
+    private void PlayerDeclaredAttackers(PlayerManager player)
     {
         _playersReady++;
+        if (player) _boardManager.PlayerFinishedChoosingAttackers(player);
+
         if (_playersReady != _gameManager.players.Count) return;
         
-        print("Attackers declared");
         foreach (var attacker in _boardManager.attackers)
         {
             _attackersBlockers.Add(attacker, new List<BattleZoneEntity>());
@@ -88,73 +90,92 @@ public class CombatManager : NetworkBehaviour
         }
     }
 
-    private void PlayerDeclaredBlockers(PlayerManager player)
+    private void PlayerDeclaredBlockers()
     {
         _playersReady++;
-        if (player) _boardManager.PlayerFinishedChoosingAttackers(player);
-        
         if (_playersReady != _gameManager.players.Count) return;
         
         print("Blockers declared");
+        ShowAllBlockers();
         _playersReady = 0;
         UpdateCombatState(CombatState.Damage);
     }
-    
-    private void DealDamage()
-    {
-        foreach (var attacker in _boardManager.attackers)
-        {
-            // blockers and attackers battle
-            foreach (var blocker in _attackersBlockers[attacker])
-            {
-                blocker.RpcTakesDamage(attacker.attack);
-                attacker.RpcTakesDamage(blocker.attack);
-                
-                // Wait between each damage being dealt
-                StartCoroutine(WaitBetweenDamage(combatDamageWaitTime));
-            }
-            
-            if (_attackersBlockers.Keys.Contains(attacker)) continue;
-            
-            // player takes damage from unblocked creatures
-            var targetPlayer = attacker.Target;
-            print(targetPlayer.playerName + "takes damage: " + attacker.attack);
-            targetPlayer.Health = attacker.attack;
 
-            StartCoroutine(WaitBetweenDamage(combatDamageWaitTime));
+    private void ShowAllBlockers()
+    {
+        _unblockedAttackers.AddRange(_boardManager.attackers);
+
+        foreach (var entry in _attackersBlockers)
+        {
+            var blockers = entry.Value;
+            
+            // there are no blockers -> keep in list
+            if (blockers.Count == 0) continue;
+            _unblockedAttackers.Remove(entry.Key);
+            
+            entry.Key.RpcShowOpponentsBlockers(blockers);
         }
-        
-        // UpdateCombatState(CombatState.CleanUp);
     }
     
-    private static IEnumerator WaitBetweenDamage(float waitTime)
+    private void ResolveDamage()
     {
-        var startTime = Time.time;
-        while (startTime < startTime + waitTime) {
-            startTime = Time.time;
-            yield return null; // wait 1 frame then check the time again...
+        StartCoroutine(DealDamage());
+    }
+    
+    private IEnumerator DealDamage()
+    {
+        // Waiting to show blockers
+        yield return new WaitForSeconds(2f);
+        
+        foreach (var attacker in _boardManager.attackers)
+        { // foreach attacker, deal damage to each blocker
+            foreach (var blocker in _attackersBlockers[attacker])
+            {
+                blocker.RpcTakesDamage(attacker.Attack);
+                attacker.RpcTakesDamage(blocker.Attack);
+                
+                // print(attacker.Title + ": " + attacker.Health);
+                // if (attacker.Health <= 0 && ! _deadEntities.Contains(attacker)) EntityDies(attacker);
+                // if (blocker.Health <= 0) EntityDies(blocker);
+                 
+                yield return new WaitForSeconds(combatDamageWaitTime);
+            }
         }
+        
+        StartCoroutine(PlayerDamage(_unblockedAttackers));
+    }
+    
+    private IEnumerator PlayerDamage(List<BattleZoneEntity> unblockedAttackers)
+    {
+        foreach (var attacker in unblockedAttackers)
+        {
+            // player takes damage from unblocked creatures
+            var targetPlayer = attacker.Target;
+            targetPlayer.Health -= attacker.Attack;
+            yield return new WaitForSeconds(combatDamageWaitTime);
+        }
+        
+        UpdateCombatState(CombatState.CleanUp);
     }
 
     private void ResolveCombat()
     {
         print("Combat finished");
-
+        _boardManager.CombatCleanUp();
+        
         UpdateCombatState(CombatState.Idle);
         _turnManager.CombatCleanUp();
     }
     
-    
-
     public void PlayerIsReady(PlayerManager player)
     {
         switch (state)
         {
             case CombatState.Attackers:
-                PlayerDeclaredAttackers();
+                PlayerDeclaredAttackers(player);
                 break;
             case CombatState.Blockers:
-                PlayerDeclaredBlockers(player);
+                PlayerDeclaredBlockers();
                 break;
         }
     }

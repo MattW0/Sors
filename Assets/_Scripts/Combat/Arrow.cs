@@ -1,9 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using UnityEngine;
 
-// [RequireComponent(typeof(LineRenderer))]
 public class Arrow : MonoBehaviour
 {
     public float width = 0.01f;
@@ -70,10 +70,5 @@ public class Arrow : MonoBehaviour
 
         rot.eulerAngles = new Vector3(0f, 0f, angleChange - 90f); // dafuq
         lineTransform.rotation = rot;
-    }
-
-    public void DestroyArrow()
-    {
-        Destroy(this);
     }
 }

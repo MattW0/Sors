@@ -17,7 +17,7 @@ public class GameManager : NetworkBehaviour
     private TurnManager _turnManager;
     public Dictionary<PlayerManager, NetworkIdentity> players;
     public static event Action OnGameStart;
-    public static event Action<PlayerManager, BattleZoneEntity> OnEntitySpawned; 
+    public static event Action<PlayerManager, BattleZoneEntity, GameObject> OnEntitySpawned; 
 
     [Header("Game state")]
     [SyncVar] public int turnNb = 0;
@@ -100,12 +100,6 @@ public class GameManager : NetworkBehaviour
         players = new Dictionary<PlayerManager, NetworkIdentity>();
         var playerManagers = FindObjectsOfType<PlayerManager>();
 
-        // Making sure that host is playerManager[0]
-        // if (!playerManagers[0].GetComponent<NetworkIdentity>().isServer)
-        // {
-        //     (playerManagers[0], playerManagers[1]) = (playerManagers[1], playerManagers[0]);
-        // }
-        
         foreach (var player in playerManagers)
         {
             var playerNetworkId = player.GetComponent<NetworkIdentity>();
@@ -115,6 +109,8 @@ public class GameManager : NetworkBehaviour
 
             // UI
             player.RpcSetPlayerStats(startHealth, startScore);
+            player.Health = startHealth;
+            player.Score = startScore;
             player.Cash = turnCash;
             player.Recruits = turnRecruits;
 
@@ -184,16 +180,23 @@ public class GameManager : NetworkBehaviour
         SpawnCacheAndMoveCard(player, cardObject, scriptableCard, CardLocations.Discard);
     }
 
-    public void SpawnFieldEntity(PlayerManager owner, CardInfo cardInfo, int cardHolder)
+    public void SpawnFieldEntity(PlayerManager owner, GameObject card, 
+        CardInfo cardInfo, int cardHolder)
     {
         var entityObject = Instantiate(entityObjectPrefab);
         NetworkServer.Spawn(entityObject, connectionToClient);
         entityObject.GetComponent<NetworkIdentity>().AssignClientAuthority(players[owner].connectionToClient);
-
+        
+        var opponent = GetOpponent(owner);
         var entity = entityObject.GetComponent<BattleZoneEntity>();
-        entity.RpcSpawnEntity(owner, cardInfo, cardHolder);
+        entity.RpcSpawnEntity(owner, opponent, cardInfo, cardHolder);
+        
+        OnEntitySpawned?.Invoke(owner, entity, card);
+    }
 
-        OnEntitySpawned?.Invoke(owner, entity);
+    private PlayerManager GetOpponent(PlayerManager player)
+    {
+        return players.Keys.FirstOrDefault(p => p != player);
     }
 }
 

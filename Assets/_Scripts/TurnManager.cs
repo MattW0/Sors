@@ -222,15 +222,18 @@ public class TurnManager : NetworkBehaviour
             playerManager.Deploys = nbDeploys;
         }
         
+        // Reset to account for entities that died last turn
+        _boardManager.ResetHolders();
         _boardManager.ShowCardPositionOptions(true);
     }
 
-    public void PlayerDeployedCard(PlayerManager player, CardInfo cardInfo, int holderNumber) {
+    public void PlayerDeployedCard(PlayerManager player, GameObject card, int holderNumber) {
         
         // If player did not skip deploy (and deployed a card)
-        if (cardInfo.title != null)
+        if (card)
         {
-            _gameManager.SpawnFieldEntity(player, cardInfo, holderNumber);
+            var cardInfo = card.GetComponent<CardStats>().cardInfo;
+            _gameManager.SpawnFieldEntity(player, card, cardInfo, holderNumber);
             player.Cash -= cardInfo.cost;
         }
         player.Deploys--;
@@ -368,12 +371,10 @@ public class TurnManager : NetworkBehaviour
     {
         if (player.Recruits <= 0 || player.Deploys <= 0) return;
         
-        // print("Player " + player.playerName + " is ready in phase " + state);
-
         switch (state)
         {
             case TurnState.Deploy:
-                PlayerDeployedCard(player, new CardInfo(), -1);
+                PlayerDeployedCard(player, null, -1);
                 break;
             case TurnState.Combat:
                 combatManager.PlayerIsReady(player);

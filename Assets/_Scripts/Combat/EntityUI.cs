@@ -16,9 +16,9 @@ public class EntityUI : MonoBehaviour
     [SerializeField] private Transform playerPlayZone;
     [SerializeField] private Transform opponentPlayZone;
     
-    private readonly Vector3 _tappedPosition = new Vector3(0f, 60f, 0f);
-    private readonly float _tappingDuration = 0.3f;
-    
+    private readonly Vector3 _tappedPosition = new (0f, 60f, 0f);
+    private const float TappingDuration = 0.3f;
+
     [SerializeField] private Color attackingColor;
     private readonly Color _idleColor = new Color32( 0x50, 0x50, 0x50, 0xFF );
     
@@ -37,7 +37,8 @@ public class EntityUI : MonoBehaviour
         health.text = cardInfo.health.ToString();
     }
 
-    public void SetHealth(int newHealth) => health.text = newHealth.ToString();
+    public void SetHealth(int newValue) => health.text = newValue.ToString();
+    public void SetAttack(int newValue) => attack.text = newValue.ToString();
 
     public void Highlight(bool active)
     {
@@ -50,13 +51,13 @@ public class EntityUI : MonoBehaviour
     }
 
     public void TapCreature() {
-        _transform.DOLocalMove(_tappedPosition, _tappingDuration).OnComplete(
+        _transform.DOLocalMove(_tappedPosition, TappingDuration).OnComplete(
             () => Highlight(false)
             );
     }
     
     public void UntapCreature() {
-        _transform.DOLocalMove(Vector3.zero, _tappingDuration).OnComplete(
+        _transform.DOLocalMove(Vector3.zero, TappingDuration).OnComplete(
             () => Highlight(true)
             );
     }

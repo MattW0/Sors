@@ -8,10 +8,12 @@ public class BlockerArrowHandler : NetworkBehaviour
 {
     [SerializeField] private BattleZoneEntity entity;
     [SerializeField] private GameObject arrowPrefab;
-
+    
     private Arrow _arrow;
     private CombatState _currentState;
     private bool _hasTarget;
+
+    public event Action<BlockerArrowHandler> OnCreateArrow;
 
     private void Awake()
     {
@@ -27,6 +29,8 @@ public class BlockerArrowHandler : NetworkBehaviour
     private void SpawnArrow()
     {
         var obj = Instantiate(arrowPrefab, transform.localPosition, Quaternion.identity);
+        OnCreateArrow?.Invoke(this);
+        
         _arrow = obj.GetComponent<Arrow>();
         _arrow.SetAnchor(entity.transform.position);
     }
@@ -51,7 +55,7 @@ public class BlockerArrowHandler : NetworkBehaviour
         }
         
         entity.Owner.PlayerRemovesBlocker(entity);
-        _arrow.DestroyArrow();
+        Destroy(_arrow.gameObject);
         _arrow = null;
     }
 
@@ -70,13 +74,24 @@ public class BlockerArrowHandler : NetworkBehaviour
 
     public void HandleFoundEnemyTarget(BattleZoneEntity target)
     {
-        print("Blocking attacker " + target.Title + " with " + entity.Title);
         _hasTarget = true;
         _arrow.FoundTarget(target.transform.position);
+    }
+    
+    public void ShowOpponentBlocker(GameObject blocker)
+    {
+        SpawnArrow();
+        _arrow.FoundTarget(blocker.transform.position);
+    }
+
+    [ClientRpc]
+    public void RpcDestroyArrow()
+    {
+        Destroy(_arrow.gameObject);
     }
 
     private void OnDestroy()
     {
-        CombatManager.OnCombatStateChanged += RpcCombatStateChanged;
+        CombatManager.OnCombatStateChanged -= RpcCombatStateChanged;
     }
 }
