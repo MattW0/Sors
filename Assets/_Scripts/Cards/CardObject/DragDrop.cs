@@ -64,10 +64,6 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         
         _canvasGroup.blocksRaycasts = true;
         _canvasGroup.alpha = 1f;
-
-        if (_isOverDropZone) {
-            _cardStats.IsDeployable = false;
-        }
     }
 
     // Collision detection with dropzone collider

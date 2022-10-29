@@ -105,7 +105,17 @@ public class BoardManager : NetworkBehaviour
     {
         foreach (var entity in _battleZoneEntities[player])
         {
-            entity.TargetIsAttacker(player.connectionToClient);
+            if (entity.IsAttacking) entity.TargetIsAttacker(player.connectionToClient);
+            else entity.TargetCanNotAct(player.connectionToClient);
+        }
+    }
+    
+    public void PlayerFinishedChoosingBlockers(PlayerManager player)
+    {
+        foreach (var entity in _battleZoneEntities[player])
+        {
+            if (entity.IsAttacking) continue;
+            entity.TargetCanNotAct(player.connectionToClient);
         }
     }
 
@@ -121,19 +131,19 @@ public class BoardManager : NetworkBehaviour
             entityManager.RpcDeclareBlockers();
         }
 
-        // Auto-skip
+        // Check for auto-skip
         foreach (var list in _battleZoneEntities.Values)
         {
             // Skip if either player has empty board or has declared all attackers
             var hasBlocker = false;
-            foreach (var entity in list)
+            foreach (var entity in list.Where(entity => !entity.IsAttacking))
             {
-                if (!entity.IsAttacking) hasBlocker = true;
+                hasBlocker = true;
             }
-            if (list.Count > 0 || hasBlocker) continue; 
+            if (hasBlocker) continue;
             
             print("No blockers available");
-            for (var i=0; i<_gameManager.players.Count; i++) OnSkipCombatPhase?.Invoke();
+            OnSkipCombatPhase?.Invoke();
         }
     }
     

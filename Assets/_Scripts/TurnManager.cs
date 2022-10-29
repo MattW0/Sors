@@ -16,10 +16,10 @@ public class TurnManager : NetworkBehaviour
     private PlayerHandManager _handManager;
     private BoardManager _boardManager;
     [SerializeField] private CombatManager combatManager;
+
+    [field: Header("Turn state")] 
+    [SerializeField] private TurnState turnState;
     
-    [Header("Turn state")]
-    [SerializeField] private TurnState state;
-    public TurnState CurrentState => state;
     public List<Phase> chosenPhases;
     private static int _playersReady;
 
@@ -32,7 +32,7 @@ public class TurnManager : NetworkBehaviour
 
 
     [Header("Objects")]
-    [SerializeField] private GameObject _phasePanelPrefab;
+    [SerializeField] private GameObject phasePanelPrefab;
     private GameObject _phasePanel;
     // [SerializeField] private GameObject _discardPanelPrefab;
 
@@ -43,13 +43,13 @@ public class TurnManager : NetworkBehaviour
     }
 
     private void UpdateTurnState(TurnState newState){
-        state = newState;
+        turnState = newState;
 
         if (newState != TurnState.NextPhase) {
             print($"<color=aqua>Turn changed to {newState}</color>");
         }
 
-        switch(state){
+        switch(turnState){
             // --- Preparation and transition ---
             case TurnState.PhaseSelection:
                 PhaseSelection();
@@ -74,7 +74,7 @@ public class TurnManager : NetworkBehaviour
                 Combat();
                 break;
             case TurnState.DrawII:
-                DrawII();
+                DrawIi();
                 break;
             case TurnState.Recruit:
                 Recruit();
@@ -112,7 +112,7 @@ public class TurnManager : NetworkBehaviour
     private void PhaseSelection() {
         _gameManager.turnNb++;
 
-        _phasePanel = Instantiate(_phasePanelPrefab, transform);
+        _phasePanel = Instantiate(phasePanelPrefab, transform);
         NetworkServer.Spawn(_phasePanel, connectionToClient);
 
         _playersReady = 0;
@@ -169,7 +169,7 @@ public class TurnManager : NetworkBehaviour
         UpdateTurnState(TurnState.Discard);
     }
     
-    private void DrawII(){
+    private void DrawIi(){
         foreach (var player in _gameManager.players.Keys) {
             var nbCardDraw = _gameManager.nbCardDraw;
             if (player.playerChosenPhases.Contains(Phase.DrawII)) nbCardDraw++;
@@ -255,6 +255,7 @@ public class TurnManager : NetworkBehaviour
     {
         print("Everybody deployed");
 
+        _handManager.RpcResetDeployability();
         PlayersStatsResetAndDiscardMoney();
         _boardManager.ShowCardPositionOptions(false);
         
@@ -340,7 +341,7 @@ public class TurnManager : NetworkBehaviour
     // helper functions
     private void PlayerCashChanged(PlayerManager player, int newAmount)
     {
-        switch (state) {
+        switch (turnState) {
             case TurnState.Deploy:
                 _handManager.TargetCheckDeployability(_gameManager.players[player].connectionToClient, newAmount);
                 break;
@@ -371,7 +372,7 @@ public class TurnManager : NetworkBehaviour
     {
         if (player.Recruits <= 0 || player.Deploys <= 0) return;
         
-        switch (state)
+        switch (turnState)
         {
             case TurnState.Deploy:
                 PlayerDeployedCard(player, null, -1);

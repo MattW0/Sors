@@ -35,6 +35,8 @@ public class CardStats : NetworkBehaviour
         get => _deployable;
         set
         {
+            if (!cardInfo.isCreature) return;
+            
             _deployable = value;
             if (value) _cardUI.Highlight(true, Color.cyan);
             else _cardUI.HighlightReset();

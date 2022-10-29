@@ -1,13 +1,12 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Security.Cryptography;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Arrow : MonoBehaviour
 {
-    public float width = 0.01f;
-    public Color color = Color.red;
+    [SerializeField] private float widhtFactor = 1f;
+    [SerializeField] private Color color = Color.red;
+    [SerializeField] private Image image; 
     
     // [SerializeField] private LineRenderer lineRenderer;
     // private Camera _cam;
@@ -22,6 +21,8 @@ public class Arrow : MonoBehaviour
  
     private void Awake() {
         _sd = lineTransform.sizeDelta;
+        lineTransform.sizeDelta = new Vector2(_sd.x * widhtFactor, _sd.y);
+        image.color = color;
     }
     
     public void SetAnchor(Vector3 point)

@@ -52,11 +52,20 @@ public class PlayerHandManager : NetworkBehaviour
             card.IsInteractable = b;
         }
     }
+    
+    [ClientRpc]
+    public void RpcResetDeployability()
+    {
+        foreach (var card in _handCards)
+        {
+            card.IsDeployable = false;
+        }
+    }
 
     [TargetRpc]
     public void TargetCheckDeployability(NetworkConnection target, int currentCash)
     {
-        foreach (var card in _handCards.Where(card => card.cardInfo.isCreature))
+        foreach (var card in _handCards)
         {
             card.IsDeployable = (currentCash >= card.cardInfo.cost);
         }

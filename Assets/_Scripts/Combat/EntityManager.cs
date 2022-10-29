@@ -40,7 +40,7 @@ public class EntityManager : NetworkBehaviour
         
         foreach (var entity in battleZoneEntities)
         {
-            entity.CanAct(CombatState.Attackers);
+            entity.CheckIfCanAct(CombatState.Attackers);
         }
     }
     
@@ -50,7 +50,7 @@ public class EntityManager : NetworkBehaviour
         if (!myZone) return;
         foreach (var entity in battleZoneEntities)
         {
-            entity.CanAct(CombatState.Blockers);
+            entity.CheckIfCanAct(CombatState.Blockers);
         }
     }
 

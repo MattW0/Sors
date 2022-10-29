@@ -14,12 +14,14 @@ public class PlayZoneCardHolder : MonoBehaviour, IDropHandler
     private void Awake()
     {
         highlight.enabled = false;
+        boxCollider2D.enabled = false;
         _initialChilds = (short) transform.childCount;
     }
 
     public void Highlight()
     {
         highlight.enabled = !_containsCard;
+        boxCollider2D.enabled = !_containsCard;
     }
 
     public void ResetHighlight()
@@ -27,7 +29,7 @@ public class PlayZoneCardHolder : MonoBehaviour, IDropHandler
         highlight.enabled = false;
 
         if (transform.childCount > _initialChilds) return;
-        boxCollider2D.enabled = true;
+        boxCollider2D.enabled = false;
         _containsCard = false;
     }
 
@@ -35,10 +37,14 @@ public class PlayZoneCardHolder : MonoBehaviour, IDropHandler
     {
         if (!boxCollider2D.enabled) return;
         
-        // gets the holder object name (0, 1, ..) to know position
+        // get dropped card and stats 
         var cardObject = data.pointerPress;
-        if (!cardObject.GetComponent<CardStats>().cardInfo.isCreature) return;
+        var cardStats = cardObject.GetComponent<CardStats>();
         
+        if (!cardStats.IsDeployable) return;
+        cardStats.IsDeployable = false;
+        
+        // gets the holder object name (0, 1, ..) to know position
         int.TryParse(gameObject.name, out var holderNumber);
         PlaceCard();
 
@@ -48,7 +54,6 @@ public class PlayZoneCardHolder : MonoBehaviour, IDropHandler
     private void PlaceCard()
     {
         _containsCard = true;
-        boxCollider2D.enabled = false;
         highlight.enabled = false;
     }
 }

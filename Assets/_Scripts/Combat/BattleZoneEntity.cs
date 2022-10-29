@@ -9,11 +9,11 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     public PlayerManager Owner { get; private set; }
     public PlayerManager Target { get; private set; }
 
-    [Header("Combat Stats")]
-    private bool _canAct;
+    [field: Header("Combat Stats")]
+    public bool CanAct { get; private set; }
     [field: SyncVar, SerializeField] public bool IsAttacking { get; private set; }
-    [field: SyncVar] public bool IsBlocking { get; private set; }
-    [SerializeField] private CombatState currentState;
+    // [field: SyncVar] public bool IsBlocking { get; private set; }
+    [SerializeField] private CombatState combatState;
     
     [Header("Other scripts")]
     [SerializeField] private EntityUI entityUI;
@@ -61,16 +61,6 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
         entityUI.MoveToHolder(holderNumber, hasAuthority);
     }
 
-    [ClientRpc]
-    public void RpcShowOpponentsBlockers(List<BattleZoneEntity> blockers)
-    {
-        if (!hasAuthority) return;
-        foreach (var blocker in blockers)
-        {
-            arrowHandler.ShowOpponentBlocker(blocker.gameObject);
-        }
-    }
-
     private void SetStats(CardInfo cardInfo)
     {
         Title = cardInfo.title;
@@ -80,28 +70,22 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
         entityUI.SetEntityUI(cardInfo);
     }
     
-    public void CanAct(CombatState combatState)
+    public void CheckIfCanAct(CombatState newState)
     {
-        currentState = combatState;
+        combatState = newState;
         if (!hasAuthority || IsAttacking) return;
         
-        _canAct = true;
+        CanAct = true;
         entityUI.Highlight(true);
     }
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        if (!hasAuthority || !_canAct) return;
+        if (!hasAuthority || !CanAct) return;
+        if (combatState != CombatState.Attackers) return;
 
-        switch (currentState)
-        {
-            case CombatState.Attackers:
-                ClickAttacker();
-                break;
-            case CombatState.Blockers:
-                ClickBlocker();
-                break;
-        }
+        // only in Attackers since blockerArrowHandler handles Blockers phase
+        ClickAttacker();
     }
 
     private void ClickAttacker()
@@ -127,26 +111,40 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     [ClientRpc]
     public void RpcIsAttacker()
     {
+        CanAct = false;
         entityUI.ShowAsAttacker(true);
     }
     
     [TargetRpc]
     public void TargetIsAttacker(NetworkConnection connection)
     {
+        CanAct = false;
         entityUI.ShowAsAttacker(true);
     }
-
-    private void ClickBlocker()
-    {
-        IsBlocking = !IsBlocking;
-    }
     
+    [TargetRpc]
+    public void TargetCanNotAct(NetworkConnection connection)
+    {
+        CanAct = false;
+        entityUI.Highlight(false);
+    }
+
     [ClientRpc]
     public void RpcBlockerDeclared(BattleZoneEntity attacker)
     {
         if (hasAuthority)
         {
             arrowHandler.HandleFoundEnemyTarget(attacker);
+        }
+    }
+    
+    [ClientRpc]
+    public void RpcShowOpponentsBlockers(List<BattleZoneEntity> blockers)
+    {
+        if (!hasAuthority) return;
+        foreach (var blocker in blockers)
+        {
+            arrowHandler.ShowOpponentBlocker(blocker.gameObject);
         }
     }
 
@@ -164,9 +162,8 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     [ClientRpc]
     public void RpcResetAfterCombat()
     {
-        _canAct = false;
+        CanAct = false;
         IsAttacking = false;
-        IsBlocking = false;
         
         entityUI.ShowAsAttacker(false);
         entityUI.Highlight(false);

@@ -13,8 +13,6 @@ public class BlockerArrowHandler : NetworkBehaviour
     private CombatState _currentState;
     private bool _hasTarget;
 
-    public event Action<BlockerArrowHandler> OnCreateArrow;
-
     private void Awake()
     {
         CombatManager.OnCombatStateChanged += RpcCombatStateChanged;
@@ -29,8 +27,6 @@ public class BlockerArrowHandler : NetworkBehaviour
     private void SpawnArrow()
     {
         var obj = Instantiate(arrowPrefab, transform.localPosition, Quaternion.identity);
-        OnCreateArrow?.Invoke(this);
-        
         _arrow = obj.GetComponent<Arrow>();
         _arrow.SetAnchor(entity.transform.position);
     }
@@ -46,7 +42,7 @@ public class BlockerArrowHandler : NetworkBehaviour
     
     private void HandleClickedMyCreature(){
         
-        if (entity.IsAttacking || _hasTarget) return;
+        if (!entity.CanAct || entity.IsAttacking || _hasTarget) return;
         
         if (!_arrow) {
             SpawnArrow();
@@ -82,12 +78,6 @@ public class BlockerArrowHandler : NetworkBehaviour
     {
         SpawnArrow();
         _arrow.FoundTarget(blocker.transform.position);
-    }
-
-    [ClientRpc]
-    public void RpcDestroyArrow()
-    {
-        Destroy(_arrow.gameObject);
     }
 
     private void OnDestroy()

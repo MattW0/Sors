@@ -68,10 +68,12 @@ public class CombatManager : NetworkBehaviour
     private void PlayerDeclaredAttackers(PlayerManager player)
     {
         _playersReady++;
+        // player == null if there was an auto-skip (empty board)
         if (player) _boardManager.PlayerFinishedChoosingAttackers(player);
 
         if (_playersReady != _gameManager.players.Count) return;
         
+        // tracking which entity blocks which attackers
         foreach (var attacker in _boardManager.attackers)
         {
             _attackersBlockers.Add(attacker, new List<BattleZoneEntity>());
@@ -90,9 +92,11 @@ public class CombatManager : NetworkBehaviour
         }
     }
 
-    private void PlayerDeclaredBlockers()
+    private void PlayerDeclaredBlockers(PlayerManager player)
     {
         _playersReady++;
+        if (player) _boardManager.PlayerFinishedChoosingBlockers(player);
+        
         if (_playersReady != _gameManager.players.Count) return;
         
         print("Blockers declared");
@@ -119,13 +123,21 @@ public class CombatManager : NetworkBehaviour
     
     private void ResolveDamage()
     {
+        // Skip damage logic if there are no attackers 
+        if (_attackersBlockers.Keys.Count == 0)
+        {
+            UpdateCombatState(CombatState.CleanUp);
+            return;
+        }
+        
+        // creature dmg, player dmg, then update CombatState
         StartCoroutine(DealDamage());
     }
     
     private IEnumerator DealDamage()
     {
         // Waiting to show blockers
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(1f);
         
         foreach (var attacker in _boardManager.attackers)
         { // foreach attacker, deal damage to each blocker
@@ -133,15 +145,10 @@ public class CombatManager : NetworkBehaviour
             {
                 blocker.RpcTakesDamage(attacker.Attack);
                 attacker.RpcTakesDamage(blocker.Attack);
-                
-                // print(attacker.Title + ": " + attacker.Health);
-                // if (attacker.Health <= 0 && ! _deadEntities.Contains(attacker)) EntityDies(attacker);
-                // if (blocker.Health <= 0) EntityDies(blocker);
                  
                 yield return new WaitForSeconds(combatDamageWaitTime);
             }
         }
-        
         StartCoroutine(PlayerDamage(_unblockedAttackers));
     }
     
@@ -175,7 +182,7 @@ public class CombatManager : NetworkBehaviour
                 PlayerDeclaredAttackers(player);
                 break;
             case CombatState.Blockers:
-                PlayerDeclaredBlockers();
+                PlayerDeclaredBlockers(player);
                 break;
         }
     }
