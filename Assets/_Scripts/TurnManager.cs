@@ -17,18 +17,20 @@ public class TurnManager : NetworkBehaviour
     private BoardManager _boardManager;
     [SerializeField] private CombatManager combatManager;
 
-    [field: Header("Turn state")] 
+    [field: Header("Game state")] 
     [SerializeField] private TurnState turnState;
-    
     public List<Phase> chosenPhases;
     private static int _playersReady;
+    private Dictionary<PlayerManager, int> _playerHealth = new();
+    public int GetHealth(PlayerManager player) => _playerHealth[player];
 
     [Header("Helper Fields")]
     private Dictionary<PlayerManager, List<CardInfo>> _recruitedCards;
     
     // Events
     public static event Action<TurnState> OnPhaseChanged;
-    public static event Action OnTursStarting;
+    public static event Action OnTurnsStarting;
+    public static event Action<PlayerManager> OnPlayerDies;
 
 
     [Header("Objects")]
@@ -86,6 +88,9 @@ public class TurnManager : NetworkBehaviour
             case TurnState.CleanUp:
                 CleanUp();
                 break;
+            case TurnState.Idle:
+                print("Game Ends");
+                break;
             default:
                 print("<color=red>Invalid turn state</color>");
                 throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
@@ -102,9 +107,14 @@ public class TurnManager : NetworkBehaviour
         _handManager = PlayerHandManager.Instance;
         _boardManager = BoardManager.Instance;
 
+        foreach (var player in _gameManager.players.Keys)
+        {
+            _playerHealth.Add(player, _gameManager.startHealth);
+        }
+
         PlayerManager.OnCashChanged += PlayerCashChanged;
         
-        OnTursStarting?.Invoke();
+        OnTurnsStarting?.Invoke();
         UpdateTurnState(TurnState.PhaseSelection);
     }
     
@@ -335,10 +345,32 @@ public class TurnManager : NetworkBehaviour
 
     private void CleanUp(){
         print("<color=yellow>CleanUp not yet implemented</color>");
+
+        var gameEnds = false;
+        foreach (var (player, health)  in _playerHealth)
+        {
+            if (health > 0) continue;
+            
+            OnPlayerDies?.Invoke(player);
+            gameEnds = true;
+        }
+
+        if (gameEnds)
+        {
+            _gameManager.EndGame();
+            UpdateTurnState(TurnState.Idle);
+            return;
+        }
+        
         UpdateTurnState(TurnState.PhaseSelection);
     }
     
     // helper functions
+    public void PlayerHealthChanged(PlayerManager player, int amount)
+    {
+        _playerHealth[player] -= amount;
+    }
+    
     private void PlayerCashChanged(PlayerManager player, int newAmount)
     {
         switch (turnState) {
@@ -391,6 +423,7 @@ public class TurnManager : NetworkBehaviour
 
 public enum TurnState
 {
+    Idle,
     NextPhase,
     PhaseSelection,
     DrawI,

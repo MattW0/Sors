@@ -11,16 +11,14 @@ public class PlayerManager : NetworkBehaviour
     private GameManager _gameManager;
     private TurnManager _turnManager;
     private CombatManager _combatManager;
-    
-    
-    [SyncVar] public string playerName;
     public PlayerManager opponent { get; private set; }
-
 
     [Header("Game Stats")]
     public CardCollection cards;
+    [SyncVar] public string playerName;
     [SyncVar, SerializeField] private int health;
     [SyncVar, SerializeField] private int score;
+    public int Score { get => score; set => score = value; }
 
     public int Health
     {
@@ -29,11 +27,9 @@ public class PlayerManager : NetworkBehaviour
         {
             health = value;
             SetHealthValue(health);
-            if (health <= 0) PlayerDies();
         } 
     }
-    public int Score { get => score; set => score = value; }
-
+    
     public List<Phase> playerChosenPhases = new() {Phase.DrawI, Phase.DrawII};
     private List<GameObject> _discardSelection;
     public List<CardInfo> moneyCards;
@@ -52,6 +48,7 @@ public class PlayerManager : NetworkBehaviour
             SetCashValue(_cash); // Invoke OnCashChanged and update UI
         }
     }
+    
     [SyncVar] private int _recruits = 1;
     public int Recruits { 
         get => _recruits; 
@@ -76,7 +73,7 @@ public class PlayerManager : NetworkBehaviour
     public PlayerUI playerUI;
     public PlayerUI opponentUI;
 
-    #region GameSetupAndEnd
+    #region GameSetup
     public override void OnStartClient(){
         base.OnStartClient();
 
@@ -126,14 +123,17 @@ public class PlayerManager : NetworkBehaviour
             RpcMoveCard(cardObject, CardLocations.Deck, CardLocations.Hand);
         }
     }
+    #endregion GameSetup
 
-    private void PlayerDies()
+    #region GameEnd
+
+    public void RpcGameIsDraw(int health)
     {
-        print("Player dies!");
+        
     }
 
-    #endregion GameSetupAndEnd
-
+    #endregion
+    
     #region Cards
 
     [ClientRpc]

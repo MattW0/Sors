@@ -30,7 +30,7 @@ public class BoardManager : NetworkBehaviour
     {
         if (!Instance) Instance = this;
 
-        TurnManager.OnTursStarting += Prepare;
+        TurnManager.OnTurnsStarting += Prepare;
         GameManager.OnEntitySpawned += AddEntity;
         CombatManager.OnDeclareAttackers += DeclareAttackers;
         CombatManager.OnDeclareBlockers += DeclareBlockers;
@@ -194,7 +194,7 @@ public class BoardManager : NetworkBehaviour
     private void OnDestroy()
     {
         GameManager.OnEntitySpawned -= AddEntity;
-        TurnManager.OnTursStarting -= Prepare;
+        TurnManager.OnTurnsStarting -= Prepare;
         CombatManager.OnDeclareAttackers -= DeclareAttackers;
         CombatManager.OnDeclareBlockers -= DeclareBlockers;
     }

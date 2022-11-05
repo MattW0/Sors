@@ -159,6 +159,7 @@ public class CombatManager : NetworkBehaviour
             // player takes damage from unblocked creatures
             var targetPlayer = attacker.Target;
             targetPlayer.Health -= attacker.Attack;
+            _turnManager.PlayerHealthChanged(targetPlayer, attacker.Attack);
             yield return new WaitForSeconds(combatDamageWaitTime);
         }
         
@@ -168,6 +169,7 @@ public class CombatManager : NetworkBehaviour
     private void ResolveCombat()
     {
         print("Combat finished");
+        _attackersBlockers.Clear();
         _boardManager.CombatCleanUp();
         
         UpdateCombatState(CombatState.Idle);

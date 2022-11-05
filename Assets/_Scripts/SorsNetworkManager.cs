@@ -14,7 +14,7 @@ public class SorsNetworkManager : NetworkManager
     {
         base.OnStartServer();
         _gameManager = GameManager.Instance;
-        _numberPlayersRequired = _gameManager.debug ? 1 : 2;
+        _numberPlayersRequired = _gameManager.debug ? 1 : _gameManager.numberPlayers;
 
         StartCoroutine(WaitingForPlayers());
     }

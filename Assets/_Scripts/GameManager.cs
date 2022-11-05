@@ -5,22 +5,26 @@ using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 using Mirror;
+using Unity.VisualScripting;
 using Random = UnityEngine.Random;
 
 public class GameManager : NetworkBehaviour
 {
     [Header("For Coding")]
-    public bool debug = false;
-    public bool animations = false;
+    public bool debug;
+    public bool animations;
 
     public static GameManager Instance { get; private set; }
     private TurnManager _turnManager;
-    public Dictionary<PlayerManager, NetworkIdentity> players;
+    private EndScreen _endScreen;
     public static event Action OnGameStart;
     public static event Action<PlayerManager, BattleZoneEntity, GameObject> OnEntitySpawned; 
 
     [Header("Game state")]
-    [SyncVar] public int turnNb = 0;
+    [SyncVar] public int turnNb;
+    public int numberPlayers = 2;
+    public Dictionary<PlayerManager, NetworkIdentity> players;
+    private List<PlayerManager> _loosingPlayers = new();
 
     [Header("Turn specifics")]
     public int nbPhasesToChose = 2;
@@ -63,19 +67,46 @@ public class GameManager : NetworkBehaviour
         moneyCards = Resources.LoadAll<ScriptableCard>("MoneyCards/");
 
         Cache = new Dictionary<string, GameObject>();
+        TurnManager.OnPlayerDies += PlayerDies;
     }
 
     public void GameSetup()
     {
-        // _turnManager = TurnManager.Instance;
+        _turnManager = TurnManager.Instance;
+        _endScreen = EndScreen.Instance;
         
         KingdomSetup();
-        PanelSetup();
+        UiSetup();
         PlayerSetup();
         
         OnGameStart?.Invoke();
     }
 
+    private void PlayerDies(PlayerManager player)
+    {
+        _loosingPlayers.Add(player);
+    }
+
+    public void EndGame()
+    {
+        foreach (var player in players.Keys)
+        {
+            var health = _turnManager.GetHealth(player);
+            _endScreen.RpcSetFinalScore(player, health, 0);
+        }
+        
+        // Both players die -> Draw
+        if (_loosingPlayers.Count == numberPlayers)
+        {
+            _endScreen.RpcGameIsDraw();
+            return;
+        }
+        
+        _endScreen.RpcIsLooser(_loosingPlayers[0]);
+    }
+
+    #region Setup
+    
     private void KingdomSetup(){
         var kingdomCards = new CardInfo[nbKingdomCards];
         
@@ -88,7 +119,7 @@ public class GameManager : NetworkBehaviour
         Kingdom.Instance.RpcSetKingdomCards(kingdomCards);
     }
 
-    private void PanelSetup()
+    private void UiSetup()
     {
         var discardPanelObject = Instantiate(discardPanelPrefab, transform);
         NetworkServer.Spawn(discardPanelObject, connectionToClient);
@@ -122,6 +153,10 @@ public class GameManager : NetworkBehaviour
         }
     }
 
+    #endregion
+
+    #region Spawning
+    
     private void SpawnPlayerDeck(PlayerManager playerManager){
         // Coppers
         for (var i = 0; i < initialDeckSize - nbCreatures; i++){
@@ -137,7 +172,7 @@ public class GameManager : NetworkBehaviour
             SpawnCacheAndMoveCard(playerManager, cardObject, creatureCard, CardLocations.Deck);
         }
     }
-
+    
     private void SpawnCacheAndMoveCard(PlayerManager owner, GameObject cardObject,
                                        ScriptableCard scriptableCard, CardLocations destination){
 
@@ -193,10 +228,16 @@ public class GameManager : NetworkBehaviour
         
         OnEntitySpawned?.Invoke(owner, entity, card);
     }
+    #endregion
 
     private PlayerManager GetOpponent(PlayerManager player)
     {
         return players.Keys.FirstOrDefault(p => p != player);
+    }
+
+    private void OnDestroy()
+    {
+        TurnManager.OnPlayerDies -= PlayerDies;
     }
 }
 
