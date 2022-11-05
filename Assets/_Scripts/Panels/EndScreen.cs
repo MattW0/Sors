@@ -8,6 +8,7 @@ using Mirror;
 public class EndScreen : NetworkBehaviour
 {
     [SerializeField] private GameObject endView;
+    [SerializeField] private Button exitButton;
     
     [SerializeField] private TMP_Text resultText; 
     [SerializeField] private TMP_Text playerNameText;
@@ -39,17 +40,16 @@ public class EndScreen : NetworkBehaviour
     public void RpcSetFinalScore(PlayerManager player, int health, int score)
     {
         endView.SetActive(true);
+        playerNameText.text = player.isServer ? "Host" : "Client";
+        opponentNameText.text = player.isServer ? "Client" : "Host";
 
         if (player.hasAuthority)
         {
-            print("has authority");
-            playerNameText.text = player.playerName;
             playerHealthText.text = health.ToString();
             playerPointsText.text = score.ToString();
         }
         else
         {
-            opponentNameText.text = player.playerName;
             opponentHealthText.text = health.ToString();
             opponentPointsText.text = score.ToString();
         }
@@ -68,5 +68,10 @@ public class EndScreen : NetworkBehaviour
             resultText.text = "Victory";
             playerHighlight.enabled = true;
         }
+    }
+
+    public void OnExitButtonPressed()
+    {
+        Application.Quit();
     }
 }
