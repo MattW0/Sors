@@ -90,10 +90,10 @@ public class PlayerManager : NetworkBehaviour
     public void RpcFindObjects(bool debug){   
         if(!hasAuthority) return;
 
-        var players = FindObjectsOfType<PlayerManager>();
+        // var players = FindObjectsOfType<PlayerManager>();
 
-        if (debug) return;
-        opponent = players[0] == this ? players[1] : players[0];
+        // if (debug) return;
+        // opponent = players[0] == this ? players[1] : players[0];
     }
 
     [ClientRpc]

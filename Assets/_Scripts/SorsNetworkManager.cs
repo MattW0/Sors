@@ -10,9 +10,12 @@ public class SorsNetworkManager : NetworkManager
     private PlayerManager _host;
     private int _numberPlayersRequired = 2;
 
+    public static new SorsNetworkManager singleton { get; private set; }
+
     public override void OnStartServer()
     {
         base.OnStartServer();
+        networkAddress = "192.168.1.1";
         // _gameManager = GameManager.Instance;
         // _numberPlayersRequired = _gameManager.debug ? 1 : _gameManager.numberPlayers;
 
@@ -38,4 +41,29 @@ public class SorsNetworkManager : NetworkManager
         // Disable Mirror HUD
         // gameObject.GetComponent<NetworkManagerHUD>().enabled = false;
     }
+
+    #region Unchanged Overrides
+    public override void OnValidate()
+    {
+        base.OnValidate();
+    }
+    public override void Awake()
+    {
+        base.Awake();
+    }
+    public override void Start()
+    {
+        singleton = this;
+        base.Start();
+    }
+    public override void LateUpdate()
+    {
+        base.LateUpdate();
+    }
+
+    public override void OnDestroy()
+    {
+        base.OnDestroy();
+    }
+    #endregion
 }
