@@ -1,15 +1,11 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using UnityEngine;
 using Mirror;
-using Unity.VisualScripting;
 using Random = UnityEngine.Random;
 
-public class GameManager : NetworkBehaviour
-{
+public class GameManager : NetworkBehaviour {
     [Header("For Coding")]
     public bool debug;
     public bool animations;
@@ -76,7 +72,7 @@ public class GameManager : NetworkBehaviour
         _endScreen = EndScreen.Instance;
         
         KingdomSetup();
-        UiSetup();
+        // UiSetup();
         PlayerSetup();
         
         OnGameStart?.Invoke();

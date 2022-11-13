@@ -8,41 +8,47 @@ using TMPro;
 
 public class PhasePanel : NetworkBehaviour
 {
-    public PhaseItemUI[] phaseItems;
+    public static PhasePanel Instance { get; private set; }
+    private List<PhaseItemUI> _selectedPhases = new();
+    private int _nbPhasesToChose;
+    public bool disableSelection { get; private set; }
+    [SerializeField] private GameObject maxView;
+    [SerializeField] private Button confirm;
 
     [Header("Turn screen")]
+    private bool _animate;
     [SerializeField] private TMP_Text turnText;
-    [SerializeField] private GameObject overlayObject;
+    [SerializeField] private GameObject turnScreen;
     private Image _backgroundImage;
-    
     [SerializeField] private int turnScreenWaitTime = 1;
     [SerializeField] private float turnScreenFadeTime = 0.5f;
-
-    private int _nbActive;
-    public bool disableSelection;
-    public Button confirm;
     
     private void Awake() {
-        gameObject.transform.SetParent(GameObject.Find("UI").transform, false);
-
-        _nbActive = 0;
-        phaseItems = GetComponentsInChildren<PhaseItemUI>();
+        if (!Instance) Instance = this;
     }
 
-    private void Start() {
-        turnText.text = $"Turn {GameManager.Instance.turnNb}";
-        
-        if(!GameManager.Instance.animations) {
-            turnScreenWaitTime = 0;
-            turnScreenFadeTime = 0f;
-        }
-        
-        // "Background" color
-        _backgroundImage = overlayObject.transform.GetChild(0).GetComponent<Image>();
+    [ClientRpc]
+    public void RpcPreparePhasePanel(int nbPhasesToChose, bool animations)
+    {
+        _nbPhasesToChose = nbPhasesToChose;
+        _animate = animations;
+
+        _backgroundImage = turnScreen.transform.GetChild(0).GetComponent<Image>();
+    }
+
+
+    [ClientRpc]
+    public void RpcBeginPhaseSelection(int currentTurn){
+        maxView.SetActive(true);
+
+        if(!_animate) return;
+        turnText.text = "Turn " + currentTurn.ToString();
         StartCoroutine(WaitAndFade());
     }
 
     private IEnumerator WaitAndFade() {
+
+        turnScreen.SetActive(true);
         
         // Wait and fade
         yield return new WaitForSeconds(turnScreenWaitTime);
@@ -51,42 +57,47 @@ public class PhasePanel : NetworkBehaviour
 
         // Wait and disable
         yield return new WaitForSeconds(turnScreenFadeTime);
-        overlayObject.SetActive(false);
+        turnScreen.SetActive(false);
     }
 
-    public void UpdateActive()
+    public void UpdateActive(PhaseItemUI phase)
     {
-        _nbActive = 0;
-        foreach (var phaseItem in phaseItems)
+        if (_selectedPhases.Contains(phase))
         {
-            if (phaseItem.isSelected) _nbActive++;
+            _selectedPhases.Remove(phase);
+            return;
         }
-
-        if(_nbActive == GameManager.Instance.nbPhasesToChose) {
-            disableSelection = true;
-            confirm.interactable = true;
-        } else {
-            disableSelection = false;
-            confirm.interactable = false;
-        }
+        
+        _selectedPhases.Add(phase);
+        confirm.interactable = _selectedPhases.Count == _nbPhasesToChose;
     }
 
     public void ConfirmButtonPressed(){
+
+        disableSelection = true;
         confirm.interactable = false;
 
-        var selectedItems = new List<Phase>();
-        var i = 0;
-        foreach (var phaseItem in phaseItems)
+        var phases = new List<Phase>();
+        foreach (var phaseItem in _selectedPhases)
         {
-            if (phaseItem.isSelected){
-                selectedItems.Add((Phase) i); // converting to enum type (defined in TurnManager)
-            }
-            phaseItem.selectionConfirmed = true;
-            i++;
+            phases.Add(phaseItem.Phase);
         }
 
         NetworkIdentity networkIdentity = NetworkClient.connection.identity;
         PlayerManager p = networkIdentity.GetComponent<PlayerManager>();
-        p.CmdPhaseSelection(selectedItems);
+        p.CmdPhaseSelection(phases);
+    }
+
+    [ClientRpc]
+    public void RpcEndPhaseSelection(){
+        maxView.SetActive(false);
+        disableSelection = false;
+
+        foreach (var phaseItem in _selectedPhases)
+        {
+            print("Resetting phase item");
+            phaseItem.Reset();
+        }
+        _selectedPhases.Clear();
     }
 }

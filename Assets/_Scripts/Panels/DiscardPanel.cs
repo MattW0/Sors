@@ -10,7 +10,6 @@ public class DiscardPanel : NetworkBehaviour
 {   
     public static DiscardPanel Instance { get; private set; }
     
-    private int _nbSelected;
     private int _nbCardsToDiscard;
     public Button confirm;
     public TMP_Text displayText;
@@ -21,23 +20,25 @@ public class DiscardPanel : NetworkBehaviour
     
     private void Awake() {
         if (!Instance) Instance = this;
-        _nbCardsToDiscard = GameManager.Instance.nbDiscard;
+    }
 
-        gameObject.transform.SetParent(GameObject.Find("UI").transform, false);
+    [ClientRpc]
+    public void RpcPrepareDiscardPanel(int nbCardsToDiscard)
+    {
+        _nbCardsToDiscard = nbCardsToDiscard;
+        displayText.text = $"Discard 0/{_nbCardsToDiscard} cards";
+
+        confirm.interactable = false;
+        waitingText.SetActive(false);
+
+        gameObject.SetActive(false);
     }
     
     [ClientRpc]
     public void RpcBeginDiscard()
     {
         gameObject.SetActive(true);
-        
-        _nbSelected = 0;
-        confirm.interactable = false;
-        
         selectedCardsList = new List<GameObject>();
-        displayText.text = $"Discard 0/{_nbCardsToDiscard} cards";
-        
-        // OnDiscardPhaseStarted?.Invoke();
     }
 
     [ClientRpc]
@@ -49,28 +50,24 @@ public class DiscardPanel : NetworkBehaviour
         gameObject.SetActive(false);
         
         OnDiscardPhaseEnded?.Invoke();
-        selectedCardsList.Clear();
     }
 
     [ClientRpc]
-    public void RpcSetInactive()
-    {
+    public void RpcSetInactive(){
         gameObject.SetActive(false);
     }
 
     public void CardToDiscardSelected(GameObject card, bool selected){
+        
         if (selected) {
-            _nbSelected++;
             selectedCardsList.Add(card);
         } else {
-            _nbSelected--;
             selectedCardsList.Remove(card);
         }
 
-        displayText.text = $"Discard {_nbSelected}/{_nbCardsToDiscard} cards";
-
-        if (_nbSelected == _nbCardsToDiscard) confirm.interactable = true;
-        else confirm.interactable = false;
+        var nbSelected = selectedCardsList.Count;
+        displayText.text = $"Discard {nbSelected}/{_nbCardsToDiscard} cards";
+        confirm.interactable = nbSelected == _nbCardsToDiscard;
     }
 
     public void ConfirmButtonPressed(){

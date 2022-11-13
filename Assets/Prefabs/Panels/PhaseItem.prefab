@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 3566472070081454438}
   - component: {fileID: 4011043143021555515}
   - component: {fileID: 8219495542326532368}
-  - component: {fileID: 6852238914269705449}
   - component: {fileID: 2476821137206774664}
   - component: {fileID: 6513761501727539297}
   m_Layer: 5
@@ -82,32 +81,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!61 &6852238914269705449
-BoxCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1027945366825006326}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0, y: 0}
-    oldSize: {x: 0, y: 0}
-    newSize: {x: 0, y: 0}
-    adaptiveTilingThreshold: 0
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  serializedVersion: 2
-  m_Size: {x: 1, y: 1}
-  m_EdgeRadius: 0
 --- !u!114 &2476821137206774664
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -121,7 +94,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Delegates:
-  - eventID: 4
+  - eventID: 2
     callback:
       m_PersistentCalls:
         m_Calls:
@@ -151,8 +124,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   phaseName: {fileID: 2432402465078654542}
   outline: {fileID: 4426554728591177366}
-  isSelected: 0
-  selectionConfirmed: 0
   phasePanel: {fileID: 68640790332384322, guid: 634e6b2c0192f0f4ca1b37244c505feb, type: 3}
 --- !u!1 &4378663432499116835
 GameObject:

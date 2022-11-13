@@ -8,13 +8,13 @@ public class SorsNetworkManager : NetworkManager
 {
     private GameManager _gameManager;
     private PlayerManager _host;
-    private int _numberPlayersRequired;
+    private int _numberPlayersRequired = 2;
 
     public override void OnStartServer()
     {
         base.OnStartServer();
-        _gameManager = GameManager.Instance;
-        _numberPlayersRequired = _gameManager.debug ? 1 : _gameManager.numberPlayers;
+        // _gameManager = GameManager.Instance;
+        // _numberPlayersRequired = _gameManager.debug ? 1 : _gameManager.numberPlayers;
 
         StartCoroutine(WaitingForPlayers());
     }
@@ -25,7 +25,8 @@ public class SorsNetworkManager : NetworkManager
             Debug.Log("Waiting for players...");
             yield return new WaitForSeconds(1);
         }
-        _gameManager.GameSetup();
+        
+        GameManager.Instance.GameSetup();
         yield return null;
     }
 
@@ -35,6 +36,6 @@ public class SorsNetworkManager : NetworkManager
         print("Client connected");
 
         // Disable Mirror HUD
-        gameObject.GetComponent<NetworkManagerHUD>().enabled = false;
+        // gameObject.GetComponent<NetworkManagerHUD>().enabled = false;
     }
 }

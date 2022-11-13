@@ -6,30 +6,36 @@ using TMPro;
 
 public class PhaseItemUI : MonoBehaviour
 {
-    public TMP_Text phaseName;
-    public Image outline;
-    public bool isSelected;
-    public bool selectionConfirmed;
-    
-    public PhasePanel phasePanel;
+    [SerializeField] private PhasePanel phasePanel;
+    public Phase Phase;
+    [SerializeField] private TMP_Text phaseName;
+    [SerializeField] private Image outline;
+    private bool _isSelected;
+
 
     private void Start()
     {
+        _isSelected = false;
         outline.enabled = false;
     }
 
     public void OnClick()
     {
-        if (selectionConfirmed) return;
+        if (phasePanel.disableSelection) return;
         
-        if (outline.enabled) {
+        if (_isSelected) {
             outline.enabled = false;
-            isSelected = false;
-        } else if (!phasePanel.disableSelection) {
+            _isSelected = false;
+        } else {
             outline.enabled = true;
-            isSelected = true;
+            _isSelected = true;
         }
 
-        phasePanel.UpdateActive();
+        phasePanel.UpdateActive(this);
+    }
+
+    public void Reset(){
+        _isSelected = false;
+        outline.enabled = false;
     }
 }

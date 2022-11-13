@@ -13,6 +13,8 @@ public class TurnManager : NetworkBehaviour
     private GameManager _gameManager;
     private Kingdom _kingdom;
     private DiscardPanel _discardPanel;
+    private PhasePanel _phasePanel;
+
     private PlayerHandManager _handManager;
     private BoardManager _boardManager;
     [SerializeField] private CombatManager combatManager;
@@ -35,7 +37,6 @@ public class TurnManager : NetworkBehaviour
 
     [Header("Objects")]
     [SerializeField] private GameObject phasePanelPrefab;
-    private GameObject _phasePanel;
     // [SerializeField] private GameObject _discardPanelPrefab;
 
     private void Awake() {
@@ -99,14 +100,16 @@ public class TurnManager : NetworkBehaviour
 
     private void Prepare() {
         _gameManager = GameManager.Instance;
-        _kingdom = Kingdom.Instance;
-        
-        _discardPanel = DiscardPanel.Instance;
-        _discardPanel.RpcSetInactive(); // Must do this for clients
-        
         _handManager = PlayerHandManager.Instance;
         _boardManager = BoardManager.Instance;
-
+        _kingdom = Kingdom.Instance;
+        
+        // Panels with setup (GameManager handles kingdom setup)
+        _discardPanel = DiscardPanel.Instance;
+        _discardPanel.RpcPrepareDiscardPanel(_gameManager.nbDiscard);
+        _phasePanel = PhasePanel.Instance;
+        _phasePanel.RpcPreparePhasePanel(_gameManager.nbPhasesToChose, _gameManager.animations);
+        
         foreach (var player in _gameManager.players.Keys)
         {
             _playerHealth.Add(player, _gameManager.startHealth);
@@ -121,9 +124,7 @@ public class TurnManager : NetworkBehaviour
     #region PhaseSelection
     private void PhaseSelection() {
         _gameManager.turnNb++;
-
-        _phasePanel = Instantiate(phasePanelPrefab, transform);
-        NetworkServer.Spawn(_phasePanel, connectionToClient);
+        _phasePanel.RpcBeginPhaseSelection(_gameManager.turnNb);
 
         _playersReady = 0;
     }
@@ -144,7 +145,7 @@ public class TurnManager : NetworkBehaviour
         chosenPhases.Sort();
         print($"<color=white>Chosen Phases: {string.Join(", ", chosenPhases)}</color>");
         
-        NetworkServer.Destroy(_phasePanel);
+        _phasePanel.RpcEndPhaseSelection();
         UpdateTurnState(TurnState.NextPhase);
     }
 
