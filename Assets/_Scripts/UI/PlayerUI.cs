@@ -18,20 +18,14 @@ public class PlayerUI : MonoBehaviour
     public TMP_Text turnDeploys;
     public TMP_Text turnRecruits;
 
-    public void SetPlayerUI(string chosenName, string startHealth, string startScore){
-        isMine = true;
-        playerName.text = chosenName;
+    public void SetPlayerUI(string startHealth, string startScore){
         playerHealth.text = startHealth;
         playerScore.text = startScore;
     }
 
-    public void SetOpponentUI(string chosenName, string startHealth, string startScore){
-        playerName.text = chosenName;
-        playerHealth.text = startHealth;
-        playerScore.text = startScore;
-    }
-
+    public void SetName(string name) => playerName.text = name;
     public void SetHealth(int value) => playerHealth.text = value.ToString();
+    public void SetScore(int value) => playerScore.text = value.ToString();
     public void SetCash(int value) => turnCash.text = value.ToString();
     public void SetDeploys(int value) => turnDeploys.text = value.ToString();
     public void SetRecruits(int value) => turnRecruits.text = value.ToString();

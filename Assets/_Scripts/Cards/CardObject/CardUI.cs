@@ -43,7 +43,7 @@ public class CardUI : MonoBehaviour {
             _attack.text = cardInfo.attack.ToString();
             _health.text = cardInfo.health.ToString();
         } else {
-            _transform.Find("CardFront").GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/Copper");
+            _transform.Find("CardFront").GetComponent<Image>().sprite = cardInfo.image;
         }
     }
     

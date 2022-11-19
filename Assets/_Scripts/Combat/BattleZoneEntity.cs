@@ -58,7 +58,7 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
         Target = opponent;
         
         SetStats(cardInfo);
-        entityUI.MoveToHolder(holderNumber, hasAuthority);
+        entityUI.MoveToHolder(holderNumber, isOwned);
     }
 
     private void SetStats(CardInfo cardInfo)
@@ -73,7 +73,7 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     public void CheckIfCanAct(CombatState newState)
     {
         combatState = newState;
-        if (!hasAuthority || IsAttacking) return;
+        if (!isOwned || IsAttacking) return;
         
         CanAct = true;
         entityUI.Highlight(true);
@@ -81,7 +81,7 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        if (!hasAuthority || !CanAct) return;
+        if (!isOwned || !CanAct) return;
         if (combatState != CombatState.Attackers) return;
 
         // only in Attackers since blockerArrowHandler handles Blockers phase
@@ -132,7 +132,7 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     [ClientRpc]
     public void RpcBlockerDeclared(BattleZoneEntity attacker)
     {
-        if (hasAuthority)
+        if (isOwned)
         {
             arrowHandler.HandleFoundEnemyTarget(attacker);
         }
@@ -141,7 +141,7 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     [ClientRpc]
     public void RpcShowOpponentsBlockers(List<BattleZoneEntity> blockers)
     {
-        if (!hasAuthority) return;
+        if (!isOwned) return;
         foreach (var blocker in blockers)
         {
             arrowHandler.ShowOpponentBlocker(blocker.gameObject);

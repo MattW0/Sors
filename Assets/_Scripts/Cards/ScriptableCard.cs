@@ -7,17 +7,20 @@ using UnityEditor;
 [CreateAssetMenu(fileName = "New Card", menuName = "Card")]
 public class ScriptableCard : ScriptableObject
 {
-    [Header("Image")]
-    public Sprite image;
-
-    [Header("Properties")]
+    [Header("General Properties")]
     public string hash;
-    public bool isCreature;
     public int cost;
-    public int attack;
-    public int health;
     public string title;
     public string description;
+    public Sprite image;
+
+    [Header("Creature properties")]
+    public int attack;
+    public int health;
+
+    [Header("Money properties")]
+    public bool isCreature;
+    public int moneyValue;
 
     static Dictionary<string, ScriptableCard> _cache;
     public static Dictionary<string, ScriptableCard> Cache

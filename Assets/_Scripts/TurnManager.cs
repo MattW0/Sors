@@ -328,7 +328,7 @@ public class TurnManager : NetworkBehaviour
         foreach (var (owner, cards) in _recruitedCards) {
             foreach (var cardInfo in cards) {
                 _gameManager.SpawnCreature(owner, cardInfo);
-                print("<color=white>" + owner.playerName + " recruits " + cardInfo.title + "</color>");
+                print("<color=white>" + owner.PlayerName + " recruits " + cardInfo.title + "</color>");
             }
         }
         

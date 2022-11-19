@@ -6,20 +6,30 @@ using Mirror;
 
 public class SorsNetworkManager : NetworkManager
 {
-    private GameManager _gameManager;
-    private PlayerManager _host;
-    private int _numberPlayersRequired = 2;
+    [SerializeField] private int _numberPlayersRequired = 2;
+    public static event Action<int> OnAllPlayersReady;
+    private NetworkManager _manager;
+    private string _playerNameBuffer;
 
-    public static new SorsNetworkManager singleton { get; private set; }
+    public override void Awake()
+    {
+        base.Awake();
+        _manager = GetComponent<NetworkManager>();
+    }
 
     public override void OnStartServer()
     {
         base.OnStartServer();
-        networkAddress = "192.168.1.1";
-        // _gameManager = GameManager.Instance;
-        // _numberPlayersRequired = _gameManager.debug ? 1 : _gameManager.numberPlayers;
+        // networkAddress = "192.168.1.161";
 
+        NetworkServer.RegisterHandler<CreatePlayerMessage>(OnCreateCharacter);
         StartCoroutine(WaitingForPlayers());
+    }
+
+    public override void OnStartHost()
+    {
+        base.OnStartHost();
+        print("Host Started");
     }
 
     private IEnumerator WaitingForPlayers(){
@@ -29,41 +39,45 @@ public class SorsNetworkManager : NetworkManager
             yield return new WaitForSeconds(1);
         }
         
-        GameManager.Instance.GameSetup();
+        OnAllPlayersReady?.Invoke(_numberPlayersRequired);
         yield return null;
     }
 
     public override void OnClientConnect()
     {
         base.OnClientConnect();
-        print("Client connected");
 
-        // Disable Mirror HUD
-        // gameObject.GetComponent<NetworkManagerHUD>().enabled = false;
-    }
+        if(string.IsNullOrEmpty(_playerNameBuffer)) print("No player name recieved!");
+        
+        CreatePlayerMessage playerMessage = new CreatePlayerMessage { name = _playerNameBuffer};
 
-    #region Unchanged Overrides
-    public override void OnValidate()
-    {
-        base.OnValidate();
-    }
-    public override void Awake()
-    {
-        base.Awake();
-    }
-    public override void Start()
-    {
-        singleton = this;
-        base.Start();
-    }
-    public override void LateUpdate()
-    {
-        base.LateUpdate();
+        _playerNameBuffer = null;
+        NetworkClient.Send(playerMessage);
     }
 
-    public override void OnDestroy()
+    void OnCreateCharacter(NetworkConnectionToClient conn, CreatePlayerMessage message)
     {
-        base.OnDestroy();
+        print("Creating player " + message.name);
+        GameObject playerObject = Instantiate(playerPrefab);
+
+        PlayerManager player = playerObject.GetComponent<PlayerManager>();
+        player.PlayerName = message.name;
+
+        // call this to use this gameobject as the primary controller
+        NetworkServer.AddPlayerForConnection(conn, playerObject);
     }
-    #endregion
+
+    public void PlayerWantsToJoin(string playerName, bool host)
+    {
+        if (NetworkClient.active) return;
+
+        PlayerJoins(playerName, host);
+    }
+
+    private void PlayerJoins(string playerName, bool isHost)
+    {
+        _playerNameBuffer = playerName;
+        if (isHost) _manager.StartHost();
+        else _manager.StartClient();
+    }
 }

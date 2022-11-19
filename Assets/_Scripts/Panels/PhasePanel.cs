@@ -95,7 +95,6 @@ public class PhasePanel : NetworkBehaviour
 
         foreach (var phaseItem in _selectedPhases)
         {
-            print("Resetting phase item");
             phaseItem.Reset();
         }
         _selectedPhases.Clear();

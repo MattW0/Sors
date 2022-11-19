@@ -43,7 +43,7 @@ public class EndScreen : NetworkBehaviour
         playerNameText.text = player.isServer ? "Host" : "Client";
         opponentNameText.text = player.isServer ? "Client" : "Host";
 
-        if (player.hasAuthority)
+        if (player.isOwned)
         {
             playerHealthText.text = health.ToString();
             playerPointsText.text = score.ToString();
@@ -58,7 +58,7 @@ public class EndScreen : NetworkBehaviour
     [ClientRpc]
     public void RpcIsLooser(PlayerManager player)
     {
-        if (player.hasAuthority)
+        if (player.isOwned)
         {
             resultText.text = "Defeat";
             opponentHighlight.enabled = true;

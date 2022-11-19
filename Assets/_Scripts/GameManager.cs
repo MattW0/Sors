@@ -4,15 +4,17 @@ using System.Linq;
 using UnityEngine;
 using Mirror;
 using Random = UnityEngine.Random;
+using UnityEngine.UI;
 
 public class GameManager : NetworkBehaviour {
     [Header("For Coding")]
-    public bool debug;
+    public bool singlePlayer;
     public bool animations;
 
     public static GameManager Instance { get; private set; }
     private TurnManager _turnManager;
     private EndScreen _endScreen;
+
     public static event Action OnGameStart;
     public static event Action<PlayerManager, BattleZoneEntity, GameObject> OnEntitySpawned; 
 
@@ -42,6 +44,7 @@ public class GameManager : NetworkBehaviour {
     public ScriptableCard[] startCards;
     public ScriptableCard[] creatureCards;
     public ScriptableCard[] moneyCards;
+    private Sprite[] _moneySprites;
     
     [Header("Prefabs")]
     [SerializeField] private GameObject discardPanelPrefab;
@@ -51,28 +54,30 @@ public class GameManager : NetworkBehaviour {
 
     // Caching all gameObjects of cards in game
     private Dictionary<string, GameObject> Cache { get; set; }
-
     public GameObject GetCardObject(string goID) { return Cache[goID]; }
 
-    public void Awake()
+    private void Awake()
     {
         if (Instance == null) Instance = this;
 
         startCards = Resources.LoadAll<ScriptableCard>("StartCards/");
         creatureCards = Resources.LoadAll<ScriptableCard>("CreatureCards/");
         moneyCards = Resources.LoadAll<ScriptableCard>("MoneyCards/");
+        _moneySprites = Resources.LoadAll<Sprite>("Sprites/Money/");
 
         Cache = new Dictionary<string, GameObject>();
         TurnManager.OnPlayerDies += PlayerDies;
+        SorsNetworkManager.OnAllPlayersReady += GameSetup;
     }
 
-    public void GameSetup()
+    public void GameSetup(int nbPlayers)
     {
+        singlePlayer = nbPlayers == 1;
+
         _turnManager = TurnManager.Instance;
         _endScreen = EndScreen.Instance;
         
         KingdomSetup();
-        // UiSetup();
         PlayerSetup();
         
         OnGameStart?.Invoke();
@@ -115,14 +120,6 @@ public class GameManager : NetworkBehaviour {
         Kingdom.Instance.RpcSetKingdomCards(kingdomCards);
     }
 
-    private void UiSetup()
-    {
-        var discardPanelObject = Instantiate(discardPanelPrefab, transform);
-        NetworkServer.Spawn(discardPanelObject, connectionToClient);
-        
-        discardPanelObject.gameObject.SetActive(false);
-    }
-
     private void PlayerSetup(){
         players = new Dictionary<PlayerManager, NetworkIdentity>();
         var playerManagers = FindObjectsOfType<PlayerManager>();
@@ -131,11 +128,9 @@ public class GameManager : NetworkBehaviour {
         {
             var playerNetworkId = player.GetComponent<NetworkIdentity>();
             players.Add(player, playerNetworkId);
-            
-            player.RpcFindObjects(debug);
 
             // UI
-            player.RpcSetPlayerStats(startHealth, startScore);
+            player.PlayerName = player.PlayerName; // To update info in network
             player.Health = startHealth;
             player.Score = startScore;
             player.Cash = turnCash;
@@ -156,7 +151,7 @@ public class GameManager : NetworkBehaviour {
     private void SpawnPlayerDeck(PlayerManager playerManager){
         // Coppers
         for (var i = 0; i < initialDeckSize - nbCreatures; i++){
-            var moneyCard = moneyCards[0]; // Only copper right now
+            var moneyCard = moneyCards[2]; // Only copper right now
             var cardObject = Instantiate(moneyCardPrefab);
             SpawnCacheAndMoveCard(playerManager, cardObject, moneyCard, CardLocations.Deck);
         }
@@ -234,6 +229,7 @@ public class GameManager : NetworkBehaviour {
     private void OnDestroy()
     {
         TurnManager.OnPlayerDies -= PlayerDies;
+        SorsNetworkManager.OnAllPlayersReady += GameSetup;
     }
 }
 

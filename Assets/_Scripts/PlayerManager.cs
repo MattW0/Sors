@@ -13,23 +13,7 @@ public class PlayerManager : NetworkBehaviour
     private CombatManager _combatManager;
     public PlayerManager opponent { get; private set; }
 
-    [Header("Game Stats")]
-    public CardCollection cards;
-    [SyncVar] public string playerName;
-    [SyncVar, SerializeField] private int health;
-    [SyncVar, SerializeField] private int score;
-    public int Score { get => score; set => score = value; }
-
-    public int Health
-    {
-        get => health;
-        set
-        {
-            health = value;
-            SetHealthValue(health);
-        } 
-    }
-    
+    [Header("Game State")]
     public List<Phase> playerChosenPhases = new() {Phase.DrawI, Phase.DrawII};
     private List<GameObject> _discardSelection;
     public List<CardInfo> moneyCards;
@@ -38,42 +22,58 @@ public class PlayerManager : NetworkBehaviour
     public static event Action<PlayerManager, int> OnCashChanged;
     public static event Action<GameObject, bool> OnHandChanged;
 
+    [Header("Game Stats")]
+    public CardCollection cards;
+    [SyncVar, SerializeField] private string playerName;
+    public string PlayerName{
+        get => playerName;
+        set => SetPlayerName(value);
+    }
+
+    [SyncVar, SerializeField] private int health;
+    public int Health
+    {
+        get => health;
+        set => SetHealthValue(value);
+    }
+
+    [SyncVar, SerializeField] private int score;
+    public int Score 
+    {
+        get => score;
+        set => SetScoreValue(value); 
+    }
 
     [Header("Turn Stats")]
     [SyncVar] private int _cash;
     public int Cash { 
         get => _cash;
-        set{
-            _cash = value;
-            SetCashValue(_cash); // Invoke OnCashChanged and update UI
-        }
+        set => SetCashValue(value); // Invoke OnCashChanged and update UI
     }
     
     [SyncVar] private int _recruits = 1;
     public int Recruits { 
         get => _recruits; 
-        set{
-            _recruits = value;
-            SetRecruitValue(_recruits);
-        }
+        set => SetRecruitValue(value);
     }
     
     [SyncVar] private int _deploys = 1;
     public int Deploys { 
         get => _deploys;
-        set{
-            _deploys = value;
-            SetDeployValue(_deploys);
-        }
+        set => SetDeployValue(value);
     }
 
     public bool PlayerIsChoosingBlockers { get; private set; }
     private List<BattleZoneEntity> _blockers = new();
-    
-    public PlayerUI playerUI;
-    public PlayerUI opponentUI;
+    private PlayerUI _playerUI;
+    private PlayerUI _opponentUI;
 
     #region GameSetup
+
+    private void Awake(){
+        _playerUI = GameObject.Find("PlayerInfo").GetComponent<PlayerUI>();
+        _opponentUI = GameObject.Find("OpponentInfo").GetComponent<PlayerUI>();
+    }
     public override void OnStartClient(){
         base.OnStartClient();
 
@@ -86,30 +86,15 @@ public class PlayerManager : NetworkBehaviour
         _combatManager = CombatManager.Instance;
     }
 
-    [ClientRpc]
-    public void RpcFindObjects(bool debug){   
-        if(!hasAuthority) return;
-
-        // var players = FindObjectsOfType<PlayerManager>();
-
-        // if (debug) return;
-        // opponent = players[0] == this ? players[1] : players[0];
-    }
-
-    [ClientRpc]
-    public void RpcSetPlayerStats(int startHealth, int startScore){   
-        playerName = isServer ? "Host" : "Client";
-        var opponentName = !isServer ? "Host" : "Client"; // inverse of my name
+    // [ClientRpc]
+    // public void RpcSetPlayerStats(int startHealth, int startScore){
         
-        playerUI = GameObject.Find("PlayerInfo").GetComponent<PlayerUI>();
-        opponentUI = GameObject.Find("OpponentInfo").GetComponent<PlayerUI>();
+    //     PlayerName = PlayerName;
+    //     if (!isOwned) return;
 
-        if (hasAuthority){
-            playerUI.SetPlayerUI(playerName, startHealth.ToString(), startScore.ToString());
-        } else {
-            opponentUI.SetOpponentUI(opponentName, startHealth.ToString(), startScore.ToString());
-        }
-    }
+    //     _playerUI.SetPlayerUI(startHealth.ToString(), startScore.ToString());
+    //     _opponentUI.SetPlayerUI(startHealth.ToString(), startScore.ToString());
+    // }
     
     [Server] // GameManager calls this on player object
     public void DrawInitialHand(int amount)
@@ -194,9 +179,9 @@ public class PlayerManager : NetworkBehaviour
 
     [ClientRpc]
     public void RpcMoveCard(GameObject card, CardLocations from, CardLocations to){
-        card.GetComponent<CardMover>().MoveToDestination(hasAuthority, to);
+        card.GetComponent<CardMover>().MoveToDestination(isOwned, to);
 
-        if (!hasAuthority) return;
+        if (!isOwned) return;
         if (to == CardLocations.Hand) OnHandChanged?.Invoke(card, true);
         else if (from == CardLocations.Hand) OnHandChanged?.Invoke(card, false);
     }
@@ -241,7 +226,7 @@ public class PlayerManager : NetworkBehaviour
     [Command]
     public void CmdPlayMoneyCard(CardInfo cardInfo)
     {
-        Cash++;
+        Cash += cardInfo.moneyValue;
         moneyCards.Add(cardInfo);
         cards.hand.Remove(cardInfo);
     }
@@ -314,81 +299,107 @@ public class PlayerManager : NetworkBehaviour
     #endregion
 
     #region UI
+    private void SetPlayerName(string name){
+        playerName = name;
+        if (isServer) RpcUISetPlayerName(name);
+        else CmdUISetPlayerName(name);
+    }
+
+    [Command]
+    private void CmdUISetPlayerName(string name) => RpcUISetPlayerName(name);
+
+    [ClientRpc]
+    public void RpcUISetPlayerName(string name){
+        playerName = name;
+        if(isOwned) _playerUI.SetName(name);
+        else _opponentUI.SetName(name);
+    }
     
     private void SetHealthValue(int value){
-        if (isServer) RpcSetHealthValue(value);
-        else CmdSetHealthValue(value);
+        health = value;
+        if (isServer) RpcUISetHealthValue(value);
+        else CmdUISetHealthValue(value);
     }
 
     [Command]
-    private void CmdSetHealthValue(int value){
-        RpcSetHealthValue(value);
-    }
+    private void CmdUISetHealthValue(int value) => RpcUISetHealthValue(value);
 
     [ClientRpc]
-    private void RpcSetHealthValue(int value){
-        if(hasAuthority) playerUI.SetHealth(value);
-        else opponentUI.SetHealth(value);
+    private void RpcUISetHealthValue(int value){
+        if(isOwned) _playerUI.SetHealth(value);
+        else _opponentUI.SetHealth(value);
     }
         
-    private void SetCashValue(int value){
-        if (isServer) RpcSetCashValue(value);
-        else CmdSetCashValue(value);
+    private void SetScoreValue(int value){
+        score = value;
+        if (isServer) RpcUISetScoreValue(value);
+        else CmdUISetScoreValue(value);
     }
 
     [Command]
-    private void CmdSetCashValue(int value){
-        RpcSetCashValue(value);
-    }
+    private void CmdUISetScoreValue(int value) => RpcUISetScoreValue(value);
 
     [ClientRpc]
-    private void RpcSetCashValue(int value){
+    private void RpcUISetScoreValue(int value){
+        if(isOwned) _playerUI.SetScore(value);
+        else _opponentUI.SetScore(value);
+    }
+    private void SetCashValue(int value){
+
+        _cash = value;
+        if (isServer) RpcUISetCashValue(value);
+        else CmdUISetCashValue(value);
+    }
+
+    [Command]
+    private void CmdUISetCashValue(int value) => RpcUISetCashValue(value);
+
+    [ClientRpc]
+    private void RpcUISetCashValue(int value){
         OnCashChanged?.Invoke(this, value);
         
-        if(hasAuthority) playerUI.SetCash(value);
-        else opponentUI.SetCash(value);
+        if(isOwned) _playerUI.SetCash(value);
+        else _opponentUI.SetCash(value);
     }
     
     private void SetDeployValue(int value){
-        if (isServer) RpcSetDeployValue(value);
-        else CmdSetDeployValue(value);
+        _deploys = value;
+        if (isServer) RpcUISetDeployValue(value);
+        else CmdUISetDeployValue(value);
     }
 
     [Command]
-    private void CmdSetDeployValue(int value){
-        RpcSetDeployValue(value);
-    }
+    private void CmdUISetDeployValue(int value) => RpcUISetDeployValue(value);
 
     [ClientRpc]
-    private void RpcSetDeployValue(int value){
-        // OnDeployChanged?.Invoke(value);
+    private void RpcUISetDeployValue(int value){
+        // OnDeployChanged?.Invoke(this, value);
 
-        if(hasAuthority) playerUI.SetDeploys(value);
-        else opponentUI.SetDeploys(value);
+        if(isOwned) _playerUI.SetDeploys(value);
+        else _opponentUI.SetDeploys(value);
     }
 
     private void SetRecruitValue(int value){
-        if (isServer) RpcSetRecruitValue(value);
-        else CmdSetRecruitValue(value);
+        _recruits = value;
+        if (isServer) RpcUISetRecruitValue(value);
+        else CmdUISetRecruitValue(value);
     }
 
     [Command]
-    private void CmdSetRecruitValue(int value){
-        RpcSetRecruitValue(value);
-    }
+    private void CmdUISetRecruitValue(int value) => RpcUISetRecruitValue(value);
 
     [ClientRpc]
-    private void RpcSetRecruitValue(int value){
+    private void RpcUISetRecruitValue(int value){
         // OnRecruitChanged?.Invoke(value);
 
-        if(hasAuthority) playerUI.SetRecruits(value);
-        else opponentUI.SetRecruits(value);
+        if(isOwned) _playerUI.SetRecruits(value);
+        else _opponentUI.SetRecruits(value);
     }
     
     [ClientRpc] // ugh ds gieng sicher besser...
     public void RpcDestroyArrows()
     {
-        if (!hasAuthority) return;
+        if (!isOwned) return;
         
         var arrows = FindObjectsOfType<Arrow>();
         foreach(var arrow in arrows) Destroy(arrow.gameObject);

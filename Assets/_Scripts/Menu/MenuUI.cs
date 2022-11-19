@@ -1,18 +1,27 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class MenuUI : MonoBehaviour
 {
-    [SerializeField] private MenuNetwork _menuNetwork;
-    
+    [SerializeField] private SorsNetworkManager _networkManager;
+    [SerializeField] private TMP_InputField _nameInput;
+    private string _playerName;
+
     public void OnHostClick()
     {
-        _menuNetwork.PlayerJoins(true);
+        if (string.IsNullOrEmpty(_nameInput.text)) _playerName = "Host";
+        else _playerName = _nameInput.text;
+
+        _networkManager.PlayerWantsToJoin(_playerName, true);
     }
 
     public void OnClientClick()
     {
-        _menuNetwork.PlayerJoins(false);
+        if (string.IsNullOrEmpty(_nameInput.text)) _playerName = "Client";
+        else _playerName = _nameInput.text;
+
+        _networkManager.PlayerWantsToJoin(_playerName, false);
     }
 }

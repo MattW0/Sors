@@ -29,7 +29,7 @@ public class EntityManager : NetworkBehaviour
     [ClientRpc]
     private void RpcEntityAdded(BattleZoneEntity entity)
     {
-        if (!entity.hasAuthority || !myZone) return;
+        if (!entity.isOwned || !myZone) return;
         battleZoneEntities.Add(entity);
     }
     

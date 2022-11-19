@@ -36,7 +36,7 @@ public class BlockerArrowHandler : NetworkBehaviour
         // return if not in Blockers Phase
         if (_currentState != CombatState.Blockers) return;
 
-        if (entity.hasAuthority) HandleClickedMyCreature();
+        if (entity.isOwned) HandleClickedMyCreature();
         else HandleClickedOpponentCreature();
     }
     

@@ -22,7 +22,7 @@ public class Chat : NetworkBehaviour {
 
     [ClientCallback]
     private void OnDestroy() {
-        if (!hasAuthority) return;
+        if (!isOwned) return;
 
         onMessageSent -= HandleNewMessage;
     }
