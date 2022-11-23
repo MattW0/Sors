@@ -197,13 +197,13 @@ public class PlayerManager : NetworkBehaviour
         // Saving local player choice
         playerChosenPhases = phases;
         if (playerChosenPhases.Contains(Phase.Recruit)) Recruits++;
-        TurnManager.Instance.PlayerSelectedPhases(phases);
+        _turnManager.PlayerSelectedPhases(this, phases);
     }
 
     [Command]
     public void CmdDiscardSelection(List<GameObject> cardsToDiscard){
         _discardSelection = cardsToDiscard;
-        TurnManager.Instance.PlayerSelectedDiscardCards();
+        _turnManager.PlayerSelectedDiscardCards(this);
     }
     
     [Server]
@@ -415,12 +415,11 @@ public class PlayerManager : NetworkBehaviour
         return networkIdentity.GetComponent<PlayerManager>();
     }
 
-    public void PlayerPressedReadyButton()
-    {
+    public void PlayerPressedReadyButton() {
         if (isServer) _turnManager.PlayerPressedReadyButton(this);
         else CmdPlayerPressedReadyButton();
     }
-    
+
     [Command]
     private void CmdPlayerPressedReadyButton() {
         _turnManager.PlayerPressedReadyButton(this);

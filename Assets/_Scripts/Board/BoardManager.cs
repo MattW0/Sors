@@ -21,7 +21,7 @@ public class BoardManager : NetworkBehaviour
     private GameManager _gameManager;
 
     public static event Action<BattleZoneEntity> OnEntityAdded;
-    public static event Action OnSkipCombatPhase;
+    public static event Action<PlayerManager> OnSkipCombatPhase;
     // public static event Action OnDestroyArrows;
 
     private void Awake()
@@ -84,11 +84,11 @@ public class BoardManager : NetworkBehaviour
         }
         
         // Auto-skipping if player has empty board
-        foreach (var list in _battleZoneEntities.Values)
+        foreach (var item in _battleZoneEntities)
         {
-            if (list.Count > 0) continue;
+            if (item.Value.Count > 0) continue;
             
-            OnSkipCombatPhase?.Invoke();
+            OnSkipCombatPhase?.Invoke(item.Key);
             print("No attackers available");
         }
     }
@@ -130,8 +130,9 @@ public class BoardManager : NetworkBehaviour
         }
 
         // Check for auto-skip
-        foreach (var list in _battleZoneEntities.Values)
+        foreach (var item in _battleZoneEntities)
         {
+            var list = item.Value;
             // Skip if either player has empty board or has declared all attackers
             var hasBlocker = false;
             foreach (var entity in list.Where(entity => !entity.IsAttacking))
@@ -141,7 +142,7 @@ public class BoardManager : NetworkBehaviour
             if (hasBlocker) continue;
             
             print("No blockers available");
-            OnSkipCombatPhase?.Invoke();
+            OnSkipCombatPhase?.Invoke(item.Key);
         }
     }
     

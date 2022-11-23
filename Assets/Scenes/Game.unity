@@ -569,7 +569,11 @@ PrefabInstance:
     - target: {fileID: 4051181950050160747, guid: f94142eb38c8bb14c8be8add966a53c0, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 354588948}
+      objectReference: {fileID: 329506928}
+    - target: {fileID: 4051181950050160747, guid: f94142eb38c8bb14c8be8add966a53c0, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OnKingdomButtonPressed
+      objectReference: {fileID: 0}
     - target: {fileID: 4743195735420804201, guid: f94142eb38c8bb14c8be8add966a53c0, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -745,22 +749,22 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 1753289325068816917, guid: f94142eb38c8bb14c8be8add966a53c0, type: 3}
   m_PrefabInstance: {fileID: 329506926}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &329506928 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5434541857458807090, guid: f94142eb38c8bb14c8be8add966a53c0, type: 3}
+  m_PrefabInstance: {fileID: 329506926}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42f7d97fc19c4fb4c9121c78d83ebef0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &354588947 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6245966277038001865, guid: 37e2b8313015d1a4f8f13069553e53bd, type: 3}
   m_PrefabInstance: {fileID: 7590782933963514888}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &354588948 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5373639038091819865, guid: 37e2b8313015d1a4f8f13069553e53bd, type: 3}
-  m_PrefabInstance: {fileID: 7590782933963514888}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 642e5f630e6209c45a3b47f3b80d4ccf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -931,9 +935,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sceneId: 3486046347
+  _assetId: 0
   serverOnly: 1
   visible: 0
-  m_AssetId: 
   hasSpawned: 0
 --- !u!114 &806438202
 MonoBehaviour:
@@ -947,9 +951,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a318c73b17532e4b86564a4c2f2c190, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  syncDirection: 0
   syncMode: 0
   syncInterval: 0.1
-  debug: 0
+  singlePlayer: 0
   animations: 1
   turnNb: 0
   numberPlayers: 2
@@ -1280,6 +1285,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b80c7e82f926c274d9960a524cb41e36, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  syncDirection: 0
   syncMode: 0
   syncInterval: 0.1
   moneyZones:
@@ -1301,9 +1307,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sceneId: 2612408530
+  _assetId: 0
   serverOnly: 1
   visible: 0
-  m_AssetId: 
   hasSpawned: 0
 --- !u!1 &1179444533 stripped
 GameObject:
@@ -3733,6 +3739,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bbb936a2259338e40bb9b241abc148c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  syncDirection: 0
   syncMode: 0
   syncInterval: 0.1
   combatManager: {fileID: 6319069573471266856}
@@ -3752,9 +3759,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sceneId: 998977968
+  _assetId: 0
   serverOnly: 1
   visible: 0
-  m_AssetId: 
   hasSpawned: 0
 --- !u!4 &6319069573471266854
 Transform:
@@ -3802,6 +3809,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8b89afc1e18e834086f1c3d432800aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  syncDirection: 0
   syncMode: 0
   syncInterval: 0.1
   combatDamageWaitTime: 0.8

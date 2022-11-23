@@ -76,6 +76,5 @@ public class PhaseVisualsUI : MonoBehaviour
                 phaseHighlights.Add(imgTransform.GetComponent<Image>());
             }
         }
-        
     }
 }

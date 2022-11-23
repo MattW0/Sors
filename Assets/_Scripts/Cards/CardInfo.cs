@@ -8,7 +8,7 @@ public struct CardInfo
     public string goID;
     public string title;
     public string hash;
-    public Sprite image;
+    // public Sprite image;
 
     [Header("Money properties")]
     public bool isCreature;
@@ -24,7 +24,7 @@ public struct CardInfo
         hash = card.hash;
         title = card.title;
         cost = card.cost;
-        image = card.image;
+        // image = card.image;
 
         if (gameObjectID != null) goID = gameObjectID;
         else goID = null;

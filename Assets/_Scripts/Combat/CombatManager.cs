@@ -154,6 +154,9 @@ public class CombatManager : NetworkBehaviour
     
     private IEnumerator PlayerDamage(List<BattleZoneEntity> unblockedAttackers)
     {
+        // Skip if in single-player (for debugging)
+        if (_gameManager.singlePlayer) UpdateCombatState(CombatState.CleanUp);
+
         foreach (var attacker in unblockedAttackers)
         {
             // player takes damage from unblocked creatures
@@ -189,7 +192,7 @@ public class CombatManager : NetworkBehaviour
         }
     }
 
-    private void SkipCombatPhase()
+    private void SkipCombatPhase(PlayerManager player)
     {
         PlayerIsReady(null);
     }

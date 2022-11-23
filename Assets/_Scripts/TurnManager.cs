@@ -22,7 +22,8 @@ public class TurnManager : NetworkBehaviour
     [field: Header("Game state")] 
     [SerializeField] private TurnState turnState;
     public List<Phase> chosenPhases;
-    private static int _playersReady;
+    private List<PlayerManager> _readyPlayers = new();
+    private int _nbPlayers;
     private Dictionary<PlayerManager, int> _playerHealth = new();
     public int GetHealth(PlayerManager player) => _playerHealth[player];
 
@@ -110,6 +111,7 @@ public class TurnManager : NetworkBehaviour
         _phasePanel = PhasePanel.Instance;
         _phasePanel.RpcPreparePhasePanel(_gameManager.nbPhasesToChose, _gameManager.animations);
         
+        _nbPlayers = _gameManager.players.Count;
         foreach (var player in _gameManager.players.Keys)
         {
             _playerHealth.Add(player, _gameManager.startHealth);
@@ -126,19 +128,19 @@ public class TurnManager : NetworkBehaviour
         _gameManager.turnNb++;
         _phasePanel.RpcBeginPhaseSelection(_gameManager.turnNb);
 
-        _playersReady = 0;
+        _readyPlayers.Clear();
     }
 
-    public void PlayerSelectedPhases(List<Phase> phases) {
+    public void PlayerSelectedPhases(PlayerManager player, List<Phase> phases) {
         
-        _playersReady++;
+        _readyPlayers.Add(player);
         foreach (var phase in phases) {
             if(!chosenPhases.Contains(phase)){
                 chosenPhases.Add(phase);
             }
         }
 
-        if (_playersReady != _gameManager.players.Count) return;
+        if (_readyPlayers.Count != _nbPlayers) return;
 
         // Combat each round
         chosenPhases.Add(Phase.Combat);
@@ -151,8 +153,8 @@ public class TurnManager : NetworkBehaviour
 
     private void NextPhase(){
 
-        _playersReady = 0;
-        
+        _readyPlayers.Clear();
+
         if (chosenPhases.Count == 0) {
             UpdateTurnState(TurnState.CleanUp);
             OnPhaseChanged?.Invoke(TurnState.CleanUp);
@@ -192,18 +194,17 @@ public class TurnManager : NetworkBehaviour
     }
 
     private void Discard() {
-        _playersReady = 0;
-        
         _handManager.RpcHighlightAll(true);
         _discardPanel.RpcBeginDiscard();
     }
 
-    public void PlayerSelectedDiscardCards(){
-        _playersReady++;
-        if (_playersReady != _gameManager.players.Count) return;
+    public void PlayerSelectedDiscardCards(PlayerManager player){
 
-        foreach (var player in _gameManager.players.Keys) {
-            player.DiscardSelection();
+        _readyPlayers.Add(player);       
+        if (_readyPlayers.Count != _nbPlayers) return;
+
+        foreach (var p in _readyPlayers) {
+            p.DiscardSelection();
         }
 
         _discardPanel.RpcFinishDiscard();
@@ -223,7 +224,6 @@ public class TurnManager : NetworkBehaviour
 
     private void Deploy()
     {
-        _playersReady = 0;
         _handManager.RpcHighlightMoney(true);
         
         // Bonus for phase selection
@@ -241,8 +241,7 @@ public class TurnManager : NetworkBehaviour
     public void PlayerDeployedCard(PlayerManager player, GameObject card, int holderNumber) {
         
         // If player did not skip deploy (and deployed a card)
-        if (card)
-        {
+        if (card){
             var cardInfo = card.GetComponent<CardStats>().cardInfo;
             _gameManager.SpawnFieldEntity(player, card, cardInfo, holderNumber);
             player.Cash -= cardInfo.cost;
@@ -252,12 +251,11 @@ public class TurnManager : NetworkBehaviour
         // Waiting for player to use other deploys
         if (player.Deploys > 0) return;
         
+        _readyPlayers.Add(player);
         _handManager.TargetHighlightMoney(_gameManager.players[player].connectionToClient, false);
-        _playersReady++;
-        print($"{_playersReady}/{_gameManager.players.Count} players ready");
         
         // Waiting for a player to finish recruiting
-        if (_playersReady != _gameManager.players.Count) return;
+        if (_readyPlayers.Count != _nbPlayers) return;
         
         EndDeploy();
     }
@@ -314,11 +312,10 @@ public class TurnManager : NetworkBehaviour
         // Waiting for player to use other recruits
         if (player.Recruits > 0) return;
         
-        _playersReady++;
-        print($"{_playersReady}/{_gameManager.players.Count} players ready");
+        _readyPlayers.Add(player);
         
         // Waiting for a player to finish recruiting
-        if (_playersReady != _gameManager.players.Count) return;
+        if (_readyPlayers.Count != _nbPlayers) return;
 
         RecruitSpawnAndReset();
     }
@@ -403,7 +400,10 @@ public class TurnManager : NetworkBehaviour
 
     public void PlayerPressedReadyButton(PlayerManager player)
     {
+        if (_readyPlayers.Contains(player)) return;       
         if (player.Recruits <= 0 || player.Deploys <= 0) return;
+
+        
         
         switch (turnState)
         {

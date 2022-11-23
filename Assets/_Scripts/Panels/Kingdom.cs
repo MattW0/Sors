@@ -101,12 +101,11 @@ public class Kingdom : NetworkBehaviour
         RpcMinButton();
     }
 
-    public void MinButton() => maxView.SetActive(false);
-
     public void MaxButton() {
         if (maxView.activeSelf) MinButton();
         else maxView.SetActive(true);
     }
+    public void MinButton() => maxView.SetActive(false);
 
     [ClientRpc]
     private void RpcMinButton() => MinButton();

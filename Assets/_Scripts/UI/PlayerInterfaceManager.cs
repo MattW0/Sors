@@ -7,6 +7,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
 
     private TurnManager _turnManager;
     private PhaseVisualsUI _phaseVisualsUI;
+    private PlayerInterfaceButtons _buttons;
     
     
     private void Awake()
@@ -16,6 +17,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
         GameManager.OnGameStart += RpcPrepareUIs;
         TurnManager.OnPhaseChanged += RpcUpdatePhaseHighlight;
         CombatManager.OnCombatStateChanged += RpcUpdateCombatHighlight;
+        BoardManager.OnSkipCombatPhase += PlayerDisableReadyButton;
         
         _turnManager = TurnManager.Instance;
     }
@@ -24,6 +26,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
     private void RpcPrepareUIs()
     {
         _phaseVisualsUI = PhaseVisualsUI.Instance;
+        _buttons = PlayerInterfaceButtons.Instance;
         _phaseVisualsUI.PrepareUI();
     }
     
@@ -42,6 +45,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
         };
 
         _phaseVisualsUI.UpdatePhaseHighlight(newHighlightIndex);
+        _buttons.EnableReadyButton();
     }
     
     [ClientRpc]
@@ -54,20 +58,17 @@ public class PlayerInterfaceManager : NetworkBehaviour
         };
         
         _phaseVisualsUI.UpdatePhaseHighlight(newHighlightIndex);
+        _buttons.EnableReadyButton();
     }
 
+    private void PlayerDisableReadyButton(PlayerManager player){
+        TargetDisableReadyButon(player.GetComponent<NetworkIdentity>().connectionToClient);
+    }
 
-    public void OnResignButtonPressed() {
-        var player = PlayerManager.GetPlayerManager();
-    }
-    
-    public void OnUndoButtonPressed() {
-        var player = PlayerManager.GetPlayerManager();
-    }
-    
-    public void OnReadyButtonPressed() {
-        var player = PlayerManager.GetPlayerManager();
-        player.PlayerPressedReadyButton();
+    [TargetRpc]
+    private void TargetDisableReadyButon(NetworkConnection target){
+        // Needs to be target rpc
+        _buttons.DisableReadyButton();
     }
 
     private void OnDestroy()
@@ -75,5 +76,6 @@ public class PlayerInterfaceManager : NetworkBehaviour
         GameManager.OnGameStart -= RpcPrepareUIs;
         TurnManager.OnPhaseChanged -= RpcUpdatePhaseHighlight;
         CombatManager.OnCombatStateChanged -= RpcUpdateCombatHighlight;
+        BoardManager.OnSkipCombatPhase -= PlayerDisableReadyButton;
     }
 }

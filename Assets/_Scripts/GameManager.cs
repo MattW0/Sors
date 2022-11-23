@@ -4,7 +4,6 @@ using System.Linq;
 using UnityEngine;
 using Mirror;
 using Random = UnityEngine.Random;
-using UnityEngine.UI;
 
 public class GameManager : NetworkBehaviour {
     [Header("For Coding")]
