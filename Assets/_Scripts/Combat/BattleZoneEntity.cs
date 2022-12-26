@@ -12,7 +12,8 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     [field: Header("Combat Stats")]
     public bool CanAct { get; private set; }
     [field: SyncVar, SerializeField] public bool IsAttacking { get; private set; }
-    // [field: SyncVar] public bool IsBlocking { get; private set; }
+    public List<Keywords> _keywordAbilities { get; private set; }
+
     [SerializeField] private CombatState combatState;
     
     [Header("Other scripts")]
@@ -44,6 +45,17 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
             if (_health <= 0) Die();
         }
     }
+
+    [SyncVar] private int _points;
+    private int Points
+    {
+        get => _points;
+        set
+        {
+            _points = value;
+            entityUI.SetPoints(_points);
+        }
+    }
     
     private BoardManager _boardManager;
     public event Action<BattleZoneEntity> OnDeath;
@@ -66,6 +78,9 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
         Title = cardInfo.title;
         _attack = cardInfo.attack;
         _health = cardInfo.health;
+        _points = cardInfo.points;
+
+        _keywordAbilities = cardInfo.keyword_abilities;
         
         entityUI.SetEntityUI(cardInfo);
     }

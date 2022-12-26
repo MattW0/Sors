@@ -9,8 +9,11 @@ public class EntityUI : MonoBehaviour
     [SerializeField] private TMP_Text cost;
     [SerializeField] private TMP_Text attack;
     [SerializeField] private TMP_Text health;
+    [SerializeField] private TMP_Text points;
+
     [SerializeField] private Image highlight;
     [SerializeField] private Image attackerHighlight;
+    [SerializeField] private TMP_Text keyWords;
 
     private Transform _transform;
     [SerializeField] private Transform playerPlayZone;
@@ -42,6 +45,7 @@ public class EntityUI : MonoBehaviour
 
     public void SetHealth(int newValue) => health.text = newValue.ToString();
     public void SetAttack(int newValue) => attack.text = newValue.ToString();
+    public void SetPoints(int newValue) => points.text = newValue.ToString();
 
     public void Highlight(bool active)
     {

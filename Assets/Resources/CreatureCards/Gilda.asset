@@ -10,16 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 26c270d0a29eb0a4bbcc4f0c6bba43a7, type: 3}
-  m_Name: 1
+  m_Name: Gilda
   m_EditorClassIdentifier: 
-  hash: +1 Card
-  cost: 2
-  title: A
+  hash: 6e565919d09e922e4821e5723b97b9b262f1caaeac068d8d7a85fd368d39ba0f
+  cost: 4
+  title: Gilda
   description: 
-  attack: 0
-  health: 1
-  points: 0
-  keyword_abilities: 05000000
-  relations_texts: []
+  attack: 3
+  health: 3
+  points: 1
+  keyword_abilities: 03000000
+  relations_texts:
+  - When Gilda gets blocked, gain 1 life
   isCreature: 1
   moneyValue: 0

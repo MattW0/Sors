@@ -27,6 +27,7 @@ public class KingdomCard : MonoBehaviour
     public int Cost => int.Parse(cost.text); // for access in Kingdom
     [SerializeField] private TMP_Text attack;
     [SerializeField] private TMP_Text defense;
+    [SerializeField] private TMP_Text points;
     [SerializeField] private Image highlight;
 
     private void Awake(){
@@ -41,6 +42,7 @@ public class KingdomCard : MonoBehaviour
         cost.text = card.cost.ToString();
         attack.text = card.attack.ToString();
         defense.text = card.health.ToString();
+        points.text = card.points.ToString();
     }
 
     private void EndRecruitPhase(){

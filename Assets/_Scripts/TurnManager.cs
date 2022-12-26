@@ -88,6 +88,7 @@ public class TurnManager : NetworkBehaviour
             case TurnState.Idle:
                 print("Game Ends");
                 break;
+                
             default:
                 print("<color=red>Invalid turn state</color>");
                 throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
@@ -337,7 +338,6 @@ public class TurnManager : NetworkBehaviour
     }
 
     private void CleanUp(){
-        print("<color=yellow>CleanUp not yet implemented</color>");
 
         var gameEnds = false;
         foreach (var (player, health)  in _playerHealth)
@@ -352,7 +352,6 @@ public class TurnManager : NetworkBehaviour
         {
             _gameManager.EndGame();
             UpdateTurnState(TurnState.Idle);
-            return;
         }
         
         UpdateTurnState(TurnState.PhaseSelection);
@@ -395,13 +394,10 @@ public class TurnManager : NetworkBehaviour
 
     public void PlayerPressedReadyButton(PlayerManager player)
     {
-        // if (_readyPlayers.Contains(player)) return;
-        // if (player.Recruits <= 0 || player.Deploys <= 0) return;
-
         switch (turnState)
         {
             case TurnState.Deploy:
-                player.Deploys = 0;
+                player.Deploys = 1; // will substract one further in PlayerDeployedCard
                 PlayerDeployedCard(player, null, -1);
                 break;
             case TurnState.Combat:

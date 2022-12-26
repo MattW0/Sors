@@ -12,6 +12,7 @@ public class CardUI : MonoBehaviour {
     [SerializeField] private TMP_Text _cost;
     [SerializeField] private TMP_Text _attack;
     [SerializeField] private TMP_Text _health;
+    [SerializeField] private TMP_Text _points;
     [SerializeField] private Image _image;
     [SerializeField] private Image _highlight;
     
@@ -42,6 +43,7 @@ public class CardUI : MonoBehaviour {
             _description.text = cardInfo.hash;
             _attack.text = cardInfo.attack.ToString();
             _health.text = cardInfo.health.ToString();
+            _points.text = cardInfo.points.ToString();
         } else {
             _transform.Find("CardFront").GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/Money/" + cardInfo.title);
         }

@@ -18,6 +18,8 @@ public struct CardInfo
     public int cost;
     public int attack;
     public int health;
+    public int points;
+    public List<Keywords> keyword_abilities;
 
     public CardInfo(ScriptableCard card, string gameObjectID = null)
     {
@@ -35,6 +37,8 @@ public struct CardInfo
         // Should split money and creature cards into separate scriptable objects
         attack = card.attack;
         health = card.health;
+        points = card.points;
+        keyword_abilities = card.keyword_abilities;
     }
 
     public void Destroy(){
