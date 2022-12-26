@@ -17,7 +17,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
         GameManager.OnGameStart += RpcPrepareUIs;
         TurnManager.OnPhaseChanged += RpcUpdatePhaseHighlight;
         CombatManager.OnCombatStateChanged += RpcUpdateCombatHighlight;
-        BoardManager.OnSkipCombatPhase += PlayerDisableReadyButton;
+        BoardManager.OnSkipCombatPhase += DisableReadyButtonForPlayer;
         
         _turnManager = TurnManager.Instance;
     }
@@ -61,13 +61,15 @@ public class PlayerInterfaceManager : NetworkBehaviour
         _buttons.EnableReadyButton();
     }
 
-    private void PlayerDisableReadyButton(PlayerManager player){
-        TargetDisableReadyButon(player.GetComponent<NetworkIdentity>().connectionToClient);
+    [Server]
+    private void DisableReadyButtonForPlayer(PlayerManager player){
+
+        var target = player.GetComponent<NetworkIdentity>().connectionToClient;
+        TargetDisableReadyButton(target);
     }
 
     [TargetRpc]
-    private void TargetDisableReadyButon(NetworkConnection target){
-        // Needs to be target rpc
+    private void TargetDisableReadyButton(NetworkConnection target){
         _buttons.DisableReadyButton();
     }
 
@@ -76,6 +78,6 @@ public class PlayerInterfaceManager : NetworkBehaviour
         GameManager.OnGameStart -= RpcPrepareUIs;
         TurnManager.OnPhaseChanged -= RpcUpdatePhaseHighlight;
         CombatManager.OnCombatStateChanged -= RpcUpdateCombatHighlight;
-        BoardManager.OnSkipCombatPhase -= PlayerDisableReadyButton;
+        BoardManager.OnSkipCombatPhase -= DisableReadyButtonForPlayer;
     }
 }

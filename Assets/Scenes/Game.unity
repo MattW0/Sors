@@ -309,6 +309,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f231c4fb786f3946a6b90b886c48677, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_SendPointerHoverToParent: 1
   m_HorizontalAxis: Horizontal
   m_VerticalAxis: Vertical
   m_SubmitButton: Submit
@@ -866,28 +867,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   m_MaxRayIntersections: 0
---- !u!114 &724739594 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1918307362993738580, guid: e461b4738d1d58d4992efa4bef60aeab, type: 3}
-  m_PrefabInstance: {fileID: 6175644188676122946}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c5feae5b9cade80438a16557b7a9cf2b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &756054638 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4567843826240663886, guid: e461b4738d1d58d4992efa4bef60aeab, type: 3}
-  m_PrefabInstance: {fileID: 6175644188676122946}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c5feae5b9cade80438a16557b7a9cf2b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &806438199
 GameObject:
   m_ObjectHideFlags: 0
@@ -1288,12 +1267,8 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0.1
-  moneyZones:
-  - {fileID: 724739594}
-  - {fileID: 756054638}
-  entityManagers:
-  - {fileID: 869584807}
-  - {fileID: 1198852670}
+  playerZone: {fileID: 869584807}
+  opponentZone: {fileID: 1198852670}
 --- !u!114 &1172329947
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3745,7 +3720,6 @@ MonoBehaviour:
   combatManager: {fileID: 6319069573471266856}
   turnState: 0
   chosenPhases: 
-  phasePanelPrefab: {fileID: 6245966277038001864, guid: 634e6b2c0192f0f4ca1b37244c505feb, type: 3}
 --- !u!114 &6319069573471266841
 MonoBehaviour:
   m_ObjectHideFlags: 0

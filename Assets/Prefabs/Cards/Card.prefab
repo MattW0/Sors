@@ -514,9 +514,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sceneId: 0
+  _assetId: 1672339998
   serverOnly: 0
   visible: 0
-  m_AssetId: 5049089525d268b41ac4327a430b6221
   hasSpawned: 0
 --- !u!61 &6084506861975650639
 BoxCollider2D:
@@ -618,17 +618,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d24fd48e2b77c7e4aaaa9b9a3b953c8f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  syncDirection: 0
   syncMode: 0
   syncInterval: 0.1
   owner: {fileID: 0}
   cardInfo:
-    hash: 
+    goID: 
     title: 
+    hash: 
     isCreature: 0
+    moneyValue: 0
     cost: 0
     attack: 0
     health: 0
-    goID: 
 --- !u!114 &3424864328992555256
 MonoBehaviour:
   m_ObjectHideFlags: 0

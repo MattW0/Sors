@@ -484,6 +484,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f231c4fb786f3946a6b90b886c48677, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_SendPointerHoverToParent: 1
   m_HorizontalAxis: Horizontal
   m_VerticalAxis: Vertical
   m_SubmitButton: Submit
@@ -1809,7 +1810,7 @@ MonoBehaviour:
   offlineScene: Assets/Scenes/Menu.unity
   onlineScene: Assets/Scenes/Game.unity
   transport: {fileID: 510329398151949640}
-  networkAddress: 192.168.1.161
+  networkAddress: 192.168.1.170
   maxConnections: 2
   authenticator: {fileID: 0}
   playerPrefab: {fileID: 3109964472370712586, guid: e1d7c89d50e530c48957990c7eac977d, type: 3}

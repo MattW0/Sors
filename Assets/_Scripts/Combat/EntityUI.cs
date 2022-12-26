@@ -15,8 +15,11 @@ public class EntityUI : MonoBehaviour
     private Transform _transform;
     [SerializeField] private Transform playerPlayZone;
     [SerializeField] private Transform opponentPlayZone;
-    
+
+    private readonly float _tapDistance = 60f;
     private readonly Vector3 _tappedPosition = new (0f, 60f, 0f);
+    private readonly Vector3 _opponentTappedPosition = new (0f, -60f, 0f);
+
     private const float TappingDuration = 0.3f;
 
     [SerializeField] private Color attackingColor;
@@ -45,22 +48,23 @@ public class EntityUI : MonoBehaviour
         highlight.enabled = active;
     }
 
-    public void ShowAsAttacker(bool active)
-    {
-        attackerHighlight.color = active ? attackingColor : _idleColor;
-    }
+    public void ShowAsAttacker(bool active) => attackerHighlight.color = active ? attackingColor : _idleColor;
 
     public void TapCreature() {
-        _transform.DOLocalMove(_tappedPosition, TappingDuration).OnComplete(
+        _transform.DOLocalMove(new Vector3(0f, _tapDistance, 0f), TappingDuration).OnComplete(
             () => Highlight(false)
             );
     }
-    
-    public void UntapCreature() {
+
+    public void UntapCreature(bool highlight) {
         _transform.DOLocalMove(Vector3.zero, TappingDuration).OnComplete(
-            () => Highlight(true)
+            () => Highlight(highlight)
             );
+        ShowAsAttacker(false);
     }
+
+    public void TapOpponentCreature() => _transform.DOLocalMove(Vector3.zero, TappingDuration);
+    public void UntapOpponentCreature() => _transform.DOLocalMove(new Vector3(0f, _tapDistance, 0f), TappingDuration);
 
     public void MoveToHolder(int holderNumber, bool isMine)
     {

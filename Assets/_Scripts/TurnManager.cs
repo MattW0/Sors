@@ -35,11 +35,6 @@ public class TurnManager : NetworkBehaviour
     public static event Action OnTurnsStarting;
     public static event Action<PlayerManager> OnPlayerDies;
 
-
-    [Header("Objects")]
-    [SerializeField] private GameObject phasePanelPrefab;
-    // [SerializeField] private GameObject _discardPanelPrefab;
-
     private void Awake() {
         if (Instance == null) Instance = this;
         
@@ -240,13 +235,13 @@ public class TurnManager : NetworkBehaviour
 
     public void PlayerDeployedCard(PlayerManager player, GameObject card, int holderNumber) {
         
+        player.Deploys--;
         // If player did not skip deploy (and deployed a card)
         if (card){
             var cardInfo = card.GetComponent<CardStats>().cardInfo;
-            _gameManager.SpawnFieldEntity(player, card, cardInfo, holderNumber);
             player.Cash -= cardInfo.cost;
+            _gameManager.SpawnFieldEntity(player, card, cardInfo, holderNumber);
         }
-        player.Deploys--;
         
         // Waiting for player to use other deploys
         if (player.Deploys > 0) return;
@@ -400,14 +395,13 @@ public class TurnManager : NetworkBehaviour
 
     public void PlayerPressedReadyButton(PlayerManager player)
     {
-        if (_readyPlayers.Contains(player)) return;       
-        if (player.Recruits <= 0 || player.Deploys <= 0) return;
+        // if (_readyPlayers.Contains(player)) return;
+        // if (player.Recruits <= 0 || player.Deploys <= 0) return;
 
-        
-        
         switch (turnState)
         {
             case TurnState.Deploy:
+                player.Deploys = 0;
                 PlayerDeployedCard(player, null, -1);
                 break;
             case TurnState.Combat:

@@ -15,12 +15,12 @@ public class GameManager : NetworkBehaviour {
     private EndScreen _endScreen;
 
     public static event Action OnGameStart;
-    public static event Action<PlayerManager, BattleZoneEntity, GameObject> OnEntitySpawned; 
+    public static event Action<BattleZoneEntity, GameObject> OnEntitySpawned; 
 
     [Header("Game state")]
     [SyncVar] public int turnNb;
-    public int numberPlayers = 2;
-    public Dictionary<PlayerManager, NetworkIdentity> players;
+    // public int numberPlayers = 2;
+    public Dictionary<PlayerManager, NetworkIdentity> players = new();
     private List<PlayerManager> _loosingPlayers = new();
 
     [Header("Turn specifics")]
@@ -96,7 +96,7 @@ public class GameManager : NetworkBehaviour {
         }
         
         // Both players die -> Draw
-        if (_loosingPlayers.Count == numberPlayers)
+        if (_loosingPlayers.Count == players.Count)
         {
             _endScreen.RpcGameIsDraw();
             return;
@@ -120,9 +120,8 @@ public class GameManager : NetworkBehaviour {
     }
 
     private void PlayerSetup(){
-        players = new Dictionary<PlayerManager, NetworkIdentity>();
+        
         var playerManagers = FindObjectsOfType<PlayerManager>();
-
         foreach (var player in playerManagers)
         {
             var playerNetworkId = player.GetComponent<NetworkIdentity>();
@@ -216,7 +215,7 @@ public class GameManager : NetworkBehaviour {
         var entity = entityObject.GetComponent<BattleZoneEntity>();
         entity.RpcSpawnEntity(owner, opponent, cardInfo, cardHolder);
         
-        OnEntitySpawned?.Invoke(owner, entity, card);
+        OnEntitySpawned?.Invoke(entity, card);
     }
     #endregion
 

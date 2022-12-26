@@ -95,7 +95,7 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
             entityUI.TapCreature();
         } else {
             IsAttacking = false;
-            entityUI.UntapCreature();
+            entityUI.UntapCreature(highlight: true);
         }
 
         if (isServer) _boardManager.AttackerDeclared(this, IsAttacking);
@@ -113,7 +113,23 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     {
         CanAct = false;
         entityUI.ShowAsAttacker(true);
+        
+        if (isOwned) return;
+        entityUI.TapOpponentCreature();
     }
+
+    public void IsAttacker()
+    {
+        CanAct = false;
+        entityUI.ShowAsAttacker(true);
+    }
+
+    public void CanNotAct()
+    {
+        CanAct = false;
+        entityUI.Highlight(false);
+    }
+
     
     [TargetRpc]
     public void TargetIsAttacker(NetworkConnection connection)
@@ -132,10 +148,8 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     [ClientRpc]
     public void RpcBlockerDeclared(BattleZoneEntity attacker)
     {
-        if (isOwned)
-        {
-            arrowHandler.HandleFoundEnemyTarget(attacker);
-        }
+        if (!isOwned) return;
+        arrowHandler.HandleFoundEnemyTarget(attacker);
     }
     
     [ClientRpc]
@@ -160,7 +174,15 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     }
 
     [ClientRpc]
-    public void RpcResetAfterCombat()
+    public void RpcRetreatAttacker(){
+        if (isOwned) entityUI.UntapCreature(highlight: false);
+        else {
+            entityUI.UntapOpponentCreature();
+            entityUI.ShowAsAttacker(false);
+        }
+    }
+
+    public void ResetAfterCombat()
     {
         CanAct = false;
         IsAttacking = false;

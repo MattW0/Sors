@@ -416,6 +416,7 @@ public class PlayerManager : NetworkBehaviour
     }
 
     public void PlayerPressedReadyButton() {
+
         if (isServer) _turnManager.PlayerPressedReadyButton(this);
         else CmdPlayerPressedReadyButton();
     }

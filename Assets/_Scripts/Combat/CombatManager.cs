@@ -22,7 +22,7 @@ public class CombatManager : NetworkBehaviour
     private GameManager _gameManager;
     private TurnManager _turnManager;
     private BoardManager _boardManager;
-    private int _playersReady;
+    private List<PlayerManager> _readyPlayers = new();
 
     private void Awake()
     {
@@ -67,11 +67,9 @@ public class CombatManager : NetworkBehaviour
 
     private void PlayerDeclaredAttackers(PlayerManager player)
     {
-        _playersReady++;
-        // player == null if there was an auto-skip (empty board)
-        if (player) _boardManager.PlayerFinishedChoosingAttackers(player);
-
-        if (_playersReady != _gameManager.players.Count) return;
+        _readyPlayers.Add(player);
+        _boardManager.PlayerFinishedChoosingAttackers(player);
+        if (_readyPlayers.Count != _gameManager.players.Count) return;
         
         // tracking which entity blocks which attackers
         foreach (var attacker in _boardManager.attackers)
@@ -79,7 +77,8 @@ public class CombatManager : NetworkBehaviour
             _attackersBlockers.Add(attacker, new List<BattleZoneEntity>());
         }
         
-        _playersReady = 0;
+        _boardManager.ShowOpponentAttackers();
+        _readyPlayers.Clear();
         UpdateCombatState(CombatState.Blockers);
     }
 
@@ -94,14 +93,13 @@ public class CombatManager : NetworkBehaviour
 
     private void PlayerDeclaredBlockers(PlayerManager player)
     {
-        _playersReady++;
-        if (player) _boardManager.PlayerFinishedChoosingBlockers(player);
+        _readyPlayers.Add(player);
+        // _boardManager.PlayerFinishedChoosingBlockers(player);
         
-        if (_playersReady != _gameManager.players.Count) return;
+        if (_readyPlayers.Count != _gameManager.players.Count) return;
         
         print("Blockers declared");
         ShowAllBlockers();
-        _playersReady = 0;
         UpdateCombatState(CombatState.Damage);
     }
 
@@ -111,16 +109,18 @@ public class CombatManager : NetworkBehaviour
 
         foreach (var entry in _attackersBlockers)
         {
+            var attacker = entry.Key;
             var blockers = entry.Value;
             
             // there are no blockers -> keep in list
             if (blockers.Count == 0) continue;
-            _unblockedAttackers.Remove(entry.Key);
+            _unblockedAttackers.Remove(attacker);
             
-            entry.Key.RpcShowOpponentsBlockers(blockers);
+            attacker.RpcShowOpponentsBlockers(blockers);
         }
     }
-    
+
+    #region Damage
     private void ResolveDamage()
     {
         // Skip damage logic if there are no attackers 
@@ -155,7 +155,10 @@ public class CombatManager : NetworkBehaviour
     private IEnumerator PlayerDamage(List<BattleZoneEntity> unblockedAttackers)
     {
         // Skip if in single-player (for debugging)
-        if (_gameManager.singlePlayer) UpdateCombatState(CombatState.CleanUp);
+        if (_gameManager.singlePlayer) {
+            UpdateCombatState(CombatState.CleanUp);
+            yield return null;
+        }
 
         foreach (var attacker in unblockedAttackers)
         {
@@ -168,10 +171,12 @@ public class CombatManager : NetworkBehaviour
         
         UpdateCombatState(CombatState.CleanUp);
     }
+    #endregion
 
     private void ResolveCombat()
     {
         print("Combat finished");
+        _readyPlayers.Clear();
         _attackersBlockers.Clear();
         _boardManager.CombatCleanUp();
         
@@ -181,6 +186,8 @@ public class CombatManager : NetworkBehaviour
     
     public void PlayerIsReady(PlayerManager player)
     {
+        if (_readyPlayers.Contains(player)) return;
+
         switch (state)
         {
             case CombatState.Attackers:
@@ -194,7 +201,7 @@ public class CombatManager : NetworkBehaviour
 
     private void SkipCombatPhase(PlayerManager player)
     {
-        PlayerIsReady(null);
+        PlayerIsReady(player);
     }
 
     private void OnDestroy()
