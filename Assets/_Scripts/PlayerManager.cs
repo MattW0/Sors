@@ -197,7 +197,7 @@ public class PlayerManager : NetworkBehaviour
         // Saving local player choice
         playerChosenPhases = phases;
         if (playerChosenPhases.Contains(Phase.Recruit)) Recruits++;
-        _turnManager.PlayerSelectedPhases(this, phases);
+        _turnManager.PlayerSelectedPhases(this, phases.ToArray());
     }
 
     [Command]

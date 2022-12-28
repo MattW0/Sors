@@ -21,7 +21,8 @@ public class TurnManager : NetworkBehaviour
 
     [field: Header("Game state")] 
     [SerializeField] private TurnState turnState;
-    public List<Phase> chosenPhases;
+    public List<Phase> phasesToPlay;
+    private Dictionary<PlayerManager, Phase[]> _playerPhases = new();
     private List<PlayerManager> _readyPlayers = new();
     private int _nbPlayers;
     private Dictionary<PlayerManager, int> _playerHealth = new();
@@ -31,6 +32,7 @@ public class TurnManager : NetworkBehaviour
     private Dictionary<PlayerManager, List<CardInfo>> _recruitedCards;
     
     // Events
+    public static event Action<Phase[]> OnPhasesSelected;
     public static event Action<TurnState> OnPhaseChanged;
     public static event Action OnTurnsStarting;
     public static event Action<PlayerManager> OnPlayerDies;
@@ -111,6 +113,7 @@ public class TurnManager : NetworkBehaviour
         foreach (var player in _gameManager.players.Keys)
         {
             _playerHealth.Add(player, _gameManager.startHealth);
+            _playerPhases.Add(player, new Phase[_gameManager.nbPhasesToChose]);
         }
 
         PlayerManager.OnCashChanged += PlayerCashChanged;
@@ -123,27 +126,43 @@ public class TurnManager : NetworkBehaviour
     private void PhaseSelection() {
         _gameManager.turnNb++;
         _phasePanel.RpcBeginPhaseSelection(_gameManager.turnNb);
-
-        _readyPlayers.Clear();
     }
 
-    public void PlayerSelectedPhases(PlayerManager player, List<Phase> phases) {
+    public void PlayerSelectedPhases(PlayerManager player, Phase[] phases) {
         
         _readyPlayers.Add(player);
+        _playerPhases[player] = phases;
+
         foreach (var phase in phases) {
-            if(!chosenPhases.Contains(phase)){
-                chosenPhases.Add(phase);
+            if(!phasesToPlay.Contains(phase)){
+                phasesToPlay.Add(phase);
             }
         }
 
         if (_readyPlayers.Count != _nbPlayers) return;
 
+        FinishPhaseSelection();
+    }
+
+    private void FinishPhaseSelection() {
         // Combat each round
-        chosenPhases.Add(Phase.Combat);
-        chosenPhases.Sort();
-        print($"<color=white>Chosen Phases: {string.Join(", ", chosenPhases)}</color>");
+        phasesToPlay.Add(Phase.Combat);
+        phasesToPlay.Sort();
+        print($"<color=white>Chosen Phases: {string.Join(", ", phasesToPlay)}</color>");
         
         _phasePanel.RpcEndPhaseSelection();
+
+        // Give the player choices to PlayerInterfaceVisuals
+        var choices = new Phase[_nbPlayers * _gameManager.nbPhasesToChose];
+        var i = 0;
+        foreach (var phase in _playerPhases.Values) {
+            foreach (var p in phase) {
+                choices[i] = p;
+                i++;
+            }
+        }
+        OnPhasesSelected?.Invoke(choices);
+        
         UpdateTurnState(TurnState.NextPhase);
     }
 
@@ -151,14 +170,14 @@ public class TurnManager : NetworkBehaviour
 
         _readyPlayers.Clear();
 
-        if (chosenPhases.Count == 0) {
+        if (phasesToPlay.Count == 0) {
             UpdateTurnState(TurnState.CleanUp);
             OnPhaseChanged?.Invoke(TurnState.CleanUp);
             return;
         }
 
-        Enum.TryParse(chosenPhases[0].ToString(), out TurnState nextPhase);
-        chosenPhases.RemoveAt(0);
+        Enum.TryParse(phasesToPlay[0].ToString(), out TurnState nextPhase);
+        phasesToPlay.RemoveAt(0);
         
         OnPhaseChanged?.Invoke(nextPhase);
         UpdateTurnState(nextPhase);
@@ -354,6 +373,7 @@ public class TurnManager : NetworkBehaviour
             UpdateTurnState(TurnState.Idle);
         }
         
+        _readyPlayers.Clear();
         UpdateTurnState(TurnState.PhaseSelection);
     }
     

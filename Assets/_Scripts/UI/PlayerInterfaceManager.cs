@@ -1,12 +1,14 @@
 using Mirror;
 using UnityEngine;
+using System.Collections.Generic;
+
 
 public class PlayerInterfaceManager : NetworkBehaviour
 {
     public static PlayerInterfaceManager Instance { get; private set; }
 
     private TurnManager _turnManager;
-    private PhaseVisualsUI _phaseVisualsUI;
+    private PlayerInterfacePhaseVisuals _phaseVisualsUI;
     private PlayerInterfaceButtons _buttons;
     
     
@@ -15,6 +17,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
         if (!Instance) Instance = this;
         
         GameManager.OnGameStart += RpcPrepareUIs;
+        TurnManager.OnPhasesSelected += RpcShowPlayerChoices;
         TurnManager.OnPhaseChanged += RpcUpdatePhaseHighlight;
         CombatManager.OnCombatStateChanged += RpcUpdateCombatHighlight;
         BoardManager.OnSkipCombatPhase += DisableReadyButtonForPlayer;
@@ -25,11 +28,16 @@ public class PlayerInterfaceManager : NetworkBehaviour
     [ClientRpc]
     private void RpcPrepareUIs()
     {
-        _phaseVisualsUI = PhaseVisualsUI.Instance;
+        _phaseVisualsUI = PlayerInterfacePhaseVisuals.Instance;
         _buttons = PlayerInterfaceButtons.Instance;
-        _phaseVisualsUI.PrepareUI();
+        _phaseVisualsUI.PrepareUI(GameManager.Instance.players.Count);
     }
-    
+
+    [ClientRpc]
+    private void RpcShowPlayerChoices(Phase[] choices){
+        _phaseVisualsUI.ShowPlayerChoices(choices);
+    }
+
     [ClientRpc]
     private void RpcUpdatePhaseHighlight(TurnState newState) {
         var newHighlightIndex = newState switch
