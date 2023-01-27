@@ -45,7 +45,6 @@ public class BlockerArrowHandler : NetworkBehaviour
     
     private void HandleClickedMyCreature(){
         
-        print(entity.CanAct + " " + entity.IsAttacking + " " + _hasTarget);
         if (!entity.CanAct || entity.IsAttacking || _hasTarget) return;
         
         if (!_arrow) {

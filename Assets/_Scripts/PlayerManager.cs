@@ -125,7 +125,7 @@ public class PlayerManager : NetworkBehaviour
     public void DrawCards(int amount){
         while (amount > cards.deck.Count + cards.discard.Count){
             amount--;
-        } 
+        }
 
         for (var i = 0; i < amount; i++){
             if (cards.deck.Count == 0) ShuffleDiscardIntoDeck();
@@ -140,8 +140,6 @@ public class PlayerManager : NetworkBehaviour
     }
 
     private void ShuffleDiscardIntoDeck(){
-        print("Shuffling discard into deck");
-
         var temp = new List<CardInfo>();
         foreach (var card in cards.discard){
             temp.Add(card);
@@ -174,6 +172,7 @@ public class PlayerManager : NetworkBehaviour
 
     [ClientRpc]
     public void RpcMoveCard(GameObject card, CardLocations from, CardLocations to){
+        // print("Moving card " + card.GetComponent<CardStats>().cardInfo.title + " from " + from + " to " + to);
         card.GetComponent<CardMover>().MoveToDestination(isOwned, to);
 
         if (!isOwned) return;
@@ -422,7 +421,7 @@ public class PlayerManager : NetworkBehaviour
     private void PlayerPressedReadyButton(PlayerManager player) {
         var turnState = _turnManager.turnState;
 
-        print(player.PlayerName + " pressed ready button in state - " + turnState);
+        // print(player.PlayerName + " pressed ready button in state - " + turnState);
         switch (turnState)
         {
             case TurnState.Deploy:
