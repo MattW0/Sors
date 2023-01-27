@@ -15,14 +15,14 @@ public class TurnManager : NetworkBehaviour
     private DiscardPanel _discardPanel;
     private PhasePanel _phasePanel;
 
-    private PlayerHandManager _handManager;
+    private Hand _handManager;
     private BoardManager _boardManager;
     [SerializeField] private CombatManager combatManager;
 
     [field: Header("Game state")] 
-    [SerializeField] private TurnState turnState;
+    [SerializeField] public TurnState turnState { get; private set; }
     public List<Phase> phasesToPlay;
-    private Dictionary<PlayerManager, Phase[]> _playerPhases = new();
+    private Dictionary<PlayerManager, Phase[]> _playerPhaseChoices = new();
     private List<PlayerManager> _readyPlayers = new();
     private int _nbPlayers;
     private Dictionary<PlayerManager, int> _playerHealth = new();
@@ -97,9 +97,9 @@ public class TurnManager : NetworkBehaviour
         }
     }
 
-    private void Prepare() {
+    private void Prepare(int nbPlayers) {
         _gameManager = GameManager.Instance;
-        _handManager = PlayerHandManager.Instance;
+        _handManager = Hand.Instance;
         _boardManager = BoardManager.Instance;
         _kingdom = Kingdom.Instance;
         
@@ -109,12 +109,14 @@ public class TurnManager : NetworkBehaviour
         _phasePanel = PhasePanel.Instance;
         _phasePanel.RpcPreparePhasePanel(_gameManager.nbPhasesToChose, _gameManager.animations);
         
-        _nbPlayers = _gameManager.players.Count;
+        _nbPlayers = nbPlayers;
         foreach (var player in _gameManager.players.Keys)
         {
             _playerHealth.Add(player, _gameManager.startHealth);
-            _playerPhases.Add(player, new Phase[_gameManager.nbPhasesToChose]);
+            _playerPhaseChoices.Add(player, new Phase[_gameManager.nbPhasesToChose]);
         }
+        // reverse order of _playerPhaseChoices to have host first
+        _playerPhaseChoices = _playerPhaseChoices.Reverse().ToDictionary(x => x.Key, x => x.Value);
 
         PlayerManager.OnCashChanged += PlayerCashChanged;
         
@@ -131,7 +133,7 @@ public class TurnManager : NetworkBehaviour
     public void PlayerSelectedPhases(PlayerManager player, Phase[] phases) {
         
         _readyPlayers.Add(player);
-        _playerPhases[player] = phases;
+        _playerPhaseChoices[player] = phases;
 
         foreach (var phase in phases) {
             if(!phasesToPlay.Contains(phase)){
@@ -155,8 +157,8 @@ public class TurnManager : NetworkBehaviour
         // Give the player choices to PlayerInterfaceVisuals
         var choices = new Phase[_nbPlayers * _gameManager.nbPhasesToChose];
         var i = 0;
-        foreach (var phase in _playerPhases.Values) {
-            foreach (var p in phase) {
+        foreach (var phases in _playerPhaseChoices.Values) {
+            foreach (var p in phases) {
                 choices[i] = p;
                 i++;
             }
@@ -261,8 +263,10 @@ public class TurnManager : NetworkBehaviour
             var cardInfo = card.GetComponent<CardStats>().cardInfo;
             player.Cash -= cardInfo.cost;
             _gameManager.SpawnFieldEntity(player, card, cardInfo, holderNumber);
+        } else {
+            player.Deploys = 0;
         }
-        
+
         // Waiting for player to use other deploys
         if (player.Deploys > 0) return;
         
@@ -409,20 +413,6 @@ public class TurnManager : NetworkBehaviour
             owner.Deploys = _gameManager.turnDeploys;
             owner.Recruits = _gameManager.turnRecruits;
             
-        }
-    }
-
-    public void PlayerPressedReadyButton(PlayerManager player)
-    {
-        switch (turnState)
-        {
-            case TurnState.Deploy:
-                player.Deploys = 1; // will substract one further in PlayerDeployedCard
-                PlayerDeployedCard(player, null, -1);
-                break;
-            case TurnState.Combat:
-                combatManager.PlayerIsReady(player);
-                break;
         }
     }
 

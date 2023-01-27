@@ -8,10 +8,12 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
 {
     public PlayerManager Owner { get; private set; }
     public PlayerManager Target { get; private set; }
+    private BoardManager _boardManager;
+
 
     [field: Header("Combat Stats")]
     public bool CanAct { get; private set; }
-    [field: SyncVar, SerializeField] public bool IsAttacking { get; private set; }
+    [SerializeField] public bool IsAttacking;
     public List<Keywords> _keywordAbilities { get; private set; }
 
     [SerializeField] private CombatState combatState;
@@ -57,20 +59,17 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
         }
     }
     
-    private BoardManager _boardManager;
-    public event Action<BattleZoneEntity> OnDeath;
+    public event Action<PlayerManager, BattleZoneEntity> OnDeath;
 
     [ClientRpc]
-    public void RpcSpawnEntity(PlayerManager owner, PlayerManager opponent,
-        CardInfo cardInfo, int holderNumber)
-    {
-        _boardManager = BoardManager.Instance;
-        
+    public void RpcSpawnEntity(PlayerManager owner, PlayerManager opponent, CardInfo cardInfo, int holderNumber){        
         Owner = owner;
         Target = opponent;
         
         SetStats(cardInfo);
         entityUI.MoveToHolder(holderNumber, isOwned);
+
+        if (isServer) _boardManager = BoardManager.Instance;
     }
 
     private void SetStats(CardInfo cardInfo)
@@ -87,9 +86,10 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     
     public void CheckIfCanAct(CombatState newState)
     {
+        if (!isOwned) return;
         combatState = newState;
-        if (!isOwned || IsAttacking) return;
-        
+
+        if (IsAttacking) return;
         CanAct = true;
         entityUI.Highlight(true);
     }
@@ -112,20 +112,12 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
             IsAttacking = false;
             entityUI.UntapCreature(highlight: true);
         }
-
-        if (isServer) _boardManager.AttackerDeclared(this, IsAttacking);
-        else CmdAttackerDeclared(IsAttacking);
-    }
-
-    [Command]
-    private void CmdAttackerDeclared(bool isAttacking)
-    {
-        _boardManager.AttackerDeclared(this, isAttacking);
     }
     
     [ClientRpc]
     public void RpcIsAttacker()
     {
+        IsAttacking = true;
         CanAct = false;
         entityUI.ShowAsAttacker(true);
         
@@ -133,18 +125,13 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
         entityUI.TapOpponentCreature();
     }
 
-    public void IsAttacker()
-    {
+    public void LocalPlayerIsReady(){
+        // to show ui change when local player presses ready button
         CanAct = false;
-        entityUI.ShowAsAttacker(true);
-    }
 
-    public void CanNotAct()
-    {
-        CanAct = false;
-        entityUI.Highlight(false);
-    }
-
+        if (IsAttacking) entityUI.ShowAsAttacker(true);
+        else entityUI.Highlight(false);
+    } 
     
     [TargetRpc]
     public void TargetIsAttacker(NetworkConnection connection)
@@ -185,7 +172,7 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
 
     private void Die()
     {
-        OnDeath?.Invoke(this);
+        OnDeath?.Invoke(Owner, this);
     }
 
     [ClientRpc]
@@ -215,6 +202,6 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
         // ie. is in _boardManager.attackers
         //
         // if yes: return true -> we do not block anything
-        return _boardManager.attackers.Contains(this);
+        return _boardManager.boardAttackers.Contains(this);
     }
 }

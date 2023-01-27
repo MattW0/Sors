@@ -6,6 +6,7 @@ using Mirror;
 
 public class PlayerInterfaceButtons : MonoBehaviour
 {
+    private PlayerManager _player;
     public static PlayerInterfaceButtons Instance { get; private set; }
     private Kingdom _kingdom;
     [SerializeField] private Button _readyButton;
@@ -13,11 +14,12 @@ public class PlayerInterfaceButtons : MonoBehaviour
 
     private void Awake()
     {
-        if (!Instance) Instance = this;        
+        if (!Instance) Instance = this;
     }
 
     private void Start(){
         _kingdom = Kingdom.Instance;
+        _player = PlayerManager.GetPlayerManager();
     }
 
     public void OnKingdomButtonPressed(){
@@ -25,17 +27,13 @@ public class PlayerInterfaceButtons : MonoBehaviour
     }
     
     public void OnResignButtonPressed() {
-        var player = PlayerManager.GetPlayerManager();
     }
     
     public void OnUndoButtonPressed() {
-        var player = PlayerManager.GetPlayerManager();
     }
     
     public void OnReadyButtonPressed() {
-        var player = PlayerManager.GetPlayerManager();
-        player.PlayerPressedReadyButton();
-        
+        _player.PlayerPressedReadyButton();
         _readyButton.interactable = false;
     }
 

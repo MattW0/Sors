@@ -6,7 +6,6 @@ using System.Collections.Generic;
 public class PlayerInterfaceManager : NetworkBehaviour
 {
     public static PlayerInterfaceManager Instance { get; private set; }
-
     private TurnManager _turnManager;
     private PlayerInterfacePhaseVisuals _phaseVisualsUI;
     private PlayerInterfaceButtons _buttons;
@@ -20,17 +19,16 @@ public class PlayerInterfaceManager : NetworkBehaviour
         TurnManager.OnPhasesSelected += RpcShowPlayerChoices;
         TurnManager.OnPhaseChanged += RpcUpdatePhaseHighlight;
         CombatManager.OnCombatStateChanged += RpcUpdateCombatHighlight;
-        BoardManager.OnSkipCombatPhase += DisableReadyButtonForPlayer;
         
         _turnManager = TurnManager.Instance;
     }
 
     [ClientRpc]
-    private void RpcPrepareUIs()
+    private void RpcPrepareUIs(int nbPlayers)
     {
         _phaseVisualsUI = PlayerInterfacePhaseVisuals.Instance;
         _buttons = PlayerInterfaceButtons.Instance;
-        _phaseVisualsUI.PrepareUI(GameManager.Instance.players.Count);
+        _phaseVisualsUI.PrepareUI(nbPlayers);
     }
 
     [ClientRpc]
@@ -69,15 +67,15 @@ public class PlayerInterfaceManager : NetworkBehaviour
         _buttons.EnableReadyButton();
     }
 
-    [Server]
-    private void DisableReadyButtonForPlayer(PlayerManager player){
+    // [Server]
+    // private void DisableReadyButtonForPlayer(PlayerManager player){
 
-        var target = player.GetComponent<NetworkIdentity>().connectionToClient;
-        TargetDisableReadyButton(target);
-    }
+    //     var target = player.GetComponent<NetworkIdentity>().connectionToClient;
+    //     TargetDisableReadyButton(target);
+    // }
 
     [TargetRpc]
-    private void TargetDisableReadyButton(NetworkConnection target){
+    public void TargetDisableReadyButton(NetworkConnection target){
         _buttons.DisableReadyButton();
     }
 
@@ -86,6 +84,5 @@ public class PlayerInterfaceManager : NetworkBehaviour
         GameManager.OnGameStart -= RpcPrepareUIs;
         TurnManager.OnPhaseChanged -= RpcUpdatePhaseHighlight;
         CombatManager.OnCombatStateChanged -= RpcUpdateCombatHighlight;
-        BoardManager.OnSkipCombatPhase -= DisableReadyButtonForPlayer;
     }
 }

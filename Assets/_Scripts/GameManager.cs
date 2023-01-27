@@ -14,8 +14,8 @@ public class GameManager : NetworkBehaviour {
     private TurnManager _turnManager;
     private EndScreen _endScreen;
 
-    public static event Action OnGameStart;
-    public static event Action<BattleZoneEntity, GameObject> OnEntitySpawned; 
+    public static event Action<int> OnGameStart;
+    public static event Action<PlayerManager, BattleZoneEntity, GameObject> OnEntitySpawned; 
 
     [Header("Game state")]
     [SyncVar] public int turnNb;
@@ -79,7 +79,7 @@ public class GameManager : NetworkBehaviour {
         KingdomSetup();
         PlayerSetup();
         
-        OnGameStart?.Invoke();
+        OnGameStart?.Invoke(nbPlayers);
     }
 
     private void PlayerDies(PlayerManager player)
@@ -215,7 +215,7 @@ public class GameManager : NetworkBehaviour {
         var entity = entityObject.GetComponent<BattleZoneEntity>();
         entity.RpcSpawnEntity(owner, opponent, cardInfo, cardHolder);
         
-        OnEntitySpawned?.Invoke(entity, card);
+        OnEntitySpawned?.Invoke(owner, entity, card);
     }
     #endregion
 

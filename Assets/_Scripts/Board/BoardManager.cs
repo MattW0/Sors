@@ -8,64 +8,73 @@ public class BoardManager : NetworkBehaviour
 {
     public static BoardManager Instance { get; private set; }
     private GameManager _gameManager;
-    [SerializeField] private PlayerZoneManager playerZone;
-    [SerializeField] private PlayerZoneManager opponentZone;
+    [SerializeField] private DropZoneManager dropZone;
+    private PlayerInterfaceManager _playerInterfaceManager;
 
     // Entities, corresponding card object
-    private Dictionary<BattleZoneEntity, GameObject> _entitiesObjectsDict = new();
+    private Dictionary<BattleZoneEntity, GameObject> _entitiesObjectsCache = new();
     private List<BattleZoneEntity> _deadEntities = new();
-    public List<BattleZoneEntity> attackers { get; private set; }
+    public List<BattleZoneEntity> boardAttackers { get; private set; }
 
-    public static event Action<BattleZoneEntity> OnEntityAdded;
-    public static event Action<PlayerManager> OnSkipCombatPhase;
+    public static event Action<PlayerManager, BattleZoneEntity> OnEntityAdded;
+    // public static event Action<PlayerManager> OnSkipCombatPhase;
+    public static event Action<PlayerManager> OnAttackersDeclared;
+    public static event Action<PlayerManager> OnBlockersDeclared;
 
-    private void Awake()
-    {
+    private void Awake() {
         if (!Instance) Instance = this;
+
+        _gameManager = GameManager.Instance;
+        _playerInterfaceManager = PlayerInterfaceManager.Instance;
+        boardAttackers = new List<BattleZoneEntity>();
 
         GameManager.OnEntitySpawned += AddEntity;
         CombatManager.OnDeclareAttackers += DeclareAttackers;
         CombatManager.OnDeclareBlockers += DeclareBlockers;
 
-        _gameManager = GameManager.Instance;
-        attackers = new List<BattleZoneEntity>();
     }
 
-    private void AddEntity(BattleZoneEntity entity, GameObject card)
-    {
+    private void AddEntity(PlayerManager owner, BattleZoneEntity entity, GameObject card) {
         // To keep track which card object corresponds to which entity
-        _entitiesObjectsDict.Add(entity, card);
+        _entitiesObjectsCache.Add(entity, card);
 
         entity.OnDeath += EntityDies;
-        OnEntityAdded?.Invoke(entity);
+        OnEntityAdded?.Invoke(owner, entity);
     }
 
     #region Combat
 
-    private void DeclareAttackers() => playerZone.RpcDeclareAttackers();
-    
-    public void AttackerDeclared(BattleZoneEntity attacker, bool adding)
-    {
-        if (adding) attackers.Add(attacker);
-        else attackers.Remove(attacker);
+    private void DeclareAttackers() => dropZone.PlayersDeclareAttackers(_gameManager.players.Keys.ToList());
+
+    public void AttackersDeclared(PlayerManager player, List<BattleZoneEntity> playerAttackers) {
+
+        print("Player " + player.PlayerName + " declared " + playerAttackers.Count + " attackers.");
+        // Is 0 for auto-skip or no attackers declared
+        if (playerAttackers.Count > 0) {
+            foreach (var a in playerAttackers) boardAttackers.Add(a);
+        }
+
+        OnAttackersDeclared?.Invoke(player);
     }
 
-    public void PlayerFinishedChoosingAttackers(PlayerManager player)
-    {
-        playerZone.TargetPlayerFinishedChoosingAttackers(player.connectionToClient);
-    }
-
-    public void ShowOpponentAttackers(){
+    public void ShowOpponentAttackers() {
         // Share attacker state accross clients
-        foreach (var entity in attackers)
-        {
+        foreach (var entity in boardAttackers){
+            entity.IsAttacking = true;
             entity.RpcIsAttacker();
         }
     }
 
-    private void DeclareBlockers() => playerZone.RpcDeclareBlockers(opponentZone.GetAttackersCount());
+    private void DeclareBlockers() => dropZone.PlayersDeclareBlockers(_gameManager.players.Keys.ToList());
+
+    public void BlockersDeclared(PlayerManager player, List<BattleZoneEntity> playerBlockers) {
+        
+        print("Player " + player.PlayerName + " declared " + playerBlockers.Count + " blockers.");
+
+        OnBlockersDeclared?.Invoke(player);
+    }
     
-    private void EntityDies(BattleZoneEntity entity)
+    private void EntityDies(PlayerManager owner, BattleZoneEntity entity)
     {
         print("Entity " + entity.Title + " dies.");
         entity.OnDeath -= EntityDies;
@@ -77,28 +86,29 @@ public class BoardManager : NetworkBehaviour
     public void CombatCleanUp()
     {
         DestroyArrows();
-
         foreach (var dead in _deadEntities)
         {
-            print(dead.Title + " dies");
-            NetworkServer.Destroy(dead.gameObject);
+            print(dead.Title + " dies for real now");
+            boardAttackers.Remove(dead);
             
             // Move the card object to discard pile
-            dead.Owner.RpcMoveCard(_entitiesObjectsDict[dead],
+            dead.Owner.RpcMoveCard(_entitiesObjectsCache[dead],
                 CardLocations.PlayZone, CardLocations.Discard);
-            _entitiesObjectsDict.Remove(dead);
+
+            _entitiesObjectsCache.Remove(dead);
+            NetworkServer.Destroy(dead.gameObject);
         }
         _deadEntities.Clear();
 
-        foreach (var attacker in attackers){
+        foreach (var attacker in boardAttackers){
             attacker.RpcRetreatAttacker();
         }
-        attackers.Clear();
+        boardAttackers.Clear();
 
-        playerZone.RpcCombatCleanUp();
+        dropZone.CombatCleanUp();
     }
 
-    public void PlayerSkipsCombatPhase(PlayerManager player) => OnSkipCombatPhase?.Invoke(player);
+    // public void PlayerSkipsCombatPhase(PlayerManager player) => OnSkipCombatPhase?.Invoke(player);
 
     #endregion
 
@@ -107,12 +117,16 @@ public class BoardManager : NetworkBehaviour
     {
         // Resetting with active=false at end of Deploy phase
         // entityManagers[0] = PlayerDropZone (not opponents)
-        playerZone.RpcHighlightCardHolders(active); 
+        dropZone.RpcHighlightCardHolders(active); 
+    }
+
+    public void DisableReadyButton(PlayerManager player){
+        _playerInterfaceManager.TargetDisableReadyButton(player.connectionToClient);
     }
 
     public void ResetHolders()
     {
-        playerZone.RpcResetHolders();
+        dropZone.RpcResetHolders();
     }
 
     private void DestroyArrows()
@@ -123,11 +137,7 @@ public class BoardManager : NetworkBehaviour
         }
     }
 
-    public void DiscardMoney()
-    {
-        playerZone.RpcDiscardMoney();
-        opponentZone.RpcDiscardMoney();
-    }
+    public void DiscardMoney() => dropZone.RpcDiscardMoney();
     #endregion
     
     private void OnDestroy()

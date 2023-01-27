@@ -13,7 +13,7 @@ public class PlayerInterfacePhaseVisuals : MonoBehaviour
     private int _nbPlayers;
     [SerializeField] private List<Image> extendedHighlights;
     [SerializeField] private List<Image> phaseHighlights;
-    [SerializeField] private List<Image> playerChoicHighlights;
+    [SerializeField] private List<Image> playerChoiceHighlights;
 
     [SerializeField] private Color phaseHighlightColor;
     [SerializeField] private float fadeDuration = 1f;
@@ -45,22 +45,17 @@ public class PlayerInterfacePhaseVisuals : MonoBehaviour
 
         var i = 0;
         foreach(var phase in phases){
+
             var index = (int) phase;
 
             // !!! indexing for 2 players
-            if (i < 2) index *= 2;
-            else index = index*2 + 1;
+            if (i < _nbPlayers) index *= _nbPlayers;
+            else index = index*_nbPlayers + 1;
 
-            playerChoicHighlights[index].enabled = true;
+            playerChoiceHighlights[index].enabled = true;
             i++;
         }        
         return;
-    }
-
-    private void ClearPlayerChoicHighlights(){
-        foreach(var img in playerChoicHighlights){
-            if (img) img.enabled = false;
-        }
     }
 
     public void UpdatePhaseHighlight(int newHighlightIndex)
@@ -70,12 +65,18 @@ public class PlayerInterfacePhaseVisuals : MonoBehaviour
                 return;
             case -2: // In CleanUp or PhaseSelection
                 HighlightTransition(_oldHighlight, null, true);
-                ClearPlayerChoicHighlights();
+                ClearPlayerChoiceHighlights();
                 return;
         }
         _newHighlight = phaseHighlights[newHighlightIndex];
         HighlightTransition(_oldHighlight, _newHighlight);
         _oldHighlight = _newHighlight;
+    }
+
+    private void ClearPlayerChoiceHighlights(){
+        foreach(var img in playerChoiceHighlights){
+            if (img) img.enabled = false;
+        }
     }
     
     private void HighlightTransition(Graphic oldImg, Graphic newImg, bool phaseSelection=false)
@@ -88,6 +89,7 @@ public class PlayerInterfacePhaseVisuals : MonoBehaviour
     }
 
     // Maybe implement in Unity Editor ?
+    // ugh ugly af
     private void GetHighlightImages()
     {
         var gridTransform = gameObject.transform.GetChild(1);
@@ -100,16 +102,15 @@ public class PlayerInterfacePhaseVisuals : MonoBehaviour
                 phaseHighlights.Add(imgTransform.GetComponent<Image>());
 
                 if (child.name == "Combat") {
-                    // Accounting for Combat in Phases definition
-                    playerChoicHighlights.Add(null);
-                    playerChoicHighlights.Add(null);
+                    // Accounting for Combat (additional phase) in Phases definition
+                    playerChoiceHighlights.Add(null);
                     continue;
                 }
 
                 var playerChoices = imgTransform.GetChild(1);
                 foreach (Transform playerChoice in playerChoices)
                 {
-                    playerChoicHighlights.Add(playerChoice.GetComponent<Image>());
+                    playerChoiceHighlights.Add(playerChoice.GetComponent<Image>());
                 }
             }
         }

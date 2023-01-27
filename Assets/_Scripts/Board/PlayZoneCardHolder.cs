@@ -48,7 +48,7 @@ public class PlayZoneCardHolder : MonoBehaviour, IDropHandler
         int.TryParse(gameObject.name, out var holderNumber);
         PlaceCard();
 
-        PlayerZoneManager.PlayerDeployCard(cardObject, holderNumber - 1);
+        DropZoneManager.PlayerDeployCard(cardObject, holderNumber - 1);
     }
 
     private void PlaceCard()

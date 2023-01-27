@@ -5,9 +5,9 @@ using System.Linq;
 using Mirror;
 using UnityEngine;
 
-public class PlayerHandManager : NetworkBehaviour
+public class Hand : NetworkBehaviour
 {
-    public static PlayerHandManager Instance { get; private set; }
+    public static Hand Instance { get; private set; }
     private List<CardStats> _handCards;
     public List<CardStats> GetHandCards => _handCards;
 

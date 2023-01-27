@@ -11,12 +11,19 @@ public class PlayerManager : NetworkBehaviour
     private GameManager _gameManager;
     private TurnManager _turnManager;
     private CombatManager _combatManager;
+    private BoardManager _boardManager;
+    [SerializeField] private DropZoneManager _dropZone;
     public PlayerManager opponent { get; private set; }
 
     [Header("Game State")]
     public List<Phase> playerChosenPhases = new() {Phase.DrawI, Phase.DrawII};
     private List<GameObject> _discardSelection;
     public List<CardInfo> moneyCards;
+
+    public bool PlayerIsChoosingBlockers { get; private set; }
+    private List<BattleZoneEntity> _blockers = new();
+    private PlayerUI _playerUI;
+    private PlayerUI _opponentUI;
     
     public static event Action OnCardPileChanged;
     public static event Action<PlayerManager, int> OnCashChanged;
@@ -63,17 +70,14 @@ public class PlayerManager : NetworkBehaviour
         set => SetDeployValue(value);
     }
 
-    public bool PlayerIsChoosingBlockers { get; private set; }
-    private List<BattleZoneEntity> _blockers = new();
-    private PlayerUI _playerUI;
-    private PlayerUI _opponentUI;
-
     #region GameSetup
 
-    private void Awake(){
+    private void Start(){
+        _dropZone = GameObject.Find("PlayerPlayZone").GetComponent<DropZoneManager>();
         _playerUI = GameObject.Find("PlayerInfo").GetComponent<PlayerUI>();
         _opponentUI = GameObject.Find("OpponentInfo").GetComponent<PlayerUI>();
     }
+
     public override void OnStartClient(){
         base.OnStartClient();
 
@@ -84,17 +88,8 @@ public class PlayerManager : NetworkBehaviour
         _gameManager = GameManager.Instance;
         _turnManager = TurnManager.Instance;
         _combatManager = CombatManager.Instance;
+        _boardManager = BoardManager.Instance;
     }
-
-    // [ClientRpc]
-    // public void RpcSetPlayerStats(int startHealth, int startScore){
-        
-    //     PlayerName = PlayerName;
-    //     if (!isOwned) return;
-
-    //     _playerUI.SetPlayerUI(startHealth.ToString(), startScore.ToString());
-    //     _opponentUI.SetPlayerUI(startHealth.ToString(), startScore.ToString());
-    // }
     
     [Server] // GameManager calls this on player object
     public void DrawInitialHand(int amount)
@@ -416,14 +411,27 @@ public class PlayerManager : NetworkBehaviour
     }
 
     public void PlayerPressedReadyButton() {
-
-        if (isServer) _turnManager.PlayerPressedReadyButton(this);
-        else CmdPlayerPressedReadyButton();
+        if (isServer) PlayerPressedReadyButton(this);
+        else CmdPlayerPressedReadyButton(this);
     }
 
     [Command]
-    private void CmdPlayerPressedReadyButton() {
-        _turnManager.PlayerPressedReadyButton(this);
+    private void CmdPlayerPressedReadyButton(PlayerManager player) => PlayerPressedReadyButton(player);
+
+    [Server]
+    private void PlayerPressedReadyButton(PlayerManager player) {
+        var turnState = _turnManager.turnState;
+
+        print(player.PlayerName + " pressed ready button in state - " + turnState);
+        switch (turnState)
+        {
+            case TurnState.Deploy:
+                _turnManager.PlayerDeployedCard(this, null, -1);
+                break;
+            case TurnState.Combat:
+                _dropZone.PlayerPressedReadyButton(player);
+                break;
+        }
     }
 
     #endregion

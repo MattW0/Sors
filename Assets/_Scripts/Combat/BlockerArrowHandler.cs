@@ -22,6 +22,9 @@ public class BlockerArrowHandler : NetworkBehaviour
     private void RpcCombatStateChanged(CombatState newState)
     {
         _currentState = newState;
+        if(_currentState != CombatState.CleanUp) {
+            _hasTarget = false;
+        }
     }
     
     private void SpawnArrow()
@@ -42,6 +45,7 @@ public class BlockerArrowHandler : NetworkBehaviour
     
     private void HandleClickedMyCreature(){
         
+        print(entity.CanAct + " " + entity.IsAttacking + " " + _hasTarget);
         if (!entity.CanAct || entity.IsAttacking || _hasTarget) return;
         
         if (!_arrow) {
@@ -57,10 +61,10 @@ public class BlockerArrowHandler : NetworkBehaviour
 
     private void HandleClickedOpponentCreature()
     {
-        if (isServer) {
-            if (!entity.ServerIsAttacker()) return;
-        }
-        else if (!entity.IsAttacking) return;
+        // if (isServer) {
+        //     if (!entity.ServerIsAttacker()) return;
+        // }
+        if (!entity.IsAttacking) return;
 
         var clicker = PlayerManager.GetPlayerManager();
         if (!clicker.PlayerIsChoosingBlockers) return;
