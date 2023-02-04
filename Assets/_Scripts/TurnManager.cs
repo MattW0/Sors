@@ -318,8 +318,10 @@ public class TurnManager : NetworkBehaviour
 
     public void PlayerSelectedRecruitCard(PlayerManager player, CardInfo card)
     {
+        player.Recruits--;
         if (card.title != null) // If player did not skip recruit (and selected a card)
         {
+            player.Cash -= card.cost;
             if (_recruitedCards.ContainsKey(player))
                 _recruitedCards[player].Add(card);
             else
@@ -328,12 +330,12 @@ public class TurnManager : NetworkBehaviour
         
         _kingdom.TargetResetRecruit(_gameManager.players[player].connectionToClient, player.Recruits);
 
-        // Waiting for player to use other recruits
+        // Waiting for player to use remaining recruit actions
         if (player.Recruits > 0) return;
         
         _readyPlayers.Add(player);
         
-        // Waiting for a player to finish recruiting
+        // " to finish recruiting
         if (_readyPlayers.Count != _nbPlayers) return;
 
         RecruitSpawnAndReset();
@@ -349,7 +351,7 @@ public class TurnManager : NetworkBehaviour
         }
         
         PlayersStatsResetAndDiscardMoney();
-        _kingdom.EndRecruit();
+        _kingdom.RpcEndRecruit();
 
         UpdateTurnState(TurnState.NextPhase);
     }

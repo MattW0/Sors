@@ -9,6 +9,7 @@ using Unity.VisualScripting;
 public class KingdomCard : MonoBehaviour
 {
     private Kingdom _kingdom;
+    private KingdomUI _ui;
     public CardInfo cardInfo;
     
     private bool _isRecruitable;
@@ -32,11 +33,12 @@ public class KingdomCard : MonoBehaviour
 
     private void Awake(){
         _kingdom = Kingdom.Instance;
+        _ui = KingdomUI.Instance;
         Kingdom.OnRecruitPhaseEnded += EndRecruitPhase;
     }
 
     public void SetCard(CardInfo card)
-    {   
+    {
         cardInfo = card;
         title.text = card.title;
         cost.text = card.cost.ToString();
@@ -45,30 +47,30 @@ public class KingdomCard : MonoBehaviour
         points.text = card.points.ToString();
     }
 
-    private void EndRecruitPhase(){
-        _isRecruitable = false;
-    }
-
     public void OnKingdomCardClick(){
         if (!_isRecruitable) return;
-        
-        // Deselecting
-        if (_isSelected) {
-            _kingdom.CardToRecruitClicked(false, this);
-            Highlight(true, false);
-            _isSelected = false;
-            return;
-        }
 
-        _isSelected = true;
-        Highlight(true, true);
-        _kingdom.CardToRecruitClicked(true, this);
+        // Selecting / deselectin
+        if (!_isSelected) {
+            _ui.SelectCard(this);
+            highlight.color = Color.blue;
+        } else {
+            _ui.DeselectCard(this);
+            highlight.color = Color.green;
+        }
+        _isSelected = !_isSelected;
     }
 
-    private void Highlight(bool active, bool chosen=false)
+    private void Highlight(bool active)
     {
         highlight.enabled = active;
-        highlight.color = chosen ? Color.blue : Color.green;
+    }
+    
+    private void EndRecruitPhase(){
+        _isRecruitable = false;
+        _isSelected = false;
+        highlight.enabled = false;
+        highlight.color = Color.green;
     }
 
     private void OnDestroy(){

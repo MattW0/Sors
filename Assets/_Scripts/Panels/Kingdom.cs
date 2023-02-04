@@ -10,28 +10,23 @@ using UnityEngine.UI;
 public class Kingdom : NetworkBehaviour
 {
     public static Kingdom Instance { get; private set; }
+    private GameManager _gameManager;
 
+    [SerializeField] private KingdomUI _ui;
     [SerializeField] private KingdomCard[] kingdomCards;
     [SerializeField] private GameObject cardGrid;
 
     public static event Action OnRecruitPhaseEnded;
-    private CardInfo _selectedCard;
-    
-    // UI
-    public Button confirm;
-    public Button skip;
-    [SerializeField] private GameObject maxView;
 
     private void Awake()
     {
         if (Instance == null) Instance = this;
+        _gameManager = GameManager.Instance;
     }
 
     [ClientRpc]
     public void RpcSetKingdomCards(CardInfo[] kingdomCardsInfo)
     {   
-        maxView.SetActive(false);
-
         kingdomCards = new KingdomCard[kingdomCardsInfo.Length];
         kingdomCards = cardGrid.GetComponentsInChildren<KingdomCard>();
 
@@ -44,69 +39,49 @@ public class Kingdom : NetworkBehaviour
     [ClientRpc]
     public void RpcBeginRecruit()
     {
-        MaxButton();
-        skip.interactable = true;
+        _ui.BeginRecruit();        
+    }
+
+    public void PlayerPressedButton(CardInfo selectedCard)
+    {
+        PlayerManager.GetPlayerManager().PlayerRecruits(selectedCard);
+    }
+
+    [ClientRpc]
+    public void RpcReplaceCard(string oldTitle, CardInfo cardInfo)
+    {
+        foreach (var kc in kingdomCards)
+        {
+            if (kc.cardInfo.title != oldTitle) continue;
+
+            kc.SetCard(cardInfo);
+            break;
+        }
     }
     
     [TargetRpc]
     public void TargetResetRecruit(NetworkConnection target, int recruitsLeft)
     {
-        if (recruitsLeft > 0) skip.interactable = true;
+        if (recruitsLeft > 0) _ui.ResetRecruitButton();
     }
     
     [TargetRpc]
-    public void TargetCheckRecruitability(NetworkConnection target, int currentCash){
+    public void TargetCheckRecruitability(NetworkConnection target, int playerCash){
+        var skipCards = _ui.GetPreviouslySelectedKingdomCards();
+
         foreach (var kc in kingdomCards)
         {
-            kc.Recruitable = currentCash >= kc.Cost;
+            if (skipCards.Contains(kc)) continue;
+            kc.Recruitable = playerCash >= kc.Cost;
         }
-    }
-
-    public void CardToRecruitClicked(bool select, KingdomCard card){
-
-        if (select) {
-            confirm.interactable = true;
-            _selectedCard = card.cardInfo;
-        } else {
-            confirm.interactable = false;
-            _selectedCard.Destroy();
-        }
-    }
-
-    public void ConfirmButtonPressed()
-    {
-        confirm.interactable = false;
-        PlayerPressedButton();
-    }
-
-    public void SkipButtonPressed()
-    {
-        skip.interactable = false;
-        _selectedCard.Destroy();
-        PlayerPressedButton();
-    }
-
-    private void PlayerPressedButton()
-    {
-        var networkIdentity = NetworkClient.connection.identity;
-        var p = networkIdentity.GetComponent<PlayerManager>();
-        
-        p.CmdRecruitSelection(_selectedCard);
     }
     
-    [Server]
-    public void EndRecruit()
+    [ClientRpc]
+    public void RpcEndRecruit()
     {
         OnRecruitPhaseEnded?.Invoke();
-        RpcMinButton();
+        _ui.EndRecruit();
     }
 
-    public void MaxButton() {
-        if (maxView.activeSelf) MinButton();
-        else maxView.SetActive(true);
-    }
-    public void MinButton() => maxView.SetActive(false);
-
-    [ClientRpc]
-    private void RpcMinButton() => MinButton();
+    public void MaxButton() => _ui.MaxButton();
 }

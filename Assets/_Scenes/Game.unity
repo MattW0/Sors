@@ -1529,7 +1529,7 @@ MonoBehaviour:
   startHealth: 10
   startScore: 0
   startCards: []
-  creatureCards: []
+  creatureCardsDb: []
   moneyCards: []
   discardPanelPrefab: {fileID: 5765509117050641646, guid: e335860c9c03c82469c10feefbe3e926, type: 3}
   creatureCardPrefab: {fileID: 7967854417800556825, guid: 0a0214f9f73b5e64e9cf9f30766b3fb8, type: 3}
@@ -4596,6 +4596,10 @@ PrefabInstance:
       propertyPath: maxView
       value: 
       objectReference: {fileID: 1179444533}
+    - target: {fileID: 5495776264560204893, guid: 37e2b8313015d1a4f8f13069553e53bd, type: 3}
+      propertyPath: _kingdom
+      value: 
+      objectReference: {fileID: 7590782933963514889}
     - target: {fileID: 6245966277038001864, guid: 37e2b8313015d1a4f8f13069553e53bd, type: 3}
       propertyPath: m_Name
       value: Kingdom
@@ -4842,3 +4846,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 37e2b8313015d1a4f8f13069553e53bd, type: 3}
+--- !u!114 &7590782933963514889 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5373639038091819865, guid: 37e2b8313015d1a4f8f13069553e53bd, type: 3}
+  m_PrefabInstance: {fileID: 7590782933963514888}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 642e5f630e6209c45a3b47f3b80d4ccf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

@@ -243,18 +243,13 @@ public class PlayerManager : NetworkBehaviour
         PlayCard(card);
     }
 
-    [TargetRpc]
-    public void TargetDeployCard(NetworkConnection target)
-    {
-        // _myPlayZone.DeployToBattlezone();
+    public void PlayerRecruits(CardInfo selectedCard){
+        if(isServer) TurnManager.Instance.PlayerSelectedRecruitCard(this, selectedCard);
+        else CmdRecruitSelection(selectedCard);
     }
 
     [Command]
-    public void CmdRecruitSelection(CardInfo card){
-        
-        Recruits--;
-        if (card.title != null) Cash -= card.cost;
-        
+    public void CmdRecruitSelection(CardInfo card){        
         TurnManager.Instance.PlayerSelectedRecruitCard(this, card);
     }
 

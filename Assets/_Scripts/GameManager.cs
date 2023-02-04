@@ -12,6 +12,7 @@ public class GameManager : NetworkBehaviour {
 
     public static GameManager Instance { get; private set; }
     private TurnManager _turnManager;
+    private Kingdom _kingdom;
     private EndScreen _endScreen;
 
     public static event Action<int> OnGameStart;
@@ -41,7 +42,8 @@ public class GameManager : NetworkBehaviour {
 
     [Header("Available cards")]
     public ScriptableCard[] startCards;
-    public ScriptableCard[] creatureCards;
+    public ScriptableCard[] creatureCardsDb;
+    private List<int> _cardsIdCache = new();
     public ScriptableCard[] moneyCards;
     private Sprite[] _moneySprites;
     
@@ -60,7 +62,7 @@ public class GameManager : NetworkBehaviour {
         if (Instance == null) Instance = this;
 
         startCards = Resources.LoadAll<ScriptableCard>("StartCards/");
-        creatureCards = Resources.LoadAll<ScriptableCard>("CreatureCards/");
+        creatureCardsDb = Resources.LoadAll<ScriptableCard>("creatureCards/");
         moneyCards = Resources.LoadAll<ScriptableCard>("MoneyCards/");
         _moneySprites = Resources.LoadAll<Sprite>("Sprites/Money/");
 
@@ -74,6 +76,7 @@ public class GameManager : NetworkBehaviour {
         singlePlayer = nbPlayers == 1;
 
         _turnManager = TurnManager.Instance;
+        _kingdom = Kingdom.Instance;
         _endScreen = EndScreen.Instance;
         
         KingdomSetup();
@@ -82,41 +85,25 @@ public class GameManager : NetworkBehaviour {
         OnGameStart?.Invoke(nbPlayers);
     }
 
-    private void PlayerDies(PlayerManager player)
-    {
-        _loosingPlayers.Add(player);
-    }
-
-    public void EndGame()
-    {
-        foreach (var player in players.Keys)
-        {
-            var health = _turnManager.GetHealth(player);
-            _endScreen.RpcSetFinalScore(player, health, 0);
-        }
-        
-        // Both players die -> Draw
-        if (_loosingPlayers.Count == players.Count)
-        {
-            _endScreen.RpcGameIsDraw();
-            return;
-        }
-        
-        _endScreen.RpcIsLooser(_loosingPlayers[0]);
-    }
-
     #region Setup
     
     private void KingdomSetup(){
         var kingdomCards = new CardInfo[nbKingdomCards];
         
-        for (var i = 0; i < nbKingdomCards; i++)
-        {
-            var card = creatureCards[Random.Range(0, creatureCards.Length)];
-            kingdomCards[i] = new CardInfo(card);
-        }
+        for (var i = 0; i < nbKingdomCards; i++) kingdomCards[i] = GetNewCardFromDb();
+        _kingdom.RpcSetKingdomCards(kingdomCards);
+    }
 
-        Kingdom.Instance.RpcSetKingdomCards(kingdomCards);
+    private CardInfo GetNewCardFromDb(){
+
+        // Get new random card
+        var id = Random.Range(0, creatureCardsDb.Length);
+        while (_cardsIdCache.Contains(id)) id = Random.Range(0, creatureCardsDb.Length);
+
+        _cardsIdCache.Add(id);
+        var card = creatureCardsDb[id];
+
+        return new CardInfo(card);
     }
 
     private void PlayerSetup(){
@@ -199,7 +186,10 @@ public class GameManager : NetworkBehaviour {
     }
 
     public void SpawnCreature(PlayerManager player, CardInfo cardInfo){
-        var scriptableCard = Resources.Load<ScriptableCard>("CreatureCards/" + cardInfo.title);
+
+        _kingdom.RpcReplaceCard(cardInfo.title, GetNewCardFromDb());
+
+        var scriptableCard = Resources.Load<ScriptableCard>("creatureCards/" + cardInfo.title);
         var cardObject = Instantiate(creatureCardPrefab);
         SpawnCacheAndMoveCard(player, cardObject, scriptableCard, CardLocations.Discard);
     }
@@ -217,6 +207,33 @@ public class GameManager : NetworkBehaviour {
         
         OnEntitySpawned?.Invoke(owner, entity, card);
     }
+    #endregion
+
+    #region Ending
+
+    private void PlayerDies(PlayerManager player)
+    {
+        _loosingPlayers.Add(player);
+    }
+
+    public void EndGame()
+    {
+        foreach (var player in players.Keys)
+        {
+            var health = _turnManager.GetHealth(player);
+            _endScreen.RpcSetFinalScore(player, health, 0);
+        }
+        
+        // Both players die -> Draw
+        if (_loosingPlayers.Count == players.Count)
+        {
+            _endScreen.RpcGameIsDraw();
+            return;
+        }
+        
+        _endScreen.RpcIsLooser(_loosingPlayers[0]);
+    }
+
     #endregion
 
     private PlayerManager GetOpponent(PlayerManager player)
