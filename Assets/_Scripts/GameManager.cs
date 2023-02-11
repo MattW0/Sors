@@ -7,7 +7,7 @@ using Random = UnityEngine.Random;
 
 public class GameManager : NetworkBehaviour {
     [Header("For Coding")]
-    public bool test;
+    public bool test2;
     public bool singlePlayer;
     public bool animations;
 
