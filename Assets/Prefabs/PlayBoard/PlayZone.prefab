@@ -275,8 +275,8 @@ MonoBehaviour:
   battleZone: {fileID: 8616652545055585840}
   playerMoneyZone: {fileID: 0}
   opponentMoneyZone: {fileID: 0}
-  _myBattleZoneEntities: []
-  _opponentBattleZoneEntities: []
+  _hostEntities: []
+  _clientEntities: []
 --- !u!1 &3999249032114023784
 GameObject:
   m_ObjectHideFlags: 0
@@ -343,7 +343,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300042, guid: 1eaee135ce037439d925cee5e41ce026, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 0c6061ca8e91c57499ef9c7620c3de8e, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
