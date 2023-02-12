@@ -25,21 +25,26 @@ public class GameManager : NetworkBehaviour {
     public Dictionary<PlayerManager, NetworkIdentity> players = new();
     private List<PlayerManager> _loosingPlayers = new();
 
+    [Header("Game start settings")]
+    [SerializeField] private int nbRecruitTiles = 12;
+    [SerializeField] private int nbDevelopTiles = 2;
+    [SerializeField] public int initialDeckSize = 10;
+    [SerializeField] public int nbCreatures = 2;
+    [SerializeField] public int initialHandSize = 4;
+    [SerializeField] public int startHealth = 30;
+    [SerializeField] public int startScore = 0;
+
     [Header("Turn specifics")]
-    public int nbPhasesToChose = 2;
-    public int nbCardDraw = 2;
-    public int nbDiscard = 1;
+    [SerializeField] public int nbPhasesToChose = 2;
+    [SerializeField] public int nbCardDraw = 2;
+    [SerializeField] public int nbDiscard = 1;
     public int turnCash = 0;
     public int turnDeploys = 1; 
     public int turnRecruits = 1;
 
-    [Header("Game start settings")]
-    [SerializeField] private int nbKingdomCards = 12;
-    public int initialDeckSize = 10;
-    public int nbCreatures = 2;
-    public int initialHandSize = 4;
-    public int startHealth = 30;
-    public int startScore = 0;
+    [Header("Turn Boni")]
+    public int developPriceReduction = 1;
+
 
     [Header("Available cards")]
     public ScriptableCard[] startCards;
@@ -89,13 +94,18 @@ public class GameManager : NetworkBehaviour {
     #region Setup
     
     private void KingdomSetup(){
-        var kingdomCards = new CardInfo[nbKingdomCards];
+        var developCards = new CardInfo[nbDevelopTiles];
+        var recruitCards = new CardInfo[nbRecruitTiles];
         
-        for (var i = 0; i < nbKingdomCards; i++) kingdomCards[i] = GetNewCardFromDb();
-        _kingdom.RpcSetKingdomCards(kingdomCards);
+        developCards[0] = new CardInfo(moneyCards[2]); // Silver
+        developCards[1] = new CardInfo(moneyCards[1]); // Gold
+        _kingdom.RpcSetDevelopTiles(developCards);
+
+        for (var i = 0; i < nbRecruitTiles; i++) recruitCards[i] = GetNewCreatureFromDb();
+        _kingdom.RpcSetRecruitTiles(recruitCards);
     }
 
-    private CardInfo GetNewCardFromDb(){
+    private CardInfo GetNewCreatureFromDb(){
 
         // Get new random card
         var id = Random.Range(0, creatureCardsDb.Length);
@@ -137,7 +147,7 @@ public class GameManager : NetworkBehaviour {
     private void SpawnPlayerDeck(PlayerManager playerManager){
         // Coppers
         for (var i = 0; i < initialDeckSize - nbCreatures; i++){
-            var moneyCard = moneyCards[2]; // Only copper right now
+            var moneyCard = moneyCards[0]; // Only copper right now
             var cardObject = Instantiate(moneyCardPrefab);
             SpawnCacheAndMoveCard(playerManager, cardObject, moneyCard, CardLocations.Deck);
         }
@@ -186,9 +196,14 @@ public class GameManager : NetworkBehaviour {
         owner.RpcMoveCard(cardObject, CardLocations.Spawned, destination);
     }
 
-    public void SpawnCreature(PlayerManager player, CardInfo cardInfo){
+    public void SpawnMoney(PlayerManager player, CardInfo cardInfo){
+        var scriptableCard = Resources.Load<ScriptableCard>("MoneyCards/" + cardInfo.title);
+        var cardObject = Instantiate(moneyCardPrefab);
+        SpawnCacheAndMoveCard(player, cardObject, scriptableCard, CardLocations.Discard);
+    }
 
-        _kingdom.RpcReplaceCard(cardInfo.title, GetNewCardFromDb());
+    public void SpawnCreature(PlayerManager player, CardInfo cardInfo){
+        _kingdom.RpcReplaceCard(cardInfo.title, GetNewCreatureFromDb());
 
         var scriptableCard = Resources.Load<ScriptableCard>("creatureCards/" + cardInfo.title);
         var cardObject = Instantiate(creatureCardPrefab);
