@@ -37,7 +37,7 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     }
     
     [SyncVar] private int _health;
-    private int Health
+    public int Health
     {
         get => _health;
         set
@@ -164,10 +164,11 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
         }
     }
 
-    [ClientRpc]
-    public void RpcTakesDamage(int value)
+   
+    public void TakesDamage(int value, bool deathtouch)
     {
         Health -= value;
+        if (deathtouch){ Health = 0;}
     }
 
     private void Die()

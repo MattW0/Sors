@@ -142,18 +142,28 @@ public class CombatManager : NetworkBehaviour
         foreach (var attacker in _boardManager.boardAttackers)
         { // foreach attacker, deal damage to each blocker
 
-            foreach (var blocker in _attackersBlockers[attacker])
-            {
-                print("Attacker: " + attacker.Title + " is blocked by: " + blocker.Title);
-                blocker.RpcTakesDamage(attacker.Attack);
-                attacker.RpcTakesDamage(blocker.Attack);
-                 
-                yield return new WaitForSeconds(combatDamageWaitTime);
-            }
+            CombatClash(attacker);
+            yield return new WaitForSeconds(combatDamageWaitTime);
         }
         StartCoroutine(PlayerDamage());
     }
     
+    private void CombatClash(BattleZoneEntity attacker)
+    {
+        bool attackerfirstdeath = false;
+        int totalBlockerHealth = 0;
+        foreach (var blocker in _attackersBlockers[attacker])
+            {
+                attackerfirstdeath = CheckFirststrike(attacker, blocker);
+                if (attacker.Health > 0 && blocker.Health > 0)
+                { 
+                    totalBlockerHealth += blocker.Health;
+                    Block(attacker, blocker);        
+                }   
+            }
+        if (!attackerfirstdeath) CheckTrample(attacker, totalBlockerHealth);
+    }
+
     private IEnumerator PlayerDamage()
     {
         // Skip if in single-player (for debugging)
@@ -187,6 +197,38 @@ public class CombatManager : NetworkBehaviour
         
         UpdateCombatState(CombatState.Idle);
         _turnManager.CombatCleanUp();
+    }
+
+    private bool CheckFirststrike(BattleZoneEntity attacker, BattleZoneEntity blocker)
+    {
+        if (attacker._keywordAbilities.Contains(Keywords.First_Strike) && (attacker.Attack >= blocker.Health || attacker._keywordAbilities.Contains(Keywords.Deathtouch)) && !blocker._keywordAbilities.Contains(Keywords.First_Strike))
+        {
+            blocker.TakesDamage(attacker.Attack, attacker._keywordAbilities.Contains(Keywords.Deathtouch));
+        }
+
+        if (blocker._keywordAbilities.Contains(Keywords.First_Strike) && (blocker.Attack >= attacker.Health || blocker._keywordAbilities.Contains(Keywords.Deathtouch)) && !attacker._keywordAbilities.Contains(Keywords.First_Strike))
+        {
+            attacker.TakesDamage(blocker.Attack, blocker._keywordAbilities.Contains(Keywords.Deathtouch));
+            return true;
+        }
+        return false;
+    }
+
+    private void Block(BattleZoneEntity attacker, BattleZoneEntity blocker)
+    {
+        print("Attacker: " + attacker.Title + " is blocked by: " + blocker.Title);
+        blocker.TakesDamage(attacker.Attack, attacker._keywordAbilities.Contains(Keywords.Deathtouch));
+        attacker.TakesDamage(blocker.Attack, blocker._keywordAbilities.Contains(Keywords.Deathtouch));
+    }
+
+    private void CheckTrample(BattleZoneEntity attacker, int tothealth )
+    {
+        if (attacker._keywordAbilities.Contains(Keywords.Trample))
+        {
+            var targetPlayer = attacker.Target;
+            targetPlayer.Health -= attacker.Attack - tothealth;
+            _turnManager.PlayerHealthChanged(targetPlayer, attacker.Attack - tothealth);            
+        }
     }
 
     private void OnDestroy()
