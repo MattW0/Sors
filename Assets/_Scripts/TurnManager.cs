@@ -29,7 +29,7 @@ public class TurnManager : NetworkBehaviour
     public int GetHealth(PlayerManager player) => _playerHealth[player];
 
     [Header("Helper Fields")]
-    private Dictionary<PlayerManager, List<CardInfo>> _recruitedCards;
+    private Dictionary<PlayerManager, List<CardInfo>> _selectedCards;
     
     // Events
     public static event Action<Phase[]> OnPhasesSelected;
@@ -132,7 +132,6 @@ public class TurnManager : NetworkBehaviour
 
     public void PlayerSelectedPhases(PlayerManager player, Phase[] phases) {
         
-        _readyPlayers.Add(player);
         _playerPhaseChoices[player] = phases;
 
         foreach (var phase in phases) {
@@ -141,9 +140,7 @@ public class TurnManager : NetworkBehaviour
             }
         }
 
-        if (_readyPlayers.Count != _nbPlayers) return;
-
-        FinishPhaseSelection();
+        PlayerIsReady(player);
     }
 
     private void FinishPhaseSelection() {
@@ -216,10 +213,10 @@ public class TurnManager : NetworkBehaviour
     }
 
     public void PlayerSelectedDiscardCards(PlayerManager player){
+        PlayerIsReady(player);        
+    }
 
-        _readyPlayers.Add(player);       
-        if (_readyPlayers.Count != _nbPlayers) return;
-
+    private void FinishDiscard() {
         foreach (var p in _readyPlayers) {
             p.DiscardSelection();
         }
@@ -232,10 +229,49 @@ public class TurnManager : NetworkBehaviour
     
     #endregion
 
+    #region Develop
     private void Develop(){
-        print("<color=yellow>Develop not yet implemented</color>");
+        _selectedCards = new Dictionary<PlayerManager, List<CardInfo>>();
+        _handManager.RpcHighlightMoney(true);
+        _kingdom.RpcBeginPhase(Phase.Develop);
+
+        foreach (var player in _gameManager.players.Keys) {
+            if (player.playerChosenPhases.Contains(Phase.Develop)){
+                _kingdom.TargetDevelopBonus(player.connectionToClient, _gameManager.developPriceReduction);
+            } 
+        }
+    }
+
+    public void PlayerSelectedDevelopCard(PlayerManager player, CardInfo card)
+    {
+        var cost = card.cost;
+        if (player.playerChosenPhases.Contains(Phase.Develop)) cost -= _gameManager.developPriceReduction;
+        player.Cash -= cost;
+
+        if (_selectedCards.ContainsKey(player))
+            _selectedCards[player].Add(card);
+        else
+            _selectedCards.Add(player, new List<CardInfo> { card });
+        
+        PlayerIsReady(player);
+    }
+
+    private void DevelopSpawnAndReset()
+    {
+        foreach (var (owner, cards) in _selectedCards) {
+            foreach (var cardInfo in cards) {
+                print("<color=white>" + owner.PlayerName + " develops " + cardInfo.title + "</color>");
+                _gameManager.SpawnMoney(owner, cardInfo);
+            }
+        }
+        
+        PlayersStatsResetAndDiscardMoney();
+        _kingdom.RpcEndDevelop();
+
         UpdateTurnState(TurnState.NextPhase);
     }
+
+    #endregion
     
     #region Deploy
 
@@ -258,25 +294,16 @@ public class TurnManager : NetworkBehaviour
     public void PlayerDeployedCard(PlayerManager player, GameObject card, int holderNumber) {
         
         player.Deploys--;
-        // If player did not skip deploy (and deployed a card)
-        if (card){
-            var cardInfo = card.GetComponent<CardStats>().cardInfo;
-            player.Cash -= cardInfo.cost;
-            _gameManager.SpawnFieldEntity(player, card, cardInfo, holderNumber);
-        } else {
-            player.Deploys = 0;
-        }
+        var cardInfo = card.GetComponent<CardStats>().cardInfo;
+        player.Cash -= cardInfo.cost;
+        _gameManager.SpawnFieldEntity(player, card, cardInfo, holderNumber);
 
         // Waiting for player to use other deploys
         if (player.Deploys > 0) return;
-        
-        _readyPlayers.Add(player);
-        _handManager.TargetHighlightMoney(_gameManager.players[player].connectionToClient, false);
+        _handManager.TargetHighlightMoney(player.connectionToClient, false);
         
         // Waiting for a player to finish recruiting
-        if (_readyPlayers.Count != _nbPlayers) return;
-        
-        EndDeploy();
+        PlayerIsReady(player);
     }
 
     private void EndDeploy()
@@ -305,9 +332,9 @@ public class TurnManager : NetworkBehaviour
     #region Recruit
 
     private void Recruit(){
-        _recruitedCards = new Dictionary<PlayerManager, List<CardInfo>>();
+        _selectedCards = new Dictionary<PlayerManager, List<CardInfo>>();
         _handManager.RpcHighlightMoney(true);
-        _kingdom.RpcBeginRecruit();
+        _kingdom.RpcBeginPhase(Phase.Recruit);
 
         foreach (var playerManager in _gameManager.players.Keys) {
             var nbRecruits = _gameManager.turnRecruits;
@@ -319,31 +346,23 @@ public class TurnManager : NetworkBehaviour
     public void PlayerSelectedRecruitCard(PlayerManager player, CardInfo card)
     {
         player.Recruits--;
-        if (card.title != null) // If player did not skip recruit (and selected a card)
-        {
-            player.Cash -= card.cost;
-            if (_recruitedCards.ContainsKey(player))
-                _recruitedCards[player].Add(card);
-            else
-                _recruitedCards.Add(player, new List<CardInfo> { card });
-        }
+        player.Cash -= card.cost;
+        if (_selectedCards.ContainsKey(player))
+            _selectedCards[player].Add(card);
+        else
+            _selectedCards.Add(player, new List<CardInfo> { card });
         
-        _kingdom.TargetResetRecruit(_gameManager.players[player].connectionToClient, player.Recruits);
+        _kingdom.TargetResetRecruit(player.connectionToClient, player.Recruits);
 
         // Waiting for player to use remaining recruit actions
         if (player.Recruits > 0) return;
         
-        _readyPlayers.Add(player);
-        
-        // " to finish recruiting
-        if (_readyPlayers.Count != _nbPlayers) return;
-
-        RecruitSpawnAndReset();
+        PlayerIsReady(player);
     }
 
     private void RecruitSpawnAndReset()
     {
-        foreach (var (owner, cards) in _recruitedCards) {
+        foreach (var (owner, cards) in _selectedCards) {
             foreach (var cardInfo in cards) {
                 _gameManager.SpawnCreature(owner, cardInfo);
                 print("<color=white>" + owner.PlayerName + " recruits " + cardInfo.title + "</color>");
@@ -383,7 +402,32 @@ public class TurnManager : NetworkBehaviour
         UpdateTurnState(TurnState.PhaseSelection);
     }
     
-    // helper functions
+    #region HelperFunctions
+    public void PlayerIsReady(PlayerManager player)
+    {
+        _readyPlayers.Add(player);
+        if (_readyPlayers.Count != _nbPlayers) return;
+        
+        switch (turnState) {
+            case TurnState.PhaseSelection:
+                FinishPhaseSelection();
+                break;
+            case TurnState.Discard:
+                FinishDiscard();
+                break;
+            case TurnState.Develop:
+                DevelopSpawnAndReset();
+                break;
+            case TurnState.Deploy:
+                player.Deploys = 0;
+                EndDeploy();
+                break;
+            case TurnState.Recruit:
+                RecruitSpawnAndReset();
+                break;
+        }
+    }
+
     public void PlayerHealthChanged(PlayerManager player, int amount)
     {
         _playerHealth[player] -= amount;
@@ -392,11 +436,14 @@ public class TurnManager : NetworkBehaviour
     private void PlayerCashChanged(PlayerManager player, int newAmount)
     {
         switch (turnState) {
+            case TurnState.Develop:
+                _kingdom.TargetCheckDevelopability(player.connectionToClient, newAmount);
+                break;
             case TurnState.Deploy:
-                _handManager.TargetCheckDeployability(_gameManager.players[player].connectionToClient, newAmount);
+                _handManager.TargetCheckDeployability(player.connectionToClient, newAmount);
                 break;
             case TurnState.Recruit:
-                _kingdom.TargetCheckRecruitability(_gameManager.players[player].connectionToClient, newAmount);
+                _kingdom.TargetCheckRecruitability(player.connectionToClient, newAmount);
                 break;
         }
     }
@@ -417,6 +464,7 @@ public class TurnManager : NetworkBehaviour
             
         }
     }
+    #endregion
 
     private void OnDestroy()
     {

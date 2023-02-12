@@ -243,6 +243,16 @@ public class PlayerManager : NetworkBehaviour
         PlayCard(card);
     }
 
+    public void PlayerDevelops(CardInfo selectedCard){
+        if(isServer) TurnManager.Instance.PlayerSelectedDevelopCard(this, selectedCard);
+        else CmdDevelopSelection(selectedCard);
+    }
+
+    [Command]
+    public void CmdDevelopSelection(CardInfo card){
+        TurnManager.Instance.PlayerSelectedDevelopCard(this, card);
+    }
+
     public void PlayerRecruits(CardInfo selectedCard){
         if(isServer) TurnManager.Instance.PlayerSelectedRecruitCard(this, selectedCard);
         else CmdRecruitSelection(selectedCard);
@@ -414,13 +424,16 @@ public class PlayerManager : NetworkBehaviour
 
     [Server]
     private void PlayerPressedReadyButton(PlayerManager player) {
-        var turnState = _turnManager.turnState;
-
-        // print(player.PlayerName + " pressed ready button in state - " + turnState);
-        switch (turnState)
+        switch (_turnManager.turnState)
         {
+            case TurnState.Develop:
+                _turnManager.PlayerIsReady(player);
+                break;
+            case TurnState.Recruit:
+                _turnManager.PlayerIsReady(player);
+                break;
             case TurnState.Deploy:
-                _turnManager.PlayerDeployedCard(this, null, -1);
+                _turnManager.PlayerIsReady(player);
                 break;
             case TurnState.Combat:
                 _dropZone.PlayerPressedReadyButton(player);

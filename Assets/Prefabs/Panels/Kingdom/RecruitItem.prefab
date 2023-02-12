@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 2476821137206774664}
   - component: {fileID: 3740274974745187941}
   m_Layer: 5
-  m_Name: KingdomItem
+  m_Name: RecruitItem
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -45,7 +45,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 180, y: 160}
+  m_SizeDelta: {x: 180, y: 120}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4011043143021555515
 CanvasRenderer:
@@ -129,8 +129,8 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls:
         - m_Target: {fileID: 3740274974745187941}
-          m_TargetAssemblyTypeName: KingdomCard, Assembly-CSharp
-          m_MethodName: OnKingdomCardClick
+          m_TargetAssemblyTypeName: RecruitTile, Assembly-CSharp
+          m_MethodName: OnRecruitTileClick
           m_Mode: 1
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
