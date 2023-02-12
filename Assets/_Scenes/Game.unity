@@ -1516,18 +1516,20 @@ MonoBehaviour:
   singlePlayer: 0
   animations: 1
   turnNb: 0
+  nbRecruitTiles: 8
+  nbDevelopTiles: 2
+  initialDeckSize: 10
+  nbCreatures: 2
+  initialHandSize: 4
+  startHealth: 10
+  startScore: 0
   nbPhasesToChose: 2
   nbCardDraw: 2
   nbDiscard: 1
   turnCash: 0
   turnDeploys: 1
   turnRecruits: 1
-  nbKingdomCards: 12
-  initialDeckSize: 10
-  nbCreatures: 2
-  initialHandSize: 4
-  startHealth: 10
-  startScore: 0
+  developPriceReduction: 1
   startCards: []
   creatureCardsDb: []
   moneyCards: []

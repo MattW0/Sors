@@ -24,6 +24,7 @@ public class RecruitTile : MonoBehaviour
     
     // UI
     [SerializeField] private TMP_Text title;
+    [SerializeField] private TMP_Text description;
     [SerializeField] private TMP_Text cost;
     public int Cost => int.Parse(cost.text); // for access in Kingdom
     [SerializeField] private TMP_Text attack;
@@ -45,6 +46,7 @@ public class RecruitTile : MonoBehaviour
         attack.text = card.attack.ToString();
         defense.text = card.health.ToString();
         points.text = card.points.ToString();
+        description.text = string.Join(" ", cardInfo.keyword_abilities.ConvertAll(f => f.ToString()));
     }
 
     public void OnRecruitTileClick(){
