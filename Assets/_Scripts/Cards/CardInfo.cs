@@ -50,5 +50,6 @@ public struct CardInfo
         this.health = 0;
         this.goID = null;
         this.moneyValue = 0;
+        this.keyword_abilities = null;
     }
 }

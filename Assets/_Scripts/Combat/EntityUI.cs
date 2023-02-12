@@ -2,6 +2,7 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
 
 public class EntityUI : MonoBehaviour
 {
@@ -10,6 +11,7 @@ public class EntityUI : MonoBehaviour
     [SerializeField] private TMP_Text attack;
     [SerializeField] private TMP_Text health;
     [SerializeField] private TMP_Text points;
+    [SerializeField] private TMP_Text description;
 
     [SerializeField] private Image highlight;
     [SerializeField] private Image attackerHighlight;
@@ -41,6 +43,10 @@ public class EntityUI : MonoBehaviour
         cost.text = cardInfo.cost.ToString();
         attack.text = cardInfo.attack.ToString();
         health.text = cardInfo.health.ToString();
+        description.text = string.Join(" ", cardInfo.keyword_abilities.ConvertAll(f => f.ToString()));
+
+        // var keyword_strings = cardInfo.keyword_abilities.ConvertAll(f => f.ToString());
+        // description.text = String.Join(" ", keyword_strings);
     }
 
     public void SetHealth(int newValue) => health.text = newValue.ToString();

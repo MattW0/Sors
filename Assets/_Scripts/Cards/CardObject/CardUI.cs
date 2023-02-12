@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using DG.Tweening;
+using System.Linq;
 
 public class CardUI : MonoBehaviour {
 
@@ -40,10 +41,12 @@ public class CardUI : MonoBehaviour {
         
         if (cardInfo.isCreature){
             _transform.Find("CardFront/Special").gameObject.SetActive(true);
-            _description.text = cardInfo.hash;
+            _description.text = cardInfo.keyword_abilities.ToString();
             _attack.text = cardInfo.attack.ToString();
             _health.text = cardInfo.health.ToString();
             _points.text = cardInfo.points.ToString();
+            _description.text = string.Join(" ", cardInfo.keyword_abilities.ConvertAll(f => f.ToString()));
+
         } else {
             _transform.Find("CardFront").GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/Money/" + cardInfo.title);
         }
