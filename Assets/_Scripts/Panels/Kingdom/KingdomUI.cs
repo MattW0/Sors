@@ -28,6 +28,7 @@ public class KingdomUI : MonoBehaviour
     private void Start()
     {
         _kingdom = Kingdom.Instance;
+        MinButton();
     }
 
     #region Recruit
@@ -70,7 +71,7 @@ public class KingdomUI : MonoBehaviour
     #endregion
 
     public void SwitchButtonPressed(){
-        if(!_developPanel.activeSelf) ShowRecruitPanel();
+        if(_developPanel.activeSelf) ShowRecruitPanel();
         else ShowDevelopPanel();
     }
     
