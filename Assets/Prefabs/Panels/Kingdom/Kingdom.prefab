@@ -1057,7 +1057,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Switch
+  m_text: Recruit
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1773,6 +1773,17 @@ MonoBehaviour:
   recruitTiles: []
   developGrid: {fileID: 7555270371638000149}
   recruitGrid: {fileID: 8742038789796367781}
+  selection:
+    goID: 
+    title: 
+    hash: 
+    isCreature: 0
+    moneyValue: 0
+    cost: 0
+    attack: 0
+    health: 0
+    points: 0
+    keyword_abilities: 
 --- !u!114 &5495776264560204893
 MonoBehaviour:
   m_ObjectHideFlags: 0
