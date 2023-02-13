@@ -21,6 +21,8 @@ public class RecruitTile : MonoBehaviour
         }
     }
     private bool _isSelected;
+    private bool _alreadyRecruited;
+
     
     // UI
     [SerializeField] private TMP_Text title;
@@ -50,9 +52,9 @@ public class RecruitTile : MonoBehaviour
     }
 
     public void OnRecruitTileClick(){
-        if (!_isRecruitable) return;
+        if (_alreadyRecruited || !_isRecruitable) return;
 
-        // Selecting / deselectin
+        // Selecting / deselecting
         if (!_isSelected) {
             _ui.SelectRecruitCard(this);
             highlight.color = Color.blue;
@@ -61,6 +63,13 @@ public class RecruitTile : MonoBehaviour
             highlight.color = Color.green;
         }
         _isSelected = !_isSelected;
+    }
+
+    //NEW FUNC TO DISABLE PRV CHOSEN TILES (NFZ)
+    public void ShowAsRecruited()
+    {
+        highlight.color = Color.yellow;
+        _alreadyRecruited = true;
     }
 
     private void Highlight(bool active)
@@ -73,6 +82,7 @@ public class RecruitTile : MonoBehaviour
         _isSelected = false;
         highlight.enabled = false;
         highlight.color = Color.green;
+        _alreadyRecruited = false;
     }
 
     private void OnDestroy(){

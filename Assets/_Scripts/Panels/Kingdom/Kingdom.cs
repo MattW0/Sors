@@ -12,6 +12,8 @@ public class Kingdom : NetworkBehaviour
     public static Kingdom Instance { get; private set; }
     private GameManager _gameManager;
     private Phase _currentPhase;
+    private List<RecruitTile> _previouslySelected = new ();
+    public List<RecruitTile> GetPreviouslySelectedRecruitTiles() => _previouslySelected;
 
     [SerializeField] private KingdomUI _ui;
     [SerializeField] private DevelopTile[] developTiles;
@@ -60,6 +62,17 @@ public class Kingdom : NetworkBehaviour
         _ui.BeginPhase(phase);        
     }
 
+    public void PlayerSelectsRecruitTile(RecruitTile tile){
+        selection = tile.cardInfo;
+        _previouslySelected.Add(tile);
+    }
+
+    public void PlayerDeselectsRecruitTile(RecruitTile tile){
+        selection.title = null; // hack-around for check in TurnManager
+        _previouslySelected.Remove(tile);
+    }
+
+
     public void PlayerPressedButton(bool skip)
     {
         var player = PlayerManager.GetPlayerManager();
@@ -107,18 +120,27 @@ public class Kingdom : NetworkBehaviour
     
     [TargetRpc]
     public void TargetCheckRecruitability(NetworkConnection target, int playerCash){
-        var skipCards = _ui.GetPreviouslySelectedRecruitTiles();
 
-        foreach (var kc in recruitTiles)
+        foreach (var tile in recruitTiles)
         {
-            if (skipCards.Contains(kc)) continue;
-            kc.Recruitable = playerCash >= kc.Cost;
+            if (_previouslySelected.Contains(tile)) continue;
+            tile.Recruitable = playerCash >= tile.Cost;
         }
     }
 
     [TargetRpc]
     public void TargetResetRecruit(NetworkConnection target, int recruitsLeft){
-        if (recruitsLeft > 0) _ui.ResetRecruitButton();
+        
+        // TODO check for tiles in _previouslyRecruited and greyout /make unselectable (zb call tile.WasRecruitedPreviously())
+        foreach (var tile in _previouslySelected){
+            tile.ShowAsRecruited();
+        }
+
+        if (recruitsLeft <= 0) return;
+        
+        _ui.ResetRecruitButton();
+
+        
     }
 
     [ClientRpc]
@@ -131,8 +153,9 @@ public class Kingdom : NetworkBehaviour
     [ClientRpc]
     public void RpcEndRecruit()
     {
+        _previouslySelected.Clear();
+        _ui.CloseWindow();
         OnRecruitPhaseEnded?.Invoke();
-        _ui.EndRecruit();
     }
 
     public void MaxButton() => _ui.MaxButton();
