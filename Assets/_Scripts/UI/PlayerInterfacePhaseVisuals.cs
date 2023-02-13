@@ -48,7 +48,13 @@ public class PlayerInterfacePhaseVisuals : MonoBehaviour
 
             var index = (int) phase;
 
-            // !!! indexing for 2 players
+            // !!! indexing for 1 player (debug)
+            if (_nbPlayers == 1) {
+                index = index*2;
+                playerChoiceHighlights[index].enabled = true;
+                continue;
+            } 
+
             if (i < _nbPlayers) index *= _nbPlayers;
             else index = index*_nbPlayers + 1;
 

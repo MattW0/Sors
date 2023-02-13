@@ -48,7 +48,7 @@ public class BoardManager : NetworkBehaviour
 
     public void AttackersDeclared(PlayerManager player, List<BattleZoneEntity> playerAttackers) {
 
-        print("Player " + player.PlayerName + " declared " + playerAttackers.Count + " attackers.");
+        _playerInterfaceManager.RpcLog("Player " + player.PlayerName + " declared " + playerAttackers.Count + " attackers.");
         // Is 0 for auto-skip or no attackers declared
         if (playerAttackers.Count > 0) {
             foreach (var a in playerAttackers) boardAttackers.Add(a);
@@ -69,14 +69,13 @@ public class BoardManager : NetworkBehaviour
 
     public void BlockersDeclared(PlayerManager player, List<BattleZoneEntity> playerBlockers) {
         
-        print("Player " + player.PlayerName + " declared " + playerBlockers.Count + " blockers.");
+        _playerInterfaceManager.RpcLog("Player " + player.PlayerName + " declared " + playerBlockers.Count + " blockers.");
 
         OnBlockersDeclared?.Invoke(player);
     }
     
     private void EntityDies(PlayerManager owner, BattleZoneEntity entity)
     {
-        print("Entity " + entity.Title + " dies.");
         entity.OnDeath -= EntityDies;
 
         // Update lists of active entities 
@@ -88,7 +87,7 @@ public class BoardManager : NetworkBehaviour
         DestroyArrows();
         foreach (var dead in _deadEntities)
         {
-            print(dead.Title + " dies for real now");
+            _playerInterfaceManager.RpcLog(dead.Title + " dies for real now");
             boardAttackers.Remove(dead);
             
             // Move the card object to discard pile

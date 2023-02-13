@@ -14,6 +14,7 @@ public class TurnManager : NetworkBehaviour
     private Kingdom _kingdom;
     private DiscardPanel _discardPanel;
     private PhasePanel _phasePanel;
+    private PlayerInterfaceManager _playerInterfaceManager;
 
     private Hand _handManager;
     private BoardManager _boardManager;
@@ -34,7 +35,6 @@ public class TurnManager : NetworkBehaviour
     // Events
     public static event Action<Phase[]> OnPhasesSelected;
     public static event Action<TurnState> OnPhaseChanged;
-    public static event Action OnTurnsStarting;
     public static event Action<PlayerManager> OnPlayerDies;
 
     private void Awake() {
@@ -47,7 +47,7 @@ public class TurnManager : NetworkBehaviour
         turnState = newState;
 
         if (newState != TurnState.NextPhase) {
-            print($"<color=aqua>Turn changed to {newState}</color>");
+            _playerInterfaceManager.RpcLog($"<color=#004208>Turn changed to {newState}</color>");
         }
 
         switch(turnState){
@@ -88,7 +88,7 @@ public class TurnManager : NetworkBehaviour
                 CleanUp();
                 break;
             case TurnState.Idle:
-                print("Game Ends");
+                _playerInterfaceManager.RpcLog("Game finished");
                 break;
                 
             default:
@@ -102,6 +102,7 @@ public class TurnManager : NetworkBehaviour
         _handManager = Hand.Instance;
         _boardManager = BoardManager.Instance;
         _kingdom = Kingdom.Instance;
+        _playerInterfaceManager = PlayerInterfaceManager.Instance;
         
         // Panels with setup (GameManager handles kingdom setup)
         _discardPanel = DiscardPanel.Instance;
@@ -119,14 +120,14 @@ public class TurnManager : NetworkBehaviour
         _playerPhaseChoices = _playerPhaseChoices.Reverse().ToDictionary(x => x.Key, x => x.Value);
 
         PlayerManager.OnCashChanged += PlayerCashChanged;
-        
-        OnTurnsStarting?.Invoke();
+        _playerInterfaceManager.RpcLog($" --- Game starts --- ");
         UpdateTurnState(TurnState.PhaseSelection);
     }
     
     #region PhaseSelection
     private void PhaseSelection() {
         _gameManager.turnNb++;
+        _playerInterfaceManager.RpcLog($"<color=#000142> - Turn {_gameManager.turnNb}</color>");
         _phasePanel.RpcBeginPhaseSelection(_gameManager.turnNb);
     }
 
@@ -147,7 +148,7 @@ public class TurnManager : NetworkBehaviour
         // Combat each round
         phasesToPlay.Add(Phase.Combat);
         phasesToPlay.Sort();
-        print($"<color=white>Chosen Phases: {string.Join(", ", phasesToPlay)}</color>");
+        _playerInterfaceManager.RpcLog($"<color=#383838>Phases to play: {string.Join(", ", phasesToPlay)}</color>");
         
         _phasePanel.RpcEndPhaseSelection();
 
@@ -260,7 +261,7 @@ public class TurnManager : NetworkBehaviour
     {
         foreach (var (owner, cards) in _selectedCards) {
             foreach (var cardInfo in cards) {
-                print("<color=white>" + owner.PlayerName + " develops " + cardInfo.title + "</color>");
+                _playerInterfaceManager.RpcLog("<color=#4f2d00>" + owner.PlayerName + " develops " + cardInfo.title + "</color>");
                 _gameManager.SpawnMoney(owner, cardInfo);
             }
         }
@@ -308,8 +309,6 @@ public class TurnManager : NetworkBehaviour
 
     private void EndDeploy()
     {
-        print("Everybody deployed");
-
         _handManager.RpcResetDeployability();
         PlayersStatsResetAndDiscardMoney();
         _boardManager.ShowCardPositionOptions(false);
@@ -365,7 +364,7 @@ public class TurnManager : NetworkBehaviour
         foreach (var (owner, cards) in _selectedCards) {
             foreach (var cardInfo in cards) {
                 _gameManager.SpawnCreature(owner, cardInfo);
-                print("<color=white>" + owner.PlayerName + " recruits " + cardInfo.title + "</color>");
+                _playerInterfaceManager.RpcLog("<color=#4f2d00>" + owner.PlayerName + " recruits " + cardInfo.title + "</color>");
             }
         }
         

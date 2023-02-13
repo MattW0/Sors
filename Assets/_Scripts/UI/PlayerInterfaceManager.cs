@@ -7,6 +7,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
 {
     public static PlayerInterfaceManager Instance { get; private set; }
     private TurnManager _turnManager;
+    [SerializeField] private Logger _logger;
     private PlayerInterfacePhaseVisuals _phaseVisualsUI;
     private PlayerInterfaceButtons _buttons;
     
@@ -28,6 +29,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
     {
         _phaseVisualsUI = PlayerInterfacePhaseVisuals.Instance;
         _buttons = PlayerInterfaceButtons.Instance;
+     
         _phaseVisualsUI.PrepareUI(nbPlayers);
     }
 
@@ -67,17 +69,13 @@ public class PlayerInterfaceManager : NetworkBehaviour
         _buttons.EnableReadyButton();
     }
 
-    // [Server]
-    // private void DisableReadyButtonForPlayer(PlayerManager player){
-
-    //     var target = player.GetComponent<NetworkIdentity>().connectionToClient;
-    //     TargetDisableReadyButton(target);
-    // }
-
     [TargetRpc]
     public void TargetDisableReadyButton(NetworkConnection target){
         _buttons.DisableReadyButton();
     }
+
+    [ClientRpc]
+    public void RpcLog(string message) => _logger.Log(message);
 
     private void OnDestroy()
     {

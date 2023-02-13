@@ -172,7 +172,6 @@ public class PlayerManager : NetworkBehaviour
 
     [ClientRpc]
     public void RpcMoveCard(GameObject card, CardLocations from, CardLocations to){
-        // print("Moving card " + card.GetComponent<CardStats>().cardInfo.title + " from " + from + " to " + to);
         card.GetComponent<CardMover>().MoveToDestination(isOwned, to);
 
         if (!isOwned) return;
@@ -281,7 +280,6 @@ public class PlayerManager : NetworkBehaviour
 
     public void PlayerChoosesAttackerToBlock(BattleZoneEntity target)
     {
-        print("choosing to block with " + _blockers.Count);
         if (isServer) _combatManager.PlayerChoosesAttackerToBlock(target, _blockers);
         else CmdPlayerChoosesAttackerToBlock(target, _blockers);
         
