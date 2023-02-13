@@ -259,7 +259,15 @@ public class TurnManager : NetworkBehaviour
 
     private void DevelopSpawnAndReset()
     {
+        // Undo bonus for choosing phase develop 
+        foreach(var player in _gameManager.players.Keys){
+            if (player.playerChosenPhases.Contains(Phase.Develop)){
+                _kingdom.TargetUndoDevelopBonus(player.connectionToClient, _gameManager.developPriceReduction);
+            }
+        }
+
         foreach (var (owner, cards) in _selectedCards) {
+
             foreach (var cardInfo in cards) {
                 _playerInterfaceManager.RpcLog("<color=#4f2d00>" + owner.PlayerName + " develops " + cardInfo.title + "</color>");
                 _gameManager.SpawnMoney(owner, cardInfo);

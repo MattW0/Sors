@@ -51,6 +51,10 @@ public class DevelopTile : MonoBehaviour
         cost.text = (int.Parse(cost.text) - priceReduction).ToString();
     }
 
+    public void UndoDevelopBonus(int priceReduction){
+        cost.text = (int.Parse(cost.text) + priceReduction).ToString();
+    }
+
     public void OnDevelopTileClick(){
         if (!_isDevelopable) return;
 

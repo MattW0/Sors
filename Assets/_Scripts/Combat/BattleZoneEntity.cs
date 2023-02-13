@@ -36,14 +36,14 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
         }
     }
     
-    [SyncVar] private int _health;
+    private int _health;
     public int Health
     {
         get => _health;
         set
         {
             _health = value;
-            entityUI.SetHealth(_health);
+            RpcSetHealth(_health);
             if (_health <= 0) Die();
         }
     }
@@ -167,14 +167,17 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
    
     public void TakesDamage(int value, bool deathtouch)
     {
+        if (deathtouch){ 
+            Health = 0;
+            return;
+        }
         Health -= value;
-        if (deathtouch){ Health = 0;}
     }
 
-    private void Die()
-    {
-        OnDeath?.Invoke(Owner, this);
-    }
+    [ClientRpc]
+    private void RpcSetHealth(int value)=> entityUI.SetHealth(value);
+
+    private void Die() => OnDeath?.Invoke(Owner, this);
 
     [ClientRpc]
     public void RpcRetreatAttacker(){
@@ -192,17 +195,5 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
         
         entityUI.ShowAsAttacker(false);
         entityUI.Highlight(false);
-    }
-    
-    [Server] // grausig ...
-    public bool ServerIsAttacker()
-    {
-        // Special case if server is attacking: 
-        // IsAttacking is not correctly updated there,
-        // thus we check if this entity is an attacker
-        // ie. is in _boardManager.attackers
-        //
-        // if yes: return true -> we do not block anything
-        return _boardManager.boardAttackers.Contains(this);
     }
 }

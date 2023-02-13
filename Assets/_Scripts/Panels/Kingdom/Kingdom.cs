@@ -113,6 +113,10 @@ public class Kingdom : NetworkBehaviour
         foreach(var tile in developTiles) tile.SetDevelopBonus(priceReduction);
     }
 
+    public void TargetUndoDevelopBonus(NetworkConnection target, int priceReduction){
+        foreach(var tile in developTiles) tile.UndoDevelopBonus(priceReduction);
+    }
+
     [TargetRpc]
     public void TargetCheckDevelopability(NetworkConnection target, int playerCash){
         foreach (var dt in developTiles) dt.Developable = playerCash >= dt.Cost;
