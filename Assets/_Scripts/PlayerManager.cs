@@ -16,7 +16,8 @@ public class PlayerManager : NetworkBehaviour
     public PlayerManager opponent { get; private set; }
 
     [Header("Game State")]
-    public List<Phase> playerChosenPhases = new() {Phase.DrawI, Phase.DrawII};
+    public List<Phase> chosenPhases = new();
+    public List<PrevailOption> chosenPrevailOptions = new();
     private List<GameObject> _discardSelection;
     public List<CardInfo> moneyCards;
 
@@ -188,8 +189,7 @@ public class PlayerManager : NetworkBehaviour
     [Command] 
     public void CmdPhaseSelection(List<Phase> phases){
         // Saving local player choice
-        playerChosenPhases = phases;
-        if (playerChosenPhases.Contains(Phase.Recruit)) Recruits++;
+        chosenPhases = phases;
         _turnManager.PlayerSelectedPhases(this, phases.ToArray());
     }
 
@@ -262,6 +262,13 @@ public class PlayerManager : NetworkBehaviour
         TurnManager.Instance.PlayerSelectedRecruitCard(this, card);
     }
 
+    [Command] 
+    public void CmdPrevailSelection(List<PrevailOption> options){
+        // Saving local player choice
+        chosenPrevailOptions = options;
+        _turnManager.PlayerSelectedPrevailOptions(this, options.ToArray());
+    }
+
     #endregion TurnActions
 
     #region Combat
@@ -296,6 +303,13 @@ public class PlayerManager : NetworkBehaviour
     #endregion
 
     #region UI
+    [ClientRpc]
+    public void RpcResetTurnStats(int cash, int deploys, int recruits){
+        Cash = cash;
+        Deploys = deploys;
+        Recruits = recruits;
+    }
+
     private void SetPlayerName(string name){
         playerName = name;
         if (isServer) RpcUISetPlayerName(name);
@@ -406,7 +420,7 @@ public class PlayerManager : NetworkBehaviour
 
     #region Utils
 
-    public static PlayerManager GetPlayerManager()
+    public static PlayerManager GetLocalPlayer()
     {
         var networkIdentity = NetworkClient.connection.identity;
         return networkIdentity.GetComponent<PlayerManager>();

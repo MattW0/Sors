@@ -14,6 +14,7 @@ public class TurnManager : NetworkBehaviour
     private Kingdom _kingdom;
     private DiscardPanel _discardPanel;
     private PhasePanel _phasePanel;
+    private PrevailPanel _prevailPanel;
     private PlayerInterfaceManager _playerInterfaceManager;
 
     private Hand _handManager;
@@ -46,7 +47,7 @@ public class TurnManager : NetworkBehaviour
     private void UpdateTurnState(TurnState newState){
         turnState = newState;
 
-        if (newState != TurnState.NextPhase) {
+        if (newState != TurnState.NextPhase && newState != TurnState.Discard) {
             _playerInterfaceManager.RpcLog($"<color=#004208>Turn changed to {newState}</color>");
         }
 
@@ -109,7 +110,9 @@ public class TurnManager : NetworkBehaviour
         _discardPanel.RpcPrepareDiscardPanel(_gameManager.nbDiscard);
         _phasePanel = PhasePanel.Instance;
         _phasePanel.RpcPreparePhasePanel(_gameManager.nbPhasesToChose, _gameManager.animations);
-        
+        _prevailPanel = PrevailPanel.Instance;
+        _prevailPanel.RpcPreparePrevailPanel(_gameManager.prevailOptionsToChoose);
+
         _nbPlayers = nbPlayers;
         foreach (var player in _gameManager.players.Keys)
         {
@@ -118,8 +121,8 @@ public class TurnManager : NetworkBehaviour
         }
         // reverse order of _playerPhaseChoices to have host first
         _playerPhaseChoices = _playerPhaseChoices.Reverse().ToDictionary(x => x.Key, x => x.Value);
-
         PlayerManager.OnCashChanged += PlayerCashChanged;
+
         _playerInterfaceManager.RpcLog($" --- Game starts --- ");
         UpdateTurnState(TurnState.PhaseSelection);
     }
@@ -128,6 +131,10 @@ public class TurnManager : NetworkBehaviour
     private void PhaseSelection() {
         _gameManager.turnNb++;
         _playerInterfaceManager.RpcLog($"<color=#000142> - Turn {_gameManager.turnNb}</color>");
+        
+        foreach(var player in _gameManager.players.Keys){
+            player.RpcResetTurnStats(_gameManager.turnCash, _gameManager.turnDeploys, _gameManager.turnRecruits);
+        }
         _phasePanel.RpcBeginPhaseSelection(_gameManager.turnNb);
     }
 
@@ -152,15 +159,21 @@ public class TurnManager : NetworkBehaviour
         
         _phasePanel.RpcEndPhaseSelection();
 
-        // Give the player choices to PlayerInterfaceVisuals
+        // Give the player choices to player turn stats and UI
         var choices = new Phase[_nbPlayers * _gameManager.nbPhasesToChose];
         var i = 0;
-        foreach (var phases in _playerPhaseChoices.Values) {
-            foreach (var p in phases) {
-                choices[i] = p;
+        foreach (var (player, phases) in _playerPhaseChoices) {
+            foreach (var phase in phases){
+                // Player turn stats
+                if (phase == Phase.Deploy) player.Deploys++;
+                else if(phase == Phase.Recruit) player.Recruits++;
+                // For phaseVisuals
+                choices[i] = phase;
                 i++;
             }
         }
+
+        // Send choices to PhaseVisuals (via PlayerInterfaceManager)
         OnPhasesSelected?.Invoke(choices);
         
         UpdateTurnState(TurnState.NextPhase);
@@ -189,7 +202,7 @@ public class TurnManager : NetworkBehaviour
     private void DrawI() {
         foreach (var player in _gameManager.players.Keys) {
             var nbCardDraw = _gameManager.nbCardDraw;
-            if (player.playerChosenPhases.Contains(Phase.DrawI)) nbCardDraw++;
+            if (player.chosenPhases.Contains(Phase.DrawI)) nbCardDraw++;
 
             player.DrawCards(nbCardDraw);
         }
@@ -200,7 +213,7 @@ public class TurnManager : NetworkBehaviour
     private void DrawIi(){
         foreach (var player in _gameManager.players.Keys) {
             var nbCardDraw = _gameManager.nbCardDraw;
-            if (player.playerChosenPhases.Contains(Phase.DrawII)) nbCardDraw++;
+            if (player.chosenPhases.Contains(Phase.DrawII)) nbCardDraw++;
 
             player.DrawCards(nbCardDraw);
         }
@@ -237,7 +250,7 @@ public class TurnManager : NetworkBehaviour
         _kingdom.RpcBeginPhase(Phase.Develop);
 
         foreach (var player in _gameManager.players.Keys) {
-            if (player.playerChosenPhases.Contains(Phase.Develop)){
+            if (player.chosenPhases.Contains(Phase.Develop)){
                 _kingdom.TargetDevelopBonus(player.connectionToClient, _gameManager.developPriceReduction);
             } 
         }
@@ -246,7 +259,7 @@ public class TurnManager : NetworkBehaviour
     public void PlayerSelectedDevelopCard(PlayerManager player, CardInfo card)
     {
         var cost = card.cost;
-        if (player.playerChosenPhases.Contains(Phase.Develop)) cost -= _gameManager.developPriceReduction;
+        if (player.chosenPhases.Contains(Phase.Develop)) cost -= _gameManager.developPriceReduction;
         player.Cash -= cost;
 
         if (_selectedCards.ContainsKey(player))
@@ -261,7 +274,7 @@ public class TurnManager : NetworkBehaviour
     {
         // Undo bonus for choosing phase develop 
         foreach(var player in _gameManager.players.Keys){
-            if (player.playerChosenPhases.Contains(Phase.Develop)){
+            if (player.chosenPhases.Contains(Phase.Develop)){
                 _kingdom.TargetUndoDevelopBonus(player.connectionToClient, _gameManager.developPriceReduction);
             }
         }
@@ -291,7 +304,6 @@ public class TurnManager : NetworkBehaviour
         // Bonus for phase selection
         foreach (var playerManager in _gameManager.players.Keys) {
             var nbDeploys = _gameManager.turnDeploys;
-            if (playerManager.playerChosenPhases.Contains(Phase.Deploy)) nbDeploys++;
             playerManager.Deploys = nbDeploys;
         }
         
@@ -326,15 +338,8 @@ public class TurnManager : NetworkBehaviour
     
     #endregion
 
-    private void Combat()
-    {
-        combatManager.UpdateCombatState(CombatState.Attackers);
-    }
-
-    public void CombatCleanUp()
-    {
-        UpdateTurnState(TurnState.NextPhase);
-    }
+    private void Combat() => combatManager.UpdateCombatState(CombatState.Attackers);
+    public void CombatCleanUp() => UpdateTurnState(TurnState.NextPhase);
     
     #region Recruit
 
@@ -345,7 +350,6 @@ public class TurnManager : NetworkBehaviour
 
         foreach (var playerManager in _gameManager.players.Keys) {
             var nbRecruits = _gameManager.turnRecruits;
-            if (playerManager.playerChosenPhases.Contains(Phase.Recruit)) nbRecruits++;
             playerManager.Recruits = nbRecruits;
         }
     }
@@ -384,29 +388,54 @@ public class TurnManager : NetworkBehaviour
     #endregion 
 
     private void Prevail(){
-        print("<color=yellow>Prevail not yet implemented</color>");
+        
+        foreach(var player in _gameManager.players.Keys){
+            // Starts phase on clients individually with 2nd argument = true for the bonus
+            _prevailPanel.TargetBeginPrevailPhase(player.connectionToClient, player.chosenPhases.Contains(Phase.Prevail));
+        }
+    }
+
+    public void PlayerSelectedPrevailOptions(PlayerManager player, PrevailOption[] options){
+        
+        PlayerIsReady(player);
+    }
+
+    private void PrevailCleanUp(){
         UpdateTurnState(TurnState.NextPhase);
     }
 
     private void CleanUp(){
+        if(GameEnds()) return;
 
+        // Reset player stats
+        foreach(var player in _gameManager.players.Keys){
+            player.Cash = _gameManager.turnCash;
+            player.Recruits = _gameManager.turnRecruits;
+            player.Deploys = _gameManager.turnDeploys;
+
+            player.chosenPhases.Clear();
+            player.chosenPrevailOptions.Clear();
+        }
+        
+        _readyPlayers.Clear();
+        UpdateTurnState(TurnState.PhaseSelection);
+    }
+
+    private bool GameEnds(){
         var gameEnds = false;
-        foreach (var (player, health)  in _playerHealth)
-        {
+        foreach (var (player, health)  in _playerHealth){
             if (health > 0) continue;
             
             OnPlayerDies?.Invoke(player);
             gameEnds = true;
         }
 
-        if (gameEnds)
-        {
+        if (gameEnds){
             _gameManager.EndGame();
             UpdateTurnState(TurnState.Idle);
         }
-        
-        _readyPlayers.Clear();
-        UpdateTurnState(TurnState.PhaseSelection);
+
+        return gameEnds;
     }
     
     #region HelperFunctions

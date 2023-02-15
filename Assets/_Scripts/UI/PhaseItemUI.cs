@@ -6,8 +6,8 @@ using TMPro;
 
 public class PhaseItemUI : MonoBehaviour
 {
-    [SerializeField] private PhasePanel phasePanel;
-    public Phase Phase;
+    private PhasePanel _phasePanel;
+    private Phase _phase; // assigned in editor
     [SerializeField] private TMP_Text phaseName;
     [SerializeField] private Image outline;
     private bool _isSelected;
@@ -15,13 +15,17 @@ public class PhaseItemUI : MonoBehaviour
 
     private void Start()
     {
-        _isSelected = false;
-        outline.enabled = false;
+        // Only do this once
+        if (_phasePanel) return;
+
+        _phasePanel = PhasePanel.Instance;
+        _phase = (Phase) System.Enum.Parse(typeof(Phase), gameObject.name);
+        PhasePanel.OnPhaseSelectionEnded += Reset;
     }
 
     public void OnClick()
     {
-        if (phasePanel.disableSelection) return;
+        if (_phasePanel.disableSelection) return;
         
         if (_isSelected) {
             outline.enabled = false;
@@ -31,11 +35,15 @@ public class PhaseItemUI : MonoBehaviour
             _isSelected = true;
         }
 
-        phasePanel.UpdateActive(this);
+        _phasePanel.UpdateActive(_phase);
     }
 
     public void Reset(){
         _isSelected = false;
         outline.enabled = false;
+    }
+
+    private void OnDestroy(){
+        PhasePanel.OnPhaseSelectionEnded -= Reset;
     }
 }

@@ -19,7 +19,7 @@ public class PlayerInterfaceButtons : MonoBehaviour
 
     private void Start(){
         _kingdom = Kingdom.Instance;
-        _player = PlayerManager.GetPlayerManager();
+        _player = PlayerManager.GetLocalPlayer();
     }
 
     public void OnKingdomButtonPressed(){

@@ -124,7 +124,7 @@ public class Kingdom : NetworkBehaviour
 
     public void PlayerPressedButton(bool skip)
     {
-        var player = PlayerManager.GetPlayerManager();
+        var player = PlayerManager.GetLocalPlayer();
         if(skip) {
             player.PlayerPressedReadyButton();
             return;

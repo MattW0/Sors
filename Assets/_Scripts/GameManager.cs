@@ -7,7 +7,6 @@ using Random = UnityEngine.Random;
 
 public class GameManager : NetworkBehaviour {
     [Header("For Coding")]
-    
     public bool singlePlayer;
     public bool animations;
 
@@ -26,7 +25,7 @@ public class GameManager : NetworkBehaviour {
     private List<PlayerManager> _loosingPlayers = new();
 
     [Header("Game start settings")]
-    [SerializeField] private int nbRecruitTiles = 12;
+    [SerializeField] private int nbRecruitTiles = 8;
     [SerializeField] private int nbDevelopTiles = 2;
     [SerializeField] public int initialDeckSize = 10;
     [SerializeField] public int nbCreatures = 2;
@@ -41,9 +40,11 @@ public class GameManager : NetworkBehaviour {
     public int turnCash = 0;
     public int turnDeploys = 1; 
     public int turnRecruits = 1;
+    public int prevailOptionsToChoose = 1;
 
     [Header("Turn Boni")]
     public int developPriceReduction = 1;
+    public int prevailExtraOptions = 1;
 
 
     [Header("Available cards")]
@@ -54,7 +55,6 @@ public class GameManager : NetworkBehaviour {
     private Sprite[] _moneySprites;
     
     [Header("Prefabs")]
-    [SerializeField] private GameObject discardPanelPrefab;
     [SerializeField] private GameObject creatureCardPrefab;
     [SerializeField] private GameObject moneyCardPrefab;
     [SerializeField] private GameObject entityObjectPrefab;
@@ -94,7 +94,7 @@ public class GameManager : NetworkBehaviour {
     #region Setup
     
     private void KingdomSetup(){
-        // Developments: RN only money
+        // Developments: right now only money
         var developCards = new CardInfo[nbDevelopTiles];
         developCards[0] = new CardInfo(moneyCards[1]); // Silver
         developCards[1] = new CardInfo(moneyCards[2]); // Gold
@@ -130,8 +130,7 @@ public class GameManager : NetworkBehaviour {
             player.PlayerName = player.PlayerName; // To update info in network
             player.Health = startHealth;
             player.Score = startScore;
-            player.Cash = turnCash;
-            player.Recruits = turnRecruits;
+            player.RpcResetTurnStats(turnCash, turnDeploys, turnRecruits);
 
             // Cards
             SpawnPlayerDeck(player);

@@ -113,7 +113,7 @@ public class PhaseVisuals : MonoBehaviour
                     continue;
                 }
 
-                var playerChoices = imgTransform.GetChild(1);
+                var playerChoices = imgTransform.GetChild(0);
                 foreach (Transform playerChoice in playerChoices)
                 {
                     playerChoiceHighlights.Add(playerChoice.GetComponent<Image>());
