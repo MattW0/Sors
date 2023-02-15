@@ -94,13 +94,14 @@ public class GameManager : NetworkBehaviour {
     #region Setup
     
     private void KingdomSetup(){
+        // Developments: RN only money
         var developCards = new CardInfo[nbDevelopTiles];
-        var recruitCards = new CardInfo[nbRecruitTiles];
-        
-        developCards[0] = new CardInfo(moneyCards[2]); // Silver
-        developCards[1] = new CardInfo(moneyCards[1]); // Gold
+        developCards[0] = new CardInfo(moneyCards[1]); // Silver
+        developCards[1] = new CardInfo(moneyCards[2]); // Gold
         _kingdom.RpcSetDevelopTiles(developCards);
 
+        // Recruits: Creatures
+        var recruitCards = new CardInfo[nbRecruitTiles];
         for (var i = 0; i < nbRecruitTiles; i++) recruitCards[i] = GetNewCreatureFromDb();
         _kingdom.RpcSetRecruitTiles(recruitCards);
     }
@@ -197,13 +198,14 @@ public class GameManager : NetworkBehaviour {
     }
 
     public void SpawnMoney(PlayerManager player, CardInfo cardInfo){
-        var scriptableCard = Resources.Load<ScriptableCard>("MoneyCards/" + cardInfo.title);
+        // using hash as index for currency scriptable objects
+        var scriptableCard = Resources.Load<ScriptableCard>("MoneyCards/" + cardInfo.hash + "_" + cardInfo.title);
         var cardObject = Instantiate(moneyCardPrefab);
         SpawnCacheAndMoveCard(player, cardObject, scriptableCard, CardLocations.Discard);
     }
 
     public void SpawnCreature(PlayerManager player, CardInfo cardInfo){
-        _kingdom.RpcReplaceCard(cardInfo.title, GetNewCreatureFromDb());
+        _kingdom.RpcReplaceRecruitTile(cardInfo.title, GetNewCreatureFromDb());
 
         var scriptableCard = Resources.Load<ScriptableCard>("creatureCards/" + cardInfo.title);
         var cardObject = Instantiate(creatureCardPrefab);

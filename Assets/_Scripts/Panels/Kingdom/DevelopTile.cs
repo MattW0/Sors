@@ -10,6 +10,7 @@ public class DevelopTile : MonoBehaviour
 {
     private Kingdom _kingdom;
     private KingdomUI _ui;
+    public ScriptableCard scriptableCard;
     public CardInfo cardInfo;
     
     private bool _isDevelopable;
@@ -39,8 +40,7 @@ public class DevelopTile : MonoBehaviour
         Kingdom.OnDevelopPhaseEnded += EndDevelopPhase;
     }
 
-    public void SetTile(CardInfo card)
-    {
+    public void SetTile(CardInfo card){
         cardInfo = card;
         title.text = card.title;
         cost.text = card.cost.ToString();

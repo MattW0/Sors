@@ -8,7 +8,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
     public static PlayerInterfaceManager Instance { get; private set; }
     private TurnManager _turnManager;
     [SerializeField] private Logger _logger;
-    private PlayerInterfacePhaseVisuals _phaseVisualsUI;
+    private PhaseVisuals _phaseVisualsUI;
     private PlayerInterfaceButtons _buttons;
     
     
@@ -27,7 +27,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
     [ClientRpc]
     private void RpcPrepareUIs(int nbPlayers)
     {
-        _phaseVisualsUI = PlayerInterfacePhaseVisuals.Instance;
+        _phaseVisualsUI = PhaseVisuals.Instance;
         _buttons = PlayerInterfaceButtons.Instance;
      
         _phaseVisualsUI.PrepareUI(nbPlayers);

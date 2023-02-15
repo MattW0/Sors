@@ -5,9 +5,9 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class PlayerInterfacePhaseVisuals : MonoBehaviour
+public class PhaseVisuals : MonoBehaviour
 {
-    public static PlayerInterfacePhaseVisuals Instance { get; private set; }
+    public static PhaseVisuals Instance { get; private set; }
     private PlayerInterfaceManager _playerInterfaceManager;
 
     private int _nbPlayers;
@@ -98,7 +98,7 @@ public class PlayerInterfacePhaseVisuals : MonoBehaviour
     // ugh ugly af
     private void GetHighlightImages()
     {
-        var gridTransform = gameObject.transform.GetChild(1);
+        var gridTransform = gameObject.transform.GetChild(0);
 
         foreach (Transform child in gridTransform) {
             extendedHighlights.Add(child.GetComponent<Image>());

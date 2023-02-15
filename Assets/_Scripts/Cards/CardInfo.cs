@@ -44,12 +44,16 @@ public struct CardInfo
     public void Destroy(){
         this.hash = null;
         this.title = null;
-        this.isCreature = false;
         this.cost = 0;
+        // this.image = null;
+
         this.attack = 0;
         this.health = 0;
         this.goID = null;
+
+        this.isCreature = false;
         this.moneyValue = 0;
+
         this.keyword_abilities = null;
     }
 }
