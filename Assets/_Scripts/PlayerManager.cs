@@ -19,6 +19,7 @@ public class PlayerManager : NetworkBehaviour
     public List<Phase> chosenPhases = new();
     public List<PrevailOption> chosenPrevailOptions = new();
     private List<GameObject> _discardSelection;
+    public List<GameObject> trashSelection;
     public List<CardInfo> moneyCards;
 
     public bool PlayerIsChoosingBlockers { get; private set; }
@@ -38,22 +39,22 @@ public class PlayerManager : NetworkBehaviour
         set => SetPlayerName(value);
     }
 
-    [SyncVar, SerializeField] private int health;
+    private int _health;
     public int Health
     {
-        get => health;
+        get => _health;
         set => SetHealthValue(value);
     }
 
-    [SyncVar, SerializeField] private int score;
+    private int _score;
     public int Score 
     {
-        get => score;
+        get => _score;
         set => SetScoreValue(value); 
     }
 
     [Header("Turn Stats")]
-    [SyncVar] private int _cash;
+    private int _cash;
     public int Cash { 
         get => _cash;
         set => SetCashValue(value); // Invoke OnCashChanged and update UI
@@ -200,8 +201,7 @@ public class PlayerManager : NetworkBehaviour
     }
     
     [Server]
-    public void DiscardSelection()
-    {
+    public void DiscardSelection(){
         // Not an Rpc because Server handles _discardSelection and calls each player
         // object to discard their selection (in TurnManager.PlayerSelectedDiscardCards)
         
@@ -224,20 +224,15 @@ public class PlayerManager : NetworkBehaviour
         cards.hand.Remove(cardInfo);
     }
 
-    public void DiscardMoneyCards()
-    {
+    public void DiscardMoneyCards(){
         if (moneyCards.Count == 0) return;
         
-        foreach (var card in moneyCards)
-        {
-            cards.discard.Add(card);
-        }
+        foreach (var card in moneyCards) cards.discard.Add(card);
         moneyCards.Clear();
     }
 
     [Command]
-    public void CmdDeployCard(GameObject card, int holderNumber)
-    {
+    public void CmdDeployCard(GameObject card, int holderNumber){
         TurnManager.Instance.PlayerDeployedCard(this, card, holderNumber);
         PlayCard(card);
     }
@@ -262,11 +257,17 @@ public class PlayerManager : NetworkBehaviour
         TurnManager.Instance.PlayerSelectedRecruitCard(this, card);
     }
 
-    [Command] 
+    [Command]
     public void CmdPrevailSelection(List<PrevailOption> options){
         // Saving local player choice
         chosenPrevailOptions = options;
-        _turnManager.PlayerSelectedPrevailOptions(this, options.ToArray());
+        _turnManager.PlayerSelectedPrevailOptions(this, options);
+    }
+
+    [Command]
+    public void CmdTrashSelection(List<GameObject> cardsToTrash){
+        trashSelection = cardsToTrash;
+        _turnManager.PlayerSelectedTrashCards(this, cardsToTrash);
     }
 
     #endregion TurnActions
@@ -303,21 +304,13 @@ public class PlayerManager : NetworkBehaviour
     #endregion
 
     #region UI
-    [ClientRpc]
-    public void RpcResetTurnStats(int cash, int deploys, int recruits){
-        Cash = cash;
-        Deploys = deploys;
-        Recruits = recruits;
-    }
-
     private void SetPlayerName(string name){
         playerName = name;
-        if (isServer) RpcUISetPlayerName(name);
-        else CmdUISetPlayerName(name);
+        RpcUISetPlayerName(name);
     }
 
-    [Command]
-    private void CmdUISetPlayerName(string name) => RpcUISetPlayerName(name);
+    // [Command]
+    // private void CmdUISetPlayerName(string name) => RpcUISetPlayerName(name);
 
     [ClientRpc]
     public void RpcUISetPlayerName(string name){
@@ -326,44 +319,44 @@ public class PlayerManager : NetworkBehaviour
         else _opponentUI.SetName(name);
     }
     
+    [Server]
     private void SetHealthValue(int value){
-        health = value;
-        if (isServer) RpcUISetHealthValue(value);
-        else CmdUISetHealthValue(value);
+        _health = value;
+        RpcUISetHealthValue(value);
     }
 
-    [Command]
-    private void CmdUISetHealthValue(int value) => RpcUISetHealthValue(value);
+    // [Command]
+    // private void CmdUISetHealthValue(int value) => RpcUISetHealthValue(value);
 
     [ClientRpc]
     private void RpcUISetHealthValue(int value){
         if(isOwned) _playerUI.SetHealth(value);
         else _opponentUI.SetHealth(value);
     }
-        
+    
+    [Server]
     private void SetScoreValue(int value){
-        score = value;
-        if (isServer) RpcUISetScoreValue(value);
-        else CmdUISetScoreValue(value);
+        _score = value;
+        RpcUISetScoreValue(value);
     }
 
-    [Command]
-    private void CmdUISetScoreValue(int value) => RpcUISetScoreValue(value);
+    // [Command]
+    // private void CmdUISetScoreValue(int value) => RpcUISetScoreValue(value);
 
     [ClientRpc]
     private void RpcUISetScoreValue(int value){
         if(isOwned) _playerUI.SetScore(value);
         else _opponentUI.SetScore(value);
     }
-    private void SetCashValue(int value){
 
+    [Server]
+    private void SetCashValue(int value){
         _cash = value;
-        if (isServer) RpcUISetCashValue(value);
-        else CmdUISetCashValue(value);
+        RpcUISetCashValue(value);
     }
 
-    [Command]
-    private void CmdUISetCashValue(int value) => RpcUISetCashValue(value);
+    // [Command]
+    // private void CmdUISetCashValue(int value) => RpcUISetCashValue(value);
 
     [ClientRpc]
     private void RpcUISetCashValue(int value){

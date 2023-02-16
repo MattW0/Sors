@@ -13,7 +13,6 @@ public class PrevailOptionUI : MonoBehaviour
     // [SerializeField] private Image outline;
     private int _timesSelected;
 
-
     private void Start()
     {
         // Only do this once
@@ -21,10 +20,10 @@ public class PrevailOptionUI : MonoBehaviour
 
         _prevailPanel = PrevailPanel.Instance;
         _option = (PrevailOption) System.Enum.Parse(typeof(PrevailOption), gameObject.name);
+        PrevailPanel.OnPrevailEnded += Reset;
     }
 
-    public void OnClickDecrement()
-    {
+    public void OnClickDecrement(){
         if (_timesSelected <= 0) return;
         
         _timesSelected--;
@@ -32,8 +31,7 @@ public class PrevailOptionUI : MonoBehaviour
         _prevailPanel.Decrement(_option);
     }
 
-    public void OnClickIncrement()
-    {
+    public void OnClickIncrement(){
         // can only increment if total _timesSelected < _nbOptionsToChose
         if(!_prevailPanel.Increment(_option)) return;
         
@@ -43,5 +41,10 @@ public class PrevailOptionUI : MonoBehaviour
 
     public void Reset(){
         _timesSelected = 0;
+        numberSelectedText.text = "0";
+    }
+
+    private void OnDestroy(){
+        PrevailPanel.OnPrevailEnded -= Reset;
     }
 }

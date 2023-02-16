@@ -126,11 +126,13 @@ public class GameManager : NetworkBehaviour {
             var playerNetworkId = player.GetComponent<NetworkIdentity>();
             players.Add(player, playerNetworkId);
 
-            // UI
+            // Stats
             player.PlayerName = player.PlayerName; // To update info in network
             player.Health = startHealth;
             player.Score = startScore;
-            player.RpcResetTurnStats(turnCash, turnDeploys, turnRecruits);
+            player.Cash = turnCash;
+            player.Deploys = turnDeploys;
+            player.Recruits = turnRecruits;
 
             // Cards
             SpawnPlayerDeck(player);

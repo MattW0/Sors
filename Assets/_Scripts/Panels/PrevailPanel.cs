@@ -4,17 +4,20 @@ using UnityEngine;
 using Mirror;
 using TMPro;
 using UnityEngine.UI;
+using System;
 
 public class PrevailPanel : NetworkBehaviour
 {
     public static PrevailPanel Instance { get; private set; }
     private TurnManager _turnManager;
     private List<PrevailOption> _selectedOptions = new();
-    private int _nbOptionsToChose;
+    private int _nbOptionsToChose;  // Set once from game manager setting
+    private int _nbOptionsThisTurn;
     public int _totalSelected;
     [SerializeField] private GameObject maxView;
     [SerializeField] private TMP_Text instructions;
     [SerializeField] private Button confirm;
+    public static event Action OnPrevailEnded;
 
     private void Awake() {
         if (!Instance) Instance = this;
@@ -25,7 +28,8 @@ public class PrevailPanel : NetworkBehaviour
         _turnManager = TurnManager.Instance;
 
         _nbOptionsToChose = nbOptionsToChose;
-        instructions.text = "Choose up to " + _nbOptionsToChose.ToString();
+        _nbOptionsThisTurn = nbOptionsToChose;
+        instructions.text = "Choose up to " + _nbOptionsThisTurn.ToString();
 
         maxView.SetActive(false);
     }
@@ -35,12 +39,12 @@ public class PrevailPanel : NetworkBehaviour
         maxView.SetActive(true);
 
         if(!bonus) return;
-        _nbOptionsToChose++;
-        instructions.text = "Choose up to " + _nbOptionsToChose.ToString();
+        _nbOptionsThisTurn++;
+        instructions.text = "Choose up to " + _nbOptionsThisTurn.ToString();
     }
 
     public bool Increment(PrevailOption option){
-        if (_totalSelected >= _nbOptionsToChose) return false;
+        if (_totalSelected >= _nbOptionsThisTurn) return false;
 
         _selectedOptions.Add(option);
         _totalSelected++;
@@ -57,6 +61,15 @@ public class PrevailPanel : NetworkBehaviour
 
         var player = PlayerManager.GetLocalPlayer();
         player.CmdPrevailSelection(_selectedOptions);
+    }
+
+    [ClientRpc]
+    public void RpcOptionsSelected(){
+        _totalSelected = 0;
+        _nbOptionsThisTurn = _nbOptionsToChose;
+        
+        OnPrevailEnded?.Invoke();
+        maxView.SetActive(false);
     }
 }
 

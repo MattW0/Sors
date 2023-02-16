@@ -48,7 +48,7 @@ public class BoardManager : NetworkBehaviour
 
     public void AttackersDeclared(PlayerManager player, List<BattleZoneEntity> playerAttackers) {
 
-        _playerInterfaceManager.RpcLog("Player " + player.PlayerName + " declared " + playerAttackers.Count + " attackers.");
+        _playerInterfaceManager.RpcLog(player.PlayerName + " declared " + playerAttackers.Count + " attackers.");
         // Is 0 for auto-skip or no attackers declared
         if (playerAttackers.Count > 0) {
             foreach (var a in playerAttackers) boardAttackers.Add(a);
@@ -69,7 +69,7 @@ public class BoardManager : NetworkBehaviour
 
     public void BlockersDeclared(PlayerManager player, List<BattleZoneEntity> playerBlockers) {
         
-        _playerInterfaceManager.RpcLog("Player " + player.PlayerName + " declared " + playerBlockers.Count + " blockers.");
+        _playerInterfaceManager.RpcLog(player.PlayerName + " declared " + playerBlockers.Count + " blockers.");
 
         OnBlockersDeclared?.Invoke(player);
     }
