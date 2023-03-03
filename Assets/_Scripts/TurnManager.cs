@@ -16,7 +16,6 @@ public class TurnManager : NetworkBehaviour
     private PhasePanel _phasePanel;
     private PrevailPanel _prevailPanel;
     private PlayerInterfaceManager _playerInterfaceManager;
-
     private Hand _handManager;
     private BoardManager _boardManager;
     [SerializeField] private CombatManager combatManager;
@@ -35,7 +34,6 @@ public class TurnManager : NetworkBehaviour
     [Header("Helper Fields")]
     private Dictionary<PlayerManager, List<CardInfo>> _selectedCards = new();
     private Dictionary<PlayerManager, List<GameObject>> _cardsToTrash = new();
-
     
     // Events
     public static event Action<Phase[]> OnPhasesSelected;
@@ -268,11 +266,11 @@ public class TurnManager : NetworkBehaviour
     private void DevelopSpawnAndReset()
     {
         // Undo bonus for choosing phase develop 
-        foreach(var player in _gameManager.players.Keys){
-            if (player.chosenPhases.Contains(Phase.Develop)){
-                _kingdom.TargetUndoDevelopBonus(player.connectionToClient, _gameManager.developPriceReduction);
-            }
-        }
+        // foreach(var player in _gameManager.players.Keys){
+        //     if (player.chosenPhases.Contains(Phase.Develop)){
+        //         _kingdom.TargetUndoDevelopBonus(player.connectionToClient, _gameManager.developPriceReduction);
+        //     }
+        // }
 
         foreach (var (owner, cards) in _selectedCards) {
 
@@ -457,18 +455,18 @@ public class TurnManager : NetworkBehaviour
         foreach (var (player, cards) in _cardsToTrash){
             foreach (var card in cards){
                 var stats = card.GetComponent<CardStats>();
-                player.cards.hand.Remove(stats.cardInfo);
-                _handManager.TargetTrashCard(player.connectionToClient, stats);
+                player.hand.Remove(stats.cardInfo);
                 tempList.Add(card);
             }
             player.trashSelection.Clear();
             _cardsToTrash[player].Clear();
         }
 
-        // foreach(var obj in tempList){
-        //     NetworkServer.Destroy(obj);
-        // }
+        foreach(var obj in tempList){
+            NetworkServer.Destroy(obj);
+        }
 
+        _prevailPanel.RpcReset();
         _handInteractionPanel.RpcFinishTrashing();
         _handManager.RpcResetHighlight();
 

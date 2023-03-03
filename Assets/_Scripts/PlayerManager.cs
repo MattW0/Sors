@@ -7,6 +7,12 @@ using Unity.VisualScripting;
 
 public class PlayerManager : NetworkBehaviour
 {
+    [SyncVar, SerializeField] private string playerName;
+    public string PlayerName{
+        get => playerName;
+        set => SetPlayerName(value);
+    }
+
     [Header("Entities")]
     private GameManager _gameManager;
     private TurnManager _turnManager;
@@ -31,14 +37,15 @@ public class PlayerManager : NetworkBehaviour
     public static event Action<PlayerManager, int> OnCashChanged;
     public static event Action<GameObject, bool> OnHandChanged;
 
-    [Header("Game Stats")]
-    public CardCollection cards;
-    [SyncVar, SerializeField] private string playerName;
-    public string PlayerName{
-        get => playerName;
-        set => SetPlayerName(value);
-    }
+    // public CardCollection cards;
 
+    [Header("CardCollections")]
+    public readonly CardCollection deck = new();
+    public readonly CardCollection hand = new();
+    public readonly CardCollection discard = new();
+    public readonly CardCollection money = new();
+
+    [Header("Game Stats")]
     private int _health;
     public int Health
     {
@@ -83,9 +90,6 @@ public class PlayerManager : NetworkBehaviour
     public override void OnStartClient(){
         base.OnStartClient();
 
-        cards = GetComponent<CardCollection>();
-        // cards.deck.Callback += cards.OnDeckListChange;
-
         if (!isServer) return;
         _gameManager = GameManager.Instance;
         _turnManager = TurnManager.Instance;
@@ -97,9 +101,9 @@ public class PlayerManager : NetworkBehaviour
     public void DrawInitialHand(int amount)
     {
         for (var i = 0; i < amount; i++){
-            var cardInfo = cards.deck[0];
-            cards.deck.RemoveAt(0);
-            cards.hand.Add(cardInfo);
+            var cardInfo = deck[0];
+            deck.RemoveAt(0);
+            hand.Add(cardInfo);
 
             var cardObject = _gameManager.GetCardObject(cardInfo.goID);
             RpcMoveCard(cardObject, CardLocations.Deck, CardLocations.Hand);
@@ -125,37 +129,38 @@ public class PlayerManager : NetworkBehaviour
         
     [Server]
     public void DrawCards(int amount){
-        while (amount > cards.deck.Count + cards.discard.Count){
+        while (amount > deck.Count + discard.Count){
             amount--;
         }
 
         for (var i = 0; i < amount; i++){
-            if (cards.deck.Count == 0) ShuffleDiscardIntoDeck();
+            if (deck.Count == 0) ShuffleDiscardIntoDeck();
 
-            var cardInfo = cards.deck[0];
-            cards.deck.RemoveAt(0);
-            cards.hand.Add(cardInfo);
+            var cardInfo = deck[0];
+            deck.RemoveAt(0);
+            hand.Add(cardInfo);
 
             var cardObject = _gameManager.GetCardObject(cardInfo.goID);
             RpcMoveCard(cardObject, CardLocations.Deck, CardLocations.Hand);
         }
     }
 
+    [Server]
     private void ShuffleDiscardIntoDeck(){
         var temp = new List<CardInfo>();
-        foreach (var card in cards.discard){
+        foreach (var card in discard){
             temp.Add(card);
-            cards.deck.Add(card);
+            deck.Add(card);
 
             var cachedCard = _gameManager.GetCardObject(card.goID);
             RpcMoveCard(cachedCard, CardLocations.Discard, CardLocations.Deck);
         }
 
         foreach (var card in temp){
-            cards.discard.Remove(card);
+            discard.Remove(card);
         }
 
-        cards.deck.Shuffle();
+        deck.Shuffle();
     }
 
     public void PlayCard(GameObject card, bool isMoney=false) {
@@ -202,14 +207,12 @@ public class PlayerManager : NetworkBehaviour
     
     [Server]
     public void DiscardSelection(){
-        // Not an Rpc because Server handles _discardSelection and calls each player
-        // object to discard their selection (in TurnManager.PlayerSelectedDiscardCards)
-        
+        // Server calls each player object to discard their selection _discardSelection
         foreach(var card in _discardSelection){
             var cardInfo = card.GetComponent<CardStats>().cardInfo;
 
-            cards.hand.Remove(cardInfo);
-            cards.discard.Add(cardInfo);
+            hand.Remove(cardInfo);
+            discard.Add(cardInfo);
 
             RpcMoveCard(card, CardLocations.Hand, CardLocations.Discard);
         }
@@ -221,13 +224,13 @@ public class PlayerManager : NetworkBehaviour
     {
         Cash += cardInfo.moneyValue;
         moneyCards.Add(cardInfo);
-        cards.hand.Remove(cardInfo);
+        hand.Remove(cardInfo);
     }
 
     public void DiscardMoneyCards(){
         if (moneyCards.Count == 0) return;
         
-        foreach (var card in moneyCards) cards.discard.Add(card);
+        foreach (var card in moneyCards) discard.Add(card);
         moneyCards.Clear();
     }
 

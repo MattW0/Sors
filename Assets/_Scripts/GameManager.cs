@@ -136,7 +136,7 @@ public class GameManager : NetworkBehaviour {
 
             // Cards
             SpawnPlayerDeck(player);
-            player.cards.deck.Shuffle();
+            player.deck.Shuffle();
 
             player.DrawInitialHand(initialHandSize);
         }
@@ -178,13 +178,13 @@ public class GameManager : NetworkBehaviour {
         switch (destination)
         {
             case CardLocations.Deck:
-                owner.cards.deck.Add(cardInfo);
+                owner.deck.Add(cardInfo);
                 break;
             case CardLocations.Discard:
-                owner.cards.discard.Add(cardInfo);
+                owner.discard.Add(cardInfo);
                 break;
             case CardLocations.Hand:
-                owner.cards.hand.Add(cardInfo);
+                owner.hand.Add(cardInfo);
                 break;
             case CardLocations.Spawned:
                 break;

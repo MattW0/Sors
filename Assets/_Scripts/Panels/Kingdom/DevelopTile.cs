@@ -26,10 +26,8 @@ public class DevelopTile : MonoBehaviour
     // UI
     [SerializeField] private TMP_Text title;
     [SerializeField] private TMP_Text cost;
+    private int _cost;
     public int Cost => int.Parse(cost.text); // for access in Kingdom
-    // [SerializeField] private TMP_Text attack;
-    // [SerializeField] private TMP_Text defense;
-    // [SerializeField] private TMP_Text points;
     [SerializeField] private Image highlight;
     // [SerializeField] private Image image;
 
@@ -42,17 +40,14 @@ public class DevelopTile : MonoBehaviour
 
     public void SetTile(CardInfo card){
         cardInfo = card;
+        _cost = card.cost;
         title.text = card.title;
         cost.text = card.cost.ToString();
         // points.text = card.points.ToString();
     }
 
     public void SetDevelopBonus(int priceReduction){
-        cost.text = (int.Parse(cost.text) - priceReduction).ToString();
-    }
-
-    public void UndoDevelopBonus(int priceReduction){
-        cost.text = (int.Parse(cost.text) + priceReduction).ToString();
+        cost.text = (_cost - priceReduction).ToString();
     }
 
     public void OnDevelopTileClick(){
@@ -79,6 +74,10 @@ public class DevelopTile : MonoBehaviour
         _isSelected = false;
         highlight.enabled = false;
         highlight.color = Color.green;
+
+        // Reset cost (after bonus)
+        _cost = cardInfo.cost;
+        cost.text = _cost.ToString();
     }
 
     private void OnDestroy(){

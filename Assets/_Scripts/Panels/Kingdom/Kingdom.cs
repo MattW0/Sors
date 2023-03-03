@@ -50,9 +50,9 @@ public class Kingdom : NetworkBehaviour
         foreach(var tile in developTiles) tile.SetDevelopBonus(priceReduction);
     }
 
-    public void TargetUndoDevelopBonus(NetworkConnection target, int priceReduction){
-        foreach(var tile in developTiles) tile.UndoDevelopBonus(priceReduction);
-    }
+    // public void TargetUndoDevelopBonus(NetworkConnection target, int priceReduction){
+    //     foreach(var tile in developTiles) tile.UndoDevelopBonus(priceReduction);
+    // }
 
     [ClientRpc]
     public void RpcEndDevelop(){

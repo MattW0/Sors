@@ -35,18 +35,6 @@ public class Hand : NetworkBehaviour
             card.IsTrashable = isInteractable;
         }
     }
-
-    [TargetRpc]
-    public void TargetTrashCard(NetworkConnection conn, CardStats stats){
-        print("Remove card from hand: " + stats.cardInfo.title);
-        _handCards.Remove(stats);
-    }
-
-    [Server]
-    public void ServerTrashCard(CardStats stats){
-        print("Remove card from hand: " + stats.cardInfo.title);
-        _handCards.Remove(stats);
-    }
     
     [ClientRpc]
     public void RpcResetHighlight() {

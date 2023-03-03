@@ -52,7 +52,7 @@ public class CardUI : MonoBehaviour {
         } else {
             _transform.Find("CardFront/Money").gameObject.SetActive(true);
             _transform.Find("CardFront/Creature").gameObject.SetActive(false);
-            _image.sprite = Resources.Load<Sprite>("Sprites/SD/Currency/" + cardInfo.title);
+            _image.sprite = Resources.Load<Sprite>("Sprites/Money/" + cardInfo.title);
         }
     }
     
@@ -79,6 +79,8 @@ public class CardUI : MonoBehaviour {
     }
 
     public void Highlight(bool active, Color color){
+        if(!_highlight) return;
+
         _highlight.color = color;
         _highlight.enabled = active;
     }

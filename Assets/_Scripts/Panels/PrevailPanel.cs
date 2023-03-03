@@ -71,6 +71,14 @@ public class PrevailPanel : NetworkBehaviour
         OnPrevailEnded?.Invoke();
         maxView.SetActive(false);
     }
+
+    [ClientRpc]
+    public void RpcReset(){
+
+        print("Resetting prevail panel");
+        _selectedOptions.Clear();
+        confirm.interactable = true;
+    }
 }
 
 public enum PrevailOption{
