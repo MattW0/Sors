@@ -4,8 +4,7 @@ using UnityEngine;
 
 public class CardDiscard : MonoBehaviour
 {
-    private DiscardPanel _discardPanel;
-
+    private HandInteractionPanel _discardPanel;
     private bool _isSelected;
     private Vector2 _startPosition;
     private CardStats _stats;
@@ -13,9 +12,9 @@ public class CardDiscard : MonoBehaviour
     private void Awake()
     {
         _stats = gameObject.GetComponent<CardStats>();
-        if(!_discardPanel) _discardPanel = DiscardPanel.Instance;
+        _discardPanel = HandInteractionPanel.Instance;
 
-        DiscardPanel.OnDiscardPhaseEnded += Reset;
+        HandInteractionPanel.OnDiscardEnded += Reset;
     }
 
     public void OnDiscardClick(){
@@ -40,5 +39,10 @@ public class CardDiscard : MonoBehaviour
     {
         _isSelected = false;
         _startPosition = Vector2.zero;
+    }
+
+    private void OnDestroy()
+    {
+        HandInteractionPanel.OnDiscardEnded -= Reset;
     }
 }

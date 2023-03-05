@@ -12,7 +12,7 @@ public class ScriptableCard : ScriptableObject
     public int cost;
     public string title;
     public string description;
-    // public Sprite image;
+    public Sprite image;
 
     [Header("Creature properties")]
     public int attack;

@@ -22,6 +22,7 @@ public class CombatManager : NetworkBehaviour
     private GameManager _gameManager;
     private TurnManager _turnManager;
     private BoardManager _boardManager;
+    private PlayerInterfaceManager _playerInterfaceManager;
     private List<PlayerManager> _readyPlayers = new();
 
     private void Awake()
@@ -64,6 +65,7 @@ public class CombatManager : NetworkBehaviour
         _gameManager = GameManager.Instance;
         _turnManager = TurnManager.Instance;
         _boardManager = BoardManager.Instance;
+        _playerInterfaceManager = PlayerInterfaceManager.Instance;
     }
 
     private void PlayerDeclaredAttackers(PlayerManager player)
@@ -75,12 +77,11 @@ public class CombatManager : NetworkBehaviour
         foreach (var attacker in _boardManager.boardAttackers)
         {
             _attackersBlockers.Add(attacker, new List<BattleZoneEntity>());
-            print("Attacker: " + attacker.Title + ", Owner: " + attacker.Owner.PlayerName);
         }
         
         _boardManager.ShowOpponentAttackers();
         _readyPlayers.Clear();
-        print("<color=yellow> --- Attackers declared --- </color>");
+        _playerInterfaceManager.RpcLog("<color=#42000c> --- Attackers declared --- </color>");
         UpdateCombatState(CombatState.Blockers);
     }
 
@@ -98,7 +99,7 @@ public class CombatManager : NetworkBehaviour
         _readyPlayers.Add(player);
         if (_readyPlayers.Count != _gameManager.players.Count) return;
         
-        print("<color=purple> --- Blockers declared --- </color>");
+        _playerInterfaceManager.RpcLog("<color=#420028> --- Blockers declared --- </color>");
         ShowAllBlockers();
         UpdateCombatState(CombatState.Damage);
     }
@@ -154,6 +155,7 @@ public class CombatManager : NetworkBehaviour
         int totalBlockerHealth = 0;
         foreach (var blocker in _attackersBlockers[attacker])
             {
+                _playerInterfaceManager.RpcLog("Clashing creatures: " + attacker.Title + " vs " + blocker.Title + "");
                 attackerfirstdeath = CheckFirststrike(attacker, blocker);
                 if (attacker.Health > 0 && blocker.Health > 0)
                 { 
@@ -174,7 +176,7 @@ public class CombatManager : NetworkBehaviour
 
         foreach (var attacker in _unblockedAttackers)
         {
-            print("Attacker: " + attacker.Title + " is unblocked");
+            _playerInterfaceManager.RpcLog("" + attacker.Title + " is unblocked");
 
             // player takes damage from unblocked creatures
             var targetPlayer = attacker.Target;
@@ -189,7 +191,6 @@ public class CombatManager : NetworkBehaviour
 
     private void ResolveCombat()
     {
-        print("Combat finished");
         _readyPlayers.Clear();
         _attackersBlockers.Clear();
         _unblockedAttackers.Clear();
@@ -216,7 +217,6 @@ public class CombatManager : NetworkBehaviour
 
     private void Block(BattleZoneEntity attacker, BattleZoneEntity blocker)
     {
-        print("Attacker: " + attacker.Title + " is blocked by: " + blocker.Title);
         blocker.TakesDamage(attacker.Attack, attacker._keywordAbilities.Contains(Keywords.Deathtouch));
         attacker.TakesDamage(blocker.Attack, blocker._keywordAbilities.Contains(Keywords.Deathtouch));
     }

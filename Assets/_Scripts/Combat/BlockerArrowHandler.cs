@@ -65,7 +65,7 @@ public class BlockerArrowHandler : NetworkBehaviour
         // }
         if (!entity.IsAttacking) return;
 
-        var clicker = PlayerManager.GetPlayerManager();
+        var clicker = PlayerManager.GetLocalPlayer();
         if (!clicker.PlayerIsChoosingBlockers) return;
         
         clicker.PlayerChoosesAttackerToBlock(entity);

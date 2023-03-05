@@ -1,25 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Security.Cryptography;
-using UnityEngine;
-using Mirror;
 
-public class CardCollection : NetworkBehaviour
-{
-    [Header("CardCollections")]
-    public readonly SyncListCard deck = new SyncListCard();
-    public readonly SyncListCard hand = new SyncListCard();
-    public readonly SyncListCard discard = new SyncListCard();
-    public readonly SyncListCard money = new SyncListCard();
-    
-    // public void OnDeckListChange(SyncListCard.Operation op, int index, CardInfo oldCard, CardInfo newCard)
-    // {
-    //     deck[index] = newCard;
-    // }
-}
+public class CardCollection : List<CardInfo> {
 
-public class SyncListCard : SyncList<CardInfo> {
-    
+    public List<CardInfo> _cards;
+
+    // constructor
+    public CardCollection(){
+        _cards = new List<CardInfo>();
+    }
+
     public void Shuffle(){
         var provider = new RNGCryptoServiceProvider();
         int n = Count;
@@ -32,34 +23,4 @@ public class SyncListCard : SyncList<CardInfo> {
             (this[k], this[n]) = (this[n], this[k]);
         }
     }
-
-    // // Try and implement this?
-    // public void OnCollectionUpdated(SyncListCard.Operation op, int index, CardInfo oldItem, CardInfo newItem)
-    // {
-    //     switch (op)
-    //     {
-    //         case SyncListCard.Operation.OP_ADD:
-    //             Debug.Log("Adding card to collection");
-    //             this[index] = newItem;
-    //             // index is where it was added into the list
-    //             // newItem is the new item
-    //             break;
-    //         case SyncListCard.Operation.OP_INSERT:
-    //             // index is where it was inserted into the list
-    //             // newItem is the new item
-    //             break;
-    //         case SyncListCard.Operation.OP_REMOVEAT:
-    //             // index is where it was removed from the list
-    //             // oldItem is the item that was removed
-    //             break;
-    //         case SyncListCard.Operation.OP_SET:
-    //             // index is of the item that was changed
-    //             // oldItem is the previous value for the item at the index
-    //             // newItem is the new value for the item at the index
-    //             break;
-    //         case SyncListCard.Operation.OP_CLEAR:
-    //             // list got cleared
-    //             break;
-    //     }
-    // }
 }

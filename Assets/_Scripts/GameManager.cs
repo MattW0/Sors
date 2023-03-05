@@ -7,7 +7,6 @@ using Random = UnityEngine.Random;
 
 public class GameManager : NetworkBehaviour {
     [Header("For Coding")]
-    
     public bool singlePlayer;
     public bool animations;
 
@@ -26,7 +25,7 @@ public class GameManager : NetworkBehaviour {
     private List<PlayerManager> _loosingPlayers = new();
 
     [Header("Game start settings")]
-    [SerializeField] private int nbRecruitTiles = 12;
+    [SerializeField] private int nbRecruitTiles = 8;
     [SerializeField] private int nbDevelopTiles = 2;
     [SerializeField] public int initialDeckSize = 10;
     [SerializeField] public int nbCreatures = 2;
@@ -35,15 +34,17 @@ public class GameManager : NetworkBehaviour {
     [SerializeField] public int startScore = 0;
 
     [Header("Turn specifics")]
-    [SerializeField] public int nbPhasesToChose = 2;
+    public int nbPhasesToChose;
     [SerializeField] public int nbCardDraw = 2;
     [SerializeField] public int nbDiscard = 1;
     public int turnCash = 0;
     public int turnDeploys = 1; 
     public int turnRecruits = 1;
+    public int prevailOptionsToChoose = 1;
 
     [Header("Turn Boni")]
     public int developPriceReduction = 1;
+    public int prevailExtraOptions = 1;
 
 
     [Header("Available cards")]
@@ -54,7 +55,6 @@ public class GameManager : NetworkBehaviour {
     private Sprite[] _moneySprites;
     
     [Header("Prefabs")]
-    [SerializeField] private GameObject discardPanelPrefab;
     [SerializeField] private GameObject creatureCardPrefab;
     [SerializeField] private GameObject moneyCardPrefab;
     [SerializeField] private GameObject entityObjectPrefab;
@@ -77,9 +77,11 @@ public class GameManager : NetworkBehaviour {
         SorsNetworkManager.OnAllPlayersReady += GameSetup;
     }
 
-    public void GameSetup(int nbPlayers)
-    {
+    public void GameSetup(int nbPlayers, int nbPhases){
+
+        print("Game starting with " + nbPlayers + " players and " + nbPhases + " phases to choose");
         singlePlayer = nbPlayers == 1;
+        nbPhasesToChose = nbPhases;
 
         _turnManager = TurnManager.Instance;
         _kingdom = Kingdom.Instance;
@@ -94,13 +96,14 @@ public class GameManager : NetworkBehaviour {
     #region Setup
     
     private void KingdomSetup(){
+        // Developments: right now only money
         var developCards = new CardInfo[nbDevelopTiles];
-        var recruitCards = new CardInfo[nbRecruitTiles];
-        
-        developCards[0] = new CardInfo(moneyCards[2]); // Silver
-        developCards[1] = new CardInfo(moneyCards[1]); // Gold
+        developCards[0] = new CardInfo(moneyCards[1]); // Silver
+        developCards[1] = new CardInfo(moneyCards[2]); // Gold
         _kingdom.RpcSetDevelopTiles(developCards);
 
+        // Recruits: Creatures
+        var recruitCards = new CardInfo[nbRecruitTiles];
         for (var i = 0; i < nbRecruitTiles; i++) recruitCards[i] = GetNewCreatureFromDb();
         _kingdom.RpcSetRecruitTiles(recruitCards);
     }
@@ -125,16 +128,17 @@ public class GameManager : NetworkBehaviour {
             var playerNetworkId = player.GetComponent<NetworkIdentity>();
             players.Add(player, playerNetworkId);
 
-            // UI
+            // Stats
             player.PlayerName = player.PlayerName; // To update info in network
             player.Health = startHealth;
             player.Score = startScore;
             player.Cash = turnCash;
+            player.Deploys = turnDeploys;
             player.Recruits = turnRecruits;
 
             // Cards
             SpawnPlayerDeck(player);
-            player.cards.deck.Shuffle();
+            player.deck.Shuffle();
 
             player.DrawInitialHand(initialHandSize);
         }
@@ -176,13 +180,13 @@ public class GameManager : NetworkBehaviour {
         switch (destination)
         {
             case CardLocations.Deck:
-                owner.cards.deck.Add(cardInfo);
+                owner.deck.Add(cardInfo);
                 break;
             case CardLocations.Discard:
-                owner.cards.discard.Add(cardInfo);
+                owner.discard.Add(cardInfo);
                 break;
             case CardLocations.Hand:
-                owner.cards.hand.Add(cardInfo);
+                owner.hand.Add(cardInfo);
                 break;
             case CardLocations.Spawned:
                 break;
@@ -197,13 +201,14 @@ public class GameManager : NetworkBehaviour {
     }
 
     public void SpawnMoney(PlayerManager player, CardInfo cardInfo){
-        var scriptableCard = Resources.Load<ScriptableCard>("MoneyCards/" + cardInfo.title);
+        // using hash as index for currency scriptable objects
+        var scriptableCard = Resources.Load<ScriptableCard>("MoneyCards/" + cardInfo.hash + "_" + cardInfo.title);
         var cardObject = Instantiate(moneyCardPrefab);
         SpawnCacheAndMoveCard(player, cardObject, scriptableCard, CardLocations.Discard);
     }
 
     public void SpawnCreature(PlayerManager player, CardInfo cardInfo){
-        _kingdom.RpcReplaceCard(cardInfo.title, GetNewCreatureFromDb());
+        _kingdom.RpcReplaceRecruitTile(cardInfo.title, GetNewCreatureFromDb());
 
         var scriptableCard = Resources.Load<ScriptableCard>("creatureCards/" + cardInfo.title);
         var cardObject = Instantiate(creatureCardPrefab);

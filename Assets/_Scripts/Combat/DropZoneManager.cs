@@ -107,7 +107,6 @@ public class DropZoneManager : NetworkBehaviour
             entity.LocalPlayerIsReady();
             if (!entity.IsAttacking) continue;
 
-            // print("Attacking with: " + entity.Title);
             attackers.Add(entity);
         }
 
@@ -150,9 +149,7 @@ public class DropZoneManager : NetworkBehaviour
         }
 
         // If not being attacked or all my creatures are attacking, we skip
-        print("Nb attackers: " + nbAttackers + " | isAttacked: " + isAttacked);
         if (!isAttacked || entities.Count == nbAttackers) {
-            print("Skipping blockers for " + _player.PlayerName);
             if(isServer) {
                 _boardManager.DisableReadyButton(_player);
                 PlayerFinishedChoosingBlockers(_player, true);

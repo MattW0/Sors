@@ -24,8 +24,16 @@ public class CardStats : NetworkBehaviour
         get => _discardable;
         set {
             _discardable = value;
-            if (value) _cardUI.Highlight(true, Color.red);
-            else _cardUI.HighlightReset();
+            _cardUI.Highlight(value, Color.red);
+        }
+    }
+
+    private bool _trashable;
+    public bool IsTrashable { 
+        get => _trashable;
+        set {
+            _trashable = value;
+            _cardUI.Highlight(value, Color.red);
         }
     }
     
@@ -38,8 +46,7 @@ public class CardStats : NetworkBehaviour
             if (!cardInfo.isCreature) return;
             
             _deployable = value;
-            if (value) _cardUI.Highlight(true, Color.cyan);
-            else _cardUI.HighlightReset();
+            _cardUI.Highlight(value, Color.cyan);
         }
     }
     

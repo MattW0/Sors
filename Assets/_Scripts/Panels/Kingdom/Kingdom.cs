@@ -12,6 +12,8 @@ public class Kingdom : NetworkBehaviour
     public static Kingdom Instance { get; private set; }
     private GameManager _gameManager;
     private Phase _currentPhase;
+    private List<RecruitTile> _previouslySelected = new ();
+    public List<RecruitTile> GetPreviouslySelectedRecruitTiles() => _previouslySelected;
 
     [SerializeField] private KingdomUI _ui;
     [SerializeField] private DevelopTile[] developTiles;
@@ -29,30 +31,90 @@ public class Kingdom : NetworkBehaviour
         _gameManager = GameManager.Instance;
     }
 
+    #region Develop
     [ClientRpc]
-    public void RpcSetDevelopTiles(CardInfo[] developTilesInfo)
-    {   
+    public void RpcSetDevelopTiles(CardInfo[] developTilesInfo){
         developTiles = new DevelopTile[developTilesInfo.Length];
         developTiles = developGrid.GetComponentsInChildren<DevelopTile>();
 
-        for (var i = 0; i < developTilesInfo.Length; i++)
-        {
-            developTiles[i].SetTile(developTilesInfo[i]);
-        }
+        for (var i = 0; i < developTilesInfo.Length; i++) developTiles[i].SetTile(developTilesInfo[i]);
     }
 
+    [TargetRpc]
+    public void TargetCheckDevelopability(NetworkConnection target, int playerCash){
+        foreach (var dt in developTiles) dt.Developable = playerCash >= dt.Cost;
+    }
+
+    [TargetRpc]
+    public void TargetDevelopBonus(NetworkConnection target, int priceReduction){
+        foreach(var tile in developTiles) tile.SetDevelopBonus(priceReduction);
+    }
+
+    // public void TargetUndoDevelopBonus(NetworkConnection target, int priceReduction){
+    //     foreach(var tile in developTiles) tile.UndoDevelopBonus(priceReduction);
+    // }
+
     [ClientRpc]
-    public void RpcSetRecruitTiles(CardInfo[] recruitTilesInfo)
-    {   
+    public void RpcEndDevelop(){
+        OnDevelopPhaseEnded?.Invoke();
+        _ui.EndDevelop();
+    }
+    #endregion
+    
+    #region Recruit
+    [ClientRpc]
+    public void RpcSetRecruitTiles(CardInfo[] recruitTilesInfo){   
         recruitTiles = new RecruitTile[recruitTilesInfo.Length];
         recruitTiles = recruitGrid.GetComponentsInChildren<RecruitTile>();
 
-        for (var i = 0; i < recruitTilesInfo.Length; i++)
-        {
-            recruitTiles[i].SetTile(recruitTilesInfo[i]);
+        for (var i = 0; i < recruitTilesInfo.Length; i++) recruitTiles[i].SetTile(recruitTilesInfo[i]);
+    }
+
+    [TargetRpc]
+    public void TargetCheckRecruitability(NetworkConnection target, int playerCash){
+        foreach (var tile in recruitTiles){
+            if (_previouslySelected.Contains(tile)) continue;
+            tile.Recruitable = playerCash >= tile.Cost;
         }
     }
 
+    public void PlayerSelectsRecruitTile(RecruitTile tile){
+        selection = tile.cardInfo;
+        _previouslySelected.Add(tile);
+    }
+
+    public void PlayerDeselectsRecruitTile(RecruitTile tile){
+        selection.title = null; // hack-around for check in TurnManager
+        _previouslySelected.Remove(tile);
+    }
+
+    [TargetRpc]
+    public void TargetResetRecruit(NetworkConnection target, int recruitsLeft){        
+        foreach (var tile in _previouslySelected) tile.ShowAsRecruited();
+
+        if (recruitsLeft <= 0) return;
+        _ui.ResetRecruitButton();
+    }
+
+    [ClientRpc]
+    public void RpcReplaceRecruitTile(string oldTitle, CardInfo cardInfo){
+        foreach (var tile in recruitTiles){
+            if (tile.cardInfo.title != oldTitle) continue;
+
+            tile.SetTile(cardInfo);
+            break;
+        }
+    }
+    
+    [ClientRpc]
+    public void RpcEndRecruit(){
+        _previouslySelected.Clear();
+        _ui.CloseWindow();
+        OnRecruitPhaseEnded?.Invoke();
+    }
+    #endregion
+
+    #region Utils
     [ClientRpc]
     public void RpcBeginPhase(Phase phase)
     {
@@ -62,7 +124,7 @@ public class Kingdom : NetworkBehaviour
 
     public void PlayerPressedButton(bool skip)
     {
-        var player = PlayerManager.GetPlayerManager();
+        var player = PlayerManager.GetLocalPlayer();
         if(skip) {
             player.PlayerPressedReadyButton();
             return;
@@ -83,57 +145,6 @@ public class Kingdom : NetworkBehaviour
         selection.Destroy();
     }
 
-    [ClientRpc]
-    public void RpcReplaceCard(string oldTitle, CardInfo cardInfo)
-    {
-        foreach (var kc in recruitTiles)
-        {
-            if (kc.cardInfo.title != oldTitle) continue;
-
-            kc.SetTile(cardInfo);
-            break;
-        }
-    }
-
-    [TargetRpc]
-    public void TargetDevelopBonus(NetworkConnection target, int priceReduction){
-        foreach(var tile in developTiles) tile.SetDevelopBonus(priceReduction);
-    }
-
-    [TargetRpc]
-    public void TargetCheckDevelopability(NetworkConnection target, int playerCash){
-        foreach (var dt in developTiles) dt.Developable = playerCash >= dt.Cost;
-    }
-    
-    [TargetRpc]
-    public void TargetCheckRecruitability(NetworkConnection target, int playerCash){
-        var skipCards = _ui.GetPreviouslySelectedRecruitTiles();
-
-        foreach (var kc in recruitTiles)
-        {
-            if (skipCards.Contains(kc)) continue;
-            kc.Recruitable = playerCash >= kc.Cost;
-        }
-    }
-
-    [TargetRpc]
-    public void TargetResetRecruit(NetworkConnection target, int recruitsLeft){
-        if (recruitsLeft > 0) _ui.ResetRecruitButton();
-    }
-
-    [ClientRpc]
-    public void RpcEndDevelop()
-    {
-        OnDevelopPhaseEnded?.Invoke();
-        _ui.EndDevelop();
-    }
-    
-    [ClientRpc]
-    public void RpcEndRecruit()
-    {
-        OnRecruitPhaseEnded?.Invoke();
-        _ui.EndRecruit();
-    }
-
     public void MaxButton() => _ui.MaxButton();
+    #endregion
 }

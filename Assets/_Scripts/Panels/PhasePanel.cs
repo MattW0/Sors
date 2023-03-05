@@ -9,11 +9,12 @@ using TMPro;
 public class PhasePanel : NetworkBehaviour
 {
     public static PhasePanel Instance { get; private set; }
-    private List<PhaseItemUI> _selectedPhases = new();
+    public List<Phase> _selectedPhases = new();
     private int _nbPhasesToChose;
     public bool disableSelection { get; private set; }
     [SerializeField] private GameObject maxView;
     [SerializeField] private Button confirm;
+    public static event Action OnPhaseSelectionEnded;
 
     [Header("Turn screen")]
     private bool _animate;
@@ -60,7 +61,7 @@ public class PhasePanel : NetworkBehaviour
         turnScreen.SetActive(false);
     }
 
-    public void UpdateActive(PhaseItemUI phase)
+    public void UpdateActive(Phase phase)
     {
         if (_selectedPhases.Contains(phase))
         {
@@ -73,19 +74,11 @@ public class PhasePanel : NetworkBehaviour
     }
 
     public void ConfirmButtonPressed(){
-
         disableSelection = true;
         confirm.interactable = false;
 
-        var phases = new List<Phase>();
-        foreach (var phaseItem in _selectedPhases)
-        {
-            phases.Add(phaseItem.Phase);
-        }
-
-        NetworkIdentity networkIdentity = NetworkClient.connection.identity;
-        PlayerManager p = networkIdentity.GetComponent<PlayerManager>();
-        p.CmdPhaseSelection(phases);
+        var player = PlayerManager.GetLocalPlayer();
+        player.CmdPhaseSelection(_selectedPhases);
     }
 
     [ClientRpc]
@@ -93,10 +86,7 @@ public class PhasePanel : NetworkBehaviour
         maxView.SetActive(false);
         disableSelection = false;
 
-        foreach (var phaseItem in _selectedPhases)
-        {
-            phaseItem.Reset();
-        }
+        OnPhaseSelectionEnded?.Invoke();
         _selectedPhases.Clear();
     }
 }

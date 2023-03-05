@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 8861709735916918007}
   - component: {fileID: 4771018743703844232}
   - component: {fileID: 6420962732462830893}
-  - component: {fileID: 7073341373359172985}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -47,9 +46,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sceneId: 0
+  _assetId: 2686280591
   serverOnly: 0
   visible: 0
-  m_AssetId: e1d7c89d50e530c48957990c7eac977d
   hasSpawned: 0
 --- !u!114 &6420962732462830893
 MonoBehaviour:
@@ -63,29 +62,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cbe6b7b617b06074da3cfeacffa0f49b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  syncDirection: 0
   syncMode: 0
   syncInterval: 0.1
-  playerName: 
-  opponent: {fileID: 0}
-  cards: {fileID: 0}
-  health: 0
-  score: 0
-  playerChosenPhases: 0000000004000000
+  _dropZone: {fileID: 0}
+  chosenPhases: 
+  chosenPrevailOptions: 
+  trashSelection: []
   moneyCards: []
-  cash: 0
-  playerUI: {fileID: 0}
-  opponentUI: {fileID: 0}
---- !u!114 &7073341373359172985
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3109964472370712586}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 358eb04eac1ab7647bf65317c5b4d790, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  syncMode: 1
-  syncInterval: 0.1
+  playerName: 

@@ -273,9 +273,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sceneId: 0
+  _assetId: 1557274936
   serverOnly: 0
   visible: 0
-  m_AssetId: 634e6b2c0192f0f4ca1b37244c505feb
   hasSpawned: 0
 --- !u!114 &68640790332384322
 MonoBehaviour:
@@ -289,15 +289,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 178361f8fa4a0e04e9d1c7ad241ddb90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  syncDirection: 0
   syncMode: 0
   syncInterval: 0.1
+  _selectedPhases: 
   maxView: {fileID: 8913472230494905049}
-  phaseItems: []
+  confirm: {fileID: 6245966278208692978}
   turnText: {fileID: 4087438116644064953}
   turnScreen: {fileID: 6819110538534441198}
   turnScreenWaitTime: 1
   turnScreenFadeTime: 0.5
-  confirm: {fileID: 6245966278208692978}
 --- !u!1 &6245966277802793841
 GameObject:
   m_ObjectHideFlags: 0
@@ -1249,7 +1250,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1027945366825006326, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
       propertyPath: m_Name
-      value: Phase
+      value: DrawI
       objectReference: {fileID: 0}
     - target: {fileID: 2432402465078654542, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
       propertyPath: m_text
@@ -1403,7 +1404,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1027945366825006326, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
       propertyPath: m_Name
-      value: Phase (1)
+      value: Recruit
       objectReference: {fileID: 0}
     - target: {fileID: 2432402465078654542, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
       propertyPath: m_text
@@ -1521,7 +1522,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1027945366825006326, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
       propertyPath: m_Name
-      value: Phase
+      value: DrawII
       objectReference: {fileID: 0}
     - target: {fileID: 2432402465078654542, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
       propertyPath: m_text
@@ -1639,7 +1640,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1027945366825006326, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
       propertyPath: m_Name
-      value: Phase (2)
+      value: Develop
       objectReference: {fileID: 0}
     - target: {fileID: 2432402465078654542, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
       propertyPath: m_text
@@ -1757,7 +1758,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1027945366825006326, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
       propertyPath: m_Name
-      value: Phase (3)
+      value: Deploy
       objectReference: {fileID: 0}
     - target: {fileID: 2432402465078654542, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
       propertyPath: m_text
@@ -1879,7 +1880,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1027945366825006326, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
       propertyPath: m_Name
-      value: Phase (2)
+      value: Prevail
       objectReference: {fileID: 0}
     - target: {fileID: 2432402465078654542, guid: 9b89aa1290f770249820078f5dba3b2c, type: 3}
       propertyPath: m_text

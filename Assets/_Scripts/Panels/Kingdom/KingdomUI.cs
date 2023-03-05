@@ -9,8 +9,7 @@ public class KingdomUI : MonoBehaviour
 
     public static KingdomUI Instance { get; private set; }
     [SerializeField] private Kingdom _kingdom;
-    private List<RecruitTile> _previouslySelected = new ();
-    public List<RecruitTile> GetPreviouslySelectedRecruitTiles() => _previouslySelected;
+    
 
     // UI
     [SerializeField] private GameObject maxView;
@@ -39,19 +38,16 @@ public class KingdomUI : MonoBehaviour
         skip.interactable = true;
     }
 
-    public void SelectRecruitCard(RecruitTile card){ 
+    public void SelectRecruitCard(RecruitTile tile){ 
         confirm.interactable = true;
-        _kingdom.selection = card.cardInfo;
+        _kingdom.PlayerSelectsRecruitTile(tile);
     }
-    public void DeselectRecruitCard(RecruitTile card){
+    public void DeselectRecruitCard(RecruitTile tile){
         confirm.interactable = false;
-        _kingdom.selection.title = null; // hack-around for check in TurnManager
+        _kingdom.PlayerDeselectsRecruitTile(tile);
     }
 
-    public void EndRecruit(){
-        _previouslySelected.Clear();
-        CloseWindow();
-    }
+   
 
     #endregion
 
@@ -101,7 +97,7 @@ public class KingdomUI : MonoBehaviour
         _switchBtnText.text = "Recruit";
     }
 
-    private void CloseWindow(){
+    public void CloseWindow(){
         MinButton();
         skip.interactable = true;
         confirm.interactable = false;

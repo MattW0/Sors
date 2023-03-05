@@ -40,7 +40,9 @@ public class CardUI : MonoBehaviour {
         _cost.text = cardInfo.cost.ToString();
         
         if (cardInfo.isCreature){
-            _transform.Find("CardFront/Special").gameObject.SetActive(true);
+            _transform.Find("CardFront/Creature").gameObject.SetActive(true);
+            _transform.Find("CardFront/Money").gameObject.SetActive(false);
+
             _description.text = cardInfo.keyword_abilities.ToString();
             _attack.text = cardInfo.attack.ToString();
             _health.text = cardInfo.health.ToString();
@@ -48,7 +50,9 @@ public class CardUI : MonoBehaviour {
             _description.text = string.Join(" ", cardInfo.keyword_abilities.ConvertAll(f => f.ToString()));
 
         } else {
-            _transform.Find("CardFront").GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/Money/" + cardInfo.title);
+            _transform.Find("CardFront/Money").gameObject.SetActive(true);
+            _transform.Find("CardFront/Creature").gameObject.SetActive(false);
+            _image.sprite = Resources.Load<Sprite>("Sprites/Money/" + cardInfo.title);
         }
     }
     
@@ -75,6 +79,8 @@ public class CardUI : MonoBehaviour {
     }
 
     public void Highlight(bool active, Color color){
+        if(!_highlight) return;
+
         _highlight.color = color;
         _highlight.enabled = active;
     }
