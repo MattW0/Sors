@@ -7,8 +7,9 @@ using TMPro;
 public class PrevailOptionUI : MonoBehaviour
 {
     private PrevailPanel _prevailPanel;
-    private PrevailOption _option;
-    [SerializeField] private TMP_Text optionText;
+    [SerializeField] private PrevailOption _option;
+    [SerializeField] private TMP_Text optionTitle;
+    [SerializeField] private TMP_Text optionDescription;
     [SerializeField] private TMP_Text numberSelectedText;
     // [SerializeField] private Image outline;
     private int _timesSelected;
@@ -18,8 +19,10 @@ public class PrevailOptionUI : MonoBehaviour
         // Only do this once
         if (_prevailPanel) return;
 
+        optionDescription.enabled = false;
+
         _prevailPanel = PrevailPanel.Instance;
-        _option = (PrevailOption) System.Enum.Parse(typeof(PrevailOption), gameObject.name);
+        // _option = (PrevailOption) System.Enum.Parse(typeof(PrevailOption), gameObject.name);
         PrevailPanel.OnPrevailEnded += Reset;
     }
 

@@ -40,6 +40,7 @@ public class HandInteractionPanel : NetworkBehaviour
         _state = TurnState.Discard;
         displayText.text = $"Discard 0/{_nbCardsToDiscard} cards";
         gameObject.SetActive(true);
+        confirm.interactable = false;
 
         _hand.StartDiscard(true);
     }
@@ -66,8 +67,9 @@ public class HandInteractionPanel : NetworkBehaviour
     public void TargetBeginTrash(NetworkConnection conn, int nbCardsToTrash){
         _state = TurnState.Trash;
         _nbCardsToTrash = nbCardsToTrash;
-        displayText.text = $"Trash 0/{nbCardsToTrash} cards";
+        displayText.text = $"Trash up to {nbCardsToTrash} cards";
         gameObject.SetActive(true);
+        confirm.interactable = true;
 
         if (nbCardsToTrash == 0) ConfirmButtonPressed();
         else _hand.StartTrash(true);
@@ -79,10 +81,6 @@ public class HandInteractionPanel : NetworkBehaviour
         } else {
             selectedCardsList.Remove(card);
         }
-
-        var nbSelected = selectedCardsList.Count;
-        displayText.text = $"Trash {nbSelected}/{_nbCardsToTrash} cards";
-        confirm.interactable = nbSelected == _nbCardsToTrash;
     }
 
     [ClientRpc]

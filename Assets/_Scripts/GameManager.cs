@@ -34,7 +34,7 @@ public class GameManager : NetworkBehaviour {
     [SerializeField] public int startScore = 0;
 
     [Header("Turn specifics")]
-    [SerializeField] public int nbPhasesToChose = 2;
+    public int nbPhasesToChose;
     [SerializeField] public int nbCardDraw = 2;
     [SerializeField] public int nbDiscard = 1;
     public int turnCash = 0;
@@ -77,9 +77,11 @@ public class GameManager : NetworkBehaviour {
         SorsNetworkManager.OnAllPlayersReady += GameSetup;
     }
 
-    public void GameSetup(int nbPlayers)
-    {
+    public void GameSetup(int nbPlayers, int nbPhases){
+
+        print("Game starting with " + nbPlayers + " players and " + nbPhases + " phases to choose");
         singlePlayer = nbPlayers == 1;
+        nbPhasesToChose = nbPhases;
 
         _turnManager = TurnManager.Instance;
         _kingdom = Kingdom.Instance;

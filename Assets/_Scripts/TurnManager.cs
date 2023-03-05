@@ -265,13 +265,6 @@ public class TurnManager : NetworkBehaviour
 
     private void DevelopSpawnAndReset()
     {
-        // Undo bonus for choosing phase develop 
-        // foreach(var player in _gameManager.players.Keys){
-        //     if (player.chosenPhases.Contains(Phase.Develop)){
-        //         _kingdom.TargetUndoDevelopBonus(player.connectionToClient, _gameManager.developPriceReduction);
-        //     }
-        // }
-
         foreach (var (owner, cards) in _selectedCards) {
 
             foreach (var cardInfo in cards) {
