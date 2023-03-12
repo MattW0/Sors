@@ -1650,7 +1650,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 2
+  m_text: 1
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2225,6 +2225,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed745e7bb46d4e74db3e4c468e1358b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  option: 0
   numberText: {fileID: 137618146}
   optionOne: 1
   optionTwo: 2
@@ -2275,7 +2276,7 @@ MonoBehaviour:
   m_Placeholder: {fileID: 0}
   m_ItemText: {fileID: 1203007696}
   m_ItemImage: {fileID: 0}
-  m_Value: 1
+  m_Value: 0
   m_Options:
     m_Options:
     - m_Text: 1
@@ -2468,7 +2469,7 @@ GameObject:
   - component: {fileID: 722805361}
   - component: {fileID: 722805362}
   m_Layer: 5
-  m_Name: Option (1)
+  m_Name: NumberPhases
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4111,7 +4112,7 @@ GameObject:
   - component: {fileID: 1216545786}
   - component: {fileID: 1216545787}
   m_Layer: 5
-  m_Name: Option
+  m_Name: PlayerNumber
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4565,7 +4566,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.21960786, g: 0.21960786, b: 0.21960786, a: 0.7294118}
+  m_Color: {r: 0.27058825, g: 0, b: 0.07678429, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -4677,7 +4678,7 @@ GameObject:
   - component: {fileID: 1580925583}
   - component: {fileID: 1580925584}
   m_Layer: 5
-  m_Name: Option (2)
+  m_Name: NetworkAddress
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4769,6 +4770,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed745e7bb46d4e74db3e4c468e1358b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  option: 1
   numberText: {fileID: 188083095}
   optionOne: 1
   optionTwo: 2
@@ -5238,14 +5240,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1687258581}
-  m_LocalRotation: {x: 0.08715578, y: -0, z: -0, w: 0.9961947}
-  m_LocalPosition: {x: 0, y: 1.6, z: -3}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1078435518}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 10, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1721473478
 GameObject:
   m_ObjectHideFlags: 0
@@ -5653,6 +5655,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed745e7bb46d4e74db3e4c468e1358b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  option: 2
   numberText: {fileID: 873281523}
   optionOne: localhost
   optionTwo: 192.168.1.170
@@ -5981,8 +5984,8 @@ Canvas:
   m_GameObject: {fileID: 1869616628}
   m_Enabled: 1
   serializedVersion: 3
-  m_RenderMode: 0
-  m_Camera: {fileID: 0}
+  m_RenderMode: 1
+  m_Camera: {fileID: 1687258584}
   m_PlaneDistance: 100
   m_PixelPerfect: 0
   m_ReceivesEvents: 1

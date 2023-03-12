@@ -9,7 +9,10 @@ public class PlayerInterfaceButtons : MonoBehaviour
     private PlayerManager _player;
     public static PlayerInterfaceButtons Instance { get; private set; }
     private Kingdom _kingdom;
+    private CardCollectionView _cardCollectionView;
     [SerializeField] private Button _readyButton;
+    private bool _isOpen = false;
+
 
 
     private void Awake()
@@ -19,7 +22,19 @@ public class PlayerInterfaceButtons : MonoBehaviour
 
     private void Start(){
         _kingdom = Kingdom.Instance;
+        _cardCollectionView = CardCollectionView.Instance;
         _player = PlayerManager.GetLocalPlayer();
+    }
+
+    public void OnHandButtonPressed(){
+        if(_isOpen) {
+            _isOpen = false;
+            _cardCollectionView.CloseView();
+            return;
+        }
+
+        _isOpen = true;
+        _player.PlayerClickedCollectionViewButton();
     }
 
     public void OnKingdomButtonPressed(){

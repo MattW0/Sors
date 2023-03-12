@@ -5,10 +5,18 @@ using TMPro;
 
 public class DropDown : MonoBehaviour
 {
+    [SerializeField] private GameOption option;
     [SerializeField] private TMP_Text numberText;
     [SerializeField] private string optionOne;
     [SerializeField] private string optionTwo;
 
+    private void Start(){
+        // get value from dropwdown component
+        var startValue = GetComponent<TMP_Dropdown>().value;
+        DropDownSelection(startValue);
+
+        if(option == GameOption.NumberPlayers) SorsNetworkManager.SetNumberPlayers(startValue);
+    }
 
     public void DropDownSelection(int index){
         switch (index){
@@ -23,4 +31,10 @@ public class DropDown : MonoBehaviour
                 break;
         }
     }
+}
+
+public enum GameOption{
+    NumberPlayers,
+    NumberPhases,
+    NetworkAddress,
 }

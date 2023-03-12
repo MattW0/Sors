@@ -18,6 +18,7 @@ public class PlayerManager : NetworkBehaviour
     private TurnManager _turnManager;
     private CombatManager _combatManager;
     private BoardManager _boardManager;
+    private CardCollectionView _cardCollectionView;
     [SerializeField] private DropZoneManager _dropZone;
     public PlayerManager opponent { get; private set; }
 
@@ -95,6 +96,7 @@ public class PlayerManager : NetworkBehaviour
         _turnManager = TurnManager.Instance;
         _combatManager = CombatManager.Instance;
         _boardManager = BoardManager.Instance;
+        _cardCollectionView = CardCollectionView.Instance;
     }
     
     [Server] // GameManager calls this on player object
@@ -312,9 +314,6 @@ public class PlayerManager : NetworkBehaviour
         RpcUISetPlayerName(name);
     }
 
-    // [Command]
-    // private void CmdUISetPlayerName(string name) => RpcUISetPlayerName(name);
-
     [ClientRpc]
     public void RpcUISetPlayerName(string name){
         playerName = name;
@@ -328,9 +327,6 @@ public class PlayerManager : NetworkBehaviour
         RpcUISetHealthValue(value);
     }
 
-    // [Command]
-    // private void CmdUISetHealthValue(int value) => RpcUISetHealthValue(value);
-
     [ClientRpc]
     private void RpcUISetHealthValue(int value){
         if(isOwned) _playerUI.SetHealth(value);
@@ -343,9 +339,6 @@ public class PlayerManager : NetworkBehaviour
         RpcUISetScoreValue(value);
     }
 
-    // [Command]
-    // private void CmdUISetScoreValue(int value) => RpcUISetScoreValue(value);
-
     [ClientRpc]
     private void RpcUISetScoreValue(int value){
         if(isOwned) _playerUI.SetScore(value);
@@ -357,9 +350,6 @@ public class PlayerManager : NetworkBehaviour
         _cash = value;
         RpcUISetCashValue(value);
     }
-
-    // [Command]
-    // private void CmdUISetCashValue(int value) => RpcUISetCashValue(value);
 
     [ClientRpc]
     private void RpcUISetCashValue(int value){
@@ -447,6 +437,19 @@ public class PlayerManager : NetworkBehaviour
                 _dropZone.PlayerPressedReadyButton(player);
                 break;
         }
+    }
+
+    public void PlayerClickedCollectionViewButton() {
+        if (isServer) PlayerClickedCollectionViewButton(this);
+        else CmdPlayerClickedCollectionViewButton(this);
+    }
+
+    [Command]
+    private void CmdPlayerClickedCollectionViewButton(PlayerManager player) => PlayerClickedCollectionViewButton(player);
+
+    [Server]
+    private void PlayerClickedCollectionViewButton(PlayerManager player) {
+        _cardCollectionView.TargetShowCardCollection(player.connectionToClient, deck);
     }
 
     #endregion

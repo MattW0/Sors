@@ -22,7 +22,6 @@ public class PrevailOptionUI : MonoBehaviour
         optionDescription.enabled = false;
 
         _prevailPanel = PrevailPanel.Instance;
-        // _option = (PrevailOption) System.Enum.Parse(typeof(PrevailOption), gameObject.name);
         PrevailPanel.OnPrevailEnded += Reset;
     }
 
@@ -30,8 +29,12 @@ public class PrevailOptionUI : MonoBehaviour
         if (_timesSelected <= 0) return;
         
         _timesSelected--;
-        numberSelectedText.text = _timesSelected.ToString();
         _prevailPanel.Decrement(_option);
+
+        numberSelectedText.text = _timesSelected.ToString();
+        if (_timesSelected == 0) {
+            optionDescription.enabled = false;
+        }
     }
 
     public void OnClickIncrement(){
@@ -40,6 +43,7 @@ public class PrevailOptionUI : MonoBehaviour
         
         _timesSelected++;
         numberSelectedText.text = _timesSelected.ToString();
+        optionDescription.enabled = true;
     }
 
     public void Reset(){

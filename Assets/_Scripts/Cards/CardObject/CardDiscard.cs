@@ -6,21 +6,21 @@ public class CardDiscard : MonoBehaviour
 {
     private HandInteractionPanel _discardPanel;
     private bool _isSelected;
-    private Vector2 _startPosition;
+    private Vector3 _startPosition;
     private CardStats _stats;
+    private RectTransform _rectTransform;
 
     private void Awake()
     {
         _stats = gameObject.GetComponent<CardStats>();
         _discardPanel = HandInteractionPanel.Instance;
+        _rectTransform = gameObject.GetComponent<RectTransform>();
 
         HandInteractionPanel.OnDiscardEnded += Reset;
     }
 
     public void OnDiscardClick(){
         if (!_stats.IsDiscardable) return;
-        
-        var trans = transform;
         
         if (_isSelected) {
             _isSelected = false;
@@ -30,8 +30,9 @@ public class CardDiscard : MonoBehaviour
         }
 
         _isSelected = true;
-        _startPosition = trans.position;
-        trans.position = _startPosition + Vector2.up * 10;
+        _startPosition = _rectTransform.position;
+        _rectTransform.position = _startPosition + Vector3.up * 5;
+        
         _discardPanel.CardToDiscardSelected(gameObject, true);
     }
 

@@ -23,16 +23,15 @@ public class CardUI : MonoBehaviour {
     [SerializeField] private Vector3 attackRotation;
     private const float TappingDuration = 1f;
     
-    private GameObject _front;
-    private GameObject _back;
+    [SerializeField] private GameObject _front;
+    [SerializeField] private GameObject _back;
+    [SerializeField] private GameObject _creatureUi;
+    [SerializeField] private GameObject _moneyUi;
     
     private void Awake(){
         _transform = gameObject.transform;
         _transform.eulerAngles = Vector3.zero;
         attackRotation = new Vector3(0, 0, -90);
-        
-        _front = _transform.Find("CardFront").gameObject;
-        _back = _transform.Find("CardBack").gameObject;
     }
 
     public void SetCardUI(CardInfo cardInfo){
@@ -40,19 +39,16 @@ public class CardUI : MonoBehaviour {
         _cost.text = cardInfo.cost.ToString();
         
         if (cardInfo.isCreature){
-            _transform.Find("CardFront/Creature").gameObject.SetActive(true);
-            _transform.Find("CardFront/Money").gameObject.SetActive(false);
-
             _description.text = cardInfo.keyword_abilities.ToString();
             _attack.text = cardInfo.attack.ToString();
             _health.text = cardInfo.health.ToString();
             _points.text = cardInfo.points.ToString();
             _description.text = string.Join(" ", cardInfo.keyword_abilities.ConvertAll(f => f.ToString()));
+            _creatureUi.SetActive(true);
 
         } else {
-            _transform.Find("CardFront/Money").gameObject.SetActive(true);
-            _transform.Find("CardFront/Creature").gameObject.SetActive(false);
             _image.sprite = Resources.Load<Sprite>("Sprites/Money/" + cardInfo.title);
+            _moneyUi.SetActive(true);
         }
     }
     

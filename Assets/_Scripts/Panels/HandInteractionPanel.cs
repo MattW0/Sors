@@ -9,13 +9,16 @@ using TMPro;
 public class HandInteractionPanel : NetworkBehaviour
 {   
     public static HandInteractionPanel Instance { get; private set; }
+    private TurnState _state;
     private Hand _hand;
     private int _nbCardsToDiscard;
     private int _nbCardsToTrash;
-    private TurnState _state;
-    public Button confirm;
-    public TMP_Text displayText;
-    public GameObject waitingText;
+
+    // UI
+    [SerializeField] private GameObject _interaction;
+    [SerializeField] private GameObject _waitingText;
+    [SerializeField] private Button _confirmButton;
+    [SerializeField] private TMP_Text _displayText;
 
     [SerializeField] private List<GameObject> selectedCardsList = new();
     public static event Action OnDiscardEnded;
@@ -30,17 +33,17 @@ public class HandInteractionPanel : NetworkBehaviour
         _hand = Hand.Instance;
         _nbCardsToDiscard = nbCardsToDiscard;
 
-        confirm.interactable = false;
-        waitingText.SetActive(false);
-        gameObject.SetActive(false);
+        _confirmButton.interactable = false;
+        _interaction.SetActive(false);
+        _waitingText.SetActive(false);
     }
     
     [ClientRpc]
     public void RpcBeginDiscard(){
         _state = TurnState.Discard;
-        displayText.text = $"Discard 0/{_nbCardsToDiscard} cards";
-        gameObject.SetActive(true);
-        confirm.interactable = false;
+        _displayText.text = $"Discard 0/{_nbCardsToDiscard} cards";
+        _interaction.SetActive(true);
+        _confirmButton.interactable = false;
 
         _hand.StartDiscard(true);
     }
@@ -53,8 +56,8 @@ public class HandInteractionPanel : NetworkBehaviour
         }
 
         var nbSelected = selectedCardsList.Count;
-        displayText.text = $"Discard {nbSelected}/{_nbCardsToDiscard} cards";
-        confirm.interactable = nbSelected == _nbCardsToDiscard;
+        _displayText.text = $"Discard {nbSelected}/{_nbCardsToDiscard} cards";
+        _confirmButton.interactable = nbSelected == _nbCardsToDiscard;
     }
 
     [ClientRpc]
@@ -67,9 +70,9 @@ public class HandInteractionPanel : NetworkBehaviour
     public void TargetBeginTrash(NetworkConnection conn, int nbCardsToTrash){
         _state = TurnState.Trash;
         _nbCardsToTrash = nbCardsToTrash;
-        displayText.text = $"Trash up to {nbCardsToTrash} cards";
-        gameObject.SetActive(true);
-        confirm.interactable = true;
+        _displayText.text = $"Trash up to {nbCardsToTrash} cards";
+        _interaction.SetActive(true);
+        _confirmButton.interactable = true;
 
         if (nbCardsToTrash == 0) ConfirmButtonPressed();
         else _hand.StartTrash(true);
@@ -89,9 +92,9 @@ public class HandInteractionPanel : NetworkBehaviour
         OnTrashEnded?.Invoke();
     }
 
-    public void ConfirmButtonPressed(){
-        confirm.gameObject.SetActive(false);
-        waitingText.SetActive(true);
+    private void ConfirmButtonPressed(){
+        _confirmButton.gameObject.SetActive(false);
+        _waitingText.SetActive(true);
 
         var player = PlayerManager.GetLocalPlayer();
         if (_state == TurnState.Discard) player.CmdDiscardSelection(selectedCardsList);
@@ -99,9 +102,9 @@ public class HandInteractionPanel : NetworkBehaviour
     }
 
     private void ResetPanel(){
-        confirm.gameObject.SetActive(true);
-        waitingText.SetActive(false);
-        gameObject.SetActive(false);
+        _confirmButton.gameObject.SetActive(true);
+        _interaction.SetActive(false);
+        _waitingText.SetActive(false);
         selectedCardsList.Clear();
     }
 }

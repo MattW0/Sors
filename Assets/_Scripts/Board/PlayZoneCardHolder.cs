@@ -33,6 +33,7 @@ public class PlayZoneCardHolder : MonoBehaviour, IDropHandler
         _containsCard = false;
     }
 
+    // TODO: Change to be called by DragDrop on passed object with normal function call
     public void OnDrop(PointerEventData data)
     {
         if (!boxCollider2D.enabled) return;
