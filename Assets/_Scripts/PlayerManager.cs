@@ -449,7 +449,7 @@ public class PlayerManager : NetworkBehaviour
 
     [Server]
     private void PlayerClickedCollectionViewButton(PlayerManager player) {
-        _cardCollectionView.TargetShowCardCollection(player.connectionToClient, deck);
+        _cardCollectionView.TargetShowCardCollection(player.connectionToClient, deck, CollectionType.Deck);
     }
 
     #endregion

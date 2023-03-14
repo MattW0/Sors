@@ -2,24 +2,26 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
 using System.Linq;
 
 public class EntityUI : MonoBehaviour
 {
+    [Header("Entity Stats")]
     [SerializeField] private TMP_Text title;
     [SerializeField] private TMP_Text cost;
     [SerializeField] private TMP_Text attack;
     [SerializeField] private TMP_Text health;
     [SerializeField] private TMP_Text points;
-    [SerializeField] private TMP_Text description;
+    [SerializeField] private List<TMP_Text> keyWords;
 
+    [Header("Entity UI")]
     [SerializeField] private Image highlight;
     [SerializeField] private Image attackerHighlight;
-    [SerializeField] private TMP_Text keyWords;
 
     private Transform _transform;
-    [SerializeField] private Transform playerPlayZone;
-    [SerializeField] private Transform opponentPlayZone;
+    private Transform _playerPlayZone;
+    private Transform _opponentPlayZone;
 
     private readonly float _tapDistance = 60f;
     private readonly Vector3 _tappedPosition = new (0f, 60f, 0f);
@@ -34,19 +36,26 @@ public class EntityUI : MonoBehaviour
     {
         _transform = gameObject.transform;
         _transform.position = Vector3.zero;
-        playerPlayZone = GameObject.Find("PlayerPlayZone").transform.GetChild(1);
-        opponentPlayZone = GameObject.Find("OpponentPlayZone").transform.GetChild(1);
+        _playerPlayZone = GameObject.Find("PlayerPlayZone").transform.GetChild(1);
+        _opponentPlayZone = GameObject.Find("OpponentPlayZone").transform.GetChild(1);
     }
     public void SetEntityUI(CardInfo cardInfo)
     {
+        // Set card stats
         title.text = cardInfo.title;
         cost.text = cardInfo.cost.ToString();
         attack.text = cardInfo.attack.ToString();
         health.text = cardInfo.health.ToString();
-        description.text = string.Join(" ", cardInfo.keyword_abilities.ConvertAll(f => f.ToString()));
+        points.text = cardInfo.points.ToString();
 
-        // var keyword_strings = cardInfo.keyword_abilities.ConvertAll(f => f.ToString());
-        // description.text = String.Join(" ", keyword_strings);
+        // Set keywords
+        int i = 0;
+        foreach (var kw in cardInfo.keyword_abilities)
+        {
+            keyWords[i].text = kw.ToString();
+            keyWords[i].enabled = true;
+            i++;
+        }
     }
 
     public void SetHealth(int newValue) => health.text = newValue.ToString();
@@ -79,9 +88,9 @@ public class EntityUI : MonoBehaviour
     public void MoveToHolder(int holderNumber, bool isMine)
     {
         if (holderNumber == -1) Debug.Log("Wrong CardHolder number!");
-        if(isMine) _transform.SetParent(playerPlayZone.GetChild(holderNumber), false);
+        if(isMine) _transform.SetParent(_playerPlayZone.GetChild(holderNumber), false);
         else {
-            _transform.SetParent(opponentPlayZone.GetChild(holderNumber), false);
+            _transform.SetParent(_opponentPlayZone.GetChild(holderNumber), false);
             _transform.DOLocalMove(_tappedPosition, 0f);
         }
     }
