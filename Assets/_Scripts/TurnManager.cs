@@ -32,8 +32,8 @@ public class TurnManager : NetworkBehaviour
     public int GetHealth(PlayerManager player) => _playerHealth[player];
 
     [Header("Helper Fields")]
-    private Dictionary<PlayerManager, List<CardInfo>> _selectedCards = new();
-    private Dictionary<PlayerManager, List<GameObject>> _cardsToTrash = new();
+    private Dictionary<PlayerManager, List<CardInfo>> _selectedKingdomCards = new();
+    private Dictionary<PlayerManager, List<GameObject>> _selectedHandCards = new();
     
     // Events
     public static event Action<Phase[]> OnPhasesSelected;
@@ -105,7 +105,7 @@ public class TurnManager : NetworkBehaviour
         
         // Panels with setup (GameManager handles kingdom setup)
         _handInteractionPanel = HandInteractionPanel.Instance;
-        _handInteractionPanel.RpcPrepareDiscardPanel(_gameManager.nbDiscard);
+        _handInteractionPanel.RpcPrepareHandInteractionPanel(_gameManager.nbDiscard);
         _phasePanel = PhasePanel.Instance;
         _phasePanel.RpcPreparePhasePanel(_gameManager.nbPhasesToChose, _gameManager.animations);
         _prevailPanel = PrevailPanel.Instance;
@@ -117,21 +117,20 @@ public class TurnManager : NetworkBehaviour
             _playerHealth.Add(player, _gameManager.startHealth);
             _playerPhaseChoices.Add(player, new Phase[_gameManager.nbPhasesToChose]);
             _playerPrevailOptions.Add(player, new List<PrevailOption>());
-            _cardsToTrash.Add(player, new List<GameObject>());
+            _selectedHandCards.Add(player, new List<GameObject>());
         }
         // reverse order of _playerPhaseChoices to have host first
         _playerPhaseChoices = _playerPhaseChoices.Reverse().ToDictionary(x => x.Key, x => x.Value);
         _playerPrevailOptions = _playerPrevailOptions.Reverse().ToDictionary(x => x.Key, x => x.Value);
         PlayerManager.OnCashChanged += PlayerCashChanged;
 
-        _playerInterfaceManager.RpcLog($" --- Game starts --- ");
         UpdateTurnState(TurnState.PhaseSelection);
     }
     
     #region PhaseSelection
     private void PhaseSelection() {
         _gameManager.turnNb++;
-        _playerInterfaceManager.RpcLog($"<color=#000142> - Turn {_gameManager.turnNb}</color>");
+        _playerInterfaceManager.RpcLog($"<color=#000142> ------------ Turn {_gameManager.turnNb}</color> ------------");
         _phasePanel.RpcBeginPhaseSelection(_gameManager.turnNb);
     }
 
@@ -238,7 +237,7 @@ public class TurnManager : NetworkBehaviour
 
     #region Develop
     private void Develop(){
-        _selectedCards = new Dictionary<PlayerManager, List<CardInfo>>();
+        _selectedKingdomCards = new Dictionary<PlayerManager, List<CardInfo>>();
         _handManager.RpcHighlightMoney(true);
         _kingdom.RpcBeginPhase(Phase.Develop);
 
@@ -255,17 +254,17 @@ public class TurnManager : NetworkBehaviour
         if (player.chosenPhases.Contains(Phase.Develop)) cost -= _gameManager.developPriceReduction;
         player.Cash -= cost;
 
-        if (_selectedCards.ContainsKey(player))
-            _selectedCards[player].Add(card);
+        if (_selectedKingdomCards.ContainsKey(player))
+            _selectedKingdomCards[player].Add(card);
         else
-            _selectedCards.Add(player, new List<CardInfo> { card });
+            _selectedKingdomCards.Add(player, new List<CardInfo> { card });
         
         PlayerIsReady(player);
     }
 
     private void DevelopSpawnAndReset()
     {
-        foreach (var (owner, cards) in _selectedCards) {
+        foreach (var (owner, cards) in _selectedKingdomCards) {
 
             foreach (var cardInfo in cards) {
                 _playerInterfaceManager.RpcLog("<color=#4f2d00>" + owner.PlayerName + " develops " + cardInfo.title + "</color>");
@@ -286,38 +285,49 @@ public class TurnManager : NetworkBehaviour
     private void Deploy()
     {
         _handManager.RpcHighlightMoney(true);
+        _boardManager.ShowHolders(true);
+        _readyPlayers.Clear();
         
-        // Bonus for phase selection
+        // Each player has its own deploy count -> use TargetRpc
         foreach (var playerManager in _gameManager.players.Keys) {
-            var nbDeploys = _gameManager.turnDeploys;
-            playerManager.Deploys = nbDeploys;
+            _handInteractionPanel.TargetBeginDeploy(playerManager.connectionToClient);
         }
-        
-        // Reset to account for entities that died last turn
-        _boardManager.ResetHolders();
-        _boardManager.ShowCardPositionOptions(true);
     }
 
-    public void PlayerDeployedCard(PlayerManager player, GameObject card, int holderNumber) {
-        
+    public void PlayerDeployedCard(PlayerManager player, GameObject card) {
         player.Deploys--;
-        var cardInfo = card.GetComponent<CardStats>().cardInfo;
-        player.Cash -= cardInfo.cost;
-        _gameManager.SpawnFieldEntity(player, card, cardInfo, holderNumber);
+        player.Cash -= card.GetComponent<CardStats>().cardInfo.cost;
 
-        // Waiting for player to use other deploys
-        if (player.Deploys > 0) return;
-        _handManager.TargetHighlightMoney(player.connectionToClient, false);
-        
-        // Waiting for a player to finish recruiting
+        _selectedHandCards[player].Add(card);
+        PlayerIsReady(player);        
+    }
+
+    public void PlayerSkipsDeploy(PlayerManager player) {
+        player.Deploys--;
         PlayerIsReady(player);
+    }
+
+    private void DeployEntities(){
+        var anotherDeploy = false;
+        foreach(var (player, cards) in _selectedHandCards) {
+            foreach (var card in cards) {
+                var cardInfo = card.GetComponent<CardStats>().cardInfo;
+                _gameManager.SpawnFieldEntity(player, card);
+            }
+            cards.Clear();
+            if (player.Deploys > 0) anotherDeploy = true;
+        }
+
+        if(anotherDeploy) Deploy();
+        else EndDeploy();
     }
 
     private void EndDeploy()
     {
+        _handInteractionPanel.RpcEndDeploy();
         _handManager.RpcResetDeployability();
         PlayersStatsResetAndDiscardMoney();
-        _boardManager.ShowCardPositionOptions(false);
+        _boardManager.ShowHolders(false);
         
         UpdateTurnState(TurnState.NextPhase);
     }
@@ -330,7 +340,7 @@ public class TurnManager : NetworkBehaviour
     #region Recruit
 
     private void Recruit(){
-        _selectedCards = new Dictionary<PlayerManager, List<CardInfo>>();
+        _selectedKingdomCards = new Dictionary<PlayerManager, List<CardInfo>>();
         _handManager.RpcHighlightMoney(true);
         _kingdom.RpcBeginPhase(Phase.Recruit);
 
@@ -344,10 +354,10 @@ public class TurnManager : NetworkBehaviour
     {
         player.Recruits--;
         player.Cash -= card.cost;
-        if (_selectedCards.ContainsKey(player))
-            _selectedCards[player].Add(card);
+        if (_selectedKingdomCards.ContainsKey(player))
+            _selectedKingdomCards[player].Add(card);
         else
-            _selectedCards.Add(player, new List<CardInfo> { card });
+            _selectedKingdomCards.Add(player, new List<CardInfo> { card });
         
         _kingdom.TargetResetRecruit(player.connectionToClient, player.Recruits);
 
@@ -359,7 +369,7 @@ public class TurnManager : NetworkBehaviour
 
     private void RecruitSpawnAndReset()
     {
-        foreach (var (owner, cards) in _selectedCards) {
+        foreach (var (owner, cards) in _selectedKingdomCards) {
             foreach (var cardInfo in cards) {
                 _gameManager.SpawnCreature(owner, cardInfo);
                 _playerInterfaceManager.RpcLog("<color=#4f2d00>" + owner.PlayerName + " recruits " + cardInfo.title + "</color>");
@@ -438,21 +448,21 @@ public class TurnManager : NetworkBehaviour
     }
 
     public void PlayerSelectedTrashCards(PlayerManager player, List<GameObject> selectedCards){
-        _cardsToTrash[player] = selectedCards;
+        _selectedHandCards[player] = selectedCards;
         PlayerIsReady(player);
     }
 
     private void FinishPrevailTrash(){
 
         var tempList = new List<GameObject>();
-        foreach (var (player, cards) in _cardsToTrash){
+        foreach (var (player, cards) in _selectedHandCards){
             foreach (var card in cards){
                 var stats = card.GetComponent<CardStats>();
                 player.hand.Remove(stats.cardInfo);
                 tempList.Add(card);
             }
             player.trashSelection.Clear();
-            _cardsToTrash[player].Clear();
+            cards.Clear();
         }
 
         foreach(var obj in tempList){
@@ -511,8 +521,7 @@ public class TurnManager : NetworkBehaviour
                 DevelopSpawnAndReset();
                 break;
             case TurnState.Deploy:
-                player.Deploys = 0;
-                EndDeploy();
+                DeployEntities();
                 break;
             case TurnState.Recruit:
                 RecruitSpawnAndReset();

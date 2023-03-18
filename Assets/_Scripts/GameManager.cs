@@ -14,9 +14,9 @@ public class GameManager : NetworkBehaviour {
     private TurnManager _turnManager;
     private Kingdom _kingdom;
     private EndScreen _endScreen;
+    private BoardManager _boardManager;
 
     public static event Action<int> OnGameStart;
-    public static event Action<PlayerManager, BattleZoneEntity, GameObject> OnEntitySpawned; 
 
     [Header("Game state")]
     [SyncVar] public int turnNb;
@@ -45,6 +45,7 @@ public class GameManager : NetworkBehaviour {
     [Header("Turn Boni")]
     public int developPriceReduction = 1;
     public int prevailExtraOptions = 1;
+    public int deployBonusDeploys = 1;
 
 
     [Header("Available cards")]
@@ -77,13 +78,19 @@ public class GameManager : NetworkBehaviour {
         SorsNetworkManager.OnAllPlayersReady += GameSetup;
     }
 
-    public void GameSetup(int nbPlayers, int nbPhases){
+    public void GameSetup(int nbPlayers, int nbPhases, bool fullHand){
 
-        print("Game starting with " + nbPlayers + " players and " + nbPhases + " phases to choose");
+        print("Game starting with options:");
+        print("Players: " + nbPlayers);
+        print("Phases: " + nbPhases);
+        print("Full hand: " + fullHand);
+
         singlePlayer = nbPlayers == 1;
         nbPhasesToChose = nbPhases;
+        initialHandSize = fullHand ? initialDeckSize : initialHandSize;
 
         _turnManager = TurnManager.Instance;
+        _boardManager = BoardManager.Instance;
         _kingdom = Kingdom.Instance;
         _endScreen = EndScreen.Instance;
         
@@ -215,18 +222,15 @@ public class GameManager : NetworkBehaviour {
         SpawnCacheAndMoveCard(player, cardObject, scriptableCard, CardLocations.Discard);
     }
 
-    public void SpawnFieldEntity(PlayerManager owner, GameObject card, 
-        CardInfo cardInfo, int cardHolder)
+    public void SpawnFieldEntity(PlayerManager owner, GameObject card)
     {
         var entityObject = Instantiate(entityObjectPrefab);
         NetworkServer.Spawn(entityObject, connectionToClient);
         entityObject.GetComponent<NetworkIdentity>().AssignClientAuthority(players[owner].connectionToClient);
-        
-        var opponent = GetOpponent(owner);
+
         var entity = entityObject.GetComponent<BattleZoneEntity>();
-        entity.RpcSpawnEntity(owner, opponent, cardInfo, cardHolder);
-        
-        OnEntitySpawned?.Invoke(owner, entity, card);
+        var opponent = GetOpponent(owner);
+        _boardManager.AddEntity(owner, opponent, card, entity);
     }
     #endregion
 

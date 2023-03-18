@@ -62,13 +62,11 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     public event Action<PlayerManager, BattleZoneEntity> OnDeath;
 
     [ClientRpc]
-    public void RpcSpawnEntity(PlayerManager owner, PlayerManager opponent, CardInfo cardInfo, int holderNumber){        
+    public void RpcInitializeEntity(PlayerManager owner, PlayerManager opponent, CardInfo cardInfo){        
         Owner = owner;
         Target = opponent;
         
         SetStats(cardInfo);
-        entityUI.MoveToHolder(holderNumber, isOwned);
-
         if (isServer) _boardManager = BoardManager.Instance;
     }
 

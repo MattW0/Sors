@@ -24,17 +24,23 @@ public class Hand : NetworkBehaviour
         else _handCards.Remove(stats);
     }
 
-    public void StartDiscard(bool isInteractable){
+    public void StartDiscard(){
         foreach (var card in _handCards){
-            card.IsDiscardable = isInteractable;
+            card.IsDiscardable = true;
         }
     }
 
-    public void StartTrash(bool isInteractable){
+    public void StartTrash(){
         foreach (var card in _handCards){
-            card.IsTrashable = isInteractable;
+            card.IsTrashable = true;
         }
     }
+
+    // public void PreventMoreTrashing(){
+    //     foreach (var card in _handCards){
+    //         card.IsTrashable = false;
+    //     }
+    // }
     
     [ClientRpc]
     public void RpcResetHighlight() {

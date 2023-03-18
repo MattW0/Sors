@@ -65,15 +65,3 @@ public class CardStats : NetworkBehaviour
         _cardUI.SetCardUI(card);
     }
 }
-
-// Could use attribute for automatic function call on field change
-// Eg. storing the location of cards in CardStats and making a call
-// to OnLocationChanged to trigger MoveToDestination not from PlayerManager.cs
-public class OnChangedCallAttribute : PropertyAttribute
-{
-    public string methodName;
-    public OnChangedCallAttribute(string methodNameNoArguments)
-    {
-        methodName = methodNameNoArguments;
-    }
-}

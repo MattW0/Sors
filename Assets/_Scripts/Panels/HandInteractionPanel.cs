@@ -12,32 +12,37 @@ public class HandInteractionPanel : NetworkBehaviour
     private TurnState _state;
     private Hand _hand;
     private int _nbCardsToDiscard;
-    private int _nbCardsToTrash;
+    private int _nbCardsToTrashMax;
 
     // UI
     [SerializeField] private GameObject _interaction;
     [SerializeField] private GameObject _waitingText;
+    [SerializeField] private GameObject _buttons;
     [SerializeField] private Button _confirmButton;
+    [SerializeField] private GameObject _skipButton;
+
     [SerializeField] private TMP_Text _displayText;
 
     [SerializeField] private List<GameObject> selectedCardsList = new();
     public static event Action OnDiscardEnded;
     public static event Action OnTrashEnded;
+    public static event Action OnDeployEnded;
     
     private void Awake() {
         if (!Instance) Instance = this;
     }
 
     [ClientRpc]
-    public void RpcPrepareDiscardPanel(int nbCardsToDiscard){
+    public void RpcPrepareHandInteractionPanel(int nbCardsToDiscard){
         _hand = Hand.Instance;
         _nbCardsToDiscard = nbCardsToDiscard;
 
-        _confirmButton.interactable = false;
         _interaction.SetActive(false);
+        _skipButton.SetActive(false);
         _waitingText.SetActive(false);
     }
-    
+
+    #region Discard
     [ClientRpc]
     public void RpcBeginDiscard(){
         _state = TurnState.Discard;
@@ -45,7 +50,7 @@ public class HandInteractionPanel : NetworkBehaviour
         _interaction.SetActive(true);
         _confirmButton.interactable = false;
 
-        _hand.StartDiscard(true);
+        _hand.StartDiscard();
     }
 
     public void CardToDiscardSelected(GameObject card, bool selected){  
@@ -65,17 +70,24 @@ public class HandInteractionPanel : NetworkBehaviour
         ResetPanel();
         OnDiscardEnded?.Invoke();
     }
+    #endregion
 
+    #region Trash
     [TargetRpc]
     public void TargetBeginTrash(NetworkConnection conn, int nbCardsToTrash){
         _state = TurnState.Trash;
-        _nbCardsToTrash = nbCardsToTrash;
-        _displayText.text = $"Trash up to {nbCardsToTrash} cards";
         _interaction.SetActive(true);
-        _confirmButton.interactable = true;
 
-        if (nbCardsToTrash == 0) ConfirmButtonPressed();
-        else _hand.StartTrash(true);
+        if (nbCardsToTrash == 0){
+            OnConfirmButtonPressed();
+            return;
+        }
+        
+        _displayText.text = $"Trash up to {nbCardsToTrash} cards";
+        _confirmButton.interactable = true;
+        _nbCardsToTrashMax = nbCardsToTrash;
+        _hand.StartTrash();
+
     }
 
     public void CardTrashSelected(GameObject card, bool selected){
@@ -84,27 +96,66 @@ public class HandInteractionPanel : NetworkBehaviour
         } else {
             selectedCardsList.Remove(card);
         }
-    }
 
+        // if(selectedCardsList.Count >= _nbCardsToTrashMax) _hand.PreventMoreTrashing();
+        // else _hand.AllowMoreTrashing();
+    }
+    
     [ClientRpc]
     public void RpcFinishTrashing(){
         ResetPanel();
         OnTrashEnded?.Invoke();
     }
+    #endregion
 
-    private void ConfirmButtonPressed(){
-        _confirmButton.gameObject.SetActive(false);
-        _waitingText.SetActive(true);
+    #region Deploy
+    [TargetRpc]
+    public void TargetBeginDeploy(NetworkConnection conn){
+        _state = TurnState.Deploy;
+        _displayText.text = $"You may deploy a card";
+        selectedCardsList.Clear();
+
+        _skipButton.SetActive(true);
+        _waitingText.SetActive(false);
+        _buttons.SetActive(true);
+
+        _interaction.SetActive(true);
+    }
+
+    public void SelectCardToDeploy(GameObject card) => selectedCardsList.Add(card);
+    public void DeselectCardToDeploy(GameObject card) => selectedCardsList.Remove(card);
+    
+    [ClientRpc]
+    public void RpcEndDeploy(){
+        ResetPanel();
+        OnDeployEnded?.Invoke();
+    }
+
+    #endregion
+
+    public void OnConfirmButtonPressed(){
+        if(selectedCardsList.Count == 0) return;
 
         var player = PlayerManager.GetLocalPlayer();
-        if (_state == TurnState.Discard) player.CmdDiscardSelection(selectedCardsList);
-        if (_state == TurnState.Trash) player.CmdTrashSelection(selectedCardsList);
+        if (_state == TurnState.Deploy) player.CmdDeployCard(selectedCardsList[0]);
+        else if (_state == TurnState.Discard) player.CmdDiscardSelection(selectedCardsList);
+        else if (_state == TurnState.Trash) player.CmdTrashSelection(selectedCardsList);
+
+        _buttons.SetActive(false);
+        _waitingText.SetActive(true);
+    }
+
+    public void OnSkipButtonPressed(){
+        _buttons.SetActive(false);
+        _waitingText.SetActive(true);
+        PlayerManager.GetLocalPlayer().CmdSkipDeploy();
     }
 
     private void ResetPanel(){
-        _confirmButton.gameObject.SetActive(true);
         _interaction.SetActive(false);
         _waitingText.SetActive(false);
+        _skipButton.SetActive(false);
+        _buttons.SetActive(true);
         selectedCardsList.Clear();
     }
 }

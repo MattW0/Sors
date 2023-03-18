@@ -236,30 +236,33 @@ public class PlayerManager : NetworkBehaviour
         moneyCards.Clear();
     }
 
-    [Command]
-    public void CmdDeployCard(GameObject card, int holderNumber){
-        TurnManager.Instance.PlayerDeployedCard(this, card, holderNumber);
-        PlayCard(card);
-    }
-
     public void PlayerDevelops(CardInfo selectedCard){
-        if(isServer) TurnManager.Instance.PlayerSelectedDevelopCard(this, selectedCard);
+        if(isServer) _turnManager.PlayerSelectedDevelopCard(this, selectedCard);
         else CmdDevelopSelection(selectedCard);
     }
 
     [Command]
     public void CmdDevelopSelection(CardInfo card){
-        TurnManager.Instance.PlayerSelectedDevelopCard(this, card);
+        _turnManager.PlayerSelectedDevelopCard(this, card);
     }
 
+    [Command]
+    public void CmdDeployCard(GameObject card){
+        _turnManager.PlayerDeployedCard(this, card);
+        PlayCard(card);
+    }
+
+    [Command]
+    public void CmdSkipDeploy() => _turnManager.PlayerSkipsDeploy(this);
+
     public void PlayerRecruits(CardInfo selectedCard){
-        if(isServer) TurnManager.Instance.PlayerSelectedRecruitCard(this, selectedCard);
+        if(isServer) _turnManager.PlayerSelectedRecruitCard(this, selectedCard);
         else CmdRecruitSelection(selectedCard);
     }
 
     [Command]
     public void CmdRecruitSelection(CardInfo card){        
-        TurnManager.Instance.PlayerSelectedRecruitCard(this, card);
+        _turnManager.PlayerSelectedRecruitCard(this, card);
     }
 
     [Command]

@@ -6,12 +6,11 @@ using Mirror;
 
 public class SorsNetworkManager : NetworkManager
 {
-    private string[] _networkAddresses = new string[2] {"localhost", "192.168.1.170"};
-    private static int _numberPlayersRequired = 2;
-    private static int _numberPhasesToChoose = 2;
     private NetworkManager _manager;
     private string _playerNameBuffer;
-    public static event Action<int, int> OnAllPlayersReady;
+    private string[] _networkAddresses = new string[2] {"localhost", "192.168.1.170"};
+    private GameOptions _gameOptions = new GameOptions(2, 2, false, "localhost");
+    public static event Action<int, int, bool> OnAllPlayersReady;
 
     public override void Awake(){
         base.Awake();
@@ -30,7 +29,7 @@ public class SorsNetworkManager : NetworkManager
     }
 
     private IEnumerator WaitingForPlayers(){
-        while (NetworkServer.connections.Count < _numberPlayersRequired){
+        while (NetworkServer.connections.Count < GameOptions.NumberPlayers){
             Debug.Log("Waiting for players...");
             yield return new WaitForSeconds(1);
         }
@@ -40,7 +39,9 @@ public class SorsNetworkManager : NetworkManager
 
     private IEnumerator StartGame(){
         yield return new WaitForSeconds(0.5f);
-        OnAllPlayersReady?.Invoke(_numberPlayersRequired, _numberPhasesToChoose);
+        OnAllPlayersReady?.Invoke(GameOptions.NumberPlayers, 
+                                  GameOptions.NumberPhases,
+                                  GameOptions.FullHand);
         yield return null;
     }
 
@@ -83,12 +84,28 @@ public class SorsNetworkManager : NetworkManager
     }
 
     #region Host Options
+    
 
-    public static void SetNumberPlayers(int numberPlayers) => _numberPlayersRequired = numberPlayers + 1;
-    public static void SetNumberPhases(int numberPhases) => _numberPhasesToChoose = numberPhases + 1;
+    public static void SetNumberPlayers(int numberPlayers) => GameOptions.NumberPlayers = numberPlayers + 1;
+    public static void SetNumberPhases(int numberPhases) => GameOptions.NumberPhases = numberPhases + 1;
+    public static void SetFullHand(bool drawAll) => GameOptions.FullHand = drawAll;
     public void SetNetworkAddress(int networkAddressId) => _manager.networkAddress = _networkAddresses[networkAddressId];
 
     #endregion
 }
+
+public struct GameOptions{
+
+    public static int NumberPlayers { get; set;}
+    public static int NumberPhases { get; set;}
+    public static bool FullHand { get; set;}
+    public static string NetworkAddress { get; set;}
+    public GameOptions(int numPlayers, int numPhases, bool fullHand, string address){
+        NumberPlayers = numPlayers;
+        NumberPhases = numPhases;
+        FullHand = fullHand;
+        NetworkAddress = address;
+    }
+} 
 
 

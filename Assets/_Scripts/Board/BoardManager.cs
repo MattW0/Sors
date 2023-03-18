@@ -16,8 +16,6 @@ public class BoardManager : NetworkBehaviour
     private List<BattleZoneEntity> _deadEntities = new();
     public List<BattleZoneEntity> boardAttackers { get; private set; }
 
-    public static event Action<PlayerManager, BattleZoneEntity> OnEntityAdded;
-    // public static event Action<PlayerManager> OnSkipCombatPhase;
     public static event Action<PlayerManager> OnAttackersDeclared;
     public static event Action<PlayerManager> OnBlockersDeclared;
 
@@ -28,18 +26,22 @@ public class BoardManager : NetworkBehaviour
         _playerInterfaceManager = PlayerInterfaceManager.Instance;
         boardAttackers = new List<BattleZoneEntity>();
 
-        GameManager.OnEntitySpawned += AddEntity;
         CombatManager.OnDeclareAttackers += DeclareAttackers;
         CombatManager.OnDeclareBlockers += DeclareBlockers;
 
     }
 
-    private void AddEntity(PlayerManager owner, BattleZoneEntity entity, GameObject card) {
+    public void AddEntity(PlayerManager owner, PlayerManager opponent, GameObject card, BattleZoneEntity entity) {
+
+        var cardInfo = card.GetComponent<CardStats>().cardInfo;
+        print("Owner " + owner.PlayerName + " added entity " + entity.Title + " to board.");       
         // To keep track which card object corresponds to which entity
         _entitiesObjectsCache.Add(entity, card);
 
+        entity.RpcInitializeEntity(owner, opponent, cardInfo);
+        dropZone.EntityEntersDropZone(owner, entity);
+
         entity.OnDeath += EntityDies;
-        OnEntityAdded?.Invoke(owner, entity);
     }
 
     #region Combat
@@ -113,20 +115,10 @@ public class BoardManager : NetworkBehaviour
     #endregion
 
     #region UI
-    public void ShowCardPositionOptions(bool active)
-    {
-        // Resetting with active=false at end of Deploy phase
-        // entityManagers[0] = PlayerDropZone (not opponents)
-        dropZone.RpcHighlightCardHolders(active); 
-    }
+    public void ShowHolders(bool active) => dropZone.RpcHighlightCardHolders(active); 
 
     public void DisableReadyButton(PlayerManager player){
         _playerInterfaceManager.TargetDisableReadyButton(player.connectionToClient);
-    }
-
-    public void ResetHolders()
-    {
-        dropZone.RpcResetHolders();
     }
 
     private void DestroyArrows()
@@ -142,7 +134,6 @@ public class BoardManager : NetworkBehaviour
     
     private void OnDestroy()
     {
-        GameManager.OnEntitySpawned -= AddEntity;
         CombatManager.OnDeclareAttackers -= DeclareAttackers;
         CombatManager.OnDeclareBlockers -= DeclareBlockers;
     }

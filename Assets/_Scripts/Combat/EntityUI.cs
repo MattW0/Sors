@@ -24,8 +24,9 @@ public class EntityUI : MonoBehaviour
     private Transform _opponentPlayZone;
 
     private readonly float _tapDistance = 60f;
-    private readonly Vector3 _tappedPosition = new (0f, 60f, 0f);
-    private readonly Vector3 _opponentTappedPosition = new (0f, -60f, 0f);
+    private readonly Vector3 _untappedPosition = new Vector3(0f, 0f, -1f);
+    private readonly Vector3 _tappedPosition = new (0f, 60f, -1f);
+    private readonly Vector3 _opponentTappedPosition = new (0f, -60f, -1f);
 
     private const float TappingDuration = 0.3f;
 
@@ -35,9 +36,9 @@ public class EntityUI : MonoBehaviour
     private void Awake()
     {
         _transform = gameObject.transform;
-        _transform.position = Vector3.zero;
-        _playerPlayZone = GameObject.Find("PlayerPlayZone").transform.GetChild(1);
-        _opponentPlayZone = GameObject.Find("OpponentPlayZone").transform.GetChild(1);
+        _transform.position = new Vector3(0f, 0f, -1f);
+        // _playerPlayZone = GameObject.Find("PlayerPlayZone").transform.GetChild(1);
+        // _opponentPlayZone = GameObject.Find("OpponentPlayZone").transform.GetChild(1);
     }
     public void SetEntityUI(CardInfo cardInfo)
     {
@@ -70,28 +71,27 @@ public class EntityUI : MonoBehaviour
     public void ShowAsAttacker(bool active) => attackerHighlight.color = active ? attackingColor : _idleColor;
 
     public void TapCreature() {
-        _transform.DOLocalMove(new Vector3(0f, _tapDistance, 0f), TappingDuration).OnComplete(
+        _transform.DOLocalMove(_tappedPosition, TappingDuration).OnComplete(
             () => Highlight(false)
             );
     }
 
     public void UntapCreature(bool highlight) {
-        _transform.DOLocalMove(Vector3.zero, TappingDuration).OnComplete(
+        _transform.DOLocalMove(_untappedPosition, TappingDuration).OnComplete(
             () => Highlight(highlight)
             );
         ShowAsAttacker(false);
     }
 
-    public void TapOpponentCreature() => _transform.DOLocalMove(Vector3.zero, TappingDuration);
-    public void UntapOpponentCreature() => _transform.DOLocalMove(new Vector3(0f, _tapDistance, 0f), TappingDuration);
+    public void TapOpponentCreature() => _transform.DOLocalMove(_untappedPosition, TappingDuration);
+    public void UntapOpponentCreature() => _transform.DOLocalMove(_opponentTappedPosition, TappingDuration);
 
-    public void MoveToHolder(int holderNumber, bool isMine)
-    {
-        if (holderNumber == -1) Debug.Log("Wrong CardHolder number!");
-        if(isMine) _transform.SetParent(_playerPlayZone.GetChild(holderNumber), false);
-        else {
-            _transform.SetParent(_opponentPlayZone.GetChild(holderNumber), false);
-            _transform.DOLocalMove(_tappedPosition, 0f);
-        }
-    }
+    // public void MoveToHolder(bool isMine, int holderNumber)
+    // {
+    //     if(isMine) _transform.SetParent(_playerPlayZone, false);
+    //     else {
+    //         _transform.SetParent(_opponentPlayZone, false);
+    //         _transform.DOLocalMove(_tappedPosition, 0f);
+    //     }
+    // }
 }

@@ -6,42 +6,45 @@ using UnityEngine;
 
 public class DropZoneManager : NetworkBehaviour
 {
-    [SerializeField] private BattleZone battleZone;
     [SerializeField] private MoneyZone playerMoneyZone;
     [SerializeField] private MoneyZone opponentMoneyZone;
+    [SerializeField] private PlayZoneCardHolder[] playerCardHolders = new PlayZoneCardHolder[6];
+    [SerializeField] private PlayZoneCardHolder[] opponentCardHolders = new PlayZoneCardHolder[6];
     [SerializeField] private List<BattleZoneEntity> _hostEntities = new();
     [SerializeField] private List<BattleZoneEntity> _clientEntities = new();
     private BoardManager _boardManager;
     private PlayerManager _player;
     private CombatState _combatState;
 
-    private void Awake(){
-        BoardManager.OnEntityAdded += EntityEntersPlayZone;
-    }
-
     private void Start(){    
         if (isServer) _boardManager = BoardManager.Instance;
 
-        _player = NetworkClient.connection.identity.GetComponent<PlayerManager>();
+        _player = PlayerManager.GetLocalPlayer();
     }
 
     #region Entities
-
-    public static void PlayerDeployCard(GameObject card, int holderNumber)
-    {
-        var networkIdentity = NetworkClient.connection.identity;
-        var player = networkIdentity.GetComponent<PlayerManager>();
-        
-        player.CmdDeployCard(card, holderNumber);
-    }
     
     [Server]
-    private void EntityEntersPlayZone(PlayerManager owner, BattleZoneEntity entity){
+    public void EntityEntersDropZone(PlayerManager owner, BattleZoneEntity entity){
 
-        if(owner.isLocalPlayer) _hostEntities.Add(entity);
-        else _clientEntities.Add(entity);
+        var index = 0;
+        if(owner.isLocalPlayer) {
+            _hostEntities.Add(entity);
+            index = _hostEntities.Count - 1;
+        } else {
+            _clientEntities.Add(entity);
+            index = _clientEntities.Count - 1;
+        }
 
+        RpcMoveEntityToHolder(entity, index);
+        ResetHolders();
         entity.OnDeath += EntityLeavesPlayZone;
+    }
+
+    [ClientRpc]
+    private void RpcMoveEntityToHolder(BattleZoneEntity entity, int index){
+        if(entity.isOwned) entity.transform.SetParent(playerCardHolders[index].transform, false);
+        else entity.transform.SetParent(opponentCardHolders[index].transform, false);
     }
 
     [Server]
@@ -68,10 +71,11 @@ public class DropZoneManager : NetworkBehaviour
     [TargetRpc]
     private void TargetDeclareAttackers(NetworkConnection conn, List<BattleZoneEntity> entities)
     {
+    print(_player.PlayerName +" has "+ entities.Count + " entities");
         // Auto-skipping if player has empty board
         if (entities.Count == 0) {
             if (isServer) PlayerFinishedChoosingAttackers(_player, true);
-            else CmdPlayerFinishedChoosingAttackers(true);
+            else CmdPlayerFinishedChoosingAttackers(_player, true);
             return;
         }
         // Else we enable entities to be tapped and wait for player to declare attackers and press ready btn
@@ -81,7 +85,9 @@ public class DropZoneManager : NetworkBehaviour
     }
 
     [Command(requiresAuthority = false)]
-    public void CmdPlayerFinishedChoosingAttackers(bool skip) => PlayerFinishedChoosingAttackers(_player, skip);
+    public void CmdPlayerFinishedChoosingAttackers(PlayerManager player, bool skip){
+        PlayerFinishedChoosingAttackers(player, skip);
+    }
 
     [Server]
     private void PlayerFinishedChoosingAttackers(PlayerManager player, bool skip = false)
@@ -195,15 +201,23 @@ public class DropZoneManager : NetworkBehaviour
     #region UI and utils
 
     [ClientRpc]
-    public void RpcHighlightCardHolders(bool active)
+    public void RpcHighlightCardHolders(bool active){
+        if (active) HighlightHolders();
+        else ResetHolders();
+    }
+
+    public void HighlightHolders()
     {
-        battleZone.Highlights(active);
+        foreach (var holder in playerCardHolders) {
+            holder.SetHighlight();
+        }
     }
     
-    [ClientRpc]
-    public void RpcResetHolders()
+    public void ResetHolders()
     {
-        battleZone.ResetHighlights();
+        foreach (var holder in playerCardHolders) {
+            holder.ResetHighlight();
+        }
     }
     
     [ClientRpc]
@@ -225,9 +239,4 @@ public class DropZoneManager : NetworkBehaviour
     }
 
     #endregion
-
-    private void OnDestroy()
-    {
-        BoardManager.OnEntityAdded -= EntityEntersPlayZone;
-    }
 }

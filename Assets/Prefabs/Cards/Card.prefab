@@ -573,10 +573,10 @@ GameObject:
   - component: {fileID: 7173413632668903558}
   - component: {fileID: 5155140612128770232}
   - component: {fileID: 3215327794571095695}
-  - component: {fileID: 3424864328992555256}
   - component: {fileID: 1662656646801267718}
-  - component: {fileID: 588233208106232802}
   - component: {fileID: -4575455535364612694}
+  - component: {fileID: 588233208106232802}
+  - component: {fileID: 3424864328992555256}
   - component: {fileID: -2482358407959743578}
   m_Layer: 6
   m_Name: Card
@@ -699,7 +699,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls:
         - m_Target: {fileID: -4575455535364612694}
-          m_TargetAssemblyTypeName: Discard, Assembly-CSharp
+          m_TargetAssemblyTypeName: CardDiscard, Assembly-CSharp
           m_MethodName: OnDiscardClick
           m_Mode: 1
           m_Arguments:
@@ -761,19 +761,6 @@ MonoBehaviour:
     health: 0
     points: 0
     keyword_abilities: 
---- !u!114 &3424864328992555256
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5450374274839420802}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9d3bc2104d0c7c246836b31e9c87f133, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  returnDuration: 0.9
 --- !u!114 &1662656646801267718
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -800,19 +787,6 @@ MonoBehaviour:
   _back: {fileID: 6683863216303907737}
   _creatureUi: {fileID: 8993847580205264523}
   _moneyUi: {fileID: 3749662679023146322}
---- !u!114 &588233208106232802
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5450374274839420802}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e3ec17d4a2ae79048925766121a60806, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _trashImage: {fileID: 539762684560422958}
 --- !u!114 &-4575455535364612694
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -823,6 +797,31 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff33b9b350d6a2643b653392de663162, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &588233208106232802
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5450374274839420802}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73a479166bbb14b4cbc3f77d66bd0536, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _trashImage: {fileID: 539762684560422958}
+--- !u!114 &3424864328992555256
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5450374274839420802}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d3bc2104d0c7c246836b31e9c87f133, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &-2482358407959743578
