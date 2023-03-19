@@ -7,11 +7,16 @@ using Mirror;
 public class MoneyZone : MonoBehaviour
 {
     [SerializeField] private bool myZone;
+    private CardMover _cardMover;
+
+    private void Awake(){
+        _cardMover = CardMover.Instance;
+    }
 
     public void DiscardMoney(){
         var cards = GetCards();
         foreach (var card in cards) {
-            card.GetComponent<CardMover>().MoveToDestination(myZone, CardLocations.Discard);
+            _cardMover.MoveTo(card, myZone, CardLocation.MoneyZone, CardLocation.Discard);
         }
     }
 

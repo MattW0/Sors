@@ -134,6 +134,7 @@ public class GameManager : NetworkBehaviour {
         {
             var playerNetworkId = player.GetComponent<NetworkIdentity>();
             players.Add(player, playerNetworkId);
+            player.RpcInitPlayer();
 
             // Stats
             player.PlayerName = player.PlayerName; // To update info in network
@@ -148,6 +149,7 @@ public class GameManager : NetworkBehaviour {
             player.deck.Shuffle();
 
             player.DrawInitialHand(initialHandSize);
+            
         }
     }
 
@@ -160,19 +162,19 @@ public class GameManager : NetworkBehaviour {
         for (var i = 0; i < initialDeckSize - nbCreatures; i++){
             var moneyCard = moneyCards[0]; // Only copper right now
             var cardObject = Instantiate(moneyCardPrefab);
-            SpawnCacheAndMoveCard(playerManager, cardObject, moneyCard, CardLocations.Deck);
+            SpawnCacheAndMoveCard(playerManager, cardObject, moneyCard, CardLocation.Deck);
         }
 
         // Other start cards
         for (var i = 0; i < nbCreatures; i++){
             var creatureCard = startCards[i]; // Special creatures 'A' & 'B' 
             var cardObject = Instantiate(creatureCardPrefab);
-            SpawnCacheAndMoveCard(playerManager, cardObject, creatureCard, CardLocations.Deck);
+            SpawnCacheAndMoveCard(playerManager, cardObject, creatureCard, CardLocation.Deck);
         }
     }
     
     private void SpawnCacheAndMoveCard(PlayerManager owner, GameObject cardObject,
-                                       ScriptableCard scriptableCard, CardLocations destination){
+                                       ScriptableCard scriptableCard, CardLocation destination){
 
         var instanceID = cardObject.GetInstanceID().ToString();
         cardObject.name = instanceID;
@@ -186,32 +188,32 @@ public class GameManager : NetworkBehaviour {
         
         switch (destination)
         {
-            case CardLocations.Deck:
+            case CardLocation.Deck:
                 owner.deck.Add(cardInfo);
                 break;
-            case CardLocations.Discard:
+            case CardLocation.Discard:
                 owner.discard.Add(cardInfo);
                 break;
-            case CardLocations.Hand:
+            case CardLocation.Hand:
                 owner.hand.Add(cardInfo);
                 break;
-            case CardLocations.Spawned:
+            case CardLocation.Spawned:
                 break;
-            case CardLocations.PlayZone:
+            case CardLocation.PlayZone:
                 break;
-            case CardLocations.MoneyZone:
+            case CardLocation.MoneyZone:
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(destination), destination, null);
         }
-        owner.RpcMoveCard(cardObject, CardLocations.Spawned, destination);
+        owner.RpcMoveCard(cardObject, CardLocation.Spawned, destination);
     }
 
     public void SpawnMoney(PlayerManager player, CardInfo cardInfo){
         // using hash as index for currency scriptable objects
         var scriptableCard = Resources.Load<ScriptableCard>("MoneyCards/" + cardInfo.hash + "_" + cardInfo.title);
         var cardObject = Instantiate(moneyCardPrefab);
-        SpawnCacheAndMoveCard(player, cardObject, scriptableCard, CardLocations.Discard);
+        SpawnCacheAndMoveCard(player, cardObject, scriptableCard, CardLocation.Discard);
     }
 
     public void SpawnCreature(PlayerManager player, CardInfo cardInfo){
@@ -219,7 +221,7 @@ public class GameManager : NetworkBehaviour {
 
         var scriptableCard = Resources.Load<ScriptableCard>("creatureCards/" + cardInfo.title);
         var cardObject = Instantiate(creatureCardPrefab);
-        SpawnCacheAndMoveCard(player, cardObject, scriptableCard, CardLocations.Discard);
+        SpawnCacheAndMoveCard(player, cardObject, scriptableCard, CardLocation.Discard);
     }
 
     public void SpawnFieldEntity(PlayerManager owner, GameObject card)
@@ -271,13 +273,4 @@ public class GameManager : NetworkBehaviour {
         TurnManager.OnPlayerDies -= PlayerDies;
         SorsNetworkManager.OnAllPlayersReady += GameSetup;
     }
-}
-
-public enum CardLocations{
-    Spawned,
-    Deck,
-    Hand,
-    PlayZone,
-    MoneyZone,
-    Discard
 }

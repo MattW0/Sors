@@ -1138,8 +1138,8 @@ RectTransform:
   - {fileID: 893343319}
   - {fileID: 1216545786}
   - {fileID: 722805361}
-  - {fileID: 1580925583}
   - {fileID: 1780159162}
+  - {fileID: 1580925583}
   m_Father: {fileID: 1552772459}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -4854,7 +4854,7 @@ RectTransform:
   - {fileID: 873281525}
   - {fileID: 1782268274}
   m_Father: {fileID: 224994134}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -4975,7 +4975,7 @@ MonoBehaviour:
   m_Placeholder: {fileID: 0}
   m_ItemText: {fileID: 1663264687}
   m_ItemImage: {fileID: 0}
-  m_Value: 1
+  m_Value: 0
   m_Options:
     m_Options:
     - m_Text: 1
@@ -5106,7 +5106,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 2
+  m_text: 1
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -5394,14 +5394,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1687258581}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1078435518}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &1721473478
 GameObject:
   m_ObjectHideFlags: 0
@@ -5921,7 +5921,7 @@ RectTransform:
   - {fileID: 1739370246}
   - {fileID: 1852711881}
   m_Father: {fileID: 224994134}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -6347,7 +6347,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-  m_IsOn: 0
+  m_IsOn: 1
 --- !u!1 &1869616628
 GameObject:
   m_ObjectHideFlags: 0
@@ -6420,7 +6420,7 @@ Canvas:
   serializedVersion: 3
   m_RenderMode: 1
   m_Camera: {fileID: 1687258584}
-  m_PlaneDistance: 100
+  m_PlaneDistance: 10
   m_PixelPerfect: 0
   m_ReceivesEvents: 1
   m_OverrideSorting: 0
@@ -7385,7 +7385,6 @@ MonoBehaviour:
   autoCreatePlayer: 0
   playerSpawnMethod: 0
   spawnPrefabs:
-  - {fileID: 8157005274257590275, guid: 72531475a516bbe408f7384a7d9c7f40, type: 3}
   - {fileID: 1853577727411054981, guid: 03d34c09c1befe646a031791793f3517, type: 3}
   - {fileID: 219178377880232963, guid: c4c5aac254c0b8e439b121b04c0b27a1, type: 3}
   - {fileID: 5865940209055497767, guid: 3bd70cd0680703b458ea7c80d604ffc6, type: 3}
@@ -7393,7 +7392,6 @@ MonoBehaviour:
   - {fileID: 8134903570611113416, guid: 2d148f57d14cfc345bb5294be07cb84f, type: 3}
   - {fileID: 6245966277038001864, guid: 634e6b2c0192f0f4ca1b37244c505feb, type: 3}
   - {fileID: 6245966277038001864, guid: 37e2b8313015d1a4f8f13069553e53bd, type: 3}
-  - {fileID: 5765509117050641646, guid: e335860c9c03c82469c10feefbe3e926, type: 3}
   - {fileID: 8518550045047954213, guid: f94142eb38c8bb14c8be8add966a53c0, type: 3}
   - {fileID: 23084215047643341, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
   - {fileID: 5765509117050641646, guid: e335860c9c03c82469c10feefbe3e926, type: 3}

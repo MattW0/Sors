@@ -24,7 +24,7 @@ public class CardUI : MonoBehaviour {
     private const float TappingDuration = 1f;
     
     [SerializeField] private GameObject _front;
-    [SerializeField] private GameObject _back;
+    // [SerializeField] private GameObject _back;
     [SerializeField] private GameObject _creatureUi;
     [SerializeField] private GameObject _moneyUi;
     
@@ -64,13 +64,11 @@ public class CardUI : MonoBehaviour {
 
     public void CardBackUp()
     {
-        _back.SetActive(true);
         _front.SetActive(false);
     }
 
     public void CardFrontUp()
     {
-        _back.SetActive(false);
         _front.SetActive(true);
     }
 

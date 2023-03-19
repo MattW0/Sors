@@ -25,13 +25,13 @@ public class CardDiscard : MonoBehaviour
         if (_isSelected) {
             _isSelected = false;
             _handInteractionPanel.CardToDiscardSelected(gameObject, false);
-            _rectTransform.position += Vector3.down * 3;
+            _rectTransform.position += Vector3.back * 3;
             return;
         }
 
         _isSelected = true;
         _handInteractionPanel.CardToDiscardSelected(gameObject, true);
-        _rectTransform.position += Vector3.up * 3;
+        _rectTransform.position += Vector3.forward * 3;
     }
 
     public void Reset() => _isSelected = false;

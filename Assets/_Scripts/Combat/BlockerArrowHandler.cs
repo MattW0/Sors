@@ -60,9 +60,6 @@ public class BlockerArrowHandler : NetworkBehaviour
 
     private void HandleClickedOpponentCreature()
     {
-        // if (isServer) {
-        //     if (!entity.ServerIsAttacker()) return;
-        // }
         if (!entity.IsAttacking) return;
 
         var clicker = PlayerManager.GetLocalPlayer();

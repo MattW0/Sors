@@ -6,8 +6,6 @@ using TMPro;
 
 public class PlayerUI : MonoBehaviour
 {
-    public bool isMine = false;
-
     [Header("Player Stats")]
     public TMP_Text playerName;
     public TMP_Text playerHealth;

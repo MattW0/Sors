@@ -95,7 +95,7 @@ public class BoardManager : NetworkBehaviour
             // Move the card object to discard pile
             dead.Owner.discard.Add(_entitiesObjectsCache[dead].GetComponent<CardStats>().cardInfo);
             dead.Owner.RpcMoveCard(_entitiesObjectsCache[dead],
-                CardLocations.PlayZone, CardLocations.Discard);
+                CardLocation.PlayZone, CardLocation.Discard);
 
             _entitiesObjectsCache.Remove(dead);
             NetworkServer.Destroy(dead.gameObject);
