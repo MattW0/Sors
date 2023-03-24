@@ -1,14 +1,26 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
-public class CardDiscard : MonoBehaviour
-{
+public class CardDiscard : MonoBehaviour, IPointerDownHandler{
     private HandInteractionPanel _handInteractionPanel;
     private CardStats _stats;
     private RectTransform _rectTransform;
     private bool _isSelected;
-    
+    private bool IsSelected{
+        get => _isSelected;
+        set{
+            _isSelected = value;
+            if (_isSelected) {
+                _rectTransform.position += Vector3.forward;
+                _handInteractionPanel.SelectCardToDiscard(gameObject);
+            } else {
+                _rectTransform.position += Vector3.back;
+                _handInteractionPanel.DeselectCardToDiscard(gameObject);
+            } 
+        }
+    }
 
     private void Awake()
     {
@@ -19,19 +31,9 @@ public class CardDiscard : MonoBehaviour
         HandInteractionPanel.OnDiscardEnded += Reset;
     }
 
-    public void OnDiscardClick(){
+    public void OnPointerDown(PointerEventData eventData){
         if (!_stats.IsDiscardable) return;
-        
-        if (_isSelected) {
-            _isSelected = false;
-            _handInteractionPanel.CardToDiscardSelected(gameObject, false);
-            _rectTransform.position += Vector3.back * 3;
-            return;
-        }
-
-        _isSelected = true;
-        _handInteractionPanel.CardToDiscardSelected(gameObject, true);
-        _rectTransform.position += Vector3.forward * 3;
+        IsSelected = !_isSelected;
     }
 
     public void Reset() => _isSelected = false;

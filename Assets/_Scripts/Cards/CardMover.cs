@@ -26,58 +26,25 @@ public class CardMover : MonoBehaviour
     {
         var cardUI = card.GetComponent<CardUI>();
 
-        print("Moving card from " + from + " to " + to);
+        var sourcePile = GetPile(from, hasAuthority);
+        if(sourcePile) sourcePile.Remove(card); // pile is null if card just spawned
 
-        var pile = GetPile(from, hasAuthority);
-        if (pile == null) print("<color=red> Pile is null </color>");
-        else pile.Remove(card);
+        var destinationPile = GetPile(to, hasAuthority);
+        destinationPile.Add(card);
 
-        pile = GetPile(to, hasAuthority);
-        pile.Add(card);
-
-        switch (to){
-        default:
-            print("<color=orange> Unknown card destination </color>");
-            break;
-        case CardLocation.Deck:
-            // if(hasAuthority) playerDeck.Add(card);
-            // else opponentDeck.Add(card);
-
+        if(to == CardLocation.Discard || to == CardLocation.MoneyZone){
+            cardUI.CardFrontUp();
+        } else if (to == CardLocation.Hand && hasAuthority){
+            cardUI.CardFrontUp();
+        } else if (to == CardLocation.Deck) {
             cardUI.CardBackUp();
-            break;
-        case CardLocation.Hand:
-            if (hasAuthority) {
-                // trans.SetParent(playerHand, false);
-                // playerHand.Add(card);
-                cardUI.CardFrontUp();
-                break;
-            }
-            // else opponentHand.Add(card);
-            break;
-        case CardLocation.PlayZone:
-            // trans.SetParent(hasAuthority ? playerPlayZone : opponentPlayZone, false);
-            break;
-        case CardLocation.MoneyZone:
-            // if (hasAuthority) playerMoneyZone.Add(card);
-            // else {
-            //     opponentMoneyZone.Add(card);
-            cardUI.CardFrontUp();
-            // }
-            break;
-        case CardLocation.Discard:
-            // if (hasAuthority) playerDiscardPile.Add(card);
-            // else opponentDiscardPile.Add(card);
-            
-            cardUI.CardFrontUp();
-            // trans.localPosition = Vector3.zero;
-            break;
         }
-
         cardUI.HighlightReset();
     }
 
     private CardsPileSors GetPile(CardLocation location, bool hasAuthority){
         var pile = location switch{
+            CardLocation.Spawned => null,
             CardLocation.Deck => hasAuthority ? playerDeck : opponentDeck,
             CardLocation.Hand => hasAuthority ? playerHand : opponentHand,
             CardLocation.PlayZone => hasAuthority ? playerPlayZone : opponentPlayZone,
@@ -86,7 +53,6 @@ public class CardMover : MonoBehaviour
             _ => null
         };
 
-        print("Pile: " + pile);
         return pile;
     }
 }

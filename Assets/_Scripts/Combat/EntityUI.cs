@@ -23,7 +23,7 @@ public class EntityUI : MonoBehaviour
     private Transform _playerPlayZone;
     private Transform _opponentPlayZone;
 
-    private readonly float _tapDistance = 60f;
+    // private readonly float _tapDistance = 60f;
     private readonly Vector3 _untappedPosition = new Vector3(0f, 0f, -1f);
     private readonly Vector3 _tappedPosition = new (0f, 60f, -1f);
     private readonly Vector3 _opponentTappedPosition = new (0f, -60f, -1f);

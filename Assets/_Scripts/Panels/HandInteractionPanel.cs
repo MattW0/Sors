@@ -53,13 +53,17 @@ public class HandInteractionPanel : NetworkBehaviour
         _hand.StartDiscard();
     }
 
-    public void CardToDiscardSelected(GameObject card, bool selected){  
-        if (selected) {
-            selectedCardsList.Add(card);
-        } else {
-            selectedCardsList.Remove(card);
-        }
+    public void SelectCardToDiscard(GameObject card){
+        selectedCardsList.Add(card);
+        UpdateDiscardPanel();
+    }
 
+    public void DeselectCardToDiscard(GameObject card){
+        selectedCardsList.Remove(card);
+        UpdateDiscardPanel();
+    }
+
+    private void UpdateDiscardPanel(){
         var nbSelected = selectedCardsList.Count;
         _displayText.text = $"Discard {nbSelected}/{_nbCardsToDiscard} cards";
         _confirmButton.interactable = nbSelected == _nbCardsToDiscard;

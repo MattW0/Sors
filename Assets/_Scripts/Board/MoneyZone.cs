@@ -9,7 +9,7 @@ public class MoneyZone : MonoBehaviour
     [SerializeField] private bool myZone;
     private CardMover _cardMover;
 
-    private void Awake(){
+    private void Start(){
         _cardMover = CardMover.Instance;
     }
 

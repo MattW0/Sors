@@ -13,16 +13,14 @@ public class CardsPileSors : MonoBehaviour
 	public float zDistance;
 
 	public float moveDuration = 0.5f;
-	public Transform cardHolderPrefab;
+	public Transform cardHolder;
 
 	readonly List<GameObject> cards = new List<GameObject>();
 	public List<GameObject> Cards => new List<GameObject>(cards);
 
 	public event Action<int> OnCountChanged;
 
-	readonly List<Transform> cardsHolders = new List<Transform>();
-
-	bool updatePositions;
+	// readonly List<Transform> cardsHolders = new List<Transform>();
 	readonly List<GameObject> forceSetPosition = new List<GameObject>();
 
 	private void Awake(){
@@ -38,62 +36,47 @@ public class CardsPileSors : MonoBehaviour
 
 	public void Add(GameObject card, int index, bool moveAnimation = true)
 	{
-		Transform cardHolder = GetCardHolder();
+		// Transform cardHolder = GetCardHolder();
+		card.transform.SetParent(cardHolder, false);
 
-		if (index == -1)
-		{
-			cards.Add(card);
-			cardsHolders.Add(cardHolder);
-		}
-		else
-		{
-			cards.Insert(index, card);
-			cardsHolders.Insert(index, cardHolder);
-		}
+		if (index == -1) cards.Add(card);
+		else cards.Insert(index, card);
 
-		updatePositions = true;
-
-		if (!moveAnimation)
-			forceSetPosition.Add(card);
+		if (!moveAnimation) forceSetPosition.Add(card);
 
 		OnCountChanged?.Invoke(cards.Count);
+
+		UpdateCardPositions();
 	}
 
 	public void Remove(GameObject card)
 	{
-		if (!cards.Contains(card))
-			return;
-
-		Transform cardHolder = cardsHolders[cards.IndexOf(card)];
-		cardsHolders.Remove(cardHolder);
-		Destroy(cardHolder.gameObject);
+		if (!cards.Contains(card)) return;
 
 		cards.Remove(card);
 		card.transform.DOKill();
-		card.transform.SetParent(null);
-		updatePositions = true;
+		// card.transform.SetParent(null);
 
 		OnCountChanged?.Invoke(cards.Count);
+
+		UpdateCardPositions();
 	}
 
 	public void RemoveAt(int index)
 	{
 		Remove(cards[index]);
+		UpdateCardPositions();
 	}
 
 	public void RemoveAll()
 	{
 		while (cards.Count > 0)
 			Remove(cards[0]);
+
+		UpdateCardPositions();
 	}
 
-	Transform GetCardHolder()
-	{
-		Transform cardHolder = Instantiate(cardHolderPrefab, transform, false);
-		return cardHolder;
-	}
-
-	void UpdatePositions()
+	private void UpdateCardPositions()
 	{
 		float radius = Mathf.Abs(height) < 0.001f
 			? width * width / 0.001f * Mathf.Sign(height) 
@@ -105,46 +88,26 @@ public class CardsPileSors : MonoBehaviour
 
 		for (int i = 0; i < cards.Count; i++)
 		{
-			cards[i].transform.SetParent(transform, true);
+			cards[i].transform.SetParent(cardHolder, false);
 
 			Vector3 position = new Vector3(0f, radius, 0f);
 			position = Quaternion.Euler(0f, 0f, angle / 2f - cardAngle * i) * position;
 			position.y += height - radius;
 			position += i * new Vector3(0f, yPerCard, zDistance);
 
-			cardsHolders[i].transform.localPosition = position;
-			cardsHolders[i].transform.localEulerAngles = new Vector3(0f, 0f, angle / 2f - cardAngle * i);
+			var rotation = new Vector3(0f, 0f, angle / 2f - cardAngle * i);
 
-			cards[i].transform.SetParent(cardsHolders[i].transform, true);
-
-			if (!forceSetPosition.Contains(cards[i]))
-			{
+			if (!forceSetPosition.Contains(cards[i])) {
 				cards[i].transform.DOKill();
-				cards[i].transform.DOLocalMove(Vector3.zero, moveDuration);
-				cards[i].transform.DOLocalRotate(Vector3.zero, moveDuration);
+				cards[i].transform.DOLocalMove(position, moveDuration);
+				cards[i].transform.DOLocalRotate(rotation, moveDuration);
 				cards[i].transform.DOScale(Vector3.one, moveDuration);
-			}
-			else
-			{
+			} else {
 				forceSetPosition.Remove(cards[i]);
-
-				cards[i].transform.localPosition = Vector3.zero;
-				cards[i].transform.localRotation = Quaternion.identity;
+				cards[i].transform.localPosition = position;
+				cards[i].transform.localRotation = Quaternion.Euler(rotation);
 				cards[i].transform.localScale = Vector3.one;
 			}
 		}
-	}
-
-	void LateUpdate()
-	{
-		if (!updatePositions) return;
-		
-		updatePositions = false;
-		UpdatePositions();
-	}
-
-	void OnValidate()
-	{
-		// updatePositions = true;
 	}
 }

@@ -1738,7 +1738,8 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 5037169005172601957, guid: 85f7dd2ab1db17245881b6cc55513d05, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 85f7dd2ab1db17245881b6cc55513d05, type: 3}
 --- !u!114 &168992631845052923 stripped
 MonoBehaviour:
@@ -1833,13 +1834,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 855fca858c6f8d740948523f444e822e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  height: 0.5
-  width: 1
-  maxCardAngle: 5
+  pileType: 1
+  height: 0
+  width: 0
+  maxCardAngle: 0
   yPerCard: -0.005
-  zDistance: 0
+  zDistance: 0.05
   moveDuration: 0.5
-  cardHolderPrefab: {fileID: 1651830952997447655}
+  cardHolder: {fileID: 1651830952997447655}
 --- !u!114 &8950943684558636717 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1254635221604396055, guid: 85f7dd2ab1db17245881b6cc55513d05, type: 3}

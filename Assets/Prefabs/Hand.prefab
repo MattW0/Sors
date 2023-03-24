@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2234615528166303516}
-  - component: {fileID: 2234615528166303506}
   - component: {fileID: 1595301825}
   - component: {fileID: 7922172243664807136}
   - component: {fileID: 5179048621196346354}
@@ -36,26 +35,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
---- !u!95 &2234615528166303506
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2234615528166303505}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 83088570525587e40a4652ce55e48538, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
 --- !u!114 &1595301825
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -68,13 +47,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 855fca858c6f8d740948523f444e822e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  pileType: 2
   height: 6
   width: 300
   maxCardAngle: 90
   yPerCard: 0
-  zDistance: 1
+  zDistance: -3
   moveDuration: 0.5
-  cardHolderPrefab: {fileID: 894029209547141029}
+  cardHolder: {fileID: 894029209547141029}
 --- !u!114 &7922172243664807136
 MonoBehaviour:
   m_ObjectHideFlags: 0

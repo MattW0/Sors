@@ -14,10 +14,10 @@ public class CardDeploy : MonoBehaviour, IPointerDownHandler {
         set{
             _isSelected = value;
             if (_isSelected) {
-                _rectTransform.position += Vector3.up * 3;
+                _rectTransform.position += Vector3.forward;
                 _handInteractionPanel.SelectCardToDeploy(gameObject);
             } else {
-                _rectTransform.position += Vector3.down * 3;
+                _rectTransform.position += Vector3.back;
                 _handInteractionPanel.DeselectCardToDeploy(gameObject);
             } 
         }

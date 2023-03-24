@@ -337,7 +337,7 @@ GameObject:
   - component: {fileID: 2546293214925874029}
   - component: {fileID: 1171311618380169462}
   - component: {fileID: 7477867523131402618}
-  - component: {fileID: 6156760738441975635}
+  - component: {fileID: 3612748588470167172}
   m_Layer: 5
   m_Name: CardPile
   m_TagString: Untagged
@@ -420,7 +420,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _cardNumber: {fileID: 4962108264652391413}
   _cardHolder: {fileID: 898913995657158588}
---- !u!114 &6156760738441975635
+--- !u!114 &3612748588470167172
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -435,11 +435,11 @@ MonoBehaviour:
   pileType: 0
   height: 0.5
   width: 1
-  maxCardAngle: 5
+  maxCardAngle: 0
   yPerCard: 0
   zDistance: 0
   moveDuration: 0.5
-  cardHolderPrefab: {fileID: 898913995657158588}
+  cardHolder: {fileID: 898913995657158588}
 --- !u!1 &8212867843409503398
 GameObject:
   m_ObjectHideFlags: 0
