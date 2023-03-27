@@ -196,6 +196,11 @@ public class PlayerManager : NetworkBehaviour
         else if (from == CardLocation.Hand) OnHandChanged?.Invoke(card, false);
     }
 
+    [ClientRpc]
+    public void RpcTrashCard(GameObject card){
+        _cardMover.Trash(card, isOwned);
+    }
+
     #endregion Cards
 
     #region TurnActions

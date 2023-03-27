@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class CardTrash : MonoBehaviour
 {
-    private HandInteractionPanel _handInteractionPanel;
+    private CardCollectionPanelUI _panel;
     private bool _isSelected;
     private bool IsSelected{
         get => _isSelected;
@@ -20,9 +20,9 @@ public class CardTrash : MonoBehaviour
     private void Awake()
     {
         _stats = gameObject.GetComponent<CardStats>();
-        _handInteractionPanel = HandInteractionPanel.Instance;
+        _panel = CardCollectionPanelUI.Instance;
 
-        HandInteractionPanel.OnTrashEnded += Reset;
+        CardCollectionPanelUI.OnTrashEnded += Reset;
     }
 
     public void OnTrashClick(){
@@ -30,18 +30,18 @@ public class CardTrash : MonoBehaviour
                 
         if (IsSelected) {
             IsSelected = false;
-            _handInteractionPanel.CardTrashSelected(gameObject, false);
+            _panel.CardTrashSelected(gameObject, false);
             return;
         }
 
         IsSelected = true;
-        _handInteractionPanel.CardTrashSelected(gameObject, true);
+        _panel.CardTrashSelected(gameObject, true);
     }
 
     public void Reset() => IsSelected = false;
 
     private void OnDestroy()
     {
-        HandInteractionPanel.OnTrashEnded -= Reset;
+        CardCollectionPanelUI.OnTrashEnded -= Reset;
     }
 }

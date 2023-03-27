@@ -6,6 +6,7 @@ using UnityEngine;
 public class CardsPileSors : MonoBehaviour
 {
 	[SerializeField] private CardLocation pileType;
+	public bool updatePosition;
 	public float height = 0.5f;
 	public float width = 1f;
 	[Range(0f, 90f)] public float maxCardAngle = 5f;
@@ -19,8 +20,6 @@ public class CardsPileSors : MonoBehaviour
 	public List<GameObject> Cards => new List<GameObject>(cards);
 
 	public event Action<int> OnCountChanged;
-
-	// readonly List<Transform> cardsHolders = new List<Transform>();
 	readonly List<GameObject> forceSetPosition = new List<GameObject>();
 
 	private void Awake(){
@@ -55,7 +54,6 @@ public class CardsPileSors : MonoBehaviour
 
 		cards.Remove(card);
 		card.transform.DOKill();
-		// card.transform.SetParent(null);
 
 		OnCountChanged?.Invoke(cards.Count);
 
@@ -109,5 +107,12 @@ public class CardsPileSors : MonoBehaviour
 				cards[i].transform.localScale = Vector3.one;
 			}
 		}
+	}
+
+	private void LateUpdate(){
+		if (!updatePosition) return;
+		
+		UpdateCardPositions();
+		updatePosition = false;
 	}
 }

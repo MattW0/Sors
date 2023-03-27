@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 
 public class CardDeploy : MonoBehaviour, IPointerDownHandler {
 
-    private HandInteractionPanel _handInteractionPanel;
+    private CardCollectionPanelUI _panel;
     private CardStats _stats;
     private RectTransform _rectTransform;
     private bool _isSelected;
@@ -15,10 +15,10 @@ public class CardDeploy : MonoBehaviour, IPointerDownHandler {
             _isSelected = value;
             if (_isSelected) {
                 _rectTransform.position += Vector3.forward;
-                _handInteractionPanel.SelectCardToDeploy(gameObject);
+                _panel.SelectCardToDeploy(gameObject);
             } else {
                 _rectTransform.position += Vector3.back;
-                _handInteractionPanel.DeselectCardToDeploy(gameObject);
+                _panel.DeselectCardToDeploy(gameObject);
             } 
         }
     }
@@ -26,10 +26,10 @@ public class CardDeploy : MonoBehaviour, IPointerDownHandler {
     private void Awake()
     {
         _stats = gameObject.GetComponent<CardStats>();
-        _handInteractionPanel = HandInteractionPanel.Instance;
+        _panel = CardCollectionPanelUI.Instance;
         _rectTransform = gameObject.GetComponent<RectTransform>();
 
-        HandInteractionPanel.OnDeployEnded += Reset;
+        CardCollectionPanelUI.OnDeployEnded += Reset;
     }
     
     public void OnPointerDown(PointerEventData eventData){
@@ -41,6 +41,6 @@ public class CardDeploy : MonoBehaviour, IPointerDownHandler {
 
     private void OnDestroy()
     {
-        HandInteractionPanel.OnDeployEnded -= Reset;
+        CardCollectionPanelUI.OnDeployEnded -= Reset;
     }
 }

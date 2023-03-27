@@ -12,7 +12,7 @@ public class TurnManager : NetworkBehaviour
     [Header("Entities")]
     private GameManager _gameManager;
     private Kingdom _kingdom;
-    private HandInteractionPanel _handInteractionPanel;
+    private CardCollectionPanelUI _handInteractionPanel;
     private PhasePanel _phasePanel;
     private PrevailPanel _prevailPanel;
     private PlayerInterfaceManager _playerInterfaceManager;
@@ -104,7 +104,7 @@ public class TurnManager : NetworkBehaviour
         _playerInterfaceManager = PlayerInterfaceManager.Instance;
         
         // Panels with setup (GameManager handles kingdom setup)
-        _handInteractionPanel = HandInteractionPanel.Instance;
+        _handInteractionPanel = CardCollectionPanelUI.Instance;
         _handInteractionPanel.RpcPrepareHandInteractionPanel(_gameManager.nbDiscard);
         _phasePanel = PhasePanel.Instance;
         _phasePanel.RpcPreparePhasePanel(_gameManager.nbPhasesToChose, _gameManager.animations);
@@ -459,6 +459,7 @@ public class TurnManager : NetworkBehaviour
             foreach (var card in cards){
                 var stats = card.GetComponent<CardStats>();
                 player.hand.Remove(stats.cardInfo);
+                player.RpcTrashCard(card);
                 tempList.Add(card);
             }
             player.trashSelection.Clear();
@@ -466,7 +467,8 @@ public class TurnManager : NetworkBehaviour
         }
 
         foreach(var obj in tempList){
-            NetworkServer.Destroy(obj);
+            // NetworkServer.Destroy(obj);
+            obj.GetComponent<NetworkIdentity>().RemoveClientAuthority();
         }
 
         _prevailPanel.RpcReset();

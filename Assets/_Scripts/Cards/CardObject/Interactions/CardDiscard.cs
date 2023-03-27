@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class CardDiscard : MonoBehaviour, IPointerDownHandler{
-    private HandInteractionPanel _handInteractionPanel;
+    private CardCollectionPanelUI _panel;
     private CardStats _stats;
     private RectTransform _rectTransform;
     private bool _isSelected;
@@ -14,10 +14,10 @@ public class CardDiscard : MonoBehaviour, IPointerDownHandler{
             _isSelected = value;
             if (_isSelected) {
                 _rectTransform.position += Vector3.forward;
-                _handInteractionPanel.SelectCardToDiscard(gameObject);
+                _panel.SelectCardToDiscard(gameObject);
             } else {
                 _rectTransform.position += Vector3.back;
-                _handInteractionPanel.DeselectCardToDiscard(gameObject);
+                _panel.DeselectCardToDiscard(gameObject);
             } 
         }
     }
@@ -25,10 +25,10 @@ public class CardDiscard : MonoBehaviour, IPointerDownHandler{
     private void Awake()
     {
         _stats = gameObject.GetComponent<CardStats>();
-        _handInteractionPanel = HandInteractionPanel.Instance;
+        _panel = CardCollectionPanelUI.Instance;
         _rectTransform = gameObject.GetComponent<RectTransform>();
 
-        HandInteractionPanel.OnDiscardEnded += Reset;
+        CardCollectionPanelUI.OnDiscardEnded += Reset;
     }
 
     public void OnPointerDown(PointerEventData eventData){
@@ -40,6 +40,6 @@ public class CardDiscard : MonoBehaviour, IPointerDownHandler{
 
     private void OnDestroy()
     {
-        HandInteractionPanel.OnDiscardEnded -= Reset;
+        CardCollectionPanelUI.OnDiscardEnded -= Reset;
     }
 }
