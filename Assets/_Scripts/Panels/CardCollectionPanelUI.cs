@@ -6,9 +6,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class HandInteractionPanel : NetworkBehaviour
+public class CardCollectionPanelUI : NetworkBehaviour
 {   
-    public static HandInteractionPanel Instance { get; private set; }
+    public static CardCollectionPanelUI Instance { get; private set; }
     private TurnState _state;
     private Hand _hand;
     private int _nbCardsToDiscard;
@@ -100,9 +100,6 @@ public class HandInteractionPanel : NetworkBehaviour
         } else {
             selectedCardsList.Remove(card);
         }
-
-        // if(selectedCardsList.Count >= _nbCardsToTrashMax) _hand.PreventMoreTrashing();
-        // else _hand.AllowMoreTrashing();
     }
     
     [ClientRpc]

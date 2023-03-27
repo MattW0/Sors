@@ -17,10 +17,13 @@ public class CardMover : MonoBehaviour
     [SerializeField] private CardsPileSors opponentPlayZone;
     [SerializeField] private CardsPileSors opponentDeck;
     [SerializeField] private CardsPileSors opponentDiscardPile;
+    [SerializeField] private CardsPileSors trash;
     
     private void Awake(){
         if(!Instance) Instance = this;
     }
+
+    public void Trash(GameObject card, bool b) => Instance.MoveTo(card, b, CardLocation.Hand, CardLocation.Trash);
 
     public void MoveTo(GameObject card, bool hasAuthority, CardLocation from, CardLocation to)
     {
@@ -32,7 +35,7 @@ public class CardMover : MonoBehaviour
         var destinationPile = GetPile(to, hasAuthority);
         destinationPile.Add(card);
 
-        if(to == CardLocation.Discard || to == CardLocation.MoneyZone){
+        if(to == CardLocation.Discard || to == CardLocation.MoneyZone || to == CardLocation.Trash){
             cardUI.CardFrontUp();
         } else if (to == CardLocation.Hand && hasAuthority){
             cardUI.CardFrontUp();
@@ -45,6 +48,7 @@ public class CardMover : MonoBehaviour
     private CardsPileSors GetPile(CardLocation location, bool hasAuthority){
         var pile = location switch{
             CardLocation.Spawned => null,
+            CardLocation.Trash => trash,
             CardLocation.Deck => hasAuthority ? playerDeck : opponentDeck,
             CardLocation.Hand => hasAuthority ? playerHand : opponentHand,
             CardLocation.PlayZone => hasAuthority ? playerPlayZone : opponentPlayZone,
@@ -59,6 +63,7 @@ public class CardMover : MonoBehaviour
 
 public enum CardLocation{
     Spawned,
+    Trash,
     Deck,
     Hand,
     PlayZone,
