@@ -1,15 +1,13 @@
 using System;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using Mirror;
-using UnityEngine.UI;
 
 public class BlockerArrowHandler : NetworkBehaviour
 {
     [SerializeField] private BattleZoneEntity entity;
     [SerializeField] private GameObject arrowPrefab;
     
-    private Arrow _arrow;
+    private ArrowRenderer _arrow;
     private CombatState _currentState;
     private bool _hasTarget;
 
@@ -29,9 +27,10 @@ public class BlockerArrowHandler : NetworkBehaviour
     
     private void SpawnArrow()
     {
-        var obj = Instantiate(arrowPrefab, transform.localPosition, Quaternion.identity);
-        _arrow = obj.GetComponent<Arrow>();
-        _arrow.SetAnchor(entity.transform.position);
+        var obj = Instantiate(arrowPrefab);
+        _arrow = obj.GetComponent<ArrowRenderer>();
+        _arrow.SetOrigin(entity.transform.position);
+        // _arrow.SetAnchor(entity.transform.position);
     }
 
     public void OnClickEntity()
@@ -71,13 +70,13 @@ public class BlockerArrowHandler : NetworkBehaviour
     public void HandleFoundEnemyTarget(BattleZoneEntity target)
     {
         _hasTarget = true;
-        _arrow.FoundTarget(target.transform.position);
+        _arrow.SetTarget(target.transform.position);
     }
     
     public void ShowOpponentBlocker(GameObject blocker)
     {
         SpawnArrow();
-        _arrow.FoundTarget(blocker.transform.position);
+        _arrow.SetTarget(blocker.transform.position);
     }
 
     private void OnDestroy()

@@ -9,6 +9,7 @@ using TMPro;
 public class CardCollectionPanelUI : NetworkBehaviour
 {   
     public static CardCollectionPanelUI Instance { get; private set; }
+    private CardCollectionView _cardCollectionView;
     private TurnState _state;
     private Hand _hand;
     private int _nbCardsToDiscard;
@@ -18,9 +19,8 @@ public class CardCollectionPanelUI : NetworkBehaviour
     [SerializeField] private GameObject _interaction;
     [SerializeField] private GameObject _waitingText;
     [SerializeField] private GameObject _buttons;
-    [SerializeField] private Button _confirmButton;
     [SerializeField] private GameObject _skipButton;
-
+    [SerializeField] private Button _confirmButton;
     [SerializeField] private TMP_Text _displayText;
 
     [SerializeField] private List<GameObject> selectedCardsList = new();
@@ -30,6 +30,8 @@ public class CardCollectionPanelUI : NetworkBehaviour
     
     private void Awake() {
         if (!Instance) Instance = this;
+
+        _cardCollectionView = CardCollectionView.Instance;
     }
 
     [ClientRpc]
@@ -38,8 +40,11 @@ public class CardCollectionPanelUI : NetworkBehaviour
         _nbCardsToDiscard = nbCardsToDiscard;
 
         _interaction.SetActive(false);
+        _buttons.SetActive(false);
         _skipButton.SetActive(false);
+
         _waitingText.SetActive(false);
+        _displayText.text = "";
     }
 
     #region Discard
@@ -47,6 +52,8 @@ public class CardCollectionPanelUI : NetworkBehaviour
     public void RpcBeginDiscard(){
         _state = TurnState.Discard;
         _displayText.text = $"Discard 0/{_nbCardsToDiscard} cards";
+        _buttons.SetActive(true);
+
         _interaction.SetActive(true);
         _confirmButton.interactable = false;
 
@@ -133,6 +140,10 @@ public class CardCollectionPanelUI : NetworkBehaviour
     }
 
     #endregion
+
+    public void OnCloseButtonPressed(){
+        ResetPanel();
+    }
 
     public void OnConfirmButtonPressed(){
         if(selectedCardsList.Count == 0) return;

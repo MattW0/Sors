@@ -219,7 +219,14 @@ public class DropZoneManager : NetworkBehaviour
             holder.ResetHighlight();
         }
     }
-    
+
+    [ClientRpc]
+    public void RpcUndoPlayMoney() {
+        // if(isClient)
+        print("dropzone: undo");   
+        playerMoneyZone.UndoPlayMoney();
+    }
+
     [ClientRpc]
     public void RpcDiscardMoney()
     {

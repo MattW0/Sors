@@ -11,6 +11,7 @@ public class PlayerInterfaceButtons : MonoBehaviour
     private Kingdom _kingdom;
     private CardCollectionView _cardCollectionView;
     [SerializeField] private Button _readyButton;
+    [SerializeField] private Button _undoButton;
     private bool _isOpen = false;
 
 
@@ -45,6 +46,7 @@ public class PlayerInterfaceButtons : MonoBehaviour
     }
     
     public void OnUndoButtonPressed() {
+        PlayerManager.GetLocalPlayer().CmdUndoPlayMoney();
     }
     
     public void OnReadyButtonPressed() {

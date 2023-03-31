@@ -56,7 +56,7 @@ public class Hand : NetworkBehaviour
     [TargetRpc]
     public void TargetHighlightMoney(NetworkConnection target, bool isInteractable) => HighlightMoney(isInteractable);
 
-    private void HighlightMoney(bool b){
+    public void HighlightMoney(bool b){
         foreach (var card in _handCards.Where(card => !card.cardInfo.isCreature)) card.IsInteractable = b;
     }
     

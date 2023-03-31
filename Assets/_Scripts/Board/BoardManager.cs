@@ -129,6 +129,7 @@ public class BoardManager : NetworkBehaviour
         }
     }
 
+    public void UndoPlayMoney() => dropZone.RpcUndoPlayMoney();
     public void DiscardMoney() => dropZone.RpcDiscardMoney();
     #endregion
     

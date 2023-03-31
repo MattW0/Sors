@@ -235,11 +235,29 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Command]
-    public void CmdPlayMoneyCard(CardInfo cardInfo)
-    {
+    public void CmdPlayMoneyCard(CardInfo cardInfo){
         Cash += cardInfo.moneyValue;
         moneyCards.Add(cardInfo);
         hand.Remove(cardInfo);
+    }
+
+    [Command]
+    public void CmdUndoPlayMoney(){
+        if (moneyCards.Count == 0) return;
+
+        foreach(var card in moneyCards){
+            // _gameManager.GetCardObject
+            hand.Add(card);
+            Cash -= card.moneyValue;
+        }
+        moneyCards.Clear();
+    }
+
+    public void MoneyReturned(List<GameObject> cards){
+        foreach(var card in cards){
+            if (isServer) RpcMoveCard(card, CardLocation.MoneyZone, CardLocation.Hand);
+            else CmdMoveCard(card, CardLocation.Hand, CardLocation.Hand);
+        }
     }
 
     public void DiscardMoneyCards(){
@@ -414,7 +432,7 @@ public class PlayerManager : NetworkBehaviour
     {
         if (!isOwned) return;
         
-        var arrows = FindObjectsOfType<Arrow>();
+        var arrows = FindObjectsOfType<ArrowRenderer>();
         foreach(var arrow in arrows) Destroy(arrow.gameObject);
     }
     
@@ -465,7 +483,7 @@ public class PlayerManager : NetworkBehaviour
 
     [Server]
     private void PlayerClickedCollectionViewButton(PlayerManager player) {
-        _cardCollectionView.TargetShowCardCollection(player.connectionToClient, deck, CollectionType.Deck);
+        _cardCollectionView.TargetShowCardCollection(player.connectionToClient, hand, CollectionType.Deck);
     }
 
     #endregion

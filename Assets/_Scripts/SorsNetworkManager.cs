@@ -15,6 +15,8 @@ public class SorsNetworkManager : NetworkManager
     public override void Awake(){
         base.Awake();
         _manager = GetComponent<NetworkManager>();
+
+        InputField.OnInputFieldChanged += SetNetworkAddress;
     }
 
     public override void OnStartServer(){
@@ -84,14 +86,16 @@ public class SorsNetworkManager : NetworkManager
     }
 
     #region Host Options
-    
-
     public static void SetNumberPlayers(int numberPlayers) => GameOptions.NumberPlayers = numberPlayers + 1;
     public static void SetNumberPhases(int numberPhases) => GameOptions.NumberPhases = numberPhases + 1;
     public static void SetFullHand(bool drawAll) => GameOptions.FullHand = drawAll;
-    public void SetNetworkAddress(int networkAddressId) => _manager.networkAddress = _networkAddresses[networkAddressId];
-
+    public void SetNetworkAddress(string networkAddress) => _manager.networkAddress = networkAddress;
     #endregion
+
+    public override void OnDestroy() {
+        base.OnDestroy();
+        InputField.OnInputFieldChanged -= SetNetworkAddress;
+    }
 }
 
 public struct GameOptions{

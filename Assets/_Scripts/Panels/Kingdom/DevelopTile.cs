@@ -28,6 +28,7 @@ public class DevelopTile : MonoBehaviour
     [SerializeField] private TMP_Text cost;
     private int _cost;
     public int Cost => int.Parse(cost.text); // for access in Kingdom
+    [SerializeField] private TMP_Text moneyValue;
     [SerializeField] private Image highlight;
     // [SerializeField] private Image image;
 
@@ -43,6 +44,7 @@ public class DevelopTile : MonoBehaviour
         _cost = card.cost;
         title.text = card.title;
         cost.text = card.cost.ToString();
+        moneyValue.text = card.moneyValue.ToString();
         // points.text = card.points.ToString();
     }
 
