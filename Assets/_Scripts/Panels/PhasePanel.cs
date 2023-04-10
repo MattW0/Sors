@@ -63,13 +63,12 @@ public class PhasePanel : NetworkBehaviour
 
     public void UpdateActive(Phase phase)
     {
-        if (_selectedPhases.Contains(phase))
-        {
+        if (_selectedPhases.Contains(phase)){
             _selectedPhases.Remove(phase);
-            return;
+        } else {
+            _selectedPhases.Add(phase);
         }
         
-        _selectedPhases.Add(phase);
         confirm.interactable = _selectedPhases.Count == _nbPhasesToChose;
     }
 

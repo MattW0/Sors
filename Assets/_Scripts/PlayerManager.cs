@@ -19,7 +19,7 @@ public class PlayerManager : NetworkBehaviour
     private CombatManager _combatManager;
     private BoardManager _boardManager;
     private CardMover _cardMover;
-    private CardCollectionView _cardCollectionView;
+    private CardCollectionPanel _cardCollectionPanel;
     [SerializeField] private DropZoneManager _dropZone;
     public PlayerManager opponent { get; private set; }
 
@@ -104,7 +104,7 @@ public class PlayerManager : NetworkBehaviour
         _turnManager = TurnManager.Instance;
         _combatManager = CombatManager.Instance;
         _boardManager = BoardManager.Instance;
-        _cardCollectionView = CardCollectionView.Instance;
+        _cardCollectionPanel = CardCollectionPanel.Instance;
     }
     
     [Server] // GameManager calls this on player object
@@ -115,7 +115,7 @@ public class PlayerManager : NetworkBehaviour
             deck.RemoveAt(0);
             hand.Add(cardInfo);
 
-            var cardObject = _gameManager.GetCardObject(cardInfo.goID);
+            var cardObject = GameManager.GetCardObject(cardInfo.goID);
             RpcMoveCard(cardObject, CardLocation.Deck, CardLocation.Hand);
         }
     }
@@ -150,7 +150,7 @@ public class PlayerManager : NetworkBehaviour
             deck.RemoveAt(0);
             hand.Add(cardInfo);
 
-            var cardObject = _gameManager.GetCardObject(cardInfo.goID);
+            var cardObject = GameManager.GetCardObject(cardInfo.goID);
             RpcMoveCard(cardObject, CardLocation.Deck, CardLocation.Hand);
         }
     }
@@ -162,7 +162,7 @@ public class PlayerManager : NetworkBehaviour
             temp.Add(card);
             deck.Add(card);
 
-            var cachedCard = _gameManager.GetCardObject(card.goID);
+            var cachedCard = GameManager.GetCardObject(card.goID);
             RpcMoveCard(cachedCard, CardLocation.Discard, CardLocation.Deck);
         }
 
@@ -267,14 +267,14 @@ public class PlayerManager : NetworkBehaviour
         moneyCards.Clear();
     }
 
-    public void PlayerDevelops(CardInfo selectedCard){
-        if(isServer) _turnManager.PlayerSelectedDevelopCard(this, selectedCard);
-        else CmdDevelopSelection(selectedCard);
+    public void PlayerDevelops(List<CardInfo> selectedCards){
+        if(isServer) _turnManager.PlayerSelectedDevelopCard(this, selectedCards);
+        else CmdDevelopSelection(selectedCards);
     }
 
     [Command]
-    public void CmdDevelopSelection(CardInfo card){
-        _turnManager.PlayerSelectedDevelopCard(this, card);
+    public void CmdDevelopSelection(List<CardInfo> cards){
+        _turnManager.PlayerSelectedDevelopCard(this, cards);
     }
 
     [Command]
@@ -308,6 +308,9 @@ public class PlayerManager : NetworkBehaviour
         trashSelection = cardsToTrash;
         _turnManager.PlayerSelectedTrashCards(this, cardsToTrash);
     }
+
+    [Command]
+    public void CmdSkipTrash() => _turnManager.PlayerSkipsTrash(this);
 
     #endregion TurnActions
 
@@ -446,16 +449,17 @@ public class PlayerManager : NetworkBehaviour
         return networkIdentity.GetComponent<PlayerManager>();
     }
 
-    public void PlayerPressedReadyButton() {
-        if (isServer) PlayerPressedReadyButton(this);
-        else CmdPlayerPressedReadyButton(this);
+    public void PlayerSkips() {
+        // For Kingdom skip button in Develop, Recruit and Deploy
+        if (isServer) PlayerSkips(this);
+        else CmdPlayerSkips(this);
     }
-
+    
     [Command]
-    private void CmdPlayerPressedReadyButton(PlayerManager player) => PlayerPressedReadyButton(player);
+    private void CmdPlayerSkips(PlayerManager player) => PlayerSkips(player);
 
     [Server]
-    private void PlayerPressedReadyButton(PlayerManager player) {
+    private void PlayerSkips(PlayerManager player) {
         switch (_turnManager.turnState)
         {
             case TurnState.Develop:
@@ -467,24 +471,32 @@ public class PlayerManager : NetworkBehaviour
             case TurnState.Deploy:
                 _turnManager.PlayerIsReady(player);
                 break;
-            case TurnState.Combat:
-                _dropZone.PlayerPressedReadyButton(player);
-                break;
         }
     }
 
-    public void PlayerClickedCollectionViewButton() {
-        if (isServer) PlayerClickedCollectionViewButton(this);
-        else CmdPlayerClickedCollectionViewButton(this);
+    public void PlayerPressedReadyButton() {
+        if (isServer) PlayerPressedReadyButton(this);
+        else CmdPlayerPressedReadyButton(this);
     }
 
     [Command]
-    private void CmdPlayerClickedCollectionViewButton(PlayerManager player) => PlayerClickedCollectionViewButton(player);
+    private void CmdPlayerPressedReadyButton(PlayerManager player) => PlayerPressedReadyButton(player);
 
     [Server]
-    private void PlayerClickedCollectionViewButton(PlayerManager player) {
-        _cardCollectionView.TargetShowCardCollection(player.connectionToClient, hand, CollectionType.Deck);
-    }
+    private void PlayerPressedReadyButton(PlayerManager player) => _dropZone.PlayerPressedReadyButton(player);
+
+    // public void PlayerClickedCollectionViewButton() {
+    //     if (isServer) PlayerClickedCollectionViewButton(this);
+    //     else CmdPlayerClickedCollectionViewButton(this);
+    // }
+
+    // [Command]
+    // private void CmdPlayerClickedCollectionViewButton(PlayerManager player) => PlayerClickedCollectionViewButton(player);
+
+    // [Server]
+    // private void PlayerClickedCollectionViewButton(PlayerManager player) {
+    //     _cardCollectionPanel.TargetShowCardCollection(player.connectionToClient, hand);
+    // }
 
     #endregion
 }

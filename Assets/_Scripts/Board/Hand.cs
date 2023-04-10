@@ -24,11 +24,11 @@ public class Hand : NetworkBehaviour
         else _handCards.Remove(stats);
     }
 
-    public void StartDiscard(){
-        foreach (var card in _handCards){
-            card.IsDiscardable = true;
-        }
-    }
+    // public void StartDiscard(){
+    //     foreach (var card in _handCards){
+    //         card.IsDiscardable = true;
+    //     }
+    // }
 
     public void StartTrash(){
         foreach (var card in _handCards){

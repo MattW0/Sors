@@ -1,41 +1,43 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Mirror;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class CardCollectionPanelUI : NetworkBehaviour
+public class CardCollectionPanelUI : MonoBehaviour
 {   
-    public static CardCollectionPanelUI Instance { get; private set; }
-    private CardCollectionView _cardCollectionView;
-    private TurnState _state;
+    [Header("Entities")]
+    [SerializeField] private CardCollectionPanel _cardCollectionPanel;
     private Hand _hand;
-    private int _nbCardsToDiscard;
-    private int _nbCardsToTrashMax;
+    
 
-    // UI
+    [Header("UI")]
     [SerializeField] private GameObject _interaction;
     [SerializeField] private GameObject _waitingText;
     [SerializeField] private GameObject _buttons;
     [SerializeField] private GameObject _skipButton;
     [SerializeField] private Button _confirmButton;
+    [SerializeField] private TMP_Text _collectionTitle;
+    [SerializeField] private TMP_Text _selectionTitle;
     [SerializeField] private TMP_Text _displayText;
 
+    [Header("Helper Fields")]
+    private TurnState _state;
     [SerializeField] private List<GameObject> selectedCardsList = new();
+    private int _nbCardsToDiscard;
+    private int _nbCardsToTrashMax;
     public static event Action OnDiscardEnded;
     public static event Action OnTrashEnded;
     public static event Action OnDeployEnded;
     
     private void Awake() {
-        if (!Instance) Instance = this;
+        // if (!Instance) Instance = this;
 
-        _cardCollectionView = CardCollectionView.Instance;
+        // _cardCollectionView = CardCollectionView.Instance;
     }
 
-    [ClientRpc]
-    public void RpcPrepareHandInteractionPanel(int nbCardsToDiscard){
+    public void PrepareCardCollectionPanelUi(int nbCardsToDiscard){
         _hand = Hand.Instance;
         _nbCardsToDiscard = nbCardsToDiscard;
 
@@ -48,49 +50,61 @@ public class CardCollectionPanelUI : NetworkBehaviour
     }
 
     #region Discard
-    [ClientRpc]
-    public void RpcBeginDiscard(){
+    public void BeginDiscard(){
         _state = TurnState.Discard;
-        _displayText.text = $"Discard 0/{_nbCardsToDiscard} cards";
-        _buttons.SetActive(true);
 
+        _collectionTitle.text = "Hand";
+        _displayText.text = $"Discard 0/{_nbCardsToDiscard} cards";
+
+        _buttons.SetActive(true);
         _interaction.SetActive(true);
         _confirmButton.interactable = false;
 
-        _hand.StartDiscard();
+        // _hand.StartDiscard();
     }
 
-    public void SelectCardToDiscard(GameObject card){
-        selectedCardsList.Add(card);
-        UpdateDiscardPanel();
-    }
-
-    public void DeselectCardToDiscard(GameObject card){
-        selectedCardsList.Remove(card);
-        UpdateDiscardPanel();
-    }
-
-    private void UpdateDiscardPanel(){
-        var nbSelected = selectedCardsList.Count;
+    public void UpdateDiscardPanel(int nbSelected){
         _displayText.text = $"Discard {nbSelected}/{_nbCardsToDiscard} cards";
         _confirmButton.interactable = nbSelected == _nbCardsToDiscard;
     }
 
-    [ClientRpc]
-    public void RpcFinishDiscard(){
-        ResetPanel();
+    public void FinishDiscard(){
+        ResetPanelUI();
         OnDiscardEnded?.Invoke();
     }
     #endregion
 
+    #region Deploy
+    public void BeginDeploy(){
+        _state = TurnState.Deploy;
+        selectedCardsList.Clear();
+
+        _displayText.text = $"You may deploy a card";
+        _skipButton.SetActive(true);
+        _waitingText.SetActive(false);
+        _buttons.SetActive(true);
+
+        _interaction.SetActive(true);
+    }
+
+    public void SelectCardToDeploy(GameObject card) => selectedCardsList.Add(card);
+    public void DeselectCardToDeploy(GameObject card) => selectedCardsList.Remove(card);
+    
+    public void FinishDeploy(){
+        ResetPanelUI();
+        OnDeployEnded?.Invoke();
+    }
+
+    #endregion
+
     #region Trash
-    [TargetRpc]
-    public void TargetBeginTrash(NetworkConnection conn, int nbCardsToTrash){
+    public void BeginTrash(int nbCardsToTrash){
         _state = TurnState.Trash;
         _interaction.SetActive(true);
+        _buttons.SetActive(true);
 
         if (nbCardsToTrash == 0){
-            OnConfirmButtonPressed();
+            SkipTrash();
             return;
         }
         
@@ -109,52 +123,31 @@ public class CardCollectionPanelUI : NetworkBehaviour
         }
     }
     
-    [ClientRpc]
-    public void RpcFinishTrashing(){
-        ResetPanel();
+    public void FinishTrash(){
+        ResetPanelUI();
         OnTrashEnded?.Invoke();
     }
     #endregion
 
-    #region Deploy
-    [TargetRpc]
-    public void TargetBeginDeploy(NetworkConnection conn){
-        _state = TurnState.Deploy;
-        _displayText.text = $"You may deploy a card";
-        selectedCardsList.Clear();
-
-        _skipButton.SetActive(true);
-        _waitingText.SetActive(false);
-        _buttons.SetActive(true);
-
-        _interaction.SetActive(true);
-    }
-
-    public void SelectCardToDeploy(GameObject card) => selectedCardsList.Add(card);
-    public void DeselectCardToDeploy(GameObject card) => selectedCardsList.Remove(card);
-    
-    [ClientRpc]
-    public void RpcEndDeploy(){
-        ResetPanel();
-        OnDeployEnded?.Invoke();
-    }
-
-    #endregion
-
     public void OnCloseButtonPressed(){
-        ResetPanel();
+        ResetPanelUI();
     }
 
     public void OnConfirmButtonPressed(){
-        if(selectedCardsList.Count == 0) return;
 
-        var player = PlayerManager.GetLocalPlayer();
-        if (_state == TurnState.Deploy) player.CmdDeployCard(selectedCardsList[0]);
-        else if (_state == TurnState.Discard) player.CmdDiscardSelection(selectedCardsList);
-        else if (_state == TurnState.Trash) player.CmdTrashSelection(selectedCardsList);
+        // if (_state == TurnState.Deploy) player.CmdDeployCard(selectedCardsList[0]);
+        // else if (_state == TurnState.Trash) player.CmdTrashSelection(selectedCardsList);
+
+        if (_state == TurnState.Discard) _cardCollectionPanel.ConfirmDiscard();
 
         _buttons.SetActive(false);
         _waitingText.SetActive(true);
+    }
+
+    public void SkipTrash(){
+        _buttons.SetActive(false);
+        _waitingText.SetActive(true);
+        PlayerManager.GetLocalPlayer().CmdSkipTrash();
     }
 
     public void OnSkipButtonPressed(){
@@ -163,7 +156,7 @@ public class CardCollectionPanelUI : NetworkBehaviour
         PlayerManager.GetLocalPlayer().CmdSkipDeploy();
     }
 
-    private void ResetPanel(){
+    private void ResetPanelUI(){
         _interaction.SetActive(false);
         _waitingText.SetActive(false);
         _skipButton.SetActive(false);

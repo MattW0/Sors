@@ -37,6 +37,7 @@ public class PrevailPanel : NetworkBehaviour
     [TargetRpc]
     public void TargetBeginPrevailPhase(NetworkConnection conn, bool bonus){
         maxView.SetActive(true);
+        confirm.interactable = true;
 
         if(!bonus) return;
         _nbOptionsThisTurn++;
@@ -77,7 +78,6 @@ public class PrevailPanel : NetworkBehaviour
 
         print("Resetting prevail panel");
         _selectedOptions.Clear();
-        confirm.interactable = true;
     }
 }
 

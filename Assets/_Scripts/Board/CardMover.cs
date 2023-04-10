@@ -5,6 +5,7 @@ using UnityEngine;
 public class CardMover : MonoBehaviour
 {
     public static CardMover Instance { get; private set; }
+    public static Dictionary<DetailCard, GameObject> Cache = new();
 
     [Header("Playboard Transforms")]
     [SerializeField] private CardsPileSors playerHand;

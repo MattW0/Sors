@@ -183,6 +183,7 @@ public class DropZoneManager : NetworkBehaviour
 
     [Server]
     public void CombatCleanUp(){
+        _combatState = CombatState.CleanUp;
         var entities = new List<BattleZoneEntity>();
         entities.AddRange(_hostEntities);
         entities.AddRange(_clientEntities);

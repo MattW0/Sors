@@ -20,8 +20,6 @@ public class CardTrash : MonoBehaviour
     private void Awake()
     {
         _stats = gameObject.GetComponent<CardStats>();
-        _panel = CardCollectionPanelUI.Instance;
-
         CardCollectionPanelUI.OnTrashEnded += Reset;
     }
 

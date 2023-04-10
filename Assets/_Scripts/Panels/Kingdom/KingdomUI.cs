@@ -10,11 +10,12 @@ public class KingdomUI : MonoBehaviour
     public static KingdomUI Instance { get; private set; }
     [SerializeField] private Kingdom _kingdom;
     
-
     // UI
     [SerializeField] private GameObject maxView;
     [SerializeField] private GameObject _developPanel;
     [SerializeField] private GameObject _recruitPanel;
+    [SerializeField] private GameObject _interactionButtons;
+    [SerializeField] private GameObject _waitingText;
     [SerializeField] private TMP_Text _switchBtnText;
     [SerializeField] private Button confirm;
     [SerializeField] private Button skip;
@@ -27,15 +28,27 @@ public class KingdomUI : MonoBehaviour
     private void Start()
     {
         _kingdom = Kingdom.Instance;
+        skip.interactable = false;
         MinButton();
     }
+
+    #region Develop
+    public void SelectDevelopCard(DevelopTile tile){ 
+        confirm.interactable = true;
+        _kingdom.developSelection.Add(tile.cardInfo);
+    }
+    public void DeselectDevelopCard(DevelopTile tile){
+        _kingdom.developSelection.Remove(tile.cardInfo);
+        if(_kingdom.developSelection.Count == 0) confirm.interactable = false;
+    }
+    #endregion
 
     #region Recruit
     public void BeginPhase(Phase phase){
         MaxButton();
+        skip.interactable = true;
         if(phase == Phase.Recruit) ShowRecruitPanel();
         else ShowDevelopPanel();
-        skip.interactable = true;
     }
 
     public void SelectRecruitCard(RecruitTile tile){ 
@@ -46,24 +59,6 @@ public class KingdomUI : MonoBehaviour
         confirm.interactable = false;
         _kingdom.PlayerDeselectsRecruitTile(tile);
     }
-
-   
-
-    #endregion
-
-    #region Develop
-
-    public void SelectDevelopCard(DevelopTile tile){ 
-        confirm.interactable = true;
-        _kingdom.selection = tile.cardInfo;
-    }
-    public void DeselectDevelopCard(DevelopTile tile){
-        confirm.interactable = false;
-        _kingdom.selection.title = null; // hack-around for check in TurnManager
-    }
-    public void EndDevelop(){
-        CloseWindow();
-    }
     #endregion
 
     public void SwitchButtonPressed(){
@@ -72,35 +67,41 @@ public class KingdomUI : MonoBehaviour
     }
     
     public void ConfirmButtonPressed(){
-        confirm.interactable = false;
+        _interactionButtons.SetActive(false);
+        _waitingText.SetActive(true);
         _kingdom.PlayerPressedButton(false);
     }
 
     public void SkipButtonPressed(){
-        skip.interactable = false;
+        _interactionButtons.SetActive(false);
+        _waitingText.SetActive(true);
         _kingdom.PlayerPressedButton(true);
     }
 
     public void ResetRecruitButton(){
-        skip.interactable = true;
+        _interactionButtons.SetActive(true);
+        confirm.interactable = false;
+        _waitingText.SetActive(false);
     }
 
     private void ShowDevelopPanel(){
         _developPanel.SetActive(true);
         _recruitPanel.SetActive(false);
-        _switchBtnText.text = "Develop";
+        _switchBtnText.text = "Recruit";
     }
 
     private void ShowRecruitPanel(){
         _developPanel.SetActive(false);
         _recruitPanel.SetActive(true);
-        _switchBtnText.text = "Recruit";
+        _switchBtnText.text = "Develop";
     }
 
-    public void CloseWindow(){
+    public void EndPhase(){
         MinButton();
-        skip.interactable = true;
+        _interactionButtons.SetActive(true);
+        _waitingText.SetActive(false);
         confirm.interactable = false;
+        skip.interactable = false;
     }
 
     public void MaxButton() {

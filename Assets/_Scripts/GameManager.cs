@@ -61,8 +61,12 @@ public class GameManager : NetworkBehaviour {
     [SerializeField] private GameObject entityObjectPrefab;
 
     // Caching all gameObjects of cards in game
-    private Dictionary<string, GameObject> Cache { get; set; }
-    public GameObject GetCardObject(string goID) { return Cache[goID]; }
+    private static Dictionary<string, GameObject> Cache { get; set; } = new();
+    public static GameObject GetCardObject(string goID) { return Cache[goID]; }
+    // convert cardInfo (goIDs) to cached objects
+    public static List<GameObject> CardInfosToGameObjects(List<CardInfo> cards){
+        return cards.Select(card => GetCardObject(card.goID)).ToList();
+    }
 
     private void Awake()
     {
@@ -73,7 +77,6 @@ public class GameManager : NetworkBehaviour {
         moneyCards = Resources.LoadAll<ScriptableCard>("MoneyCards/");
         _moneySprites = Resources.LoadAll<Sprite>("Sprites/Money/");
 
-        Cache = new Dictionary<string, GameObject>();
         TurnManager.OnPlayerDies += PlayerDies;
         SorsNetworkManager.OnAllPlayersReady += GameSetup;
     }

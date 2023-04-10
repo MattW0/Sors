@@ -21,6 +21,7 @@ public class Kingdom : NetworkBehaviour
     [SerializeField] private GameObject developGrid;
     [SerializeField] private GameObject recruitGrid;
     public CardInfo selection;
+    public List<CardInfo> developSelection = new();
 
     public static event Action OnDevelopPhaseEnded;
     public static event Action OnRecruitPhaseEnded;
@@ -41,23 +42,20 @@ public class Kingdom : NetworkBehaviour
     }
 
     [TargetRpc]
-    public void TargetCheckDevelopability(NetworkConnection target, int playerCash){
-        foreach (var dt in developTiles) dt.Developable = playerCash >= dt.Cost;
-    }
-
-    [TargetRpc]
     public void TargetDevelopBonus(NetworkConnection target, int priceReduction){
         foreach(var tile in developTiles) tile.SetDevelopBonus(priceReduction);
     }
 
-    // public void TargetUndoDevelopBonus(NetworkConnection target, int priceReduction){
-    //     foreach(var tile in developTiles) tile.UndoDevelopBonus(priceReduction);
-    // }
+    [TargetRpc]
+    public void TargetCheckDevelopability(NetworkConnection target, int playerCash){
+        foreach (var dt in developTiles) dt.Developable = playerCash >= dt.Cost;
+    }
 
     [ClientRpc]
     public void RpcEndDevelop(){
         OnDevelopPhaseEnded?.Invoke();
-        _ui.EndDevelop();
+        _ui.EndPhase();
+        developSelection.Clear();
     }
     #endregion
     
@@ -109,7 +107,7 @@ public class Kingdom : NetworkBehaviour
     [ClientRpc]
     public void RpcEndRecruit(){
         _previouslySelected.Clear();
-        _ui.CloseWindow();
+        _ui.EndPhase();
         OnRecruitPhaseEnded?.Invoke();
     }
     #endregion
@@ -119,21 +117,21 @@ public class Kingdom : NetworkBehaviour
     public void RpcBeginPhase(Phase phase)
     {
         _currentPhase = phase;
-        _ui.BeginPhase(phase);        
+        _ui.BeginPhase(phase);
     }
 
     public void PlayerPressedButton(bool skip)
     {
         var player = PlayerManager.GetLocalPlayer();
         if(skip) {
-            player.PlayerPressedReadyButton();
+            player.PlayerSkips();
             return;
         }
 
         switch (_currentPhase)
         {
             case Phase.Develop:
-                player.PlayerDevelops(selection);
+                player.PlayerDevelops(developSelection);
                 break;
             case Phase.Recruit:
                 player.PlayerRecruits(selection);

@@ -26,7 +26,6 @@ public class CardDeploy : MonoBehaviour, IPointerDownHandler {
     private void Awake()
     {
         _stats = gameObject.GetComponent<CardStats>();
-        _panel = CardCollectionPanelUI.Instance;
         _rectTransform = gameObject.GetComponent<RectTransform>();
 
         CardCollectionPanelUI.OnDeployEnded += Reset;
@@ -38,9 +37,4 @@ public class CardDeploy : MonoBehaviour, IPointerDownHandler {
     }
 
     public void Reset() => _isSelected = false;
-
-    private void OnDestroy()
-    {
-        CardCollectionPanelUI.OnDeployEnded -= Reset;
-    }
 }

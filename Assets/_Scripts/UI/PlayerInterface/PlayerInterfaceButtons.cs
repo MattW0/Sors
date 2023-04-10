@@ -6,10 +6,10 @@ using Mirror;
 
 public class PlayerInterfaceButtons : MonoBehaviour
 {
-    private PlayerManager _player;
     public static PlayerInterfaceButtons Instance { get; private set; }
+    private PlayerManager _player;
     private Kingdom _kingdom;
-    private CardCollectionView _cardCollectionView;
+    private CardCollectionPanel _cardCollectionPanel;
     [SerializeField] private Button _readyButton;
     [SerializeField] private Button _undoButton;
     private bool _isOpen = false;
@@ -23,19 +23,19 @@ public class PlayerInterfaceButtons : MonoBehaviour
 
     private void Start(){
         _kingdom = Kingdom.Instance;
-        _cardCollectionView = CardCollectionView.Instance;
+        _cardCollectionPanel = CardCollectionPanel.Instance;
         _player = PlayerManager.GetLocalPlayer();
     }
 
     public void OnHandButtonPressed(){
         if(_isOpen) {
             _isOpen = false;
-            _cardCollectionView.CloseView();
+            _cardCollectionPanel.CloseView();
             return;
         }
 
         _isOpen = true;
-        _player.PlayerClickedCollectionViewButton();
+        // _player.PlayerClickedCollectionViewButton();
     }
 
     public void OnKingdomButtonPressed(){
@@ -46,7 +46,7 @@ public class PlayerInterfaceButtons : MonoBehaviour
     }
     
     public void OnUndoButtonPressed() {
-        PlayerManager.GetLocalPlayer().CmdUndoPlayMoney();
+        _player.CmdUndoPlayMoney();
     }
     
     public void OnReadyButtonPressed() {

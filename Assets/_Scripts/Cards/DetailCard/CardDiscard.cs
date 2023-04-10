@@ -14,10 +14,10 @@ public class CardDiscard : MonoBehaviour, IPointerDownHandler{
             _isSelected = value;
             if (_isSelected) {
                 _rectTransform.position += Vector3.forward;
-                _panel.SelectCardToDiscard(gameObject);
+                // _panel.SelectCardToDiscard(gameObject);
             } else {
                 _rectTransform.position += Vector3.back;
-                _panel.DeselectCardToDiscard(gameObject);
+                // _panel.DeselectCardToDiscard(gameObject);
             } 
         }
     }
@@ -25,7 +25,6 @@ public class CardDiscard : MonoBehaviour, IPointerDownHandler{
     private void Awake()
     {
         _stats = gameObject.GetComponent<CardStats>();
-        _panel = CardCollectionPanelUI.Instance;
         _rectTransform = gameObject.GetComponent<RectTransform>();
 
         CardCollectionPanelUI.OnDiscardEnded += Reset;
