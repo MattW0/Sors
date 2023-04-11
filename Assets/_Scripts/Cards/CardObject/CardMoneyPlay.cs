@@ -1,10 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using Mirror;
-using System;
+using UnityEngine.EventSystems;
 
-public class CardMoneyPlay : NetworkBehaviour
+public class CardMoneyPlay : MonoBehaviour, IPointerClickHandler
 {
     private PlayerManager _owner;
     private CardStats _cardStats;
@@ -14,13 +11,14 @@ public class CardMoneyPlay : NetworkBehaviour
         _owner = _cardStats.owner;
     }
 
-    public void OnMoneyClick(){
+    public void OnPointerClick(PointerEventData eventData) {
         // Return if card can't be played (not in hand or no money card)
-        if (!_cardStats.IsInteractable) return;
+        if(!_cardStats.IsInteractable) return;
         
-        _owner.CmdPlayMoneyCard(_cardStats.cardInfo);
-        _owner.PlayCard(gameObject, true);
-        
+        _owner.CmdPlayMoneyCard(gameObject, _cardStats.cardInfo);        
         _cardStats.IsInteractable = false;
+
+        // if (eventData.button == PointerEventData.InputButton.Left) {
+        // }
     }
 }

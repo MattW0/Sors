@@ -9,7 +9,7 @@ public class CardCollectionPanelUI : MonoBehaviour
 {   
     [Header("Entities")]
     [SerializeField] private CardCollectionPanel _cardCollectionPanel;
-    private Hand _hand;
+    // private Hand _hand;
     
 
     [Header("UI")]
@@ -38,7 +38,7 @@ public class CardCollectionPanelUI : MonoBehaviour
     }
 
     public void PrepareCardCollectionPanelUi(int nbCardsToDiscard){
-        _hand = Hand.Instance;
+        // _hand = Hand.Instance;
         _nbCardsToDiscard = nbCardsToDiscard;
 
         _interaction.SetActive(false);
@@ -111,7 +111,7 @@ public class CardCollectionPanelUI : MonoBehaviour
         _displayText.text = $"Trash up to {nbCardsToTrash} cards";
         _confirmButton.interactable = true;
         _nbCardsToTrashMax = nbCardsToTrash;
-        _hand.StartTrash();
+        // _hand.StartTrash();
 
     }
 

@@ -28,7 +28,7 @@ public class PlayerManager : NetworkBehaviour
     public List<PrevailOption> chosenPrevailOptions = new();
     private List<GameObject> _discardSelection;
     public List<GameObject> trashSelection;
-    public List<CardInfo> moneyCards;
+    public Dictionary<GameObject, CardInfo> moneyCards = new();
 
     public bool PlayerIsChoosingBlockers { get; private set; }
     private List<BattleZoneEntity> _blockers = new();
@@ -173,13 +173,9 @@ public class PlayerManager : NetworkBehaviour
         deck.Shuffle();
     }
 
-    public void PlayCard(GameObject card, bool isMoney=false) {
-        
-        var destination = CardLocation.PlayZone;
-        if (isMoney) destination = CardLocation.MoneyZone;
-        
-        if (isServer) RpcMoveCard(card, CardLocation.Hand, destination);
-        else CmdMoveCard(card, CardLocation.Hand, destination);
+    public void PlayCard(GameObject card) {
+        if (isServer) RpcMoveCard(card, CardLocation.Hand, CardLocation.PlayZone);
+        else CmdMoveCard(card, CardLocation.Hand, CardLocation.PlayZone);
     }
 
     [Command]
@@ -194,6 +190,38 @@ public class PlayerManager : NetworkBehaviour
         if (!isOwned) return;
         if (to == CardLocation.Hand) OnHandChanged?.Invoke(card, true);
         else if (from == CardLocation.Hand) OnHandChanged?.Invoke(card, false);
+    }
+
+    [Command]
+    public void CmdPlayMoneyCard(GameObject card, CardInfo cardInfo){
+        Cash += cardInfo.moneyValue;
+        moneyCards.Add(card, cardInfo);
+        hand.Remove(cardInfo);
+
+        TargetMoveMoneyCard(connectionToClient, card);
+    }
+
+    [TargetRpc]
+    private void TargetMoveMoneyCard(NetworkConnection conn, GameObject card){
+        _cardMover.MoveTo(card, isOwned, CardLocation.Hand, CardLocation.MoneyZone);
+        OnHandChanged?.Invoke(card, false);
+    }
+
+    [Server]
+    public void DiscardMoneyCards(){
+        if (moneyCards.Count == 0) return;
+        
+        RpcDiscardMoneyCards(new List<GameObject>(moneyCards.Keys));
+        foreach (var cardInfo in moneyCards.Values) discard.Add(cardInfo);
+        
+        moneyCards.Clear();
+    }
+
+    [ClientRpc]
+    private void RpcDiscardMoneyCards(List<GameObject> cards){
+
+        if(isOwned) return;
+        _cardMover.DiscardMoney(cards, isOwned);
     }
 
     [ClientRpc]
@@ -235,20 +263,13 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Command]
-    public void CmdPlayMoneyCard(CardInfo cardInfo){
-        Cash += cardInfo.moneyValue;
-        moneyCards.Add(cardInfo);
-        hand.Remove(cardInfo);
-    }
-
-    [Command]
     public void CmdUndoPlayMoney(){
         if (moneyCards.Count == 0) return;
 
-        foreach(var card in moneyCards){
+        foreach(var (card, info) in moneyCards){
             // _gameManager.GetCardObject
-            hand.Add(card);
-            Cash -= card.moneyValue;
+            hand.Add(info);
+            Cash -= info.moneyValue;
         }
         moneyCards.Clear();
     }
@@ -260,12 +281,11 @@ public class PlayerManager : NetworkBehaviour
         }
     }
 
-    public void DiscardMoneyCards(){
-        if (moneyCards.Count == 0) return;
-        
-        foreach (var card in moneyCards) discard.Add(card);
-        moneyCards.Clear();
-    }
+    // [Command]
+    // public void CmdMoveMoneyCardsToDiscard(List<GameObject> cards) => RpcMoveMoneyCardsToDiscard(connectionToClient, cards);
+
+    // [ClientRpc]
+    // public void RpcMoveMoneyCardsToDiscard(NetworkConnection conn, List<GameObject> cards) => _cardMover.DiscardMoney(cards, isLocalPlayer);
 
     public void PlayerDevelops(List<CardInfo> selectedCards){
         if(isServer) _turnManager.PlayerSelectedDevelopCard(this, selectedCards);

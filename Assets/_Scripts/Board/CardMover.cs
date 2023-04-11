@@ -46,6 +46,10 @@ public class CardMover : MonoBehaviour
         cardUI.HighlightReset();
     }
 
+    public void DiscardMoney(List<GameObject> cards, bool hasAuthority){
+        cards.ForEach(c => MoveTo(c, false, CardLocation.MoneyZone, CardLocation.Discard));
+    }
+
     private CardsPileSors GetPile(CardLocation location, bool hasAuthority){
         var pile = location switch{
             CardLocation.Spawned => null,
