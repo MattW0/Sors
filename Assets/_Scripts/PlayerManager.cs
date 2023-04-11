@@ -3,6 +3,7 @@ using UnityEngine;
 using System;
 using CardDecoder;
 using Mirror;
+using System.Linq;
 using Unity.VisualScripting;
 
 public class PlayerManager : NetworkBehaviour
@@ -196,7 +197,6 @@ public class PlayerManager : NetworkBehaviour
     public void CmdPlayMoneyCard(GameObject card, CardInfo cardInfo){
         Cash += cardInfo.moneyValue;
         moneyCards.Add(card, cardInfo);
-        hand.Remove(cardInfo);
 
         TargetMoveMoneyCard(connectionToClient, card);
     }
@@ -212,14 +212,18 @@ public class PlayerManager : NetworkBehaviour
         if (moneyCards.Count == 0) return;
         
         RpcDiscardMoneyCards(new List<GameObject>(moneyCards.Keys));
-        foreach (var cardInfo in moneyCards.Values) discard.Add(cardInfo);
+        foreach (var cardInfo in moneyCards.Values) {
+            RemoveHandCard(cardInfo); // TODO: Check if this can be done on clients
+            discard.Add(cardInfo);
+        }
+        print("Hand count for host (" + isLocalPlayer + ") : " + hand.Count);
         
         moneyCards.Clear();
     }
 
     [ClientRpc]
     private void RpcDiscardMoneyCards(List<GameObject> cards){
-
+        // Only need opponent list info 
         if(isOwned) return;
         _cardMover.DiscardMoney(cards, isOwned);
     }
@@ -254,11 +258,12 @@ public class PlayerManager : NetworkBehaviour
         foreach(var card in _discardSelection){
             var cardInfo = card.GetComponent<CardStats>().cardInfo;
 
-            hand.Remove(cardInfo);
+            RemoveHandCard(cardInfo);
             discard.Add(cardInfo);
-
             RpcMoveCard(card, CardLocation.Hand, CardLocation.Discard);
         }
+
+        print("Hand count for host (" + isLocalPlayer + ") : " + hand.Count);
         _discardSelection.Clear();
     }
 
@@ -517,6 +522,14 @@ public class PlayerManager : NetworkBehaviour
     // private void PlayerClickedCollectionViewButton(PlayerManager player) {
     //     _cardCollectionPanel.TargetShowCardCollection(player.connectionToClient, hand);
     // }
+
+    private void RemoveHandCard(CardInfo cardInfo){
+        // var comparer = new CardInfoEqualityComparer();
+        // var cardToRemove = hand.FirstOrDefault(c => comparer.Equals(c, cardInfo));
+
+        var cardToRemove = hand.FirstOrDefault(c => c.Equals(cardInfo));
+        hand.Remove(cardToRemove);
+    }
 
     #endregion
 }

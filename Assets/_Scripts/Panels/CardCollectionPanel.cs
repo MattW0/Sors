@@ -36,7 +36,7 @@ public class CardCollectionPanel : NetworkBehaviour
         for (var i=0; i<cards.Count; i++)
         {
             var cardInfo = cards[i];
-            print("CardInfos: " + cardInfo.title);
+            // print("CardInfos: " + cardInfo.title);
             _cache.Add(cardInfo, cardObjects[i]);
 
             var detailCardObject = Instantiate(_detailCardPrefab) as GameObject;

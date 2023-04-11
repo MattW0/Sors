@@ -239,8 +239,6 @@ public class TurnManager : NetworkBehaviour
         }
 
         _cardCollectionPanel.RpcFinishDiscard();
-        _handManager.RpcResetHighlight();
-        
         UpdateTurnState(TurnState.NextPhase);
     }
     

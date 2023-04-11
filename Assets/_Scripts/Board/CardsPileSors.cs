@@ -24,10 +24,10 @@ public class CardsPileSors : MonoBehaviour
 
 	private void Awake(){
 		if (pileType == CardLocation.Hand){
-			height = 6f;
-			width = 300f;
+			height = 14f;
+			width = 500f;
 			maxCardAngle = 90f;
-			zDistance = -3f;
+			zDistance = -0.1f;
 		}
 	}
 

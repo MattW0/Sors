@@ -27,7 +27,6 @@ public class CardCollectionPanelUI : MonoBehaviour
     [SerializeField] private List<GameObject> selectedCardsList = new();
     private int _nbCardsToDiscard;
     private int _nbCardsToTrashMax;
-    public static event Action OnDiscardEnded;
     public static event Action OnTrashEnded;
     public static event Action OnDeployEnded;
     
@@ -38,7 +37,6 @@ public class CardCollectionPanelUI : MonoBehaviour
     }
 
     public void PrepareCardCollectionPanelUi(int nbCardsToDiscard){
-        // _hand = Hand.Instance;
         _nbCardsToDiscard = nbCardsToDiscard;
 
         _interaction.SetActive(false);
@@ -59,8 +57,6 @@ public class CardCollectionPanelUI : MonoBehaviour
         _buttons.SetActive(true);
         _interaction.SetActive(true);
         _confirmButton.interactable = false;
-
-        // _hand.StartDiscard();
     }
 
     public void UpdateDiscardPanel(int nbSelected){
@@ -70,7 +66,6 @@ public class CardCollectionPanelUI : MonoBehaviour
 
     public void FinishDiscard(){
         ResetPanelUI();
-        OnDiscardEnded?.Invoke();
     }
     #endregion
 
@@ -111,8 +106,6 @@ public class CardCollectionPanelUI : MonoBehaviour
         _displayText.text = $"Trash up to {nbCardsToTrash} cards";
         _confirmButton.interactable = true;
         _nbCardsToTrashMax = nbCardsToTrash;
-        // _hand.StartTrash();
-
     }
 
     public void CardTrashSelected(GameObject card, bool selected){

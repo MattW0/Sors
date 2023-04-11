@@ -47,7 +47,10 @@ public class CardMover : MonoBehaviour
     }
 
     public void DiscardMoney(List<GameObject> cards, bool hasAuthority){
-        cards.ForEach(c => MoveTo(c, false, CardLocation.MoneyZone, CardLocation.Discard));
+        foreach(var c in cards){
+            MoveTo(c, false, CardLocation.MoneyZone, CardLocation.Discard);
+            opponentHand.Remove(c);
+        }
     }
 
     private CardsPileSors GetPile(CardLocation location, bool hasAuthority){

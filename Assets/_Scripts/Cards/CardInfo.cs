@@ -1,9 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 [System.Serializable]
-public struct CardInfo
+public struct CardInfo : IEquatable<CardInfo>
 {
     public string goID;
     public string title;
@@ -56,4 +57,22 @@ public struct CardInfo
 
         this.keyword_abilities = null;
     }
+
+    public bool Equals(CardInfo other)
+    {
+        // if (other == null) return false;
+        return goID == other.goID && title == other.title && hash == other.hash;
+    }
 }
+
+// public class CardInfoEqualityComparer : IEqualityComparer<CardInfo>
+// {
+//     public bool Equals(CardInfo x, CardInfo y){
+//         return x.goID == y.goID && x.title == y.title && x.hash == y.hash;
+//     }
+
+//     public int GetHashCode(CardInfo obj)
+//     {
+//         return (obj.goID + obj.title + obj.hash).GetHashCode();
+//     }
+// }
