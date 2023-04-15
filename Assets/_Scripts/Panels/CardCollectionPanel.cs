@@ -13,11 +13,11 @@ public class CardCollectionPanel : NetworkBehaviour
 
     [Header("Helper Fields")]
     [SerializeField] private GameObject _detailCardPrefab;
-    [SerializeField] private GameObject _container;
     [SerializeField] private Transform _gridAll;
     [SerializeField] private Transform _gridChosen;
-    private List<CardInfo> _detailCards = new();
-    private List<CardInfo> _chosenCards = new();
+    private List<DetailCard> _detailCards = new();
+    private List<CardInfo> _selectedCards = new();
+    // Linking detail cards with their hand card gameobject
     private Dictionary<CardInfo, GameObject> _cache = new();
 
     private void Awake(){
@@ -32,69 +32,72 @@ public class CardCollectionPanel : NetworkBehaviour
     }
 
     [TargetRpc]
-    public void TargetShowCardCollection(NetworkConnection target, List<GameObject> cardObjects, List<CardInfo> cards){
-        for (var i=0; i<cards.Count; i++)
-        {
-            var cardInfo = cards[i];
-            // print("CardInfos: " + cardInfo.title);
-            _cache.Add(cardInfo, cardObjects[i]);
-
-            var detailCardObject = Instantiate(_detailCardPrefab) as GameObject;
-            detailCardObject.transform.SetParent(_gridAll, false);
-
-            var detailCard = detailCardObject.GetComponent<DetailCard>();
-            detailCard.SetCardUI(cardInfo);
-            detailCard.isChoosable = true;
-            _detailCards.Add(cardInfo);
-        }
-
-        _container.SetActive(true);
+    public void TargetShowCardCollection(NetworkConnection target, List<GameObject> cardObjects, List<CardInfo> cardInfos){
+        
+        for (var i=0; i<cardInfos.Count; i++) SpawnDetailCardObject(cardObjects[i], cardInfos[i]);
+        _ui.Open();
     }
 
-    public void AddCardToChosen(Transform t, CardInfo card)
-    {
+    public void AddCardToChosen(Transform t, CardInfo card){
         t.SetParent(_gridChosen, false);
-        _chosenCards.Add(card);
-        _ui.UpdateDiscardPanel(_chosenCards.Count);
+        _selectedCards.Add(card);
+        _ui.UpdateInteractionElements(_selectedCards.Count);
     }
 
-    public void RemoveCardFromChosen(Transform t, CardInfo card)
-    {
-        t.transform.SetParent(_gridAll, false);
-        _chosenCards.Remove(card);
-        _ui.UpdateDiscardPanel(_chosenCards.Count);
+    public void RemoveCardFromChosen(Transform t, CardInfo card){
+        t.SetParent(_gridAll, false);
+        _selectedCards.Remove(card);
+        _ui.UpdateInteractionElements(_selectedCards.Count);
     }
 
-    public void CloseView()
-    {
-        ClearPanel();
-        _container.SetActive(false);
-    }
-    private void ClearPanel(){
+    public void ClearPanel(){
         foreach (Transform child in _gridAll) Destroy(child.gameObject);
         foreach (Transform child in _gridChosen) Destroy(child.gameObject);
         _detailCards.Clear();
-        _chosenCards.Clear();
+        _selectedCards.Clear();
         _cache.Clear();
     }
 
-    #region Phases
+    private void SpawnDetailCardObject(GameObject card, CardInfo cardInfo){
+        _cache.Add(cardInfo, card);
+
+        var detailCardObject = Instantiate(_detailCardPrefab) as GameObject;
+        detailCardObject.transform.SetParent(_gridAll, false);
+
+        var detailCard = detailCardObject.GetComponent<DetailCard>();
+        detailCard.SetCardUI(cardInfo);
+        _detailCards.Add(detailCard);
+    }
+
+    #region States
     [ClientRpc]
-    public void RpcBeginDiscard()
-    {
-        _ui.BeginDiscard();
+    public void RpcBeginState(TurnState state){
+        foreach(var card in _detailCards) card.SetCardState(state);
+
+        if (state == TurnState.Discard) _ui.BeginDiscard();
+        else if (state == TurnState.Deploy) _ui.BeginDeploy();
     }
 
     public void ConfirmDiscard(){
-        var cards = _chosenCards.Select(card => _cache[card]).ToList();
+        var cards = _selectedCards.Select(card => _cache[card]).ToList();
         _player.CmdDiscardSelection(cards);
     }
 
-    [ClientRpc]
-    public void RpcFinishDiscard()
-    {
-        _ui.FinishDiscard();
-        CloseView();
+    [TargetRpc]
+    public void TargetCheckDeployability(NetworkConnection target, int currentCash){
+        foreach (var card in _detailCards) card.CheckDeployability(currentCash);
+    }
+
+    public void ConfirmDeploy(){
+        var card = _cache[_selectedCards[0]];
+        _player.CmdDeployCard(card);
+
+        // _detailCards.Remove(card.GetComponent<DetailCard>());
+        foreach (Transform child in _gridChosen) {
+            _selectedCards.Clear();
+            _detailCards.Remove(child.gameObject.GetComponent<DetailCard>());
+            Destroy(child.gameObject);
+        }
     }
 
     [TargetRpc]
@@ -102,25 +105,11 @@ public class CardCollectionPanel : NetworkBehaviour
     {
         _ui.BeginTrash(nbCardsToTrash);
     }
-
-    [ClientRpc]
-    public void RpcFinishTrash()
-    {
-        _ui.FinishTrash();
-        CloseView();
-    }
-
-    [ClientRpc]
-    public void RpcBeginDeploy()
-    {
-        _ui.BeginDeploy();
-    }
-
-    [ClientRpc]
-    public void RpcFinishDeploy()
-    {
-        _ui.FinishDeploy();
-    }
     #endregion
 
+    [ClientRpc]
+    public void RpcResetPanel(){
+        ClearPanel();
+        _ui.ResetPanelUI();
+    }
 }

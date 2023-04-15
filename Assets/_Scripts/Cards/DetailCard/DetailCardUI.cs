@@ -26,12 +26,11 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     [SerializeField] private Color highlightColor = Color.white;
     private Canvas _tempCanvas;
     private GraphicRaycaster _tempRaycaster;
+    private TurnState _state;
     
     public void SetCardUI(CardInfo cardInfo){
         _title.text = cardInfo.title;
         _cost.text = cardInfo.cost.ToString();
-
-        _highlight.color = highlightColor;
         
         if (cardInfo.isCreature){
             _description.text = cardInfo.keyword_abilities.ToString();
@@ -48,25 +47,36 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         }
     }
 
-    public void OnPointerEnter(PointerEventData eventData)
-    {
+    public void SetCardState(TurnState state) {
+        _state = state;
+        
+        if(state == TurnState.Discard) _highlight.color = Color.yellow;
+        else if(state == TurnState.Deploy) _highlight.color = Color.cyan;
+        else if(state == TurnState.Trash) _highlight.color = Color.red;
+    }
+
+    public void OnPointerEnter(PointerEventData eventData){
         // Puts the card on top of others
         _tempCanvas = gameObject.AddComponent<Canvas>();
         _tempCanvas.overrideSorting = true;
         _tempCanvas.sortingOrder = 1;
         _tempRaycaster = gameObject.AddComponent<GraphicRaycaster>();
         
+        if(_state == TurnState.Deploy) return;
         _highlight.enabled = true;
         // _highlight.DOColor(standardHighlight, 0.2f);
     }
 
-    public void OnPointerExit(PointerEventData eventData)
-    {
+    public void OnPointerExit(PointerEventData eventData){
         // Removes focus from the card
         Destroy(_tempRaycaster);
         Destroy(_tempCanvas);
         
+        if(_state == TurnState.Deploy) return;
         _highlight.enabled = false;
         // _highlight.DOColor(standardHighlight, 0.2f);
     }
+
+    public void EnableHighlight() => _highlight.enabled = true;
+    public void DisableHighlight() => _highlight.enabled = false;
 }

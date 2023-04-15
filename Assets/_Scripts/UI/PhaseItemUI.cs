@@ -3,47 +3,57 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.EventSystems;
 
-public class PhaseItemUI : MonoBehaviour
+public class PhaseItemUI : MonoBehaviour, IPointerClickHandler
 {
     private PhasePanel _phasePanel;
-    private Phase _phase; // assigned in editor
-    [SerializeField] private TMP_Text phaseName;
-    [SerializeField] private Image outline;
+    private Phase _phase;
+    [SerializeField] private Graphic outline;
+    [SerializeField] private Color phaseHighlightColor = new Color32(147, 147, 147, 255);
+    [SerializeField] private Color phaseSelectedColor = new Color32(150, 100, 200, 255);
+
+    private bool _selectable;
     private bool _isSelected;
-
-
-    private void Start()
-    {
-        // Only do this once
-        if (_phasePanel) return;
-
-        _phasePanel = PhasePanel.Instance;
-        _phase = (Phase) System.Enum.Parse(typeof(Phase), gameObject.name);
-        PhasePanel.OnPhaseSelectionEnded += Reset;
+    private bool IsSelected{
+        get => _isSelected;
+        set{
+            _isSelected = value;
+            if(_isSelected) outline.color = phaseSelectedColor;
+            else outline.color = phaseHighlightColor;
+        }
     }
 
-    public void OnClick()
-    {
-        if (_phasePanel.disableSelection) return;
-        
-        if (_isSelected) {
-            outline.enabled = false;
-            _isSelected = false;
-        } else {
-            outline.enabled = true;
-            _isSelected = true;
-        }
+    private void Start(){
+        _phasePanel = PhasePanel.Instance;
+        _phase = (Phase) System.Enum.Parse(typeof(Phase), gameObject.name);
 
+        outline.color = phaseHighlightColor;
+
+        PhasePanel.OnPhaseSelectionStarted += StartSelection;
+        PhasePanel.OnPhaseSelectionConfirmed += Reset;
+    }
+
+    private void StartSelection(){
+        _selectable = true;
+        outline.CrossFadeAlpha(1f, 0f, false);
+    }
+
+    public void OnPointerClick(PointerEventData data){
+        if (!_selectable) return;
+        IsSelected = !_isSelected;
         _phasePanel.UpdateActive(_phase);
     }
 
-    public void Reset(){
-        _isSelected = false;
-        outline.enabled = false;
+    private void Reset(){
+        _selectable = false;
+        IsSelected = false;
+
+        outline.CrossFadeAlpha(0f, 1f, false);
     }
 
     private void OnDestroy(){
-        PhasePanel.OnPhaseSelectionEnded -= Reset;
+        PhasePanel.OnPhaseSelectionStarted -= StartSelection;
+        PhasePanel.OnPhaseSelectionConfirmed -= Reset;
     }
 }

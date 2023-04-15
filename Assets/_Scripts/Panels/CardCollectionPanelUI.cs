@@ -13,6 +13,7 @@ public class CardCollectionPanelUI : MonoBehaviour
     
 
     [Header("UI")]
+    [SerializeField] private GameObject _container;
     [SerializeField] private GameObject _interaction;
     [SerializeField] private GameObject _waitingText;
     [SerializeField] private GameObject _buttons;
@@ -24,8 +25,8 @@ public class CardCollectionPanelUI : MonoBehaviour
 
     [Header("Helper Fields")]
     private TurnState _state;
-    [SerializeField] private List<GameObject> selectedCardsList = new();
     private int _nbCardsToDiscard;
+    private int _nbCardsToDeploy = 1;
     private int _nbCardsToTrashMax;
     public static event Action OnTrashEnded;
     public static event Action OnDeployEnded;
@@ -46,51 +47,14 @@ public class CardCollectionPanelUI : MonoBehaviour
         _waitingText.SetActive(false);
         _displayText.text = "";
     }
-
-    #region Discard
     public void BeginDiscard(){
         _state = TurnState.Discard;
-
-        _collectionTitle.text = "Hand";
-        _displayText.text = $"Discard 0/{_nbCardsToDiscard} cards";
-
-        _buttons.SetActive(true);
-        _interaction.SetActive(true);
-        _confirmButton.interactable = false;
+        InteractionBegin();
     }
-
-    public void UpdateDiscardPanel(int nbSelected){
-        _displayText.text = $"Discard {nbSelected}/{_nbCardsToDiscard} cards";
-        _confirmButton.interactable = nbSelected == _nbCardsToDiscard;
-    }
-
-    public void FinishDiscard(){
-        ResetPanelUI();
-    }
-    #endregion
-
-    #region Deploy
     public void BeginDeploy(){
         _state = TurnState.Deploy;
-        selectedCardsList.Clear();
-
-        _displayText.text = $"You may deploy a card";
-        _skipButton.SetActive(true);
-        _waitingText.SetActive(false);
-        _buttons.SetActive(true);
-
-        _interaction.SetActive(true);
+        InteractionBegin();
     }
-
-    public void SelectCardToDeploy(GameObject card) => selectedCardsList.Add(card);
-    public void DeselectCardToDeploy(GameObject card) => selectedCardsList.Remove(card);
-    
-    public void FinishDeploy(){
-        ResetPanelUI();
-        OnDeployEnded?.Invoke();
-    }
-
-    #endregion
 
     #region Trash
     public void BeginTrash(int nbCardsToTrash){
@@ -109,29 +73,21 @@ public class CardCollectionPanelUI : MonoBehaviour
     }
 
     public void CardTrashSelected(GameObject card, bool selected){
-        if (selected) {
-            selectedCardsList.Add(card);
-        } else {
-            selectedCardsList.Remove(card);
-        }
-    }
-    
-    public void FinishTrash(){
-        ResetPanelUI();
-        OnTrashEnded?.Invoke();
+        // if (selected) {
+        //     selectedCardsList.Add(card);
+        // } else {
+        //     selectedCardsList.Remove(card);
+        // }
     }
     #endregion
 
-    public void OnCloseButtonPressed(){
-        ResetPanelUI();
-    }
-
     public void OnConfirmButtonPressed(){
 
-        // if (_state == TurnState.Deploy) player.CmdDeployCard(selectedCardsList[0]);
+        // 
         // else if (_state == TurnState.Trash) player.CmdTrashSelection(selectedCardsList);
 
         if (_state == TurnState.Discard) _cardCollectionPanel.ConfirmDiscard();
+        else if (_state == TurnState.Deploy) _cardCollectionPanel.ConfirmDeploy();
 
         _buttons.SetActive(false);
         _waitingText.SetActive(true);
@@ -149,11 +105,46 @@ public class CardCollectionPanelUI : MonoBehaviour
         PlayerManager.GetLocalPlayer().CmdSkipDeploy();
     }
 
-    private void ResetPanelUI(){
+    private void InteractionBegin(){
+        _buttons.SetActive(true);
+        _interaction.SetActive(true);
+        _waitingText.SetActive(false);
+        _confirmButton.interactable = false;
+        _collectionTitle.text = "Hand";
+
+        switch (_state){
+            case TurnState.Discard:
+                _displayText.text = $"Discard 0/{_nbCardsToDiscard} cards";                
+                break;
+            case TurnState.Deploy:
+                _skipButton.SetActive(true);
+                _displayText.text = $"You may deploy a card";
+                break;
+        }
+    }
+
+    public void UpdateInteractionElements(int nbSelected){
+        switch (_state){
+            case TurnState.Discard:
+                _displayText.text = $"Discard {nbSelected}/{_nbCardsToDiscard} cards";
+                _confirmButton.interactable = nbSelected == _nbCardsToDiscard;
+                break;
+            case TurnState.Deploy:
+                _confirmButton.interactable = nbSelected == _nbCardsToDeploy;
+                break;
+        }
+    }
+
+    public void ResetPanelUI(){
         _interaction.SetActive(false);
         _waitingText.SetActive(false);
         _skipButton.SetActive(false);
         _buttons.SetActive(true);
-        selectedCardsList.Clear();
+        Close();
     }
+
+    public void OnCloseButtonPressed() => Close();
+
+    public void Open() => _container.SetActive(true);
+    public void Close() => _container.SetActive(false);
 }

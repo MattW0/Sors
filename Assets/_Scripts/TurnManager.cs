@@ -68,7 +68,7 @@ public class TurnManager : NetworkBehaviour
                 Develop();
                 break;
             case TurnState.Deploy:
-                Deploy();
+                Deploy(true);
                 break;
             case TurnState.Combat:
                 Combat();
@@ -152,8 +152,6 @@ public class TurnManager : NetworkBehaviour
         phasesToPlay.Add(Phase.Combat);
         phasesToPlay.Sort();
         _playerInterfaceManager.RpcLog($"<color=#383838>Phases to play: {string.Join(", ", phasesToPlay)}</color>");
-        
-        _phasePanel.RpcEndPhaseSelection();
 
         // Give the player choices to player turn stats and UI
         var choices = new Phase[_nbPlayers * _gameManager.nbPhasesToChose];
@@ -229,7 +227,7 @@ public class TurnManager : NetworkBehaviour
                 cardObjects, player.hand);
         }
 
-        _cardCollectionPanel.RpcBeginDiscard();
+        _cardCollectionPanel.RpcBeginState(TurnState.Discard);
     }
     public void PlayerSelectedDiscardCards(PlayerManager player) => PlayerIsReady(player);
 
@@ -238,7 +236,7 @@ public class TurnManager : NetworkBehaviour
             player.DiscardSelection();
         }
 
-        _cardCollectionPanel.RpcFinishDiscard();
+        _cardCollectionPanel.RpcResetPanel();
         UpdateTurnState(TurnState.NextPhase);
     }
     
@@ -291,11 +289,28 @@ public class TurnManager : NetworkBehaviour
     
     #region Deploy
 
-    private void Deploy()
+    private void Deploy(bool firstDeploy)
     {
-        _handManager.RpcHighlightMoney(true);
-        _boardManager.ShowHolders(true);        
-        _cardCollectionPanel.RpcBeginDeploy();
+        if (firstDeploy) {
+            _handManager.RpcHighlightMoney(true);
+            _boardManager.ShowHolders(true);
+            SpawnCreatureDetailCards();
+        }
+        _cardCollectionPanel.RpcBeginState(TurnState.Deploy);
+
+    }
+
+    private void SpawnCreatureDetailCards(){
+        foreach(var player in _gameManager.players.Keys){
+
+            List<CardInfo> creatures = new();
+            foreach(var card in player.hand){
+                if(card.isCreature) creatures.Add(card);
+            }
+            var cardObjects = GameManager.CardInfosToGameObjects(creatures);
+            _cardCollectionPanel.TargetShowCardCollection(player.connectionToClient, 
+                cardObjects, creatures);
+        }
     }
 
     public void PlayerDeployedCard(PlayerManager player, GameObject card) {
@@ -322,16 +337,15 @@ public class TurnManager : NetworkBehaviour
             if (player.Deploys > 0) anotherDeploy = true;
         }
 
-        if(anotherDeploy) Deploy();
+        if(anotherDeploy) Deploy(false);
         else EndDeploy();
     }
 
     private void EndDeploy()
     {
-        _cardCollectionPanel.RpcFinishDeploy();
-        _handManager.RpcResetDeployability();
-        PlayersStatsResetAndDiscardMoney();
+        _cardCollectionPanel.RpcResetPanel();
         _boardManager.ShowHolders(false);
+        PlayersStatsResetAndDiscardMoney();
         
         UpdateTurnState(TurnState.NextPhase);
     }
@@ -347,11 +361,6 @@ public class TurnManager : NetworkBehaviour
         _selectedKingdomCards = new Dictionary<PlayerManager, List<CardInfo>>();
         _handManager.RpcHighlightMoney(true);
         _kingdom.RpcBeginPhase(Phase.Recruit);
-
-        foreach (var playerManager in _gameManager.players.Keys) {
-            var nbRecruits = _gameManager.turnRecruits;
-            playerManager.Recruits = nbRecruits;
-        }
     }
 
     public void PlayerSelectedRecruitCard(PlayerManager player, CardInfo card)
@@ -479,7 +488,7 @@ public class TurnManager : NetworkBehaviour
         }
 
         _prevailPanel.RpcReset();
-        _cardCollectionPanel.RpcFinishTrash();
+        _cardCollectionPanel.RpcResetPanel();
         _handManager.RpcResetHighlight();
 
         NextPrevailOption();
@@ -559,7 +568,7 @@ public class TurnManager : NetworkBehaviour
                 _kingdom.TargetCheckDevelopability(player.connectionToClient, newAmount);
                 break;
             case TurnState.Deploy:
-                _handManager.TargetCheckDeployability(player.connectionToClient, newAmount);
+                _cardCollectionPanel.TargetCheckDeployability(player.connectionToClient, newAmount);
                 break;
             case TurnState.Recruit:
                 _kingdom.TargetCheckRecruitability(player.connectionToClient, newAmount);
@@ -576,12 +585,12 @@ public class TurnManager : NetworkBehaviour
         {
             player.DiscardMoneyCards();
             player.moneyCards.Clear();
-            
             player.Cash = _gameManager.turnCash;
+
+            if (!endOfTurn) continue;
             player.Deploys = _gameManager.turnDeploys;
             player.Recruits = _gameManager.turnRecruits;
 
-            if (!endOfTurn) continue;
             player.chosenPhases.Clear();
             player.chosenPrevailOptions.Clear();
         }

@@ -24,23 +24,11 @@ public class Hand : NetworkBehaviour
         else _handCards.Remove(stats);
     }
 
-    // public void StartDiscard(){
-    //     foreach (var card in _handCards){
-    //         card.IsDiscardable = true;
-    //     }
-    // }
-
     public void StartTrash(){
         foreach (var card in _handCards){
             card.IsTrashable = true;
         }
     }
-
-    // public void PreventMoreTrashing(){
-    //     foreach (var card in _handCards){
-    //         card.IsTrashable = false;
-    //     }
-    // }
     
     [ClientRpc]
     public void RpcResetHighlight() {
@@ -58,16 +46,6 @@ public class Hand : NetworkBehaviour
 
     public void HighlightMoney(bool b){
         foreach (var card in _handCards.Where(card => !card.cardInfo.isCreature)) card.IsInteractable = b;
-    }
-    
-    [ClientRpc]
-    public void RpcResetDeployability(){
-        foreach (var card in _handCards) card.IsDeployable = false;
-    }
-
-    [TargetRpc]
-    public void TargetCheckDeployability(NetworkConnection target, int currentCash){
-        foreach (var card in _handCards) card.IsDeployable = (currentCash >= card.cardInfo.cost);
     }
 
     private void OnDestroy(){

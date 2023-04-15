@@ -14,8 +14,9 @@ public class PhaseVisuals : MonoBehaviour
     [SerializeField] private List<Image> extendedHighlights;
     [SerializeField] private List<Image> phaseHighlights;
     [SerializeField] private List<Image> playerChoiceHighlights;
-
-    [SerializeField] private Color phaseHighlightColor;
+    [SerializeField] private float playerChoiceInactiveAlpha = 0.3f;
+    [SerializeField] private Color playerColor1;
+    [SerializeField] private Color playerColor2;
     [SerializeField] private float fadeDuration = 1f;
     private Image _oldHighlight;
     private Image _newHighlight;
@@ -31,17 +32,23 @@ public class PhaseVisuals : MonoBehaviour
     {
         _nbPlayers = nbPlayers;
 
-        GetHighlightImages();
+        // GetHighlightImages();
         _oldHighlight = phaseHighlights[0];
-
-        foreach (var img in phaseHighlights)
-        {
-            img.color = phaseHighlightColor;
-            img.CrossFadeAlpha(0f, 0f, true);
+        
+        int i = 0;
+        foreach (var img in playerChoiceHighlights) {
+            if(!img) continue;
+            if (i%2 == 0) img.color = playerColor1;
+            else img.color = playerColor2;
+            img.enabled = false;
+            i++;
+            // PlayerChoiceTransition(img, false);
         }
     }
 
     public void ShowPlayerChoices(Phase[] phases){
+
+        print("ShowPlayerChoices");
 
         var i = 0;
         foreach(var phase in phases){
@@ -70,7 +77,6 @@ public class PhaseVisuals : MonoBehaviour
             case -1:  // No highlightable phase
                 return;
             case -2: // In CleanUp or PhaseSelection
-                HighlightTransition(_oldHighlight, null, true);
                 ClearPlayerChoiceHighlights();
                 return;
         }
@@ -94,31 +100,9 @@ public class PhaseVisuals : MonoBehaviour
         newImg.CrossFadeAlpha(1f, fadeDuration, false);
     }
 
-    // Maybe implement in Unity Editor ?
-    // ugh ugly af
-    private void GetHighlightImages()
+    private void PlayerChoiceTransition(Graphic img, bool active)
     {
-        var gridTransform = gameObject.transform.GetChild(0);
-
-        foreach (Transform child in gridTransform) {
-            extendedHighlights.Add(child.GetComponent<Image>());
-
-            foreach (Transform imgTransform in child)
-            {
-                phaseHighlights.Add(imgTransform.GetComponent<Image>());
-
-                if (child.name == "Combat") {
-                    // Accounting for Combat (additional phase) in Phases definition
-                    playerChoiceHighlights.Add(null);
-                    continue;
-                }
-
-                var playerChoices = imgTransform.GetChild(0);
-                foreach (Transform playerChoice in playerChoices)
-                {
-                    playerChoiceHighlights.Add(playerChoice.GetComponent<Image>());
-                }
-            }
-        }
+        if(active) img.CrossFadeAlpha(1f, fadeDuration, false);
+        else img.CrossFadeAlpha(playerChoiceInactiveAlpha, fadeDuration, false);
     }
 }

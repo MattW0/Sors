@@ -305,6 +305,7 @@ public class PlayerManager : NetworkBehaviour
     [Command]
     public void CmdDeployCard(GameObject card){
         _turnManager.PlayerDeployedCard(this, card);
+        RemoveHandCard(card.GetComponent<CardStats>().cardInfo);
         PlayCard(card);
     }
 

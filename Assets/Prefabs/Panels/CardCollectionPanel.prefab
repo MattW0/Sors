@@ -218,7 +218,6 @@ MonoBehaviour:
   syncInterval: 0.1
   _ui: {fileID: 7144123332455302439}
   _detailCardPrefab: {fileID: 5450374274839420802, guid: 7be6300160264324db92e3979d38f580, type: 3}
-  _container: {fileID: 5469467093083849560}
   _gridAll: {fileID: 3101381624481786848}
   _gridChosen: {fileID: 8185076451011626852}
 --- !u!114 &7144123332455302439
@@ -234,6 +233,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _cardCollectionPanel: {fileID: 2856420424907127943}
+  _container: {fileID: 5469467093083849560}
   _interaction: {fileID: 5734220764277888850}
   _waitingText: {fileID: 5787293806397835519}
   _buttons: {fileID: 2628777714302668570}
@@ -242,7 +242,6 @@ MonoBehaviour:
   _collectionTitle: {fileID: 1243837421668640671}
   _selectionTitle: {fileID: 5433848362245292524}
   _displayText: {fileID: 2108954912553840553}
-  selectedCardsList: []
 --- !u!1 &345756899667457783
 GameObject:
   m_ObjectHideFlags: 0

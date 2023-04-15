@@ -30,7 +30,7 @@ public class PlayerInterfaceButtons : MonoBehaviour
     public void OnHandButtonPressed(){
         if(_isOpen) {
             _isOpen = false;
-            _cardCollectionPanel.CloseView();
+            _cardCollectionPanel.ClearPanel();
             return;
         }
 

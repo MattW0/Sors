@@ -37,19 +37,6 @@ public class CardStats : NetworkBehaviour
         }
     }
     
-    private bool _deployable;
-    public bool IsDeployable
-    {
-        get => _deployable;
-        set
-        {
-            if (!cardInfo.isCreature) return;
-            
-            _deployable = value;
-            _cardUI.Highlight(value, Color.cyan);
-        }
-    }
-    
     private void Awake()
     {
         var networkIdentity = NetworkClient.connection.identity;

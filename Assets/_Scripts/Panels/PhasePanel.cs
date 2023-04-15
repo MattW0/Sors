@@ -9,12 +9,11 @@ using TMPro;
 public class PhasePanel : NetworkBehaviour
 {
     public static PhasePanel Instance { get; private set; }
-    public List<Phase> _selectedPhases = new();
+    [SerializeField] private List<Phase> _selectedPhases = new();
     private int _nbPhasesToChose;
-    public bool disableSelection { get; private set; }
-    [SerializeField] private GameObject maxView;
     [SerializeField] private Button confirm;
-    public static event Action OnPhaseSelectionEnded;
+    public static event Action OnPhaseSelectionStarted;
+    public static event Action OnPhaseSelectionConfirmed;
 
     [Header("Turn screen")]
     private bool _animate;
@@ -29,8 +28,7 @@ public class PhasePanel : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcPreparePhasePanel(int nbPhasesToChose, bool animations)
-    {
+    public void RpcPreparePhasePanel(int nbPhasesToChose, bool animations){
         _nbPhasesToChose = nbPhasesToChose;
         _animate = animations;
 
@@ -40,29 +38,14 @@ public class PhasePanel : NetworkBehaviour
 
     [ClientRpc]
     public void RpcBeginPhaseSelection(int currentTurn){
-        maxView.SetActive(true);
+        turnText.text = "Turn " + currentTurn.ToString();
+        OnPhaseSelectionStarted?.Invoke();
 
         if(!_animate) return;
-        turnText.text = "Turn " + currentTurn.ToString();
         StartCoroutine(WaitAndFade());
     }
 
-    private IEnumerator WaitAndFade() {
-
-        turnScreen.SetActive(true);
-        
-        // Wait and fade
-        yield return new WaitForSeconds(turnScreenWaitTime);
-        _backgroundImage.CrossFadeAlpha(0f, turnScreenFadeTime, false);
-        turnText.CrossFadeAlpha(0f, turnScreenFadeTime, false);
-
-        // Wait and disable
-        yield return new WaitForSeconds(turnScreenFadeTime);
-        turnScreen.SetActive(false);
-    }
-
-    public void UpdateActive(Phase phase)
-    {
+    public void UpdateActive(Phase phase){
         if (_selectedPhases.Contains(phase)){
             _selectedPhases.Remove(phase);
         } else {
@@ -73,19 +56,25 @@ public class PhasePanel : NetworkBehaviour
     }
 
     public void ConfirmButtonPressed(){
-        disableSelection = true;
         confirm.interactable = false;
 
         var player = PlayerManager.GetLocalPlayer();
         player.CmdPhaseSelection(_selectedPhases);
+
+        _selectedPhases.Clear();
+        OnPhaseSelectionConfirmed?.Invoke();
     }
 
-    [ClientRpc]
-    public void RpcEndPhaseSelection(){
-        maxView.SetActive(false);
-        disableSelection = false;
+    private IEnumerator WaitAndFade() {
 
-        OnPhaseSelectionEnded?.Invoke();
-        _selectedPhases.Clear();
+        turnScreen.SetActive(true);
+        
+        // Wait and fade
+        yield return new WaitForSeconds(turnScreenWaitTime);
+        _backgroundImage.CrossFadeAlpha(0f, turnScreenFadeTime, false);
+
+        // Wait and disable
+        yield return new WaitForSeconds(turnScreenFadeTime);
+        turnScreen.SetActive(false);
     }
 }
