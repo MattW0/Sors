@@ -161,7 +161,6 @@ public class TurnManager : NetworkBehaviour
                 // Player turn stats
                 if (phase == Phase.Deploy) player.Deploys++;
                 else if(phase == Phase.Recruit) {
-                    print("Recruit Bonus");
                     player.Recruits++;
                 }
                 // For phaseVisuals
@@ -372,6 +371,9 @@ public class TurnManager : NetworkBehaviour
         else
             _selectedKingdomCards.Add(player, new List<CardInfo> { card });
         
+        print("Player " + player.PlayerName + " recruits " + card.title + " for " + card.cost + " gold");
+        print("Recruits left: " + player.Recruits);
+        
         _kingdom.TargetResetRecruit(player.connectionToClient, player.Recruits);
 
         // Waiting for player to use remaining recruit actions
@@ -456,6 +458,10 @@ public class TurnManager : NetworkBehaviour
     private void StartPrevailTrash(){
         turnState = TurnState.Trash;
         foreach (var (player, options) in _playerPrevailOptions){
+            var cardObjects = GameManager.CardInfosToGameObjects(player.hand);
+            _cardCollectionPanel.TargetShowCardCollection(player.connectionToClient, 
+                cardObjects, player.hand);
+
             var nbPicks = options.Count(option => option == PrevailOption.Trash);
             _cardCollectionPanel.TargetBeginTrash(player.connectionToClient, nbPicks);
         }

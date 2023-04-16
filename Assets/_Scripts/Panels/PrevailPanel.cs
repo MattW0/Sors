@@ -75,8 +75,6 @@ public class PrevailPanel : NetworkBehaviour
 
     [ClientRpc]
     public void RpcReset(){
-
-        print("Resetting prevail panel");
         _selectedOptions.Clear();
     }
 }

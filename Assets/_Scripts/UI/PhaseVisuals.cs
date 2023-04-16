@@ -47,9 +47,6 @@ public class PhaseVisuals : MonoBehaviour
     }
 
     public void ShowPlayerChoices(Phase[] phases){
-
-        print("ShowPlayerChoices");
-
         var i = 0;
         foreach(var phase in phases){
 

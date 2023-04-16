@@ -59,35 +59,18 @@ public class CardCollectionPanelUI : MonoBehaviour
     #region Trash
     public void BeginTrash(int nbCardsToTrash){
         _state = TurnState.Trash;
-        _interaction.SetActive(true);
-        _buttons.SetActive(true);
-
-        if (nbCardsToTrash == 0){
-            SkipTrash();
-            return;
-        }
-        
-        _displayText.text = $"Trash up to {nbCardsToTrash} cards";
-        _confirmButton.interactable = true;
         _nbCardsToTrashMax = nbCardsToTrash;
-    }
 
-    public void CardTrashSelected(GameObject card, bool selected){
-        // if (selected) {
-        //     selectedCardsList.Add(card);
-        // } else {
-        //     selectedCardsList.Remove(card);
-        // }
+        if (nbCardsToTrash == 0) SkipTrash();
+        else InteractionBegin();
     }
     #endregion
 
     public void OnConfirmButtonPressed(){
 
-        // 
-        // else if (_state == TurnState.Trash) player.CmdTrashSelection(selectedCardsList);
-
         if (_state == TurnState.Discard) _cardCollectionPanel.ConfirmDiscard();
         else if (_state == TurnState.Deploy) _cardCollectionPanel.ConfirmDeploy();
+        else if (_state == TurnState.Trash) _cardCollectionPanel.ConfirmTrash();
 
         _buttons.SetActive(false);
         _waitingText.SetActive(true);
@@ -119,6 +102,10 @@ public class CardCollectionPanelUI : MonoBehaviour
             case TurnState.Deploy:
                 _skipButton.SetActive(true);
                 _displayText.text = $"You may deploy a card";
+                break;
+            case TurnState.Trash:
+                _confirmButton.interactable = true;
+                _displayText.text = $"Trash up to {_nbCardsToTrashMax} cards";
                 break;
         }
     }

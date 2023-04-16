@@ -15,6 +15,7 @@ public class CombatManager : NetworkBehaviour
     public static event Action<CombatState> OnCombatStateChanged;
     public static event Action OnDeclareAttackers;
     public static event Action OnDeclareBlockers;
+    public static event Action OnCombatResolved;
 
     private Dictionary<BattleZoneEntity, List<BattleZoneEntity>> _attackersBlockers = new ();
     private List<BattleZoneEntity> _unblockedAttackers = new();
@@ -198,6 +199,8 @@ public class CombatManager : NetworkBehaviour
         
         UpdateCombatState(CombatState.Idle);
         _turnManager.CombatCleanUp();
+
+        OnCombatResolved?.Invoke();
     }
 
     private bool CheckFirststrike(BattleZoneEntity attacker, BattleZoneEntity blocker)

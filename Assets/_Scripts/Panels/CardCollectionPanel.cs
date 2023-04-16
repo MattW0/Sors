@@ -78,6 +78,14 @@ public class CardCollectionPanel : NetworkBehaviour
         else if (state == TurnState.Deploy) _ui.BeginDeploy();
     }
 
+    [TargetRpc]
+    public void TargetBeginTrash(NetworkConnection conn, int nbCardsToTrash)
+    {
+        foreach(var card in _detailCards) card.SetCardState(TurnState.Trash);
+
+        _ui.BeginTrash(nbCardsToTrash);
+    }
+
     public void ConfirmDiscard(){
         var cards = _selectedCards.Select(card => _cache[card]).ToList();
         _player.CmdDiscardSelection(cards);
@@ -100,11 +108,12 @@ public class CardCollectionPanel : NetworkBehaviour
         }
     }
 
-    [TargetRpc]
-    public void TargetBeginTrash(NetworkConnection conn, int nbCardsToTrash)
-    {
-        _ui.BeginTrash(nbCardsToTrash);
+    public void ConfirmTrash(){
+        var cards = _selectedCards.Select(card => _cache[card]).ToList();
+        _player.CmdTrashSelection(cards);
     }
+
+    
     #endregion
 
     [ClientRpc]

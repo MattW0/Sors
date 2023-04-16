@@ -216,7 +216,6 @@ public class PlayerManager : NetworkBehaviour
             RemoveHandCard(cardInfo); // TODO: Check if this can be done on clients
             discard.Add(cardInfo);
         }
-        print("Hand count for host (" + isLocalPlayer + ") : " + hand.Count);
         
         moneyCards.Clear();
     }
@@ -500,16 +499,16 @@ public class PlayerManager : NetworkBehaviour
         }
     }
 
-    public void PlayerPressedReadyButton() {
-        if (isServer) PlayerPressedReadyButton(this);
-        else CmdPlayerPressedReadyButton(this);
+    public void PlayerPressedCombatButton() {
+        if (isServer) PlayerPressedCombatButton(this);
+        else CmdPlayerPressedCombatButton(this);
     }
 
     [Command]
-    private void CmdPlayerPressedReadyButton(PlayerManager player) => PlayerPressedReadyButton(player);
+    private void CmdPlayerPressedCombatButton(PlayerManager player) => PlayerPressedCombatButton(player);
 
     [Server]
-    private void PlayerPressedReadyButton(PlayerManager player) => _dropZone.PlayerPressedReadyButton(player);
+    private void PlayerPressedCombatButton(PlayerManager player) => _dropZone.PlayerPressedReadyButton(player);
 
     // public void PlayerClickedCollectionViewButton() {
     //     if (isServer) PlayerClickedCollectionViewButton(this);

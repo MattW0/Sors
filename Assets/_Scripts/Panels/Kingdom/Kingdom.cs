@@ -106,6 +106,7 @@ public class Kingdom : NetworkBehaviour
     
     [ClientRpc]
     public void RpcEndRecruit(){
+        print("RpcEndRecruit");
         _previouslySelected.Clear();
         _ui.EndPhase();
         OnRecruitPhaseEnded?.Invoke();

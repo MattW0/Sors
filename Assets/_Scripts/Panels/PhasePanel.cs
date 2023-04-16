@@ -12,6 +12,8 @@ public class PhasePanel : NetworkBehaviour
     [SerializeField] private List<Phase> _selectedPhases = new();
     private int _nbPhasesToChose;
     [SerializeField] private Button confirm;
+    [SerializeField] private PhaseItemUI attack;
+    [SerializeField] private PhaseItemUI block;
     public static event Action OnPhaseSelectionStarted;
     public static event Action OnPhaseSelectionConfirmed;
 
@@ -33,6 +35,10 @@ public class PhasePanel : NetworkBehaviour
         _animate = animations;
 
         _backgroundImage = turnScreen.transform.GetChild(0).GetComponent<Image>();
+
+        CombatManager.OnDeclareAttackers += RpcBeginCombatAttack;
+        CombatManager.OnDeclareBlockers += RpcBeginCombatBlock;
+        CombatManager.OnCombatResolved += RpcCombatEnded;
     }
 
 
@@ -53,6 +59,23 @@ public class PhasePanel : NetworkBehaviour
         }
         
         confirm.interactable = _selectedPhases.Count == _nbPhasesToChose;
+    }
+
+    [ClientRpc]
+    public void RpcBeginCombatAttack() => attack.StartSelection();
+
+    [ClientRpc]
+    public void RpcBeginCombatBlock(){
+        attack.Reset();
+        block.StartSelection();
+    }
+
+    [ClientRpc]
+    public void RpcCombatEnded() => block.Reset();
+
+    public void PlayerPressedCombatButton(){
+        var player = PlayerManager.GetLocalPlayer();
+        player.PlayerPressedCombatButton();
     }
 
     public void ConfirmButtonPressed(){

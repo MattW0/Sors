@@ -10,7 +10,7 @@ public class PlayerInterfaceButtons : MonoBehaviour
     private PlayerManager _player;
     private Kingdom _kingdom;
     private CardCollectionPanel _cardCollectionPanel;
-    [SerializeField] private Button _readyButton;
+    // [SerializeField] private Button _readyButton;
     [SerializeField] private Button _undoButton;
     private bool _isOpen = false;
 
@@ -19,6 +19,7 @@ public class PlayerInterfaceButtons : MonoBehaviour
     private void Awake()
     {
         if (!Instance) Instance = this;
+        // _readyButton.interactable = false;
     }
 
     private void Start(){
@@ -48,18 +49,13 @@ public class PlayerInterfaceButtons : MonoBehaviour
     public void OnUndoButtonPressed() {
         _player.CmdUndoPlayMoney();
     }
-    
-    public void OnReadyButtonPressed() {
-        _player.PlayerPressedReadyButton();
-        _readyButton.interactable = false;
-    }
 
-    public void EnableReadyButton(){
-        _readyButton.interactable = true;
-    }
+    // public void EnableReadyButton(){
+    //     _readyButton.interactable = true;
+    // }
 
-    public void DisableReadyButton(){
-        _readyButton.interactable = false;
-    }
+    // public void DisableReadyButton(){
+    //     _readyButton.interactable = false;
+    // }
 
 }

@@ -34,7 +34,6 @@ public class BoardManager : NetworkBehaviour
     public void AddEntity(PlayerManager owner, PlayerManager opponent, GameObject card, BattleZoneEntity entity) {
 
         var cardInfo = card.GetComponent<CardStats>().cardInfo;
-        print("Owner " + owner.PlayerName + " added entity " + entity.Title + " to board.");       
         // To keep track which card object corresponds to which entity
         _entitiesObjectsCache.Add(entity, card);
 
@@ -118,7 +117,8 @@ public class BoardManager : NetworkBehaviour
     public void ShowHolders(bool active) => dropZone.RpcHighlightCardHolders(active); 
 
     public void DisableReadyButton(PlayerManager player){
-        _playerInterfaceManager.TargetDisableReadyButton(player.connectionToClient);
+        print("Combat button disabled");
+        // _playerInterfaceManager.TargetDisableReadyButton(player.connectionToClient);
     }
 
     private void DestroyArrows()
