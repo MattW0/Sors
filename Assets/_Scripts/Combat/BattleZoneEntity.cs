@@ -9,18 +9,16 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     public PlayerManager Owner { get; private set; }
     public PlayerManager Target { get; private set; }
     private BoardManager _boardManager;
-
+    [SerializeField] private EntityUI _entityUI;
 
     [field: Header("Combat Stats")]
     public bool CanAct { get; private set; }
     [SerializeField] public bool IsAttacking;
     public List<Keywords> _keywordAbilities { get; private set; }
-
-    [SerializeField] private CombatState combatState;
     
-    [Header("Other scripts")]
-    [SerializeField] private EntityUI entityUI;
+    [Header("Helper Fields")]
     public BlockerArrowHandler arrowHandler;
+    [SerializeField] private CombatState _combatState;
 
     [field: SyncVar]
     public string Title { get; private set; }
@@ -32,7 +30,7 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
         set
         {
             _attack = value;
-            entityUI.SetAttack(_attack);
+            _entityUI.SetAttack(_attack);
         }
     }
     
@@ -55,7 +53,7 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
         set
         {
             _points = value;
-            entityUI.SetPoints(_points);
+            _entityUI.SetPoints(_points);
         }
     }
     
@@ -79,82 +77,75 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
 
         _keywordAbilities = cardInfo.keyword_abilities;
         
-        entityUI.SetEntityUI(cardInfo);
+        _entityUI.SetEntityUI(cardInfo);
     }
     
     public void CheckIfCanAct(CombatState newState)
     {
         if (!isOwned) return;
-        combatState = newState;
+        _combatState = newState;
 
         if (IsAttacking) return;
         CanAct = true;
-        entityUI.Highlight(true);
+        _entityUI.Highlight(true);
     }
 
-    public void OnPointerDown(PointerEventData eventData)
-    {
+    public void OnPointerDown(PointerEventData eventData){
         if (!isOwned || !CanAct) return;
-        if (combatState != CombatState.Attackers) return;
+        if (_combatState != CombatState.Attackers) return;
 
         // only in Attackers since blockerArrowHandler handles Blockers phase
         ClickAttacker();
     }
 
-    private void ClickAttacker()
-    {
+    private void ClickAttacker(){
         if (!IsAttacking) {
             IsAttacking = true;
-            entityUI.TapCreature();
+            _entityUI.TapCreature();
         } else {
             IsAttacking = false;
-            entityUI.UntapCreature(highlight: true);
+            _entityUI.UntapCreature(highlight: true);
         }
     }
     
     [ClientRpc]
-    public void RpcIsAttacker()
-    {
+    public void RpcIsAttacker(){
         IsAttacking = true;
         CanAct = false;
-        entityUI.ShowAsAttacker(true);
+        _entityUI.ShowAsAttacker(true);
         
         if (isOwned) return;
-        entityUI.TapOpponentCreature();
+        _entityUI.TapOpponentCreature();
     }
 
     public void LocalPlayerIsReady(){
         // to show ui change when local player presses ready button
         CanAct = false;
 
-        if (IsAttacking) entityUI.ShowAsAttacker(true);
-        else entityUI.Highlight(false);
+        if (IsAttacking) _entityUI.ShowAsAttacker(true);
+        else _entityUI.Highlight(false);
     } 
     
     [TargetRpc]
-    public void TargetIsAttacker(NetworkConnection connection)
-    {
+    public void TargetIsAttacker(NetworkConnection connection){
         CanAct = false;
-        entityUI.ShowAsAttacker(true);
+        _entityUI.ShowAsAttacker(true);
     }
     
     [TargetRpc]
-    public void TargetCanNotAct(NetworkConnection connection)
-    {
+    public void TargetCanNotAct(NetworkConnection connection){
         CanAct = false;
-        entityUI.Highlight(false);
+        _entityUI.Highlight(false);
     }
 
     [ClientRpc]
-    public void RpcBlockerDeclared(BattleZoneEntity attacker)
-    {
+    public void RpcBlockerDeclared(BattleZoneEntity attacker){
         if (!isOwned) return;
         arrowHandler.HandleFoundEnemyTarget(attacker);
     }
     
     [ClientRpc]
-    public void RpcShowOpponentsBlockers(List<BattleZoneEntity> blockers)
-    {
+    public void RpcShowOpponentsBlockers(List<BattleZoneEntity> blockers){
         if (!isOwned) return;
         foreach (var blocker in blockers)
         {
@@ -162,9 +153,8 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
         }
     }
 
-   
-    public void TakesDamage(int value, bool deathtouch)
-    {
+    [Server]
+    public void TakesDamage(int value, bool deathtouch){
         if (deathtouch){ 
             Health = 0;
             return;
@@ -173,25 +163,35 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     }
 
     [ClientRpc]
-    private void RpcSetHealth(int value)=> entityUI.SetHealth(value);
+    private void RpcSetHealth(int value)=> _entityUI.SetHealth(value);
 
     private void Die() => OnDeath?.Invoke(Owner, this);
 
     [ClientRpc]
     public void RpcRetreatAttacker(){
-        if (isOwned) entityUI.UntapCreature(highlight: false);
+        if (isOwned) _entityUI.UntapCreature(highlight: false);
         else {
-            entityUI.UntapOpponentCreature();
-            entityUI.ShowAsAttacker(false);
+            _entityUI.UntapOpponentCreature();
+            _entityUI.ShowAsAttacker(false);
         }
     }
 
-    public void ResetAfterCombat()
-    {
+    [ClientRpc]
+    public void RpcSetCombatHighlight() => _entityUI.CombatHighlight();
+    public void SetHighlight(bool active) => _entityUI.Highlight(active);
+
+    public void SetPosition(bool isMine){
+        if(isMine) return;
+        
+        print("setting position for opponent entity");
+        _entityUI.UntapOpponentCreature();
+    }
+
+    public void ResetAfterCombat(){
         CanAct = false;
         IsAttacking = false;
         
-        entityUI.ShowAsAttacker(false);
-        entityUI.Highlight(false);
+        _entityUI.ShowAsAttacker(false);
+        _entityUI.ResetHighlight();
     }
 }

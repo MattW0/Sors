@@ -9,8 +9,6 @@ public class CardCollectionPanelUI : MonoBehaviour
 {   
     [Header("Entities")]
     [SerializeField] private CardCollectionPanel _cardCollectionPanel;
-    // private Hand _hand;
-    
 
     [Header("UI")]
     [SerializeField] private GameObject _container;
@@ -28,15 +26,7 @@ public class CardCollectionPanelUI : MonoBehaviour
     private int _nbCardsToDiscard;
     private int _nbCardsToDeploy = 1;
     private int _nbCardsToTrashMax;
-    public static event Action OnTrashEnded;
-    public static event Action OnDeployEnded;
     
-    private void Awake() {
-        // if (!Instance) Instance = this;
-
-        // _cardCollectionView = CardCollectionView.Instance;
-    }
-
     public void PrepareCardCollectionPanelUi(int nbCardsToDiscard){
         _nbCardsToDiscard = nbCardsToDiscard;
 
@@ -47,6 +37,7 @@ public class CardCollectionPanelUI : MonoBehaviour
         _waitingText.SetActive(false);
         _displayText.text = "";
     }
+
     public void BeginDiscard(){
         _state = TurnState.Discard;
         InteractionBegin();
@@ -56,36 +47,12 @@ public class CardCollectionPanelUI : MonoBehaviour
         InteractionBegin();
     }
 
-    #region Trash
     public void BeginTrash(int nbCardsToTrash){
         _state = TurnState.Trash;
         _nbCardsToTrashMax = nbCardsToTrash;
 
-        if (nbCardsToTrash == 0) SkipTrash();
+        if (nbCardsToTrash == 0) SkipInteraction(TurnState.Trash);
         else InteractionBegin();
-    }
-    #endregion
-
-    public void OnConfirmButtonPressed(){
-
-        if (_state == TurnState.Discard) _cardCollectionPanel.ConfirmDiscard();
-        else if (_state == TurnState.Deploy) _cardCollectionPanel.ConfirmDeploy();
-        else if (_state == TurnState.Trash) _cardCollectionPanel.ConfirmTrash();
-
-        _buttons.SetActive(false);
-        _waitingText.SetActive(true);
-    }
-
-    public void SkipTrash(){
-        _buttons.SetActive(false);
-        _waitingText.SetActive(true);
-        PlayerManager.GetLocalPlayer().CmdSkipTrash();
-    }
-
-    public void OnSkipButtonPressed(){
-        _buttons.SetActive(false);
-        _waitingText.SetActive(true);
-        PlayerManager.GetLocalPlayer().CmdSkipDeploy();
     }
 
     private void InteractionBegin(){
@@ -110,6 +77,25 @@ public class CardCollectionPanelUI : MonoBehaviour
         }
     }
 
+    public void OnConfirmButtonPressed(){
+
+        if (_state == TurnState.Discard) _cardCollectionPanel.ConfirmDiscard();
+        else if (_state == TurnState.Deploy) _cardCollectionPanel.ConfirmDeploy();
+        else if (_state == TurnState.Trash) _cardCollectionPanel.ConfirmTrash();
+
+        _buttons.SetActive(false);
+        _waitingText.SetActive(true);
+    }
+
+    public void OnSkipButtonPressed() => SkipInteraction(_state);
+    public void SkipInteraction(TurnState state){
+        _buttons.SetActive(false);
+        _waitingText.SetActive(true);
+
+        if(state == TurnState.Deploy) PlayerManager.GetLocalPlayer().CmdSkipDeploy();
+        else if(state == TurnState.Trash) PlayerManager.GetLocalPlayer().CmdSkipTrash();
+    }
+
     public void UpdateInteractionElements(int nbSelected){
         switch (_state){
             case TurnState.Discard:
@@ -122,16 +108,17 @@ public class CardCollectionPanelUI : MonoBehaviour
         }
     }
 
-    public void ResetPanelUI(){
-        _interaction.SetActive(false);
-        _waitingText.SetActive(false);
-        _skipButton.SetActive(false);
+    public void ResetPanelUI(bool hard){
         _buttons.SetActive(true);
+        _waitingText.SetActive(false);
+
+        if(!hard) return;
+        _interaction.SetActive(false);
+        _skipButton.SetActive(false);
         Close();
     }
 
     public void OnCloseButtonPressed() => Close();
-
     public void Open() => _container.SetActive(true);
     public void Close() => _container.SetActive(false);
 }

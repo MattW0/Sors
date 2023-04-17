@@ -271,10 +271,9 @@ public class TurnManager : NetworkBehaviour
     private void DevelopSpawnAndReset()
     {
         foreach (var (owner, cards) in _selectedKingdomCards) {
-
             foreach (var cardInfo in cards) {
-                _playerInterfaceManager.RpcLog("<color=#4f2d00>" + owner.PlayerName + " develops " + cardInfo.title + "</color>");
                 _gameManager.SpawnMoney(owner, cardInfo);
+                _playerInterfaceManager.RpcLog("<color=#4f2d00>" + owner.PlayerName + " develops " + cardInfo.title + "</color>");
             }
         }
         
@@ -296,7 +295,6 @@ public class TurnManager : NetworkBehaviour
             SpawnCreatureDetailCards();
         }
         _cardCollectionPanel.RpcBeginState(TurnState.Deploy);
-
     }
 
     private void SpawnCreatureDetailCards(){
@@ -336,7 +334,10 @@ public class TurnManager : NetworkBehaviour
             if (player.Deploys > 0) anotherDeploy = true;
         }
 
-        if(anotherDeploy) Deploy(false);
+        if(anotherDeploy) {
+            Deploy(false);
+            _cardCollectionPanel.RpcSoftResetPanel();
+        }
         else EndDeploy();
     }
 
@@ -348,7 +349,6 @@ public class TurnManager : NetworkBehaviour
         
         UpdateTurnState(TurnState.NextPhase);
     }
-    
     #endregion
 
     private void Combat() => combatManager.UpdateCombatState(CombatState.Attackers);
@@ -428,7 +428,8 @@ public class TurnManager : NetworkBehaviour
     }
 
     private void NextPrevailOption(){
-
+        
+        print("Nb options to play: " + _prevailOptionsToPlay.Count);
         // All options have been played
         if (_prevailOptionsToPlay.Count == 0){
             PrevailCleanUp();

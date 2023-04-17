@@ -38,7 +38,7 @@ public class PhasePanel : NetworkBehaviour
 
         CombatManager.OnDeclareAttackers += RpcBeginCombatAttack;
         CombatManager.OnDeclareBlockers += RpcBeginCombatBlock;
-        CombatManager.OnCombatResolved += RpcCombatEnded;
+        // BoardManager.OnBlockersDeclared += TargetEndCombatBlockers;
     }
 
 
@@ -70,8 +70,8 @@ public class PhasePanel : NetworkBehaviour
         block.StartSelection();
     }
 
-    [ClientRpc]
-    public void RpcCombatEnded() => block.Reset();
+    [TargetRpc]
+    public void TargetDisableBlockerButton(NetworkConnection conn) => block.Reset();
 
     public void PlayerPressedCombatButton(){
         var player = PlayerManager.GetLocalPlayer();
@@ -99,5 +99,10 @@ public class PhasePanel : NetworkBehaviour
         // Wait and disable
         yield return new WaitForSeconds(turnScreenFadeTime);
         turnScreen.SetActive(false);
+    }
+
+    private void OnDestroy() {
+        CombatManager.OnDeclareAttackers -= RpcBeginCombatAttack;
+        CombatManager.OnDeclareBlockers -= RpcBeginCombatBlock;
     }
 }

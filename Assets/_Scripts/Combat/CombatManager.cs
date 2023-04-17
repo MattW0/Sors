@@ -15,7 +15,6 @@ public class CombatManager : NetworkBehaviour
     public static event Action<CombatState> OnCombatStateChanged;
     public static event Action OnDeclareAttackers;
     public static event Action OnDeclareBlockers;
-    public static event Action OnCombatResolved;
 
     private Dictionary<BattleZoneEntity, List<BattleZoneEntity>> _attackersBlockers = new ();
     private List<BattleZoneEntity> _unblockedAttackers = new();
@@ -75,8 +74,7 @@ public class CombatManager : NetworkBehaviour
         if (_readyPlayers.Count != _gameManager.players.Count) return;
         
         // tracking which entity blocks which attackers
-        foreach (var attacker in _boardManager.boardAttackers)
-        {
+        foreach (var attacker in _boardManager.GetBoardAttackers()){
             _attackersBlockers.Add(attacker, new List<BattleZoneEntity>());
         }
         
@@ -107,7 +105,7 @@ public class CombatManager : NetworkBehaviour
 
     private void ShowAllBlockers()
     {
-        _unblockedAttackers.AddRange(_boardManager.boardAttackers);
+        _unblockedAttackers.AddRange(_boardManager.GetBoardAttackers());
 
         foreach (var entry in _attackersBlockers)
         {
@@ -123,11 +121,9 @@ public class CombatManager : NetworkBehaviour
     }
 
     #region Damage
-    private void ResolveDamage()
-    {
+    private void ResolveDamage(){
         // Skip damage logic if there are no attackers 
-        if (_attackersBlockers.Keys.Count == 0)
-        {
+        if (_attackersBlockers.Keys.Count == 0){
             UpdateCombatState(CombatState.CleanUp);
             return;
         }
@@ -136,35 +132,28 @@ public class CombatManager : NetworkBehaviour
         StartCoroutine(DealDamage());
     }
     
-    private IEnumerator DealDamage()
-    {
-        // Waiting to show blockers
-        yield return new WaitForSeconds(1f);
-        
-        foreach (var attacker in _boardManager.boardAttackers)
-        { // foreach attacker, deal damage to each blocker
+    private IEnumerator DealDamage(){        
+        foreach (var attacker in _boardManager.GetBoardAttackers()){
+            if(_attackersBlockers[attacker].Count == 0) continue;
 
-            CombatClash(attacker);
+            attacker.RpcSetCombatHighlight();
+            yield return new WaitForSeconds(combatDamageWaitTime);
+
+            int totalBlockerHealth = 0;
+            foreach (var blocker in _attackersBlockers[attacker]){
+                blocker.RpcSetCombatHighlight();
+                _playerInterfaceManager.RpcLog("Clashing creatures: " + attacker.Title + " vs " + blocker.Title + "");
+                
+                totalBlockerHealth += blocker.Health;
+                CombatClash(attacker, blocker);
+
+                yield return new WaitForSeconds(combatDamageWaitTime);
+            }
+
+            CheckTrample(attacker, totalBlockerHealth);
             yield return new WaitForSeconds(combatDamageWaitTime);
         }
         StartCoroutine(PlayerDamage());
-    }
-    
-    private void CombatClash(BattleZoneEntity attacker)
-    {
-        bool attackerfirstdeath = false;
-        int totalBlockerHealth = 0;
-        foreach (var blocker in _attackersBlockers[attacker])
-            {
-                _playerInterfaceManager.RpcLog("Clashing creatures: " + attacker.Title + " vs " + blocker.Title + "");
-                attackerfirstdeath = CheckFirststrike(attacker, blocker);
-                if (attacker.Health > 0 && blocker.Health > 0)
-                { 
-                    totalBlockerHealth += blocker.Health;
-                    Block(attacker, blocker);        
-                }   
-            }
-        if (!attackerfirstdeath) CheckTrample(attacker, totalBlockerHealth);
     }
 
     private IEnumerator PlayerDamage()
@@ -175,8 +164,8 @@ public class CombatManager : NetworkBehaviour
             yield return null;
         }
 
-        foreach (var attacker in _unblockedAttackers)
-        {
+        foreach (var attacker in _unblockedAttackers){
+            attacker.RpcSetCombatHighlight();
             _playerInterfaceManager.RpcLog("" + attacker.Title + " is unblocked");
 
             // player takes damage from unblocked creatures
@@ -187,11 +176,58 @@ public class CombatManager : NetworkBehaviour
         }
         
         UpdateCombatState(CombatState.CleanUp);
+    }   
+    #endregion
+
+    #region CombatLogic
+    private void CombatClash(BattleZoneEntity attacker, BattleZoneEntity blocker){
+
+        var firstStrike = CheckFirststrike(attacker, blocker);
+        if (firstStrike) return; // Damage already happens in CheckFirstStrike
+
+        blocker.TakesDamage(attacker.Attack, attacker._keywordAbilities.Contains(Keywords.Deathtouch));
+        attacker.TakesDamage(blocker.Attack, blocker._keywordAbilities.Contains(Keywords.Deathtouch));
+    }
+
+    private bool CheckFirststrike(BattleZoneEntity attacker, BattleZoneEntity blocker){
+        // XOR: return if none or both have first strike
+        if( ! attacker._keywordAbilities.Contains(Keywords.First_Strike)
+            ^ blocker._keywordAbilities.Contains(Keywords.First_Strike)){
+            return false;
+        }
+
+        // Attacker has first strike
+        if (attacker._keywordAbilities.Contains(Keywords.First_Strike))
+            // && (attacker.Attack >= blocker.Health || attacker._keywordAbilities.Contains(Keywords.Deathtouch)))
+        {
+            blocker.TakesDamage(attacker.Attack, attacker._keywordAbilities.Contains(Keywords.Deathtouch));
+            if(blocker.Health > 0) attacker.TakesDamage(blocker.Attack, blocker._keywordAbilities.Contains(Keywords.Deathtouch));
+            return true;
+        }
+        
+
+        if (blocker._keywordAbilities.Contains(Keywords.First_Strike))
+            // && (blocker.Attack >= attacker.Health || blocker._keywordAbilities.Contains(Keywords.Deathtouch)))
+        {
+            attacker.TakesDamage(blocker.Attack, blocker._keywordAbilities.Contains(Keywords.Deathtouch));
+            if(attacker.Health > 0) blocker.TakesDamage(attacker.Attack, attacker._keywordAbilities.Contains(Keywords.Deathtouch));
+            return true;
+        }
+
+        return false;
+    }
+
+    private void CheckTrample(BattleZoneEntity attacker, int totalBlockerHealth ){
+        if (attacker.Health <= 0 || !attacker._keywordAbilities.Contains(Keywords.Trample)) 
+            return;
+
+        var targetPlayer = attacker.Target;
+        targetPlayer.Health -= attacker.Attack - totalBlockerHealth;
+        _turnManager.PlayerHealthChanged(targetPlayer, attacker.Attack - totalBlockerHealth);
     }
     #endregion
 
-    private void ResolveCombat()
-    {
+    private void ResolveCombat(){
         _readyPlayers.Clear();
         _attackersBlockers.Clear();
         _unblockedAttackers.Clear();
@@ -199,43 +235,9 @@ public class CombatManager : NetworkBehaviour
         
         UpdateCombatState(CombatState.Idle);
         _turnManager.CombatCleanUp();
-
-        OnCombatResolved?.Invoke();
     }
 
-    private bool CheckFirststrike(BattleZoneEntity attacker, BattleZoneEntity blocker)
-    {
-        if (attacker._keywordAbilities.Contains(Keywords.First_Strike) && (attacker.Attack >= blocker.Health || attacker._keywordAbilities.Contains(Keywords.Deathtouch)) && !blocker._keywordAbilities.Contains(Keywords.First_Strike))
-        {
-            blocker.TakesDamage(attacker.Attack, attacker._keywordAbilities.Contains(Keywords.Deathtouch));
-        }
-
-        if (blocker._keywordAbilities.Contains(Keywords.First_Strike) && (blocker.Attack >= attacker.Health || blocker._keywordAbilities.Contains(Keywords.Deathtouch)) && !attacker._keywordAbilities.Contains(Keywords.First_Strike))
-        {
-            attacker.TakesDamage(blocker.Attack, blocker._keywordAbilities.Contains(Keywords.Deathtouch));
-            return true;
-        }
-        return false;
-    }
-
-    private void Block(BattleZoneEntity attacker, BattleZoneEntity blocker)
-    {
-        blocker.TakesDamage(attacker.Attack, attacker._keywordAbilities.Contains(Keywords.Deathtouch));
-        attacker.TakesDamage(blocker.Attack, blocker._keywordAbilities.Contains(Keywords.Deathtouch));
-    }
-
-    private void CheckTrample(BattleZoneEntity attacker, int tothealth )
-    {
-        if (attacker._keywordAbilities.Contains(Keywords.Trample))
-        {
-            var targetPlayer = attacker.Target;
-            targetPlayer.Health -= attacker.Attack - tothealth;
-            _turnManager.PlayerHealthChanged(targetPlayer, attacker.Attack - tothealth);            
-        }
-    }
-
-    private void OnDestroy()
-    {
+    private void OnDestroy(){
         GameManager.OnGameStart -= Prepare;
         BoardManager.OnAttackersDeclared -= PlayerDeclaredAttackers;
         BoardManager.OnBlockersDeclared -= PlayerDeclaredBlockers;

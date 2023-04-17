@@ -50,14 +50,6 @@ public class CardCollectionPanel : NetworkBehaviour
         _ui.UpdateInteractionElements(_selectedCards.Count);
     }
 
-    public void ClearPanel(){
-        foreach (Transform child in _gridAll) Destroy(child.gameObject);
-        foreach (Transform child in _gridChosen) Destroy(child.gameObject);
-        _detailCards.Clear();
-        _selectedCards.Clear();
-        _cache.Clear();
-    }
-
     private void SpawnDetailCardObject(GameObject card, CardInfo cardInfo){
         _cache.Add(cardInfo, card);
 
@@ -119,6 +111,21 @@ public class CardCollectionPanel : NetworkBehaviour
     [ClientRpc]
     public void RpcResetPanel(){
         ClearPanel();
-        _ui.ResetPanelUI();
+        _ui.ResetPanelUI(true);
+    }
+
+    [ClientRpc]
+    public void RpcSoftResetPanel(){
+        foreach (Transform child in _gridChosen) child.SetParent(_gridAll, false);
+        _selectedCards.Clear();
+        _ui.ResetPanelUI(false);
+    }
+
+    public void ClearPanel(){
+        foreach (Transform child in _gridAll) Destroy(child.gameObject);
+        foreach (Transform child in _gridChosen) Destroy(child.gameObject);
+        _detailCards.Clear();
+        _selectedCards.Clear();
+        _cache.Clear();
     }
 }

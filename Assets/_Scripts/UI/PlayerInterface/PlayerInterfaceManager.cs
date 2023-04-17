@@ -53,7 +53,6 @@ public class PlayerInterfaceManager : NetworkBehaviour
         };
 
         _phaseVisualsUI.UpdatePhaseHighlight(newHighlightIndex);
-        // _buttons.EnableReadyButton();
     }
     
     [ClientRpc]
@@ -66,13 +65,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
         };
         
         _phaseVisualsUI.UpdatePhaseHighlight(newHighlightIndex);
-        // _buttons.EnableReadyButton();
     }
-
-    // [TargetRpc]
-    // public void TargetDisableReadyButton(NetworkConnection target){
-    //     _buttons.DisableReadyButton();
-    // }
 
     [ClientRpc]
     public void RpcLog(string message) => _logger.Log(message);

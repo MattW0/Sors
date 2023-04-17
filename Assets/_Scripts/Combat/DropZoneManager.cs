@@ -45,6 +45,8 @@ public class DropZoneManager : NetworkBehaviour
     private void RpcMoveEntityToHolder(BattleZoneEntity entity, int index){
         if(entity.isOwned) entity.transform.SetParent(playerCardHolders[index].transform, false);
         else entity.transform.SetParent(opponentCardHolders[index].transform, false);
+        
+        entity.SetPosition(entity.isOwned);
     }
 
     [Server]
@@ -134,7 +136,6 @@ public class DropZoneManager : NetworkBehaviour
             // Host Logic
             if (player.isLocalPlayer) {
                 // Is there an opponent creature attacking? 
-                // isAttacked is true if _clientEntities has at least one entity with IsAttacking == true
                 var isHostAttacked = _clientEntities.Exists(entity => entity.IsAttacking);
                 TargetDeclareBlockers(player.connectionToClient, _hostEntities, isHostAttacked);
                 return;
@@ -155,29 +156,41 @@ public class DropZoneManager : NetworkBehaviour
         }
 
         // If not being attacked or all my creatures are attacking, we skip
+        // isAttacked is true if there is at least one attacking opponent entity
         if (!isAttacked || entities.Count == nbAttackers) {
-            if(isServer) {
-                _boardManager.DisableReadyButton(_player);
-                PlayerFinishedChoosingBlockers(_player, true);
-            }
-            else CmdPlayerFinishedChoosingBlockers(_player, true);
+            PlayerFinishedChoosingBlockers();
             return;
         }
+
         // Else we enable entities to be tapped and wait for player to declare attackers and press ready btn
         foreach (var entity in entities) {
             entity.CheckIfCanAct(CombatState.Blockers);
         }
     }
 
+    private void PlayerFinishedChoosingBlockers(){
+        if(isServer) {
+            foreach(var entity in _hostEntities){
+                entity.SetHighlight(false);
+            }
+            _boardManager.DisableReadyButton(_player);
+            ServerPlayerFinishedChoosingBlockers(_player, true);
+        } else {
+            foreach(var entity in _clientEntities){
+                entity.SetHighlight(false);
+            }
+            CmdPlayerFinishedChoosingBlockers(_player, true);
+        }
+    }
+
     [Command(requiresAuthority = false)]
     private void CmdPlayerFinishedChoosingBlockers(PlayerManager player, bool skip){
         _boardManager.DisableReadyButton(player);
-        PlayerFinishedChoosingBlockers(player, skip);
+        ServerPlayerFinishedChoosingBlockers(player, skip);
     }
 
     [Server]
-    public void PlayerFinishedChoosingBlockers(PlayerManager player, bool skip = false)
-    {
+    public void ServerPlayerFinishedChoosingBlockers(PlayerManager player, bool skip = false){
         _boardManager.BlockersDeclared(player, new List<BattleZoneEntity>());
     }
 
@@ -242,7 +255,7 @@ public class DropZoneManager : NetworkBehaviour
             PlayerFinishedChoosingAttackers(player);
         }
         else if (_combatState == CombatState.Blockers) {
-            PlayerFinishedChoosingBlockers(player);
+            ServerPlayerFinishedChoosingBlockers(player);
         }
     }
 

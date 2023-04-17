@@ -17,7 +17,7 @@ public class EntityUI : MonoBehaviour
 
     [Header("Entity UI")]
     [SerializeField] private Image highlight;
-    [SerializeField] private Image attackerHighlight;
+    [SerializeField] private Image attackerImage;
 
     private Transform _transform;
     private Transform _playerPlayZone;
@@ -30,16 +30,15 @@ public class EntityUI : MonoBehaviour
 
     private const float TappingDuration = 0.3f;
 
-    [SerializeField] private Color attackingColor;
+    [SerializeField] private Color combatColor;
+    [SerializeField] private Color highlightColor;
     private readonly Color _idleColor = new Color32( 0x50, 0x50, 0x50, 0xFF );
     
-    private void Awake()
-    {
+    private void Awake(){
         _transform = gameObject.transform;
         _transform.position = new Vector3(0f, 0f, -1f);
-        // _playerPlayZone = GameObject.Find("PlayerPlayZone").transform.GetChild(1);
-        // _opponentPlayZone = GameObject.Find("OpponentPlayZone").transform.GetChild(1);
     }
+
     public void SetEntityUI(CardInfo cardInfo)
     {
         // Set card stats
@@ -62,13 +61,7 @@ public class EntityUI : MonoBehaviour
     public void SetHealth(int newValue) => health.text = newValue.ToString();
     public void SetAttack(int newValue) => attack.text = newValue.ToString();
     public void SetPoints(int newValue) => points.text = newValue.ToString();
-
-    public void Highlight(bool active)
-    {
-        highlight.enabled = active;
-    }
-
-    public void ShowAsAttacker(bool active) => attackerHighlight.color = active ? attackingColor : _idleColor;
+    public void ShowAsAttacker(bool active) => attackerImage.color = active ? combatColor : _idleColor;
 
     public void TapCreature() {
         _transform.DOLocalMove(_tappedPosition, TappingDuration).OnComplete(
@@ -84,14 +77,15 @@ public class EntityUI : MonoBehaviour
     }
 
     public void TapOpponentCreature() => _transform.DOLocalMove(_untappedPosition, TappingDuration);
-    public void UntapOpponentCreature() => _transform.DOLocalMove(_opponentTappedPosition, TappingDuration);
+    public void UntapOpponentCreature() => _transform.DOLocalMove(_tappedPosition, TappingDuration);
+    public void Highlight(bool active) => highlight.enabled = active;
+    public void CombatHighlight(){
+        highlight.color = combatColor;
+        highlight.enabled = true;
+    }
 
-    // public void MoveToHolder(bool isMine, int holderNumber)
-    // {
-    //     if(isMine) _transform.SetParent(_playerPlayZone, false);
-    //     else {
-    //         _transform.SetParent(_opponentPlayZone, false);
-    //         _transform.DOLocalMove(_tappedPosition, 0f);
-    //     }
-    // }
+    public void ResetHighlight(){
+        highlight.color = highlightColor;
+        highlight.enabled = false;
+    }
 }

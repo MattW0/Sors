@@ -90,10 +90,10 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0.1
+  _entityUI: {fileID: 8003351115639585403}
   IsAttacking: 0
-  combatState: 0
-  entityUI: {fileID: 8003351115639585403}
   arrowHandler: {fileID: 929728789088207203}
+  _combatState: 0
 --- !u!114 &8003351115639585403
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -118,8 +118,9 @@ MonoBehaviour:
   - {fileID: 9152460615299013347}
   - {fileID: 2289037644501031878}
   highlight: {fileID: 3934348760645149788}
-  attackerHighlight: {fileID: 140034960745397291}
-  attackingColor: {r: 0.33962262, g: 0.043253824, b: 0.043253824, a: 1}
+  attackerImage: {fileID: 140034960745397291}
+  combatColor: {r: 0.8679245, g: 0.15966538, b: 0.15966538, a: 1}
+  highlightColor: {r: 0.006999801, g: 0.7830189, b: 0, a: 1}
 --- !u!114 &929728789088207203
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -628,7 +629,7 @@ GameObject:
   - component: {fileID: 780017399407656936}
   - component: {fileID: 140034960745397291}
   m_Layer: 0
-  m_Name: BG
+  m_Name: AttackerImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -675,7 +676,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.3137255, g: 0.3137255, b: 0.3137255, a: 1}
+  m_Color: {r: 0.21960786, g: 0.21960786, b: 0.21960786, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

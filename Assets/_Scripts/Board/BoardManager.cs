@@ -9,12 +9,13 @@ public class BoardManager : NetworkBehaviour
     public static BoardManager Instance { get; private set; }
     private GameManager _gameManager;
     [SerializeField] private DropZoneManager dropZone;
-    private PlayerInterfaceManager _playerInterfaceManager;
+    private PhasePanel _phasePanel;
 
     // Entities, corresponding card object
     private Dictionary<BattleZoneEntity, GameObject> _entitiesObjectsCache = new();
     private List<BattleZoneEntity> _deadEntities = new();
-    public List<BattleZoneEntity> boardAttackers { get; private set; }
+    private List<BattleZoneEntity> _boardAttackers = new();
+    public List<BattleZoneEntity> GetBoardAttackers() => _boardAttackers;
 
     public static event Action<PlayerManager> OnAttackersDeclared;
     public static event Action<PlayerManager> OnBlockersDeclared;
@@ -23,8 +24,8 @@ public class BoardManager : NetworkBehaviour
         if (!Instance) Instance = this;
 
         _gameManager = GameManager.Instance;
-        _playerInterfaceManager = PlayerInterfaceManager.Instance;
-        boardAttackers = new List<BattleZoneEntity>();
+        _phasePanel = PhasePanel.Instance;
+        _boardAttackers = new List<BattleZoneEntity>();
 
         CombatManager.OnDeclareAttackers += DeclareAttackers;
         CombatManager.OnDeclareBlockers += DeclareBlockers;
@@ -48,11 +49,9 @@ public class BoardManager : NetworkBehaviour
     private void DeclareAttackers() => dropZone.PlayersDeclareAttackers(_gameManager.players.Keys.ToList());
 
     public void AttackersDeclared(PlayerManager player, List<BattleZoneEntity> playerAttackers) {
-
-        _playerInterfaceManager.RpcLog(player.PlayerName + " declared " + playerAttackers.Count + " attackers.");
         // Is 0 for auto-skip or no attackers declared
         if (playerAttackers.Count > 0) {
-            foreach (var a in playerAttackers) boardAttackers.Add(a);
+            foreach (var a in playerAttackers) _boardAttackers.Add(a);
         }
 
         OnAttackersDeclared?.Invoke(player);
@@ -60,7 +59,7 @@ public class BoardManager : NetworkBehaviour
 
     public void ShowOpponentAttackers() {
         // Share attacker state accross clients
-        foreach (var entity in boardAttackers){
+        foreach (var entity in _boardAttackers){
             entity.IsAttacking = true;
             entity.RpcIsAttacker();
         }
@@ -69,9 +68,6 @@ public class BoardManager : NetworkBehaviour
     private void DeclareBlockers() => dropZone.PlayersDeclareBlockers(_gameManager.players.Keys.ToList());
 
     public void BlockersDeclared(PlayerManager player, List<BattleZoneEntity> playerBlockers) {
-        
-        _playerInterfaceManager.RpcLog(player.PlayerName + " declared " + playerBlockers.Count + " blockers.");
-
         OnBlockersDeclared?.Invoke(player);
     }
     
@@ -88,8 +84,7 @@ public class BoardManager : NetworkBehaviour
         DestroyArrows();
         foreach (var dead in _deadEntities)
         {
-            _playerInterfaceManager.RpcLog(dead.Title + " dies for real now");
-            boardAttackers.Remove(dead);
+            _boardAttackers.Remove(dead);
             
             // Move the card object to discard pile
             dead.Owner.discard.Add(_entitiesObjectsCache[dead].GetComponent<CardStats>().cardInfo);
@@ -101,10 +96,10 @@ public class BoardManager : NetworkBehaviour
         }
         _deadEntities.Clear();
 
-        foreach (var attacker in boardAttackers){
+        foreach (var attacker in _boardAttackers){
             attacker.RpcRetreatAttacker();
         }
-        boardAttackers.Clear();
+        _boardAttackers.Clear();
 
         dropZone.CombatCleanUp();
     }
@@ -115,16 +110,13 @@ public class BoardManager : NetworkBehaviour
 
     #region UI
     public void ShowHolders(bool active) => dropZone.RpcHighlightCardHolders(active); 
-
     public void DisableReadyButton(PlayerManager player){
         print("Combat button disabled");
-        // _playerInterfaceManager.TargetDisableReadyButton(player.connectionToClient);
+        _phasePanel.TargetDisableBlockerButton(player.connectionToClient);
     }
 
-    private void DestroyArrows()
-    {
-        foreach (var player in _gameManager.players.Keys)
-        {
+    private void DestroyArrows(){
+        foreach (var player in _gameManager.players.Keys){
             player.RpcDestroyArrows();
         }
     }
