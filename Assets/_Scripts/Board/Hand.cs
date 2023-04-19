@@ -8,26 +8,17 @@ using UnityEngine;
 public class Hand : NetworkBehaviour
 {
     public static Hand Instance { get; private set; }
-    private List<CardStats> _handCards;
+    private List<CardStats> _handCards = new();
     public List<CardStats> GetHandCards => _handCards;
 
     private void Awake(){
         if (!Instance) Instance = this;
-        PlayerManager.OnHandChanged += UpdateHandsCardList;
-        
-        _handCards = new List<CardStats>();
     }
 
-    private void UpdateHandsCardList(GameObject card, bool addingCard){
+    public void UpdateHandsCardList(GameObject card, bool addingCard){
         var stats = card.GetComponent<CardStats>();
         if (addingCard) _handCards.Add(stats);
         else _handCards.Remove(stats);
-    }
-
-    public void StartTrash(){
-        foreach (var card in _handCards){
-            card.IsTrashable = true;
-        }
     }
     
     [ClientRpc]
@@ -42,13 +33,12 @@ public class Hand : NetworkBehaviour
     public void RpcHighlightMoney(bool isInteractable) => HighlightMoney(isInteractable);
     
     [TargetRpc]
-    public void TargetHighlightMoney(NetworkConnection target, bool isInteractable) => HighlightMoney(isInteractable);
+    public void TargetHighlightMoney(NetworkConnection target) => HighlightMoney(true);
 
     public void HighlightMoney(bool b){
-        foreach (var card in _handCards.Where(card => !card.cardInfo.isCreature)) card.IsInteractable = b;
-    }
-
-    private void OnDestroy(){
-        PlayerManager.OnHandChanged -= UpdateHandsCardList;
+        foreach (var card in _handCards.Where(card => !card.cardInfo.isCreature)) {
+            card.IsInteractable = b;
+            card.SetHighlight();
+        }
     }
 }

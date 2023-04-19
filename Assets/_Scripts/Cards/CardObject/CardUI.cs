@@ -18,9 +18,7 @@ public class CardUI : MonoBehaviour {
     [SerializeField] private Image _highlight;
     
     public Color standardHighlight = Color.white;
-
     private Transform _transform;
-    [SerializeField] private Vector3 attackRotation;
     private const float TappingDuration = 1f;
     
     [SerializeField] private GameObject _front;
@@ -29,9 +27,13 @@ public class CardUI : MonoBehaviour {
     [SerializeField] private GameObject _moneyUi;
     
     private void Awake(){
+        
         _transform = gameObject.transform;
+        _transform.SetParent(GameObject.Find("UI").transform, false);
+        
         _transform.eulerAngles = Vector3.zero;
-        attackRotation = new Vector3(0, 0, -90);
+        _transform.position = Vector3.zero;
+
     }
 
     public void SetCardUI(CardInfo cardInfo){
@@ -50,16 +52,6 @@ public class CardUI : MonoBehaviour {
             _image.sprite = Resources.Load<Sprite>("Sprites/Money/" + cardInfo.title);
             _moneyUi.SetActive(true);
         }
-    }
-    
-    public void TapCreature()
-    {
-        _transform.DORotate(attackRotation, TappingDuration).OnComplete(HighlightReset);
-    }
-
-    public void UntapCreature()
-    {
-        _transform.DORotate(Vector3.zero, TappingDuration);
     }
 
     public void CardBackUp()

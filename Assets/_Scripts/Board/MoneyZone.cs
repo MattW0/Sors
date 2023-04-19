@@ -20,11 +20,6 @@ public class MoneyZone : MonoBehaviour
         }
     }
 
-    public void UndoPlayMoney(){
-        print("moneyzone: undo");   
-        PlayerManager.GetLocalPlayer().MoneyReturned(GetCards());
-    }
-
     private List<GameObject> GetCards()
     {
         var cards = new List<GameObject>();

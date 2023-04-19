@@ -131,6 +131,30 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3847658256184628204, guid: 5049089525d268b41ac4327a430b6221, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3847658256184628204, guid: 5049089525d268b41ac4327a430b6221, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3847658256184628204, guid: 5049089525d268b41ac4327a430b6221, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 11.17
+      objectReference: {fileID: 0}
+    - target: {fileID: 3847658256184628204, guid: 5049089525d268b41ac4327a430b6221, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 22.585
+      objectReference: {fileID: 0}
+    - target: {fileID: 3847658256184628204, guid: 5049089525d268b41ac4327a430b6221, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -10
+      objectReference: {fileID: 0}
+    - target: {fileID: 5047749415201864445, guid: 5049089525d268b41ac4327a430b6221, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 29.17
+      objectReference: {fileID: 0}
     - target: {fileID: 5450374274839420802, guid: 5049089525d268b41ac4327a430b6221, type: 3}
       propertyPath: m_Name
       value: MoneyCard
@@ -166,7 +190,7 @@ PrefabInstance:
     - target: {fileID: 7173413632668903558, guid: 5049089525d268b41ac4327a430b6221, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[1].m_Target
       value: 
-      objectReference: {fileID: 3706101615387523496}
+      objectReference: {fileID: 0}
     - target: {fileID: 7173413632668903558, guid: 5049089525d268b41ac4327a430b6221, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[2].m_Target
       value: 
@@ -203,9 +227,29 @@ PrefabInstance:
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[2].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
+    - target: {fileID: 8136993952081507128, guid: 5049089525d268b41ac4327a430b6221, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8136993952081507128, guid: 5049089525d268b41ac4327a430b6221, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8136993952081507128, guid: 5049089525d268b41ac4327a430b6221, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 8.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8136993952081507128, guid: 5049089525d268b41ac4327a430b6221, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -10
+      objectReference: {fileID: 0}
     - target: {fileID: 8829016343710173176, guid: 5049089525d268b41ac4327a430b6221, type: 3}
       propertyPath: m_SizeDelta.x
       value: 29.17
+      objectReference: {fileID: 0}
+    - target: {fileID: 8879299632482997073, guid: 5049089525d268b41ac4327a430b6221, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 8993847580205264523, guid: 5049089525d268b41ac4327a430b6221, type: 3}
       propertyPath: m_IsActive
@@ -222,17 +266,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &3706101615387523496 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 588233208106232802, guid: 5049089525d268b41ac4327a430b6221, type: 3}
-  m_PrefabInstance: {fileID: 4271494049773261386}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8134903570611113416}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e3ec17d4a2ae79048925766121a60806, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &8134903570611113416 stripped
@@ -252,6 +285,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c1db8d4e1d807f48bf6b36ae33799ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  syncDirection: 0
-  syncMode: 0
-  syncInterval: 0.1

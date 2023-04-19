@@ -32,8 +32,8 @@ public class CardCollectionPanel : NetworkBehaviour
     }
 
     [TargetRpc]
-    public void TargetShowCardCollection(NetworkConnection target, List<GameObject> cardObjects, List<CardInfo> cardInfos){
-        
+    public void TargetShowCardCollection(NetworkConnection target, List<GameObject> cardObjects, List<CardInfo> cardInfos)
+    {
         for (var i=0; i<cardInfos.Count; i++) SpawnDetailCardObject(cardObjects[i], cardInfos[i]);
         _ui.Open();
     }

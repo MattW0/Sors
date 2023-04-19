@@ -111,7 +111,6 @@ public class BoardManager : NetworkBehaviour
     #region UI
     public void ShowHolders(bool active) => dropZone.RpcHighlightCardHolders(active); 
     public void DisableReadyButton(PlayerManager player){
-        print("Combat button disabled");
         _phasePanel.TargetDisableBlockerButton(player.connectionToClient);
     }
 
@@ -121,7 +120,6 @@ public class BoardManager : NetworkBehaviour
         }
     }
 
-    public void UndoPlayMoney() => dropZone.RpcUndoPlayMoney();
     public void DiscardMoney() => dropZone.RpcDiscardMoney();
     #endregion
     

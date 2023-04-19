@@ -19,9 +19,10 @@ public class PlayerManager : NetworkBehaviour
     private TurnManager _turnManager;
     private CombatManager _combatManager;
     private BoardManager _boardManager;
-    private CardMover _cardMover;
     private CardCollectionPanel _cardCollectionPanel;
-    [SerializeField] private DropZoneManager _dropZone;
+    private DropZoneManager _dropZone;
+    private CardMover _cardMover;
+    private Hand _handManager;
     public PlayerManager opponent { get; private set; }
 
     [Header("Game State")]
@@ -38,7 +39,6 @@ public class PlayerManager : NetworkBehaviour
     
     public static event Action OnCardPileChanged;
     public static event Action<PlayerManager, int> OnCashChanged;
-    public static event Action<GameObject, bool> OnHandChanged;
 
     // public CardCollection cards;
 
@@ -84,12 +84,6 @@ public class PlayerManager : NetworkBehaviour
 
     #region GameSetup
 
-    private void Start(){
-        _dropZone = GameObject.Find("PlayerPlayZone").GetComponent<DropZoneManager>();
-        _playerUI = GameObject.Find("PlayerInfo").GetComponent<PlayerUI>();
-        _opponentUI = GameObject.Find("OpponentInfo").GetComponent<PlayerUI>();
-    }
-
     public override void OnStartClient(){
         base.OnStartClient();
 
@@ -99,7 +93,11 @@ public class PlayerManager : NetworkBehaviour
 
     [ClientRpc]
     public void RpcInitPlayer(){
+        _handManager = Hand.Instance;
         _cardMover = CardMover.Instance;
+        _dropZone = GameObject.Find("PlayerPlayZone").GetComponent<DropZoneManager>();
+        _playerUI = GameObject.Find("PlayerInfo").GetComponent<PlayerUI>();
+        _opponentUI = GameObject.Find("OpponentInfo").GetComponent<PlayerUI>();
         
         if (!isServer) return;
         _turnManager = TurnManager.Instance;
@@ -189,8 +187,13 @@ public class PlayerManager : NetworkBehaviour
         _cardMover.MoveTo(card, isOwned, from, to);
 
         if (!isOwned) return;
-        if (to == CardLocation.Hand) OnHandChanged?.Invoke(card, true);
-        else if (from == CardLocation.Hand) OnHandChanged?.Invoke(card, false);
+        if (to == CardLocation.Hand) _handManager.UpdateHandsCardList(card, true);
+        else if (from == CardLocation.Hand) _handManager.UpdateHandsCardList(card, false);
+    }
+
+    [ClientRpc]
+    public void RpcSpawnCard(GameObject card, CardLocation destination){
+        _cardMover.SpawnCard(card, isOwned, destination);
     }
 
     [Command]
@@ -198,14 +201,32 @@ public class PlayerManager : NetworkBehaviour
         Cash += cardInfo.moneyValue;
         moneyCards.Add(card, cardInfo);
 
-        TargetMoveMoneyCard(connectionToClient, card);
+        TargetMoveMoneyCard(connectionToClient, card, false);
+    }
+
+    [Command]
+    public void CmdUndoPlayMoney(){
+        if (moneyCards.Count == 0) return;
+
+        foreach(var (card, info) in moneyCards){
+            Cash -= info.moneyValue;
+            TargetMoveMoneyCard(connectionToClient, card, true);
+        }
+        moneyCards.Clear();
+        _handManager.TargetHighlightMoney(connectionToClient);
     }
 
     [TargetRpc]
-    private void TargetMoveMoneyCard(NetworkConnection conn, GameObject card){
-        _cardMover.MoveTo(card, isOwned, CardLocation.Hand, CardLocation.MoneyZone);
-        OnHandChanged?.Invoke(card, false);
+    private void TargetMoveMoneyCard(NetworkConnection conn, GameObject card, bool undo){
+        if (undo) {
+            _cardMover.MoveTo(card, isOwned, CardLocation.MoneyZone, CardLocation.Hand);
+            _handManager.UpdateHandsCardList(card, true);
+        } else {
+            _cardMover.MoveTo(card, isOwned, CardLocation.Hand, CardLocation.MoneyZone);
+            _handManager.UpdateHandsCardList(card, false);
+        }
     }
+
 
     [Server]
     public void DiscardMoneyCards(){
@@ -236,8 +257,6 @@ public class PlayerManager : NetworkBehaviour
 
     #region TurnActions
 
-    // !!! workarounds to communicate with server !!!
-
     [Command] 
     public void CmdPhaseSelection(List<Phase> phases){
         // Saving local player choice
@@ -262,34 +281,8 @@ public class PlayerManager : NetworkBehaviour
             RpcMoveCard(card, CardLocation.Hand, CardLocation.Discard);
         }
 
-        print("Hand count for host (" + isLocalPlayer + ") : " + hand.Count);
         _discardSelection.Clear();
     }
-
-    [Command]
-    public void CmdUndoPlayMoney(){
-        if (moneyCards.Count == 0) return;
-
-        foreach(var (card, info) in moneyCards){
-            // _gameManager.GetCardObject
-            hand.Add(info);
-            Cash -= info.moneyValue;
-        }
-        moneyCards.Clear();
-    }
-
-    public void MoneyReturned(List<GameObject> cards){
-        foreach(var card in cards){
-            if (isServer) RpcMoveCard(card, CardLocation.MoneyZone, CardLocation.Hand);
-            else CmdMoveCard(card, CardLocation.Hand, CardLocation.Hand);
-        }
-    }
-
-    // [Command]
-    // public void CmdMoveMoneyCardsToDiscard(List<GameObject> cards) => RpcMoveMoneyCardsToDiscard(connectionToClient, cards);
-
-    // [ClientRpc]
-    // public void RpcMoveMoneyCardsToDiscard(NetworkConnection conn, List<GameObject> cards) => _cardMover.DiscardMoney(cards, isLocalPlayer);
 
     public void PlayerDevelops(List<CardInfo> selectedCards){
         if(isServer) _turnManager.PlayerSelectedDevelopCard(this, selectedCards);
@@ -499,6 +492,11 @@ public class PlayerManager : NetworkBehaviour
         }
     }
 
+    private void RemoveHandCard(CardInfo cardInfo){
+        var cardToRemove = hand.FirstOrDefault(c => c.Equals(cardInfo));
+        hand.Remove(cardToRemove);
+    }
+
     public void PlayerPressedCombatButton() {
         if (isServer) PlayerPressedCombatButton(this);
         else CmdPlayerPressedCombatButton(this);
@@ -522,14 +520,6 @@ public class PlayerManager : NetworkBehaviour
     // private void PlayerClickedCollectionViewButton(PlayerManager player) {
     //     _cardCollectionPanel.TargetShowCardCollection(player.connectionToClient, hand);
     // }
-
-    private void RemoveHandCard(CardInfo cardInfo){
-        // var comparer = new CardInfoEqualityComparer();
-        // var cardToRemove = hand.FirstOrDefault(c => comparer.Equals(c, cardInfo));
-
-        var cardToRemove = hand.FirstOrDefault(c => c.Equals(cardInfo));
-        hand.Remove(cardToRemove);
-    }
 
     #endregion
 }

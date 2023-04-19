@@ -209,7 +209,7 @@ public class GameManager : NetworkBehaviour {
             default:
                 throw new ArgumentOutOfRangeException(nameof(destination), destination, null);
         }
-        owner.RpcMoveCard(cardObject, CardLocation.Spawned, destination);
+        owner.RpcSpawnCard(cardObject, destination);
     }
 
     public void SpawnMoney(PlayerManager player, CardInfo cardInfo){

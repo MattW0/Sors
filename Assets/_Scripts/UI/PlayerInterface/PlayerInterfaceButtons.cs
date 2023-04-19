@@ -10,7 +10,6 @@ public class PlayerInterfaceButtons : MonoBehaviour
     private PlayerManager _player;
     private Kingdom _kingdom;
     private CardCollectionPanel _cardCollectionPanel;
-    // [SerializeField] private Button _readyButton;
     [SerializeField] private Button _undoButton;
     private bool _isOpen = false;
 
@@ -28,16 +27,16 @@ public class PlayerInterfaceButtons : MonoBehaviour
         _player = PlayerManager.GetLocalPlayer();
     }
 
-    public void OnHandButtonPressed(){
-        if(_isOpen) {
-            _isOpen = false;
-            _cardCollectionPanel.ClearPanel();
-            return;
-        }
+    // public void OnHandButtonPressed(){
+    //     if(_isOpen) {
+    //         _isOpen = false;
+    //         _cardCollectionPanel.ClearPanel();
+    //         return;
+    //     }
 
-        _isOpen = true;
-        // _player.PlayerClickedCollectionViewButton();
-    }
+    //     _isOpen = true;
+    //     _player.PlayerClickedCollectionViewButton();
+    // }
 
     public void OnKingdomButtonPressed(){
         _kingdom.MaxButton();
@@ -49,13 +48,11 @@ public class PlayerInterfaceButtons : MonoBehaviour
     public void OnUndoButtonPressed() {
         _player.CmdUndoPlayMoney();
     }
+}
 
-    // public void EnableReadyButton(){
-    //     _readyButton.interactable = true;
-    // }
-
-    // public void DisableReadyButton(){
-    //     _readyButton.interactable = false;
-    // }
-
+public enum UndoReason
+{
+    PlayMoney,
+    Attack,
+    Block
 }

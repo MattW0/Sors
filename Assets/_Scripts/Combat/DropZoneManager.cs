@@ -16,7 +16,8 @@ public class DropZoneManager : NetworkBehaviour
     private PlayerManager _player;
     private CombatState _combatState;
 
-    private void Start(){    
+    private void Start()
+    {    
         if (isServer) _boardManager = BoardManager.Instance;
 
         _player = PlayerManager.GetLocalPlayer();
@@ -25,8 +26,8 @@ public class DropZoneManager : NetworkBehaviour
     #region Entities
     
     [Server]
-    public void EntityEntersDropZone(PlayerManager owner, BattleZoneEntity entity){
-
+    public void EntityEntersDropZone(PlayerManager owner, BattleZoneEntity entity)
+    {
         var index = 0;
         if(owner.isLocalPlayer) {
             _hostEntities.Add(entity);
@@ -42,7 +43,8 @@ public class DropZoneManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void RpcMoveEntityToHolder(BattleZoneEntity entity, int index){
+    private void RpcMoveEntityToHolder(BattleZoneEntity entity, int index)
+    {
         if(entity.isOwned) entity.transform.SetParent(playerCardHolders[index].transform, false);
         else entity.transform.SetParent(opponentCardHolders[index].transform, false);
         
@@ -50,7 +52,8 @@ public class DropZoneManager : NetworkBehaviour
     }
 
     [Server]
-    private void EntityLeavesPlayZone(PlayerManager owner, BattleZoneEntity entity){
+    private void EntityLeavesPlayZone(PlayerManager owner, BattleZoneEntity entity)
+    {
         if(owner.isLocalPlayer) _hostEntities.Remove(entity);
         else _clientEntities.Remove(entity);
 
@@ -62,7 +65,8 @@ public class DropZoneManager : NetworkBehaviour
     #region Attackers
 
     [Server]
-    public void PlayersDeclareAttackers(List<PlayerManager> players){
+    public void PlayersDeclareAttackers(List<PlayerManager> players)
+    {
         _combatState = CombatState.Attackers;
         foreach (var player in players) {
             if (player.isLocalPlayer) TargetDeclareAttackers(player.connectionToClient, _hostEntities);
@@ -73,7 +77,6 @@ public class DropZoneManager : NetworkBehaviour
     [TargetRpc]
     private void TargetDeclareAttackers(NetworkConnection conn, List<BattleZoneEntity> entities)
     {
-    print(_player.PlayerName +" has "+ entities.Count + " entities");
         // Auto-skipping if player has empty board
         if (entities.Count == 0) {
             if (isServer) PlayerFinishedChoosingAttackers(_player, true);
@@ -130,7 +133,8 @@ public class DropZoneManager : NetworkBehaviour
     #region Blockers
 
     [Server]
-    public void PlayersDeclareBlockers(List<PlayerManager> players){
+    public void PlayersDeclareBlockers(List<PlayerManager> players)
+    {
         _combatState = CombatState.Blockers;
         foreach (var player in players) {
             // Host Logic
@@ -168,7 +172,8 @@ public class DropZoneManager : NetworkBehaviour
         }
     }
 
-    private void PlayerFinishedChoosingBlockers(){
+    private void PlayerFinishedChoosingBlockers()
+    {
         if(isServer) {
             foreach(var entity in _hostEntities){
                 entity.SetHighlight(false);
@@ -184,18 +189,21 @@ public class DropZoneManager : NetworkBehaviour
     }
 
     [Command(requiresAuthority = false)]
-    private void CmdPlayerFinishedChoosingBlockers(PlayerManager player, bool skip){
+    private void CmdPlayerFinishedChoosingBlockers(PlayerManager player, bool skip)
+    {
         _boardManager.DisableReadyButton(player);
         ServerPlayerFinishedChoosingBlockers(player, skip);
     }
 
     [Server]
-    public void ServerPlayerFinishedChoosingBlockers(PlayerManager player, bool skip = false){
+    public void ServerPlayerFinishedChoosingBlockers(PlayerManager player, bool skip = false)
+    {
         _boardManager.BlockersDeclared(player, new List<BattleZoneEntity>());
     }
 
     [Server]
-    public void CombatCleanUp(){
+    public void CombatCleanUp()
+    {
         _combatState = CombatState.CleanUp;
         var entities = new List<BattleZoneEntity>();
         entities.AddRange(_hostEntities);
@@ -204,7 +212,8 @@ public class DropZoneManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void RpcResetCreatures(List<BattleZoneEntity> entities){
+    private void RpcResetCreatures(List<BattleZoneEntity> entities)
+    {
         foreach (var entity in entities){
             entity.ResetAfterCombat();
         }
@@ -215,7 +224,8 @@ public class DropZoneManager : NetworkBehaviour
     #region UI and utils
 
     [ClientRpc]
-    public void RpcHighlightCardHolders(bool active){
+    public void RpcHighlightCardHolders(bool active)
+    {
         if (active) HighlightHolders();
         else ResetHolders();
     }
@@ -232,13 +242,6 @@ public class DropZoneManager : NetworkBehaviour
         foreach (var holder in playerCardHolders) {
             holder.ResetHighlight();
         }
-    }
-
-    [ClientRpc]
-    public void RpcUndoPlayMoney() {
-        // if(isClient)
-        print("dropzone: undo");   
-        playerMoneyZone.UndoPlayMoney();
     }
 
     [ClientRpc]

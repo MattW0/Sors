@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class CardMover : MonoBehaviour
 {
@@ -46,13 +47,6 @@ public class CardMover : MonoBehaviour
         cardUI.HighlightReset();
     }
 
-    public void DiscardMoney(List<GameObject> cards, bool hasAuthority){
-        foreach(var c in cards){
-            MoveTo(c, false, CardLocation.MoneyZone, CardLocation.Discard);
-            opponentHand.Remove(c);
-        }
-    }
-
     private CardsPileSors GetPile(CardLocation location, bool hasAuthority){
         var pile = location switch{
             CardLocation.Spawned => null,
@@ -66,6 +60,25 @@ public class CardMover : MonoBehaviour
         };
 
         return pile;
+    }
+    public void DiscardMoney(List<GameObject> cards, bool hasAuthority){
+        foreach(var c in cards){
+            MoveTo(c, false, CardLocation.MoneyZone, CardLocation.Discard);
+            opponentHand.Remove(c);
+        }
+    }
+
+    public void SpawnCard(GameObject card, bool hasAuthority, CardLocation destination){
+        print("spawn card routine");
+        print("card init pos: " + card.transform.position);
+        
+        var pile = GetPile(destination, hasAuthority);
+        var pos = pile.transform.position;
+        print("pile pos: " + pos);
+
+        card.transform.DOMove(pos, 2f).OnComplete(() => {
+            MoveTo(card, hasAuthority, CardLocation.Spawned, destination);
+        });
     }
 }
 
