@@ -20,6 +20,7 @@ public class CardMover : MonoBehaviour
     [SerializeField] private CardsPileSors opponentDeck;
     [SerializeField] private CardsPileSors opponentDiscardPile;
     [SerializeField] private CardsPileSors trash;
+    [SerializeField] private CardsPileSors spawned;
     
     private void Awake(){
         if(!Instance) Instance = this;
@@ -68,17 +69,32 @@ public class CardMover : MonoBehaviour
         }
     }
 
-    public void SpawnCard(GameObject card, bool hasAuthority, CardLocation destination){
-        print("spawn card routine");
-        print("card init pos: " + card.transform.position);
+    private IEnumerator SpawnCard(GameObject card, bool hasAuthority, CardLocation destination){
         
-        var pile = GetPile(destination, hasAuthority);
-        var pos = pile.transform.position;
-        print("pile pos: " + pos);
+        // Add and reomove to correctly place card object in world space
+        card.GetComponent<CardUI>().CardFrontUp();
+        spawned.Add(card);
+        spawned.Remove(card);
+        card.SetActive(true);
 
-        card.transform.DOMove(pos, 2f).OnComplete(() => {
+        yield return new WaitForSeconds(0.7f);
+
+        var destinationTransform = GetPile(destination, hasAuthority).transform;
+        card.transform.DOMove(destinationTransform.position, 0.5f).OnComplete(() => {
             MoveTo(card, hasAuthority, CardLocation.Spawned, destination);
         });
+
+        yield return null;
+    }
+
+    public IEnumerator ResolveSpawn(Dictionary<CardLocation, List<GameObject>> cards, bool hasAuthority, float waitTime){
+        foreach(var (dest, cardList) in cards){
+            foreach(var card in cardList){
+                StartCoroutine(SpawnCard(card, hasAuthority, dest));
+                yield return new WaitForSeconds(waitTime);
+            }
+            // yield return new WaitForSeconds(1f);
+        }
     }
 }
 

@@ -183,7 +183,6 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
     public void SetPosition(bool isMine){
         if(isMine) return;
         
-        print("setting position for opponent entity");
         _entityUI.UntapOpponentCreature();
     }
 

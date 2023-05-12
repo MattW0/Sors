@@ -9,6 +9,7 @@ public class CardCollectionPanelUI : MonoBehaviour
 {   
     [Header("Entities")]
     [SerializeField] private CardCollectionPanel _cardCollectionPanel;
+    private PlayerManager _localPlayer;
 
     [Header("UI")]
     [SerializeField] private GameObject _container;
@@ -28,6 +29,8 @@ public class CardCollectionPanelUI : MonoBehaviour
     private int _nbCardsToTrashMax;
     
     public void PrepareCardCollectionPanelUi(int nbCardsToDiscard){
+        _localPlayer = PlayerManager.GetLocalPlayer();
+
         _nbCardsToDiscard = nbCardsToDiscard;
 
         _interaction.SetActive(false);
@@ -56,19 +59,21 @@ public class CardCollectionPanelUI : MonoBehaviour
     }
 
     private void InteractionBegin(){
-        _buttons.SetActive(true);
-        _interaction.SetActive(true);
-        _waitingText.SetActive(false);
-        _confirmButton.interactable = false;
-        _collectionTitle.text = "Hand";
+        StartHandInteractionUI();
 
         switch (_state){
             case TurnState.Discard:
                 _displayText.text = $"Discard 0/{_nbCardsToDiscard} cards";                
                 break;
             case TurnState.Deploy:
-                _skipButton.SetActive(true);
-                _displayText.text = $"You may deploy a card";
+                if(_localPlayer.Deploys <= 0){
+                    _buttons.SetActive(false);
+                    _waitingText.SetActive(true);
+                    _displayText.text = $"You have no deploys left";
+                } else {
+                    _skipButton.SetActive(true);
+                    _displayText.text = $"You may deploy a card";
+                }
                 break;
             case TurnState.Trash:
                 _confirmButton.interactable = true;
@@ -92,8 +97,8 @@ public class CardCollectionPanelUI : MonoBehaviour
         _buttons.SetActive(false);
         _waitingText.SetActive(true);
 
-        if(state == TurnState.Deploy) PlayerManager.GetLocalPlayer().CmdSkipDeploy();
-        else if(state == TurnState.Trash) PlayerManager.GetLocalPlayer().CmdSkipTrash();
+        if(state == TurnState.Deploy) _localPlayer.CmdSkipDeploy();
+        else if(state == TurnState.Trash) _localPlayer.CmdSkipTrash();
     }
 
     public void UpdateInteractionElements(int nbSelected){
@@ -106,6 +111,14 @@ public class CardCollectionPanelUI : MonoBehaviour
                 _confirmButton.interactable = nbSelected == _nbCardsToDeploy;
                 break;
         }
+    }
+
+    private void StartHandInteractionUI(){
+        _buttons.SetActive(true);
+        _interaction.SetActive(true);
+        _waitingText.SetActive(false);
+        _confirmButton.interactable = false;
+        _collectionTitle.text = "Hand";
     }
 
     public void ResetPanelUI(bool hard){

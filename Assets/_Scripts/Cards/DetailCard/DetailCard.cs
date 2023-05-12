@@ -7,7 +7,7 @@ public class DetailCard : MonoBehaviour, IPointerClickHandler
 {
     private CardInfo _cardInfo;
     private CardCollectionPanel _collectionPanel;
-    private DetailCardUI _ui;
+    [SerializeField] private DetailCardUI _ui;
     public bool isChoosable;
     private bool _chosen;
     private bool IsChosen{
@@ -19,10 +19,8 @@ public class DetailCard : MonoBehaviour, IPointerClickHandler
         }
     }
 
-    private void Awake()
-    {
+    private void Awake(){
         _collectionPanel = CardCollectionPanel.Instance;
-        _ui = gameObject.GetComponent<DetailCardUI>();
     }
 
     public void CheckDeployability(int cash){

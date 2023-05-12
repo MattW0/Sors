@@ -6,6 +6,7 @@ using UnityEngine;
 
 public class DropZoneManager : NetworkBehaviour
 {
+    public static DropZoneManager Instance { get; private set; }
     [SerializeField] private MoneyZone playerMoneyZone;
     [SerializeField] private MoneyZone opponentMoneyZone;
     [SerializeField] private PlayZoneCardHolder[] playerCardHolders = new PlayZoneCardHolder[6];
@@ -15,12 +16,15 @@ public class DropZoneManager : NetworkBehaviour
     private BoardManager _boardManager;
     private PlayerManager _player;
     private CombatState _combatState;
+    public static event Action OnPlayerDeclareAttackers;
+    public static event Action OnPlayerDeclareBlockers;
 
     private void Start()
-    {    
-        if (isServer) _boardManager = BoardManager.Instance;
-
+    {
+        if (!Instance) Instance = this;
         _player = PlayerManager.GetLocalPlayer();
+
+        if (isServer) _boardManager = BoardManager.Instance;
     }
 
     #region Entities
@@ -84,6 +88,7 @@ public class DropZoneManager : NetworkBehaviour
             return;
         }
         // Else we enable entities to be tapped and wait for player to declare attackers and press ready btn
+        OnPlayerDeclareAttackers?.Invoke();
         foreach (var entity in entities) {
             entity.CheckIfCanAct(CombatState.Attackers);
         }
@@ -167,6 +172,7 @@ public class DropZoneManager : NetworkBehaviour
         }
 
         // Else we enable entities to be tapped and wait for player to declare attackers and press ready btn
+        OnPlayerDeclareBlockers?.Invoke();
         foreach (var entity in entities) {
             entity.CheckIfCanAct(CombatState.Blockers);
         }

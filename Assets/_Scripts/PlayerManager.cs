@@ -28,8 +28,9 @@ public class PlayerManager : NetworkBehaviour
     [Header("Game State")]
     public List<Phase> chosenPhases = new();
     public List<PrevailOption> chosenPrevailOptions = new();
-    private List<GameObject> _discardSelection;
-    public List<GameObject> trashSelection;
+    private Dictionary<CardLocation, List<GameObject>> _spawnedCards = new();
+    private List<GameObject> _discardSelection = new();
+    public List<GameObject> trashSelection = new();
     public Dictionary<GameObject, CardInfo> moneyCards = new();
 
     public bool PlayerIsChoosingBlockers { get; private set; }
@@ -95,7 +96,7 @@ public class PlayerManager : NetworkBehaviour
     public void RpcInitPlayer(){
         _handManager = Hand.Instance;
         _cardMover = CardMover.Instance;
-        _dropZone = GameObject.Find("PlayerPlayZone").GetComponent<DropZoneManager>();
+        _dropZone = DropZoneManager.Instance;
         _playerUI = GameObject.Find("PlayerInfo").GetComponent<PlayerUI>();
         _opponentUI = GameObject.Find("OpponentInfo").GetComponent<PlayerUI>();
         
@@ -193,7 +194,17 @@ public class PlayerManager : NetworkBehaviour
 
     [ClientRpc]
     public void RpcSpawnCard(GameObject card, CardLocation destination){
-        _cardMover.SpawnCard(card, isOwned, destination);
+        card.SetActive(false);
+        if(!_spawnedCards.ContainsKey(destination))
+            _spawnedCards.Add(destination, new());
+        _spawnedCards[destination].Add(card);
+    }
+
+    [ClientRpc]
+    public void RpcResolveCardSpawn(bool animate){
+        var waitTime = animate ? 0.5f : 0f;
+        StartCoroutine(_cardMover.ResolveSpawn(_spawnedCards, isOwned, waitTime));
+        _spawnedCards.Clear();
     }
 
     [Command]
@@ -414,23 +425,23 @@ public class PlayerManager : NetworkBehaviour
         else _opponentUI.SetCash(value);
     }
     
+    [Server]
     private void SetDeployValue(int value){
         _deploys = value;
-        if (isServer) RpcUISetDeployValue(value);
-        else CmdUISetDeployValue(value);
+        if (isServer) RpcSetDeployValue(value);
+        else CmdSetDeployValue(value);
     }
 
     [Command]
-    private void CmdUISetDeployValue(int value) => RpcUISetDeployValue(value);
+    private void CmdSetDeployValue(int value) => RpcSetDeployValue(value);
 
     [ClientRpc]
-    private void RpcUISetDeployValue(int value){
-        // OnDeployChanged?.Invoke(this, value);
-
+    private void RpcSetDeployValue(int value){
         if(isOwned) _playerUI.SetDeploys(value);
         else _opponentUI.SetDeploys(value);
     }
 
+    [Server]
     private void SetRecruitValue(int value){
         _recruits = value;
         if (isServer) RpcUISetRecruitValue(value);

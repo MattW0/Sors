@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -6,9 +7,11 @@ using Mirror;
 using Random = UnityEngine.Random;
 
 public class GameManager : NetworkBehaviour {
+    
     [Header("For Coding")]
     public bool singlePlayer;
-    public bool animations;
+    public bool animations = true;
+    public bool cardSpawnAnimations = false;
 
     public static GameManager Instance { get; private set; }
     private TurnManager _turnManager;
@@ -20,7 +23,6 @@ public class GameManager : NetworkBehaviour {
 
     [Header("Game state")]
     [SyncVar] public int turnNb;
-    // public int numberPlayers = 2;
     public Dictionary<PlayerManager, NetworkIdentity> players = new();
     private List<PlayerManager> _loosingPlayers = new();
 
@@ -81,16 +83,18 @@ public class GameManager : NetworkBehaviour {
         SorsNetworkManager.OnAllPlayersReady += GameSetup;
     }
 
-    public void GameSetup(int nbPlayers, int nbPhases, bool fullHand){
+    public void GameSetup(int nbPlayers, int nbPhases, bool fullHand, bool spawnimations){
 
         print("Game starting with options:");
         print("Players: " + nbPlayers);
         print("Phases: " + nbPhases);
         print("Full hand: " + fullHand);
+        print("Spawnimations: " + spawnimations);
 
         singlePlayer = nbPlayers == 1;
         nbPhasesToChose = nbPhases;
         initialHandSize = fullHand ? initialDeckSize : initialHandSize;
+        cardSpawnAnimations = spawnimations;
 
         _turnManager = TurnManager.Instance;
         _boardManager = BoardManager.Instance;
@@ -99,8 +103,17 @@ public class GameManager : NetworkBehaviour {
         
         KingdomSetup();
         PlayerSetup();
-        
-        OnGameStart?.Invoke(nbPlayers);
+
+        if(cardSpawnAnimations) StartCoroutine(PreGameWaitRoutine());
+    }
+
+    private IEnumerator PreGameWaitRoutine(){
+        yield return new WaitForSeconds(6f);
+        foreach(var player in players.Keys) {
+            player.deck.Shuffle();
+            player.DrawInitialHand(initialHandSize);
+        }
+        OnGameStart?.Invoke(players.Count);
     }
 
     #region Setup
@@ -149,10 +162,14 @@ public class GameManager : NetworkBehaviour {
 
             // Cards
             SpawnPlayerDeck(player);
-            player.deck.Shuffle();
 
-            player.DrawInitialHand(initialHandSize);
-            
+            if(!cardSpawnAnimations) {
+                player.deck.Shuffle();
+                player.DrawInitialHand(initialHandSize);
+                OnGameStart?.Invoke(players.Count);
+            } else {
+                player.RpcResolveCardSpawn(cardSpawnAnimations);
+            }
         }
     }
 
@@ -164,14 +181,14 @@ public class GameManager : NetworkBehaviour {
         // Coppers
         for (var i = 0; i < initialDeckSize - nbCreatures; i++){
             var moneyCard = moneyCards[0]; // Only copper right now
-            var cardObject = Instantiate(moneyCardPrefab);
+            var cardObject = Instantiate(moneyCardPrefab) as GameObject;
             SpawnCacheAndMoveCard(playerManager, cardObject, moneyCard, CardLocation.Deck);
         }
 
         // Other start cards
         for (var i = 0; i < nbCreatures; i++){
             var creatureCard = startCards[i]; // Special creatures 'A' & 'B' 
-            var cardObject = Instantiate(creatureCardPrefab);
+            var cardObject = Instantiate(creatureCardPrefab) as GameObject;
             SpawnCacheAndMoveCard(playerManager, cardObject, creatureCard, CardLocation.Deck);
         }
     }
@@ -200,16 +217,12 @@ public class GameManager : NetworkBehaviour {
             case CardLocation.Hand:
                 owner.hand.Add(cardInfo);
                 break;
-            case CardLocation.Spawned:
-                break;
-            case CardLocation.PlayZone:
-                break;
-            case CardLocation.MoneyZone:
-                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(destination), destination, null);
         }
-        owner.RpcSpawnCard(cardObject, destination);
+
+        if(cardSpawnAnimations) owner.RpcSpawnCard(cardObject, destination);
+        else owner.RpcMoveCard(cardObject, CardLocation.Spawned, destination);
     }
 
     public void SpawnMoney(PlayerManager player, CardInfo cardInfo){

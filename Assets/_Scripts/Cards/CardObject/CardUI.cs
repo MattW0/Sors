@@ -25,18 +25,9 @@ public class CardUI : MonoBehaviour {
     // [SerializeField] private GameObject _back;
     [SerializeField] private GameObject _creatureUi;
     [SerializeField] private GameObject _moneyUi;
-    
-    private void Awake(){
-        
-        _transform = gameObject.transform;
-        _transform.SetParent(GameObject.Find("UI").transform, false);
-        
-        _transform.eulerAngles = Vector3.zero;
-        _transform.position = Vector3.zero;
-
-    }
 
     public void SetCardUI(CardInfo cardInfo){
+
         _title.text = cardInfo.title;
         _cost.text = cardInfo.cost.ToString();
         

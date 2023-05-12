@@ -20,6 +20,7 @@ public class PhasePanel : NetworkBehaviour
     [Header("Turn screen")]
     private bool _animate;
     [SerializeField] private TMP_Text turnText;
+    [SerializeField] private TMP_Text turnScreenText;
     [SerializeField] private GameObject turnScreen;
     private Image _backgroundImage;
     [SerializeField] private int turnScreenWaitTime = 1;
@@ -36,8 +37,8 @@ public class PhasePanel : NetworkBehaviour
 
         _backgroundImage = turnScreen.transform.GetChild(0).GetComponent<Image>();
 
-        CombatManager.OnDeclareAttackers += RpcBeginCombatAttack;
-        CombatManager.OnDeclareBlockers += RpcBeginCombatBlock;
+        DropZoneManager.OnPlayerDeclareAttackers += BeginCombatAttack;
+        DropZoneManager.OnPlayerDeclareBlockers += BeginCombatBlock;
         // BoardManager.OnBlockersDeclared += TargetEndCombatBlockers;
     }
 
@@ -48,6 +49,7 @@ public class PhasePanel : NetworkBehaviour
         OnPhaseSelectionStarted?.Invoke();
 
         if(!_animate) return;
+        turnScreenText.text = "Turn " + currentTurn.ToString();
         StartCoroutine(WaitAndFade());
     }
 
@@ -61,17 +63,18 @@ public class PhasePanel : NetworkBehaviour
         confirm.interactable = _selectedPhases.Count == _nbPhasesToChose;
     }
 
-    [ClientRpc]
-    public void RpcBeginCombatAttack() => attack.StartSelection();
+    public void BeginCombatAttack() => attack.StartSelection();
 
-    [ClientRpc]
-    public void RpcBeginCombatBlock(){
-        attack.Reset();
+    public void BeginCombatBlock(){
+        // attack.Reset();
         block.StartSelection();
     }
 
     [TargetRpc]
-    public void TargetDisableBlockerButton(NetworkConnection conn) => block.Reset();
+    public void TargetDisableButtons(NetworkConnection conn){
+        attack.Reset();
+        block.Reset();
+    }
 
     public void PlayerPressedCombatButton(){
         var player = PlayerManager.GetLocalPlayer();
@@ -102,7 +105,7 @@ public class PhasePanel : NetworkBehaviour
     }
 
     private void OnDestroy() {
-        CombatManager.OnDeclareAttackers -= RpcBeginCombatAttack;
-        CombatManager.OnDeclareBlockers -= RpcBeginCombatBlock;
+        DropZoneManager.OnPlayerDeclareAttackers -= BeginCombatAttack;
+        DropZoneManager.OnPlayerDeclareBlockers -= BeginCombatBlock;
     }
 }

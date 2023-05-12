@@ -111,7 +111,7 @@ public class BoardManager : NetworkBehaviour
     #region UI
     public void ShowHolders(bool active) => dropZone.RpcHighlightCardHolders(active); 
     public void DisableReadyButton(PlayerManager player){
-        _phasePanel.TargetDisableBlockerButton(player.connectionToClient);
+        _phasePanel.TargetDisableButtons(player.connectionToClient);
     }
 
     private void DestroyArrows(){

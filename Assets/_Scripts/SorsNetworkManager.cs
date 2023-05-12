@@ -9,8 +9,8 @@ public class SorsNetworkManager : NetworkManager
     private NetworkManager _manager;
     private string _playerNameBuffer;
     private string[] _networkAddresses = new string[2] {"localhost", "192.168.1.170"};
-    private GameOptions _gameOptions = new GameOptions(2, 2, false, "localhost");
-    public static event Action<int, int, bool> OnAllPlayersReady;
+    private GameOptions _gameOptions = new GameOptions(2, 2, false, false, "localhost");
+    public static event Action<int, int, bool, bool> OnAllPlayersReady;
 
     public override void Awake(){
         base.Awake();
@@ -43,7 +43,8 @@ public class SorsNetworkManager : NetworkManager
         yield return new WaitForSeconds(0.5f);
         OnAllPlayersReady?.Invoke(GameOptions.NumberPlayers, 
                                   GameOptions.NumberPhases,
-                                  GameOptions.FullHand);
+                                  GameOptions.FullHand,
+                                  GameOptions.CardSpawnAnimations);
         yield return null;
     }
 
@@ -89,6 +90,7 @@ public class SorsNetworkManager : NetworkManager
     public static void SetNumberPlayers(int numberPlayers) => GameOptions.NumberPlayers = numberPlayers + 1;
     public static void SetNumberPhases(int numberPhases) => GameOptions.NumberPhases = numberPhases + 1;
     public static void SetFullHand(bool drawAll) => GameOptions.FullHand = drawAll;
+    public static void SetSpawnimations(bool b) => GameOptions.CardSpawnAnimations = b;
     public void SetNetworkAddress(string networkAddress) => _manager.networkAddress = networkAddress;
     #endregion
 
@@ -103,11 +105,13 @@ public struct GameOptions{
     public static int NumberPlayers { get; set;}
     public static int NumberPhases { get; set;}
     public static bool FullHand { get; set;}
+    public static bool CardSpawnAnimations { get; set;}
     public static string NetworkAddress { get; set;}
-    public GameOptions(int numPlayers, int numPhases, bool fullHand, string address){
+    public GameOptions(int numPlayers, int numPhases, bool fullHand, bool spawnimations, string address){
         NumberPlayers = numPlayers;
         NumberPhases = numPhases;
         FullHand = fullHand;
+        CardSpawnAnimations = spawnimations;
         NetworkAddress = address;
     }
 } 

@@ -277,6 +277,10 @@ public class TurnManager : NetworkBehaviour
             }
         }
         
+        foreach(var player in _gameManager.players.Keys){
+            player.RpcResolveCardSpawn(_gameManager.cardSpawnAnimations);
+        }
+        
         PlayersStatsResetAndDiscardMoney();
         _kingdom.RpcEndDevelop();
 
@@ -335,8 +339,8 @@ public class TurnManager : NetworkBehaviour
         }
 
         if(anotherDeploy) {
-            Deploy(false);
             _cardCollectionPanel.RpcSoftResetPanel();
+            Deploy(false);
         }
         else EndDeploy();
     }
@@ -371,9 +375,7 @@ public class TurnManager : NetworkBehaviour
         else
             _selectedKingdomCards.Add(player, new List<CardInfo> { card });
         
-        print("Player " + player.PlayerName + " recruits " + card.title + " for " + card.cost + " gold");
-        print("Recruits left: " + player.Recruits);
-        
+        print(player.PlayerName + " recruits " + card.title + " for " + card.cost + " gold");        
         _kingdom.TargetResetRecruit(player.connectionToClient, player.Recruits);
 
         // Waiting for player to use remaining recruit actions
@@ -429,7 +431,6 @@ public class TurnManager : NetworkBehaviour
 
     private void NextPrevailOption(){
         
-        print("Nb options to play: " + _prevailOptionsToPlay.Count);
         // All options have been played
         if (_prevailOptionsToPlay.Count == 0){
             PrevailCleanUp();

@@ -19,6 +19,7 @@ public class KingdomUI : MonoBehaviour
     [SerializeField] private TMP_Text _switchBtnText;
     [SerializeField] private Button confirm;
     [SerializeField] private Button skip;
+    [SerializeField] private DetailCard previewCard;
 
     private void Awake()
     {
@@ -37,6 +38,7 @@ public class KingdomUI : MonoBehaviour
         confirm.interactable = true;
         _kingdom.developSelection.Add(tile.cardInfo);
     }
+
     public void DeselectDevelopCard(DevelopTile tile){
         _kingdom.developSelection.Remove(tile.cardInfo);
         if(_kingdom.developSelection.Count == 0) confirm.interactable = false;
@@ -52,10 +54,15 @@ public class KingdomUI : MonoBehaviour
     }
 
     public void SelectRecruitCard(RecruitTile tile){ 
+        previewCard.SetCardUI(tile.cardInfo);
+        previewCard.gameObject.SetActive(true);
+
         confirm.interactable = true;
         _kingdom.PlayerSelectsRecruitTile(tile);
     }
     public void DeselectRecruitCard(RecruitTile tile){
+        previewCard.gameObject.SetActive(false);
+
         confirm.interactable = false;
         _kingdom.PlayerDeselectsRecruitTile(tile);
     }
