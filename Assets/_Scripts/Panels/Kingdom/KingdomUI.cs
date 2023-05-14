@@ -41,33 +41,13 @@ public class KingdomUI : MonoBehaviour
     }
 
     #region Selection
-    public void SelectDevelopTile(DevelopTile tile){ 
-        _kingdom.PlayerSelectsDevelopTile(tile);
-        ShowPreviewCard(tile.cardInfo);
-    }
-
-    public void DeselectDevelopTile(DevelopTile tile){
-        _kingdom.PlayerDeselectsDevelopTile(tile);
-        HidePreviewCard();
-    }
-
-    public void SelectRecruitTile(RecruitTile tile){ 
-        _kingdom.PlayerSelectsRecruitTile(tile);
-        ShowPreviewCard(tile.cardInfo);
-    }
-
-    public void DeselectRecruitTile(RecruitTile tile){
-        _kingdom.PlayerDeselectsRecruitTile(tile);
-        HidePreviewCard();
-    }
-
-    private void ShowPreviewCard(CardInfo cardInfo){
+    public void SelectTile(CardInfo cardInfo){ 
         previewCard.SetCardUI(cardInfo);
         previewCard.gameObject.SetActive(true);
         confirm.interactable = true;
     }
 
-    private void HidePreviewCard(){
+    public void DeselectTile(CardInfo cardInfo){
         previewCard.gameObject.SetActive(false);
         confirm.interactable = false;
     }
@@ -110,8 +90,8 @@ public class KingdomUI : MonoBehaviour
     }
 
     public void EndPhase(){
-        HidePreviewCard();
         MinButton();
+        previewCard.gameObject.SetActive(false);
         _interactionButtons.SetActive(true);
         _waitingText.SetActive(false);
         confirm.interactable = false;

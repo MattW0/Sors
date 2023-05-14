@@ -9,17 +9,22 @@ using Unity.VisualScripting;
 public class RecruitTile : MonoBehaviour
 {
     private Kingdom _kingdom;
-    private KingdomUI _ui;
     public CardInfo cardInfo;
     private int _cost;
-    public int Cost => int.Parse(cost.text);
+    public int Cost{
+        get => _cost;
+        set{
+            _cost = value;
+            costText.text = value.ToString();
+        }
+    }
     
     private bool _isRecruitable;
     public bool Recruitable {
         get => _isRecruitable;
         set {
             _isRecruitable = value;
-            Highlight(value);
+            Highlight(value, Color.green);
         }
     }
     private bool _isSelected;
@@ -28,11 +33,11 @@ public class RecruitTile : MonoBehaviour
         set {
             _isSelected = value;
             if(value) {
-                _ui.SelectRecruitTile(this);
-                highlight.color = Color.blue;
+                _kingdom.PlayerSelectsTile(cardInfo);
+                Highlight(true, Color.blue);
             } else {
-                _ui.DeselectRecruitTile(this);
-                highlight.color = Color.green;
+                _kingdom.PlayerDeselectsTile(cardInfo);
+                Highlight(true, Color.green);
             }
         }
     }
@@ -41,7 +46,7 @@ public class RecruitTile : MonoBehaviour
     // UI
     [SerializeField] private TMP_Text title;
     [SerializeField] private TMP_Text description;
-    [SerializeField] private TMP_Text cost;
+    [SerializeField] private TMP_Text costText;
     [SerializeField] private TMP_Text attack;
     [SerializeField] private TMP_Text defense;
     [SerializeField] private TMP_Text points;
@@ -49,7 +54,6 @@ public class RecruitTile : MonoBehaviour
 
     private void Awake(){
         _kingdom = Kingdom.Instance;
-        _ui = KingdomUI.Instance;
         Kingdom.OnRecruitPhaseEnded += EndRecruitPhase;
     }
 
@@ -57,7 +61,8 @@ public class RecruitTile : MonoBehaviour
     {
         cardInfo = card;
         title.text = card.title;
-        _cost = card.cost;
+        Cost = card.cost;
+        
         attack.text = card.attack.ToString();
         defense.text = card.health.ToString();
         points.text = card.points.ToString();
@@ -65,7 +70,7 @@ public class RecruitTile : MonoBehaviour
     }
 
     public void SetRecruitBonus(int priceReduction){
-        cost.text = (_cost - priceReduction).ToString();
+        Cost -= priceReduction;
     }
 
     public void OnRecruitTileClick(){
@@ -73,26 +78,22 @@ public class RecruitTile : MonoBehaviour
         IsSelected = !_isSelected;
     }
 
-    public void ShowAsRecruited()
-    {
-        highlight.color = Color.yellow;
+    public void ShowAsRecruited(){
+        Highlight(true, Color.yellow);
         _alreadyRecruited = true;
     }
 
-    private void Highlight(bool active)
-    {
+    public void Highlight(bool active, Color color = default(Color)){
         highlight.enabled = active;
+        highlight.color = color;
     }
     
     private void EndRecruitPhase(){
-        _isRecruitable = false;
+        Recruitable = false;
         _isSelected = false;
-        highlight.enabled = false;
-        highlight.color = Color.green;
         _alreadyRecruited = false;
 
-        _cost = cardInfo.cost;
-        cost.text = _cost.ToString();
+        Cost = cardInfo.cost;
     }
 
     private void OnDestroy(){

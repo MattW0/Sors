@@ -9,17 +9,22 @@ using Unity.VisualScripting;
 public class DevelopTile : MonoBehaviour
 {
     private Kingdom _kingdom;
-    private KingdomUI _ui;
     public CardInfo cardInfo;
     private int _cost;
-    public int Cost => int.Parse(cost.text);
+    public int Cost{
+        get => _cost;
+        set{
+            _cost = value;
+            costText.text = value.ToString();
+        }
+    }
     
     private bool _isDevelopable;
     public bool Developable {
         get => _isDevelopable;
         set {
             _isDevelopable = value;
-            Highlight(value);
+            Highlight(value, Color.green);
         }
     }
     private bool _isSelected;
@@ -28,40 +33,48 @@ public class DevelopTile : MonoBehaviour
         set {
             _isSelected = value;
             if(value) {
-                _ui.SelectDevelopTile(this);
-                highlight.color = Color.blue;
+                _kingdom.PlayerSelectsTile(cardInfo);
+                Highlight(true, Color.blue);
             } else {
-                _ui.DeselectDevelopTile(this);
-                highlight.color = Color.green;
+                _kingdom.PlayerDeselectsTile(cardInfo);
+                Highlight(true, Color.green);
             }
         }
     }
     
     // UI
     [SerializeField] private TMP_Text title;
-    [SerializeField] private TMP_Text cost;
-    [SerializeField] private TMP_Text moneyValue;
+    [SerializeField] private TMP_Text costText;
+    [SerializeField] private GameObject moneyValue;
+    [SerializeField] private TMP_Text moneyValueText;
+    [SerializeField] private GameObject defense;
+    [SerializeField] private TMP_Text defenseText;
     [SerializeField] private Image highlight;
     // [SerializeField] private Image image;
 
 
     private void Awake(){
         _kingdom = Kingdom.Instance;
-        _ui = KingdomUI.Instance;
         Kingdom.OnDevelopPhaseEnded += EndDevelopPhase;
     }
 
     public void SetTile(CardInfo card){
         cardInfo = card;
-        _cost = card.cost;
         title.text = card.title;
-        cost.text = card.cost.ToString();
-        moneyValue.text = card.moneyValue.ToString();
+        Cost = card.cost;
+
+        if(card.type == CardType.Money){
+            moneyValueText.text = card.moneyValue.ToString();
+            defense.SetActive(false);
+        } else if (card.type == CardType.Development){
+            defenseText.text = card.health.ToString();
+            moneyValue.SetActive(false);
+        }
         // points.text = card.points.ToString();
     }
 
     public void SetDevelopBonus(int priceReduction){
-        cost.text = (_cost - priceReduction).ToString();
+        Cost -= priceReduction;
     }
 
     public void OnDevelopTileClick(){
@@ -69,20 +82,17 @@ public class DevelopTile : MonoBehaviour
         IsSelected = !_isSelected;
     }
 
-    private void Highlight(bool active)
-    {
+    public void Highlight(bool active, Color color = default(Color)){
         highlight.enabled = active;
+        highlight.color = color;
     }
     
     private void EndDevelopPhase(){
-        _isDevelopable = false;
+        Developable = false;
         _isSelected = false;
-        highlight.enabled = false;
-        highlight.color = Color.green;
 
         // Reset cost (after bonus)
-        _cost = cardInfo.cost;
-        cost.text = _cost.ToString();
+        Cost = cardInfo.cost;
     }
 
     private void OnDestroy(){

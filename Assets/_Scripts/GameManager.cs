@@ -28,7 +28,7 @@ public class GameManager : NetworkBehaviour {
 
     [Header("Game start settings")]
     [SerializeField] private int nbRecruitTiles = 8;
-    [SerializeField] private int nbDevelopTiles = 2;
+    [SerializeField] private int nbDevelopTiles = 3;
     [SerializeField] public int initialDeckSize = 10;
     [SerializeField] public int nbCreatures = 2;
     [SerializeField] public int initialHandSize = 4;
@@ -55,13 +55,15 @@ public class GameManager : NetworkBehaviour {
     [Header("Available cards")]
     public ScriptableCard[] startCards;
     public ScriptableCard[] creatureCardsDb;
+    public ScriptableCard[] moneyCardsDb;
+    public ScriptableCard[] developCardsDb;
     private List<int> _cardsIdCache = new();
-    public ScriptableCard[] moneyCards;
     private Sprite[] _moneySprites;
     
     [Header("Prefabs")]
     [SerializeField] private GameObject creatureCardPrefab;
     [SerializeField] private GameObject moneyCardPrefab;
+    [SerializeField] private GameObject developCardPrefab;
     [SerializeField] private GameObject entityObjectPrefab;
 
     // Caching all gameObjects of cards in game
@@ -77,8 +79,14 @@ public class GameManager : NetworkBehaviour {
         if (Instance == null) Instance = this;
 
         startCards = Resources.LoadAll<ScriptableCard>("StartCards/");
-        creatureCardsDb = Resources.LoadAll<ScriptableCard>("creatureCards/");
-        moneyCards = Resources.LoadAll<ScriptableCard>("MoneyCards/");
+        moneyCardsDb = Resources.LoadAll<ScriptableCard>("MoneyCards/");
+        creatureCardsDb = Resources.LoadAll<ScriptableCard>("CreatureCards/");
+        developCardsDb = Resources.LoadAll<ScriptableCard>("DevelopCards/");
+
+        print("Creature cards: " + creatureCardsDb.Length);
+        print("Money cards: " + moneyCardsDb.Length);
+        print("Develop cards: " + developCardsDb.Length);
+
         _moneySprites = Resources.LoadAll<Sprite>("Sprites/Money/");
 
         TurnManager.OnPlayerDies += PlayerDies;
@@ -114,8 +122,9 @@ public class GameManager : NetworkBehaviour {
     private void KingdomSetup(){
         // Developments: right now only money
         var developCards = new CardInfo[nbDevelopTiles];
-        developCards[0] = new CardInfo(moneyCards[1]); // Silver
-        developCards[1] = new CardInfo(moneyCards[2]); // Gold
+        developCards[0] = new CardInfo(moneyCardsDb[1]); // Silver
+        developCards[1] = new CardInfo(moneyCardsDb[2]); // Gold
+        developCards[2] = new CardInfo(developCardsDb[0]);
         _kingdom.RpcSetDevelopTiles(developCards);
 
         // Recruits: Creatures
@@ -176,7 +185,7 @@ public class GameManager : NetworkBehaviour {
     private void SpawnPlayerDeck(PlayerManager playerManager){
         // Coppers
         for (var i = 0; i < initialDeckSize - nbCreatures; i++){
-            var moneyCard = moneyCards[0]; // Only copper right now
+            var moneyCard = moneyCardsDb[0]; // Only copper right now
             var cardObject = Instantiate(moneyCardPrefab) as GameObject;
             var cardInfo = SpawnAndCacheCard(playerManager, cardObject, moneyCard);
             MoveSpawnedCard(playerManager, cardObject, cardInfo, CardLocation.Deck);
@@ -230,6 +239,14 @@ public class GameManager : NetworkBehaviour {
         // using hash as index for currency scriptable objects
         var scriptableCard = Resources.Load<ScriptableCard>("MoneyCards/" + card.hash + "_" + card.title);
         var cardObject = Instantiate(moneyCardPrefab);
+        var cardInfo = SpawnAndCacheCard(player, cardObject, scriptableCard);
+        MoveSpawnedCard(player, cardObject, cardInfo, CardLocation.Discard);
+    }
+
+    public void SpawnDevelopment(PlayerManager player, CardInfo card){
+        // using hash as index for currency scriptable objects
+        var scriptableCard = Resources.Load<ScriptableCard>("DevelopCards/" + card.title);
+        var cardObject = Instantiate(developCardPrefab);
         var cardInfo = SpawnAndCacheCard(player, cardObject, scriptableCard);
         MoveSpawnedCard(player, cardObject, cardInfo, CardLocation.Discard);
     }

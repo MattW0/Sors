@@ -12,8 +12,8 @@ public class Kingdom : NetworkBehaviour
     public static Kingdom Instance { get; private set; }
     private GameManager _gameManager;
     private Phase _currentPhase;
-    private List<RecruitTile> _previouslySelected = new ();
-    public List<RecruitTile> GetPreviouslySelectedRecruitTiles() => _previouslySelected;
+    // private List<RecruitTile> _previouslyRecruited = new ();
+    // public List<RecruitTile> GetPreviouslySelectedRecruitTiles() => _previouslyRecruited;
 
     [SerializeField] private KingdomUI _ui;
     [SerializeField] private DevelopTile[] developTiles;
@@ -55,45 +55,37 @@ public class Kingdom : NetworkBehaviour
     }
     #endregion
 
-    #region Bonus
+    #region Tile Cost
     [TargetRpc]
-    public void TargetDevelopBonus(NetworkConnection target, int priceReduction){
-        foreach(var tile in developTiles) tile.SetDevelopBonus(priceReduction);
+    public void TargetKingdomBonus(NetworkConnection target, int priceReduction){
+        if (_currentPhase == Phase.Develop)
+            foreach(var tile in developTiles) tile.SetDevelopBonus(priceReduction);
+        else if (_currentPhase == Phase.Recruit)
+            foreach(var tile in recruitTiles) tile.SetRecruitBonus(priceReduction);
     }
 
     [TargetRpc]
-    public void TargetRecruitBonus(NetworkConnection target, int priceReduction){
-        foreach(var tile in recruitTiles) tile.SetRecruitBonus(priceReduction);
-    }
-
-    [TargetRpc]
-    public void TargetCheckDevelopability(NetworkConnection target, int playerCash){
-        foreach (var dt in developTiles) dt.Developable = playerCash >= dt.Cost;
-    }
-
-    [TargetRpc]
-    public void TargetCheckRecruitability(NetworkConnection target, int playerCash){
-        foreach (var tile in recruitTiles){
-            if (_previouslySelected.Contains(tile)) continue;
-            tile.Recruitable = playerCash >= tile.Cost;
+    public void TargetCheckPriceKingdomTile(NetworkConnection target, int playerCash){
+        if (_currentPhase == Phase.Develop)
+            foreach (var tile in developTiles) tile.Developable = playerCash >= tile.Cost;
+        else if (_currentPhase == Phase.Recruit){
+            foreach (var tile in recruitTiles){
+                // if (_previouslyRecruited.Contains(tile)) continue;
+                tile.Recruitable = playerCash >= tile.Cost;
+            }
         }
     }
     #endregion
     
-    #region Selection
-    public void PlayerSelectsDevelopTile(DevelopTile tile) => selection = tile.cardInfo;
-    public void PlayerDeselectsDevelopTile(DevelopTile tile) => selection.title = null;
-
-    public void PlayerSelectsRecruitTile(RecruitTile tile){
-        selection = tile.cardInfo;
-        _previouslySelected.Add(tile);
+    public void PlayerSelectsTile(CardInfo cardInfo){
+        selection = cardInfo;
+        _ui.SelectTile(cardInfo);
     }
 
-    public void PlayerDeselectsRecruitTile(RecruitTile tile){
+    public void PlayerDeselectsTile(CardInfo cardInfo){
         selection.title = null; // hack-around for check in TurnManager
-        _previouslySelected.Remove(tile);
+        _ui.DeselectTile(cardInfo);
     }
-    #endregion
 
     #region Reset and EoP
     [TargetRpc]
@@ -104,18 +96,19 @@ public class Kingdom : NetworkBehaviour
 
     [TargetRpc]
     public void TargetResetRecruit(NetworkConnection target, int recruitsLeft){        
-        foreach (var tile in _previouslySelected) tile.ShowAsRecruited();
+        // _previouslyRecruited.Add(tile);
+        // foreach (var tile in _previouslySelected) tile.ShowAsRecruited();
 
         if (recruitsLeft <= 0) return;
         _ui.ResetInteractionButtons();
     }
 
     [ClientRpc]
-    public void RpcReplaceRecruitTile(string oldTitle, CardInfo cardInfo){
+    public void RpcReplaceRecruitTile(string oldTitle, CardInfo newCardInfo){
         foreach (var tile in recruitTiles){
             if (tile.cardInfo.title != oldTitle) continue;
 
-            tile.SetTile(cardInfo);
+            tile.SetTile(newCardInfo);
             break;
         }
     }
@@ -128,7 +121,7 @@ public class Kingdom : NetworkBehaviour
 
     [ClientRpc]
     public void RpcEndRecruit(){
-        _previouslySelected.Clear();
+        // _previouslySelected.Clear();
         _ui.EndPhase();
         OnRecruitPhaseEnded?.Invoke();
     }

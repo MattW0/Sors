@@ -311,6 +311,16 @@ public class PlayerManager : NetworkBehaviour
         _turnManager.PlayerSelectedDevelopCard(this, card);
     }
 
+    public void PlayerRecruits(CardInfo card){
+        if(isServer) _turnManager.PlayerSelectedRecruitCard(this, card);
+        else CmdRecruitSelection(card);
+    }
+
+    [Command]
+    public void CmdRecruitSelection(CardInfo card){        
+        _turnManager.PlayerSelectedRecruitCard(this, card);
+    }
+
     [Command]
     public void CmdDeployCard(GameObject card){
         _turnManager.PlayerDeployedCard(this, card);
@@ -320,16 +330,6 @@ public class PlayerManager : NetworkBehaviour
 
     [Command]
     public void CmdSkipDeploy() => _turnManager.PlayerSkipsDeploy(this);
-
-    public void PlayerRecruits(CardInfo selectedCard){
-        if(isServer) _turnManager.PlayerSelectedRecruitCard(this, selectedCard);
-        else CmdRecruitSelection(selectedCard);
-    }
-
-    [Command]
-    public void CmdRecruitSelection(CardInfo card){        
-        _turnManager.PlayerSelectedRecruitCard(this, card);
-    }
 
     [Command]
     public void CmdPrevailSelection(List<PrevailOption> options){

@@ -247,7 +247,7 @@ public class TurnManager : NetworkBehaviour
 
         foreach (var player in _gameManager.players.Keys) {
             if (player.chosenPhases.Contains(Phase.Develop)){
-                _kingdom.TargetDevelopBonus(player.connectionToClient, _gameManager.developPriceReduction);
+                _kingdom.TargetKingdomBonus(player.connectionToClient, _gameManager.developPriceReduction);
             }
         }
     }
@@ -275,7 +275,8 @@ public class TurnManager : NetworkBehaviour
     {
         foreach (var (owner, cards) in _selectedKingdomCards) {
             foreach (var cardInfo in cards) {
-                _gameManager.SpawnMoney(owner, cardInfo);
+                if(cardInfo.type == CardType.Money) _gameManager.SpawnMoney(owner, cardInfo);
+                else if(cardInfo.type == CardType.Development) _gameManager.SpawnDevelopment(owner, cardInfo);
                 _playerInterfaceManager.RpcLog("<color=#4f2d00>" + owner.PlayerName + " develops " + cardInfo.title + "</color>");
             }
         }
@@ -370,7 +371,7 @@ public class TurnManager : NetworkBehaviour
 
         foreach (var player in _gameManager.players.Keys) {
             if (player.chosenPhases.Contains(Phase.Recruit)){
-                _kingdom.TargetRecruitBonus(player.connectionToClient, _gameManager.recruitPriceReduction);
+                _kingdom.TargetKingdomBonus(player.connectionToClient, _gameManager.recruitPriceReduction);
             }
         }
     }
@@ -586,14 +587,11 @@ public class TurnManager : NetworkBehaviour
     private void PlayerCashChanged(PlayerManager player, int newAmount)
     {
         switch (turnState) {
-            case TurnState.Develop:
-                _kingdom.TargetCheckDevelopability(player.connectionToClient, newAmount);
+            case TurnState.Develop or TurnState.Recruit:
+                _kingdom.TargetCheckPriceKingdomTile(player.connectionToClient, newAmount);
                 break;
             case TurnState.Deploy:
                 _cardCollectionPanel.TargetCheckDeployability(player.connectionToClient, newAmount);
-                break;
-            case TurnState.Recruit:
-                _kingdom.TargetCheckRecruitability(player.connectionToClient, newAmount);
                 break;
         }
     }
