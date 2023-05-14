@@ -9,10 +9,9 @@ public class ScriptableCard : ScriptableObject
 {
     [Header("General Properties")]
     public string hash;
+    public CardType type;
     public int cost;
     public string title;
-    public string description;
-    public Sprite image;
 
     [Header("Creature properties")]
     public int attack;
@@ -25,8 +24,9 @@ public class ScriptableCard : ScriptableObject
     public bool isCreature;
     public int moneyValue;
 
-    [Header("Special abilities")]
-
+    [Header("Card Display Data")]
+    public string description;
+    public Sprite image;
 
     static Dictionary<string, ScriptableCard> _cache;
     public static Dictionary<string, ScriptableCard> Cache

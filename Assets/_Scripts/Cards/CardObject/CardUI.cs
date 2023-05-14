@@ -31,7 +31,7 @@ public class CardUI : MonoBehaviour {
         _title.text = cardInfo.title;
         _cost.text = cardInfo.cost.ToString();
         
-        if (cardInfo.isCreature){
+        if (cardInfo.type == CardType.Creature){
             _description.text = cardInfo.keyword_abilities.ToString();
             _attack.text = cardInfo.attack.ToString();
             _health.text = cardInfo.health.ToString();
@@ -39,9 +39,12 @@ public class CardUI : MonoBehaviour {
             _description.text = string.Join(" ", cardInfo.keyword_abilities.ConvertAll(f => f.ToString()));
             _creatureUi.SetActive(true);
 
-        } else {
+        } else if (cardInfo.type == CardType.Money) {
             _image.sprite = Resources.Load<Sprite>("Sprites/Money/" + cardInfo.title);
             _moneyUi.SetActive(true);
+        } else if (cardInfo.type == CardType.Development) {
+            // _description.text = cardInfo.keyword_abilities.ToString();
+            // _description.text = string.Join(" ", cardInfo.keyword_abilities.ConvertAll(f => f.ToString()));
         }
     }
 

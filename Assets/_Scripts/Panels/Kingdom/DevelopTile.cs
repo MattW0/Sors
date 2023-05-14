@@ -10,8 +10,9 @@ public class DevelopTile : MonoBehaviour
 {
     private Kingdom _kingdom;
     private KingdomUI _ui;
-    public ScriptableCard scriptableCard;
     public CardInfo cardInfo;
+    private int _cost;
+    public int Cost => int.Parse(cost.text);
     
     private bool _isDevelopable;
     public bool Developable {
@@ -22,12 +23,23 @@ public class DevelopTile : MonoBehaviour
         }
     }
     private bool _isSelected;
+    private bool IsSelected {
+        get => _isSelected;
+        set {
+            _isSelected = value;
+            if(value) {
+                _ui.SelectDevelopTile(this);
+                highlight.color = Color.blue;
+            } else {
+                _ui.DeselectDevelopTile(this);
+                highlight.color = Color.green;
+            }
+        }
+    }
     
     // UI
     [SerializeField] private TMP_Text title;
     [SerializeField] private TMP_Text cost;
-    private int _cost;
-    public int Cost => int.Parse(cost.text); // for access in Kingdom
     [SerializeField] private TMP_Text moneyValue;
     [SerializeField] private Image highlight;
     // [SerializeField] private Image image;
@@ -54,16 +66,7 @@ public class DevelopTile : MonoBehaviour
 
     public void OnDevelopTileClick(){
         if (!_isDevelopable) return;
-
-        // Selecting / deselectin
-        if (!_isSelected) {
-            _ui.SelectDevelopCard(this);
-            highlight.color = Color.blue;
-        } else {
-            _ui.DeselectDevelopCard(this);
-            highlight.color = Color.green;
-        }
-        _isSelected = !_isSelected;
+        IsSelected = !_isSelected;
     }
 
     private void Highlight(bool active)

@@ -70,6 +70,12 @@ public class PlayerManager : NetworkBehaviour
         get => _cash;
         set => SetCashValue(value); // Invoke OnCashChanged and update UI
     }
+
+    [SyncVar] private int _develops = 1;
+    public int Develops { 
+        get => _develops; 
+        set => SetDevelopValue(value);
+    }
     
     [SyncVar] private int _recruits = 1;
     public int Recruits { 
@@ -295,14 +301,14 @@ public class PlayerManager : NetworkBehaviour
         _discardSelection.Clear();
     }
 
-    public void PlayerDevelops(List<CardInfo> selectedCards){
-        if(isServer) _turnManager.PlayerSelectedDevelopCard(this, selectedCards);
-        else CmdDevelopSelection(selectedCards);
+    public void PlayerDevelops(CardInfo card){
+        if(isServer) _turnManager.PlayerSelectedDevelopCard(this, card);
+        else CmdDevelopSelection(card);
     }
 
     [Command]
-    public void CmdDevelopSelection(List<CardInfo> cards){
-        _turnManager.PlayerSelectedDevelopCard(this, cards);
+    public void CmdDevelopSelection(CardInfo card){
+        _turnManager.PlayerSelectedDevelopCard(this, card);
     }
 
     [Command]
@@ -424,6 +430,22 @@ public class PlayerManager : NetworkBehaviour
         if(isOwned) _playerUI.SetCash(value);
         else _opponentUI.SetCash(value);
     }
+
+    [Server]
+    private void SetDevelopValue(int value){
+        _develops = value;
+        if (isServer) RpcUISetDevelopValue(value);
+        else CmdUISetDevelopValue(value);
+    }
+
+    [Command]
+    private void CmdUISetDevelopValue(int value) => RpcUISetDevelopValue(value);
+
+    [ClientRpc]
+    private void RpcUISetDevelopValue(int value){
+        if(isOwned) _playerUI.SetDevelops(value);
+        else _opponentUI.SetDevelops(value);
+    }
     
     [Server]
     private void SetDeployValue(int value){
@@ -453,8 +475,6 @@ public class PlayerManager : NetworkBehaviour
 
     [ClientRpc]
     private void RpcUISetRecruitValue(int value){
-        // OnRecruitChanged?.Invoke(value);
-
         if(isOwned) _playerUI.SetRecruits(value);
         else _opponentUI.SetRecruits(value);
     }

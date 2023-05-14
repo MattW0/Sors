@@ -40,12 +40,14 @@ public class GameManager : NetworkBehaviour {
     [SerializeField] public int nbCardDraw = 2;
     [SerializeField] public int nbDiscard = 1;
     public int turnCash = 0;
+    public int turnDevelops = 1; 
     public int turnDeploys = 1; 
     public int turnRecruits = 1;
     public int prevailOptionsToChoose = 1;
 
     [Header("Turn Boni")]
     public int developPriceReduction = 1;
+    public int recruitPriceReduction = 1;
     public int prevailExtraOptions = 1;
     public int deployBonusDeploys = 1;
 
@@ -107,15 +109,6 @@ public class GameManager : NetworkBehaviour {
         if(cardSpawnAnimations) StartCoroutine(PreGameWaitRoutine());
     }
 
-    private IEnumerator PreGameWaitRoutine(){
-        yield return new WaitForSeconds(6f);
-        foreach(var player in players.Keys) {
-            player.deck.Shuffle();
-            player.DrawInitialHand(initialHandSize);
-        }
-        OnGameStart?.Invoke(players.Count);
-    }
-
     #region Setup
     
     private void KingdomSetup(){
@@ -152,11 +145,14 @@ public class GameManager : NetworkBehaviour {
             players.Add(player, playerNetworkId);
             player.RpcInitPlayer();
 
-            // Stats
+            // Player stats
             player.PlayerName = player.PlayerName; // To update info in network
             player.Health = startHealth;
             player.Score = startScore;
+            
+            // Turn stats
             player.Cash = turnCash;
+            player.Develops = turnDevelops;
             player.Deploys = turnDeploys;
             player.Recruits = turnRecruits;
 
@@ -182,20 +178,20 @@ public class GameManager : NetworkBehaviour {
         for (var i = 0; i < initialDeckSize - nbCreatures; i++){
             var moneyCard = moneyCards[0]; // Only copper right now
             var cardObject = Instantiate(moneyCardPrefab) as GameObject;
-            SpawnCacheAndMoveCard(playerManager, cardObject, moneyCard, CardLocation.Deck);
+            var cardInfo = SpawnAndCacheCard(playerManager, cardObject, moneyCard);
+            MoveSpawnedCard(playerManager, cardObject, cardInfo, CardLocation.Deck);
         }
 
         // Other start cards
         for (var i = 0; i < nbCreatures; i++){
             var creatureCard = startCards[i]; // Special creatures 'A' & 'B' 
             var cardObject = Instantiate(creatureCardPrefab) as GameObject;
-            SpawnCacheAndMoveCard(playerManager, cardObject, creatureCard, CardLocation.Deck);
+            var cardInfo = SpawnAndCacheCard(playerManager, cardObject, creatureCard);
+            MoveSpawnedCard(playerManager, cardObject, cardInfo, CardLocation.Deck);
         }
     }
     
-    private void SpawnCacheAndMoveCard(PlayerManager owner, GameObject cardObject,
-                                       ScriptableCard scriptableCard, CardLocation destination){
-
+    private CardInfo SpawnAndCacheCard(PlayerManager owner, GameObject cardObject, ScriptableCard scriptableCard){
         var instanceID = cardObject.GetInstanceID().ToString();
         cardObject.name = instanceID;
         Cache.Add(instanceID, cardObject);
@@ -205,7 +201,12 @@ public class GameManager : NetworkBehaviour {
 
         var cardInfo = new CardInfo(scriptableCard, instanceID);
         cardObject.GetComponent<CardStats>().RpcSetCardStats(cardInfo);
-        
+
+        return cardInfo;
+    }
+
+    private void MoveSpawnedCard(PlayerManager owner, GameObject cardObject,
+                                 CardInfo cardInfo, CardLocation destination){
         switch (destination)
         {
             case CardLocation.Deck:
@@ -225,19 +226,21 @@ public class GameManager : NetworkBehaviour {
         else owner.RpcMoveCard(cardObject, CardLocation.Spawned, destination);
     }
 
-    public void SpawnMoney(PlayerManager player, CardInfo cardInfo){
+    public void SpawnMoney(PlayerManager player, CardInfo card){
         // using hash as index for currency scriptable objects
-        var scriptableCard = Resources.Load<ScriptableCard>("MoneyCards/" + cardInfo.hash + "_" + cardInfo.title);
+        var scriptableCard = Resources.Load<ScriptableCard>("MoneyCards/" + card.hash + "_" + card.title);
         var cardObject = Instantiate(moneyCardPrefab);
-        SpawnCacheAndMoveCard(player, cardObject, scriptableCard, CardLocation.Discard);
+        var cardInfo = SpawnAndCacheCard(player, cardObject, scriptableCard);
+        MoveSpawnedCard(player, cardObject, cardInfo, CardLocation.Discard);
     }
 
-    public void SpawnCreature(PlayerManager player, CardInfo cardInfo){
-        _kingdom.RpcReplaceRecruitTile(cardInfo.title, GetNewCreatureFromDb());
+    public void SpawnCreature(PlayerManager player, CardInfo card){
+        _kingdom.RpcReplaceRecruitTile(card.title, GetNewCreatureFromDb());
 
-        var scriptableCard = Resources.Load<ScriptableCard>("creatureCards/" + cardInfo.title);
+        var scriptableCard = Resources.Load<ScriptableCard>("creatureCards/" + card.title);
         var cardObject = Instantiate(creatureCardPrefab);
-        SpawnCacheAndMoveCard(player, cardObject, scriptableCard, CardLocation.Discard);
+        var cardInfo = SpawnAndCacheCard(player, cardObject, scriptableCard);
+        MoveSpawnedCard(player, cardObject, cardInfo, CardLocation.Deck);
     }
 
     public void SpawnFieldEntity(PlayerManager owner, GameObject card)
@@ -278,6 +281,15 @@ public class GameManager : NetworkBehaviour {
     }
 
     #endregion
+
+    private IEnumerator PreGameWaitRoutine(){
+        yield return new WaitForSeconds(6f);
+        foreach(var player in players.Keys) {
+            player.deck.Shuffle();
+            player.DrawInitialHand(initialHandSize);
+        }
+        OnGameStart?.Invoke(players.Count);
+    }
 
     private PlayerManager GetOpponent(PlayerManager player)
     {

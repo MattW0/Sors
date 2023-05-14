@@ -33,19 +33,6 @@ public class KingdomUI : MonoBehaviour
         MinButton();
     }
 
-    #region Develop
-    public void SelectDevelopCard(DevelopTile tile){ 
-        confirm.interactable = true;
-        _kingdom.developSelection.Add(tile.cardInfo);
-    }
-
-    public void DeselectDevelopCard(DevelopTile tile){
-        _kingdom.developSelection.Remove(tile.cardInfo);
-        if(_kingdom.developSelection.Count == 0) confirm.interactable = false;
-    }
-    #endregion
-
-    #region Recruit
     public void BeginPhase(Phase phase){
         MaxButton();
         skip.interactable = true;
@@ -53,21 +40,40 @@ public class KingdomUI : MonoBehaviour
         else ShowDevelopPanel();
     }
 
-    public void SelectRecruitCard(RecruitTile tile){ 
-        previewCard.SetCardUI(tile.cardInfo);
-        previewCard.gameObject.SetActive(true);
-
-        confirm.interactable = true;
-        _kingdom.PlayerSelectsRecruitTile(tile);
+    #region Selection
+    public void SelectDevelopTile(DevelopTile tile){ 
+        _kingdom.PlayerSelectsDevelopTile(tile);
+        ShowPreviewCard(tile.cardInfo);
     }
-    public void DeselectRecruitCard(RecruitTile tile){
-        previewCard.gameObject.SetActive(false);
 
-        confirm.interactable = false;
+    public void DeselectDevelopTile(DevelopTile tile){
+        _kingdom.PlayerDeselectsDevelopTile(tile);
+        HidePreviewCard();
+    }
+
+    public void SelectRecruitTile(RecruitTile tile){ 
+        _kingdom.PlayerSelectsRecruitTile(tile);
+        ShowPreviewCard(tile.cardInfo);
+    }
+
+    public void DeselectRecruitTile(RecruitTile tile){
         _kingdom.PlayerDeselectsRecruitTile(tile);
+        HidePreviewCard();
+    }
+
+    private void ShowPreviewCard(CardInfo cardInfo){
+        previewCard.SetCardUI(cardInfo);
+        previewCard.gameObject.SetActive(true);
+        confirm.interactable = true;
+    }
+
+    private void HidePreviewCard(){
+        previewCard.gameObject.SetActive(false);
+        confirm.interactable = false;
     }
     #endregion
 
+    #region Buttons and UI
     public void SwitchButtonPressed(){
         if(_developPanel.activeSelf) ShowRecruitPanel();
         else ShowDevelopPanel();
@@ -85,7 +91,7 @@ public class KingdomUI : MonoBehaviour
         _kingdom.PlayerPressedButton(true);
     }
 
-    public void ResetRecruitButton(){
+    public void ResetInteractionButtons(){
         _interactionButtons.SetActive(true);
         confirm.interactable = false;
         _waitingText.SetActive(false);
@@ -104,6 +110,7 @@ public class KingdomUI : MonoBehaviour
     }
 
     public void EndPhase(){
+        HidePreviewCard();
         MinButton();
         _interactionButtons.SetActive(true);
         _waitingText.SetActive(false);
@@ -116,4 +123,5 @@ public class KingdomUI : MonoBehaviour
         else maxView.SetActive(true);
     }
     public void MinButton() => maxView.SetActive(false);
+    #endregion
 }

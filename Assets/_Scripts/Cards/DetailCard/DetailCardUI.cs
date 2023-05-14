@@ -32,18 +32,22 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         _title.text = cardInfo.title;
         _cost.text = cardInfo.cost.ToString();
         
-        if (cardInfo.isCreature){
+        if (cardInfo.type == CardType.Creature){
             _description.text = cardInfo.keyword_abilities.ToString();
             _attack.text = cardInfo.attack.ToString();
             _health.text = cardInfo.health.ToString();
             _points.text = cardInfo.points.ToString();
             _description.text = string.Join(" ", cardInfo.keyword_abilities.ConvertAll(f => f.ToString()));
             _creatureUi.SetActive(true);
-
-        } else {
+            _moneyUi.SetActive(false);
+        } else if (cardInfo.type == CardType.Money) {
             _image.sprite = Resources.Load<Sprite>("Sprites/Money/" + cardInfo.title);
             _moneyValue.text = cardInfo.moneyValue.ToString();
             _moneyUi.SetActive(true);
+            _creatureUi.SetActive(false);
+        } else if (cardInfo.type == CardType.Development) {
+            // _description.text = cardInfo.keyword_abilities.ToString();
+            // _description.text = string.Join(" ", cardInfo.keyword_abilities.ConvertAll(f => f.ToString()));
         }
     }
 

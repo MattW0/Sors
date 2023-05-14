@@ -36,7 +36,7 @@ public class Hand : NetworkBehaviour
     public void TargetHighlightMoney(NetworkConnection target) => HighlightMoney(true);
 
     public void HighlightMoney(bool b){
-        foreach (var card in _handCards.Where(card => !card.cardInfo.isCreature)) {
+        foreach (var card in _handCards.Where(card => card.cardInfo.type == CardType.Money)) {
             card.IsInteractable = b;
             card.SetHighlight();
         }

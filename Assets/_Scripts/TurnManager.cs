@@ -159,10 +159,9 @@ public class TurnManager : NetworkBehaviour
         foreach (var (player, phases) in _playerPhaseChoices) {
             foreach (var phase in phases){
                 // Player turn stats
-                if (phase == Phase.Deploy) player.Deploys++;
-                else if(phase == Phase.Recruit) {
-                    player.Recruits++;
-                }
+                if (phase == Phase.Develop) player.Develops++;
+                else if (phase == Phase.Deploy) player.Deploys++;
+                else if(phase == Phase.Recruit) player.Recruits++;
                 // For phaseVisuals
                 choices[i] = phase;
                 i++;
@@ -171,7 +170,6 @@ public class TurnManager : NetworkBehaviour
 
         // Send choices to PhaseVisuals (via PlayerInterfaceManager)
         OnPhasesSelected?.Invoke(choices);
-        
         UpdateTurnState(TurnState.NextPhase);
     }
 
@@ -243,28 +241,33 @@ public class TurnManager : NetworkBehaviour
 
     #region Develop
     private void Develop(){
-        _selectedKingdomCards = new Dictionary<PlayerManager, List<CardInfo>>();
+        _selectedKingdomCards.Clear();
         _handManager.RpcHighlightMoney(true);
         _kingdom.RpcBeginPhase(Phase.Develop);
 
         foreach (var player in _gameManager.players.Keys) {
             if (player.chosenPhases.Contains(Phase.Develop)){
                 _kingdom.TargetDevelopBonus(player.connectionToClient, _gameManager.developPriceReduction);
-            } 
+            }
         }
     }
 
-    public void PlayerSelectedDevelopCard(PlayerManager player, List<CardInfo> cards)
+    public void PlayerSelectedDevelopCard(PlayerManager player, CardInfo card)
     {
-        var totalCost = 0;
-        foreach(var card in cards){
-            var cost = card.cost;
-            if (player.chosenPhases.Contains(Phase.Develop)) cost -= _gameManager.developPriceReduction;
-            totalCost += cost;
-        }
-        player.Cash -= totalCost;
+        player.Develops--;
+        var cost = card.cost;
+        if (player.chosenPhases.Contains(Phase.Develop)) cost -= _gameManager.developPriceReduction;
+        player.Cash -= cost;
 
-        _selectedKingdomCards.Add(player, cards);
+        if (_selectedKingdomCards.ContainsKey(player))
+            _selectedKingdomCards[player].Add(card);
+        else
+            _selectedKingdomCards.Add(player, new List<CardInfo> { card });
+        
+        _kingdom.TargetResetDevelop(player.connectionToClient, player.Develops);
+
+        // Waiting for player to use remaining recruit actions
+        if (player.Develops > 0) return;
         PlayerIsReady(player);
     }
 
@@ -306,7 +309,7 @@ public class TurnManager : NetworkBehaviour
 
             List<CardInfo> creatures = new();
             foreach(var card in player.hand){
-                if(card.isCreature) creatures.Add(card);
+                if(card.type == CardType.Creature) creatures.Add(card);
             }
             var cardObjects = GameManager.CardInfosToGameObjects(creatures);
             _cardCollectionPanel.TargetShowCardCollection(player.connectionToClient, 
@@ -361,26 +364,33 @@ public class TurnManager : NetworkBehaviour
     #region Recruit
 
     private void Recruit(){
-        _selectedKingdomCards = new Dictionary<PlayerManager, List<CardInfo>>();
+        _selectedKingdomCards.Clear();
         _handManager.RpcHighlightMoney(true);
         _kingdom.RpcBeginPhase(Phase.Recruit);
+
+        foreach (var player in _gameManager.players.Keys) {
+            if (player.chosenPhases.Contains(Phase.Recruit)){
+                _kingdom.TargetRecruitBonus(player.connectionToClient, _gameManager.recruitPriceReduction);
+            }
+        }
     }
 
     public void PlayerSelectedRecruitCard(PlayerManager player, CardInfo card)
     {
         player.Recruits--;
-        player.Cash -= card.cost;
+        var cost = card.cost;
+        if (player.chosenPhases.Contains(Phase.Recruit)) cost -= _gameManager.recruitPriceReduction;
+        player.Cash -= cost;
+
         if (_selectedKingdomCards.ContainsKey(player))
             _selectedKingdomCards[player].Add(card);
         else
             _selectedKingdomCards.Add(player, new List<CardInfo> { card });
         
-        print(player.PlayerName + " recruits " + card.title + " for " + card.cost + " gold");        
         _kingdom.TargetResetRecruit(player.connectionToClient, player.Recruits);
 
         // Waiting for player to use remaining recruit actions
         if (player.Recruits > 0) return;
-        
         PlayerIsReady(player);
     }
 
@@ -391,6 +401,10 @@ public class TurnManager : NetworkBehaviour
                 _gameManager.SpawnCreature(owner, cardInfo);
                 _playerInterfaceManager.RpcLog("<color=#4f2d00>" + owner.PlayerName + " recruits " + cardInfo.title + "</color>");
             }
+        }
+
+        foreach(var player in _gameManager.players.Keys){
+            player.RpcResolveCardSpawn(_gameManager.cardSpawnAnimations);
         }
         
         PlayersStatsResetAndDiscardMoney();
@@ -596,6 +610,7 @@ public class TurnManager : NetworkBehaviour
             player.Cash = _gameManager.turnCash;
 
             if (!endOfTurn) continue;
+            player.Develops = _gameManager.turnDevelops;
             player.Deploys = _gameManager.turnDeploys;
             player.Recruits = _gameManager.turnRecruits;
 

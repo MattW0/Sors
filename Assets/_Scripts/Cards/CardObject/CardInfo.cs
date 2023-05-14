@@ -7,16 +7,15 @@ using System;
 public struct CardInfo : IEquatable<CardInfo>
 {
     public string goID;
-    public string title;
     public string hash;
-    // public Sprite image;
+    public CardType type;
+    public string title;
+    public int cost;
 
     [Header("Money properties")]
-    public bool isCreature;
     public int moneyValue;
 
     [Header("Creature properties")]
-    public int cost;
     public int attack;
     public int health;
     public int points;
@@ -24,18 +23,18 @@ public struct CardInfo : IEquatable<CardInfo>
 
     public CardInfo(ScriptableCard card, string gameObjectID = null)
     {
-        hash = card.hash;
-        title = card.title;
-        cost = card.cost;
-        // image = card.image;
-
         if (gameObjectID != null) goID = gameObjectID;
         else goID = null;
 
-        isCreature = card.isCreature;
+        hash = card.hash;
+        type = card.type;
+        title = card.title;
+        cost = card.cost;
+
+        // Money properties
         moneyValue = card.moneyValue;
 
-        // Should split money and creature cards into separate scriptable objects
+        // Creature properties
         attack = card.attack;
         health = card.health;
         points = card.points;
@@ -52,7 +51,7 @@ public struct CardInfo : IEquatable<CardInfo>
         this.health = 0;
         this.goID = null;
 
-        this.isCreature = false;
+        // this.type = CardType.Development;
         this.moneyValue = 0;
 
         this.keyword_abilities = null;
@@ -65,14 +64,10 @@ public struct CardInfo : IEquatable<CardInfo>
     }
 }
 
-// public class CardInfoEqualityComparer : IEqualityComparer<CardInfo>
-// {
-//     public bool Equals(CardInfo x, CardInfo y){
-//         return x.goID == y.goID && x.title == y.title && x.hash == y.hash;
-//     }
+public enum CardType
+{
+    Creature,
+    Money,
+    Development,
 
-//     public int GetHashCode(CardInfo obj)
-//     {
-//         return (obj.goID + obj.title + obj.hash).GetHashCode();
-//     }
-// }
+}
