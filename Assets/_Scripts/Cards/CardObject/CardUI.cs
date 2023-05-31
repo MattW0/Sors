@@ -18,11 +18,7 @@ public class CardUI : MonoBehaviour {
     [SerializeField] private Image _highlight;
     
     public Color standardHighlight = Color.white;
-    private Transform _transform;
-    private const float TappingDuration = 1f;
-    
     [SerializeField] private GameObject _front;
-    // [SerializeField] private GameObject _back;
     [SerializeField] private GameObject _creatureUi;
     [SerializeField] private GameObject _moneyUi;
 
@@ -32,6 +28,7 @@ public class CardUI : MonoBehaviour {
         _cost.text = cardInfo.cost.ToString();
         
         if (cardInfo.type == CardType.Creature){
+            _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Creature/creature");
             _description.text = cardInfo.keyword_abilities.ToString();
             _attack.text = cardInfo.attack.ToString();
             _health.text = cardInfo.health.ToString();
@@ -40,23 +37,17 @@ public class CardUI : MonoBehaviour {
             _creatureUi.SetActive(true);
 
         } else if (cardInfo.type == CardType.Money) {
-            _image.sprite = Resources.Load<Sprite>("Sprites/Money/" + cardInfo.title);
+            _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Money/" + cardInfo.title);
             _moneyUi.SetActive(true);
         } else if (cardInfo.type == CardType.Development) {
-            // _description.text = cardInfo.keyword_abilities.ToString();
-            // _description.text = string.Join(" ", cardInfo.keyword_abilities.ConvertAll(f => f.ToString()));
+            _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Development/development");
+            _points.text = cardInfo.points.ToString();
+            _health.text = cardInfo.health.ToString();
         }
     }
 
-    public void CardBackUp()
-    {
-        _front.SetActive(false);
-    }
-
-    public void CardFrontUp()
-    {
-        _front.SetActive(true);
-    }
+    public void CardBackUp() => _front.SetActive(false);
+    public void CardFrontUp() => _front.SetActive(true);
 
     public void Highlight(bool active, Color color){
         if(!_highlight) return;

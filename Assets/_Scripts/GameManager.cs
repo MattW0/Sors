@@ -28,7 +28,8 @@ public class GameManager : NetworkBehaviour {
 
     [Header("Game start settings")]
     [SerializeField] private int nbRecruitTiles = 8;
-    [SerializeField] private int nbDevelopTiles = 3;
+    [SerializeField] private int nbMoneyTiles = 4;
+    [SerializeField] private int nbDevelopTiles = 8;
     [SerializeField] public int initialDeckSize = 10;
     [SerializeField] public int nbCreatures = 2;
     [SerializeField] public int initialHandSize = 4;
@@ -121,11 +122,16 @@ public class GameManager : NetworkBehaviour {
     
     private void KingdomSetup(){
         // Developments: right now only money
+        var moneyCards = new CardInfo[nbMoneyTiles];
+        moneyCards[0] = new CardInfo(moneyCardsDb[1]); // Silver
+        moneyCards[1] = new CardInfo(moneyCardsDb[2]); // Gold
+        moneyCards[2] = new CardInfo(moneyCardsDb[0]); // Gold
+        moneyCards[3] = new CardInfo(moneyCardsDb[0]); // Gold
+        _kingdom.RpcSetMoneyTiles(moneyCards);
+
         var developCards = new CardInfo[nbDevelopTiles];
-        developCards[0] = new CardInfo(moneyCardsDb[1]); // Silver
-        developCards[1] = new CardInfo(moneyCardsDb[2]); // Gold
-        developCards[2] = new CardInfo(developCardsDb[0]);
-        _kingdom.RpcSetDevelopTiles(developCards);
+        for (var i = 0; i < nbDevelopTiles; i++) developCards[i] = GetNewDevelopmentFromDb();
+        _kingdom.RpcSetDevelopmentTiles(developCards);
 
         // Recruits: Creatures
         var recruitCards = new CardInfo[nbRecruitTiles];
@@ -133,8 +139,20 @@ public class GameManager : NetworkBehaviour {
         _kingdom.RpcSetRecruitTiles(recruitCards);
     }
 
-    private CardInfo GetNewCreatureFromDb(){
+    private CardInfo GetNewDevelopmentFromDb(){
+        // Get new random card
+        // var id = Random.Range(0, developmentCardsDb.Length);
+        // while (_cardsIdCache.Contains(id)) id = Random.Range(0, creatureCardsDb.Length);
 
+        // _cardsIdCache.Add(id);
+        // var card = creatureCardsDb[id];
+
+        // return new CardInfo(card);
+
+        return new CardInfo(developCardsDb[0]);
+    }
+
+    private CardInfo GetNewCreatureFromDb(){
         // Get new random card
         var id = Random.Range(0, creatureCardsDb.Length);
         while (_cardsIdCache.Contains(id)) id = Random.Range(0, creatureCardsDb.Length);

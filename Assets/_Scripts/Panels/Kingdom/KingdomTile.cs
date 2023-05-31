@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using Unity.VisualScripting;
 
 [System.Serializable]
-public class DevelopTile : MonoBehaviour
+public class KingdomTile : MonoBehaviour
 {
     private Kingdom _kingdom;
     public CardInfo cardInfo;
@@ -19,11 +18,11 @@ public class DevelopTile : MonoBehaviour
         }
     }
     
-    private bool _isDevelopable;
-    public bool Developable {
-        get => _isDevelopable;
+    private bool _isInteractable;
+    public bool Interactable {
+        get => _isInteractable;
         set {
-            _isDevelopable = value;
+            _isInteractable = value;
             Highlight(value, Color.green);
         }
     }
@@ -41,21 +40,22 @@ public class DevelopTile : MonoBehaviour
             }
         }
     }
+
+    private bool _alreadyRecruited;
     
     // UI
     [SerializeField] private TMP_Text title;
     [SerializeField] private TMP_Text costText;
-    [SerializeField] private GameObject moneyValue;
     [SerializeField] private TMP_Text moneyValueText;
-    [SerializeField] private GameObject defense;
     [SerializeField] private TMP_Text defenseText;
+    [SerializeField] private TMP_Text pointsText;
+    [SerializeField] private TMP_Text attackText;
+    [SerializeField] private TMP_Text description;
     [SerializeField] private Image highlight;
     // [SerializeField] private Image image;
 
-
     private void Awake(){
         _kingdom = Kingdom.Instance;
-        Kingdom.OnDevelopPhaseEnded += EndDevelopPhase;
     }
 
     public void SetTile(CardInfo card){
@@ -65,21 +65,38 @@ public class DevelopTile : MonoBehaviour
 
         if(card.type == CardType.Money){
             moneyValueText.text = card.moneyValue.ToString();
-            defense.SetActive(false);
-        } else if (card.type == CardType.Development){
-            defenseText.text = card.health.ToString();
-            moneyValue.SetActive(false);
+            Kingdom.OnDevelopPhaseEnded += EndDevelopPhase;
+            return;
         }
-        // points.text = card.points.ToString();
+
+        // Creature or Development
+        defenseText.text = card.health.ToString();
+        pointsText.text = card.points.ToString();
+
+        if (card.type == CardType.Development){
+            Kingdom.OnDevelopPhaseEnded += EndDevelopPhase;
+            return;
+        }
+
+        // Creature
+        attackText.text = card.attack.ToString();
+        description.text = string.Join(" ", cardInfo.keyword_abilities.ConvertAll(f => f.ToString()));
+        Kingdom.OnRecruitPhaseEnded += EndRecruitPhase;
     }
 
-    public void SetDevelopBonus(int priceReduction){
-        Cost -= priceReduction;
+    public void SetBonus(int priceReduction){
+        if(Cost - priceReduction <= 0) Cost = 0;
+        else Cost -= priceReduction;
     }
 
-    public void OnDevelopTileClick(){
-        if (!_isDevelopable) return;
+    public void OnTileClick(){
+        if (!_isInteractable) return;
         IsSelected = !_isSelected;
+    }
+
+    public void ShowAsRecruited(){
+        Highlight(true, Color.yellow);
+        _alreadyRecruited = true;
     }
 
     public void Highlight(bool active, Color color = default(Color)){
@@ -87,15 +104,22 @@ public class DevelopTile : MonoBehaviour
         highlight.color = color;
     }
     
-    private void EndDevelopPhase(){
-        Developable = false;
-        _isSelected = false;
+    private void EndDevelopPhase() => ResetTile();
 
+    private void EndRecruitPhase(){
+        _alreadyRecruited = false;
+        ResetTile();
+    }
+
+    private void ResetTile(){
+        Interactable = true;
+        _isSelected = false;
         // Reset cost (after bonus)
         Cost = cardInfo.cost;
     }
 
     private void OnDestroy(){
         Kingdom.OnDevelopPhaseEnded -= EndDevelopPhase;
+        Kingdom.OnRecruitPhaseEnded -= EndRecruitPhase;
     }
 }

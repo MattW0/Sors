@@ -262,8 +262,8 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls:
         - m_Target: {fileID: 3740274974745187941}
-          m_TargetAssemblyTypeName: RecruitTile, Assembly-CSharp
-          m_MethodName: OnRecruitTileClick
+          m_TargetAssemblyTypeName: KingdomTile, Assembly-CSharp
+          m_MethodName: OnTileClick
           m_Mode: 1
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
@@ -282,7 +282,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1027945366825006326}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e0511fc9372229046a1150a649047df1, type: 3}
+  m_Script: {fileID: 11500000, guid: 5705d47c34045b24c94f73211dd5a63c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   cardInfo:
@@ -297,11 +297,12 @@ MonoBehaviour:
     points: 0
     keyword_abilities: 
   title: {fileID: 7941874915372642403}
-  description: {fileID: 256165971640979998}
   costText: {fileID: 7589199595508455815}
-  attack: {fileID: 6413392532177466316}
-  defense: {fileID: 2245873327541344730}
-  points: {fileID: 6135025350764447260}
+  moneyValueText: {fileID: 0}
+  defenseText: {fileID: 2245873327541344730}
+  pointsText: {fileID: 6135025350764447260}
+  attackText: {fileID: 6413392532177466316}
+  description: {fileID: 256165971640979998}
   highlight: {fileID: 4426554728591177366}
 --- !u!1 &1921689207020800253
 GameObject:

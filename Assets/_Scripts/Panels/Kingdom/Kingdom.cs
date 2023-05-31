@@ -16,10 +16,12 @@ public class Kingdom : NetworkBehaviour
     // public List<RecruitTile> GetPreviouslySelectedRecruitTiles() => _previouslyRecruited;
 
     [SerializeField] private KingdomUI _ui;
-    [SerializeField] private DevelopTile[] developTiles;
-    [SerializeField] private RecruitTile[] recruitTiles;
-    [SerializeField] private GameObject developGrid;
-    [SerializeField] private GameObject recruitGrid;
+    [SerializeField] private KingdomTile[] moneyTiles;
+    [SerializeField] private KingdomTile[] developTiles;
+    [SerializeField] private KingdomTile[] recruitTiles;
+    [SerializeField] private GameObject moneyGrid;
+    [SerializeField] private GameObject developmentsGrid;
+    [SerializeField] private GameObject creaturesGrid;
     public CardInfo selection;
 
     public static event Action OnDevelopPhaseEnded;
@@ -33,18 +35,20 @@ public class Kingdom : NetworkBehaviour
 
     #region Setup
     [ClientRpc]
-    public void RpcSetDevelopTiles(CardInfo[] developTilesInfo){
-        developTiles = new DevelopTile[developTilesInfo.Length];
-        developTiles = developGrid.GetComponentsInChildren<DevelopTile>();
+    public void RpcSetMoneyTiles(CardInfo[] moneyTilesInfo){
+        moneyTiles = moneyGrid.GetComponentsInChildren<KingdomTile>();
+        for (var i = 0; i < moneyTilesInfo.Length; i++) moneyTiles[i].SetTile(moneyTilesInfo[i]);
+    }
 
+    [ClientRpc]
+    public void RpcSetDevelopmentTiles(CardInfo[] developTilesInfo){
+        developTiles = developmentsGrid.GetComponentsInChildren<KingdomTile>();
         for (var i = 0; i < developTilesInfo.Length; i++) developTiles[i].SetTile(developTilesInfo[i]);
     }
 
     [ClientRpc]
     public void RpcSetRecruitTiles(CardInfo[] recruitTilesInfo){   
-        recruitTiles = new RecruitTile[recruitTilesInfo.Length];
-        recruitTiles = recruitGrid.GetComponentsInChildren<RecruitTile>();
-
+        recruitTiles = creaturesGrid.GetComponentsInChildren<KingdomTile>();
         for (var i = 0; i < recruitTilesInfo.Length; i++) recruitTiles[i].SetTile(recruitTilesInfo[i]);
     }
 
@@ -58,20 +62,23 @@ public class Kingdom : NetworkBehaviour
     #region Tile Cost
     [TargetRpc]
     public void TargetKingdomBonus(NetworkConnection target, int priceReduction){
-        if (_currentPhase == Phase.Develop)
-            foreach(var tile in developTiles) tile.SetDevelopBonus(priceReduction);
-        else if (_currentPhase == Phase.Recruit)
-            foreach(var tile in recruitTiles) tile.SetRecruitBonus(priceReduction);
+        if (_currentPhase == Phase.Develop){
+            foreach(var tile in moneyTiles) tile.SetBonus(priceReduction);
+            foreach(var tile in developTiles) tile.SetBonus(priceReduction);
+        } else if (_currentPhase == Phase.Recruit){
+            foreach(var tile in recruitTiles) tile.SetBonus(priceReduction);
+        }
     }
 
     [TargetRpc]
     public void TargetCheckPriceKingdomTile(NetworkConnection target, int playerCash){
-        if (_currentPhase == Phase.Develop)
-            foreach (var tile in developTiles) tile.Developable = playerCash >= tile.Cost;
-        else if (_currentPhase == Phase.Recruit){
+        if (_currentPhase == Phase.Develop){
+            foreach(var tile in moneyTiles) tile.Interactable = playerCash >= tile.Cost;
+            foreach (var tile in developTiles) tile.Interactable = playerCash >= tile.Cost;
+        } else if (_currentPhase == Phase.Recruit){
             foreach (var tile in recruitTiles){
                 // if (_previouslyRecruited.Contains(tile)) continue;
-                tile.Recruitable = playerCash >= tile.Cost;
+                tile.Interactable = playerCash >= tile.Cost;
             }
         }
     }
