@@ -36,8 +36,8 @@ public class KingdomUI : MonoBehaviour
     public void BeginPhase(Phase phase){
         MaxButton();
         skip.interactable = true;
-        if(phase == Phase.Recruit) ShowRecruitPanel();
-        else ShowDevelopPanel();
+        if(phase == Phase.Recruit) ShowCreaturePanel();
+        else ShowTechnologyPanel();
     }
 
     #region Selection
@@ -55,8 +55,8 @@ public class KingdomUI : MonoBehaviour
 
     #region Buttons and UI
     public void SwitchButtonPressed(){
-        if(_developPanel.activeSelf) ShowRecruitPanel();
-        else ShowDevelopPanel();
+        if(_developPanel.activeSelf) ShowCreaturePanel();
+        else ShowTechnologyPanel();
     }
     
     public void ConfirmButtonPressed(){
@@ -77,16 +77,16 @@ public class KingdomUI : MonoBehaviour
         _waitingText.SetActive(false);
     }
 
-    private void ShowDevelopPanel(){
+    private void ShowTechnologyPanel(){
         _developPanel.SetActive(true);
         _recruitPanel.SetActive(false);
-        _switchBtnText.text = "Recruit";
+        _switchBtnText.text = "Creatures";
     }
 
-    private void ShowRecruitPanel(){
+    private void ShowCreaturePanel(){
         _developPanel.SetActive(false);
         _recruitPanel.SetActive(true);
-        _switchBtnText.text = "Develop";
+        _switchBtnText.text = "Techs";
     }
 
     public void EndPhase(){

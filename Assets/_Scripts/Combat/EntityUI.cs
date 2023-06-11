@@ -50,7 +50,7 @@ public class EntityUI : MonoBehaviour
 
         // Set keywords
         int i = 0;
-        foreach (var kw in cardInfo.keyword_abilities)
+        foreach (var kw in cardInfo.keywordAbilities)
         {
             keyWords[i].text = kw.ToString();
             keyWords[i].enabled = true;

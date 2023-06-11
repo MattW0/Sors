@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 2476821137206774664}
   - component: {fileID: 3497456181633374413}
   m_Layer: 5
-  m_Name: DevelopItem
+  m_Name: TechnologyItem
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -130,10 +130,12 @@ MonoBehaviour:
     title: 
     cost: 0
     moneyValue: 0
-    attack: 0
     health: 0
     points: 0
-    keyword_abilities: 
+    effectTriggers: 
+    developmentEffects: 
+    attack: 0
+    keywordAbilities: 
   title: {fileID: 7941874915372642403}
   costText: {fileID: 5313878756349333276}
   moneyValueText: {fileID: 0}

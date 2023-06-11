@@ -29,11 +29,11 @@ public class CardUI : MonoBehaviour {
         
         if (cardInfo.type == CardType.Creature){
             _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Creature/creature");
-            _description.text = cardInfo.keyword_abilities.ToString();
+            _description.text = cardInfo.keywordAbilities.ToString();
             _attack.text = cardInfo.attack.ToString();
             _health.text = cardInfo.health.ToString();
             _points.text = cardInfo.points.ToString();
-            _description.text = string.Join(" ", cardInfo.keyword_abilities.ConvertAll(f => f.ToString()));
+            _description.text = string.Join(" ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
             _creatureUi.SetActive(true);
 
         } else if (cardInfo.type == CardType.Money) {

@@ -75,7 +75,7 @@ public class BattleZoneEntity : NetworkBehaviour, IPointerDownHandler
         _health = cardInfo.health;
         _points = cardInfo.points;
 
-        _keywordAbilities = cardInfo.keyword_abilities;
+        _keywordAbilities = cardInfo.keywordAbilities;
         
         _entityUI.SetEntityUI(cardInfo);
     }

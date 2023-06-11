@@ -109,7 +109,12 @@ public class BoardManager : NetworkBehaviour
     #endregion
 
     #region UI
-    public void ShowHolders(bool active) => dropZone.RpcHighlightCardHolders(active); 
+    public void ShowHolders(bool active){
+
+        if(!active) dropZone.ResetHolders();
+        dropZone.RpcHighlightCardHolders();
+    }
+
     public void DisableReadyButton(PlayerManager player){
         _phasePanel.TargetDisableButtons(player.connectionToClient);
     }

@@ -57,8 +57,8 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         // Creature
         _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Creature/creature");
         _attack.text = cardInfo.attack.ToString();
-        _description.text = cardInfo.keyword_abilities.ToString();
-        _description.text = string.Join(" ", cardInfo.keyword_abilities.ConvertAll(f => f.ToString()));
+        _description.text = cardInfo.keywordAbilities.ToString();
+        _description.text = string.Join(" ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
         _creatureUi.SetActive(true);
         return;
     }

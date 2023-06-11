@@ -23,7 +23,7 @@ public class DetailCard : MonoBehaviour, IPointerClickHandler
         _collectionPanel = CardCollectionPanel.Instance;
     }
 
-    public void CheckDeployability(int cash){
+    public void CheckPlayability(int cash){
         isChoosable = cash >= _cardInfo.cost;
         if(isChoosable) _ui.EnableHighlight();
         else _ui.DisableHighlight();

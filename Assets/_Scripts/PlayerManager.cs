@@ -71,6 +71,12 @@ public class PlayerManager : NetworkBehaviour
         set => SetCashValue(value); // Invoke OnCashChanged and update UI
     }
 
+    [SyncVar] private int _invents = 1;
+    public int Invents { 
+        get => _invents; 
+        set => SetInventValue(value);
+    }
+
     [SyncVar] private int _develops = 1;
     public int Develops { 
         get => _develops; 
@@ -301,35 +307,25 @@ public class PlayerManager : NetworkBehaviour
         _discardSelection.Clear();
     }
 
-    public void PlayerDevelops(CardInfo card){
-        if(isServer) _turnManager.PlayerSelectedDevelopCard(this, card);
-        else CmdDevelopSelection(card);
+    public void PlayerSelectsKingdomTile(CardInfo card){
+        if(isServer) _turnManager.PlayerSelectedKingdomTile(this, card);
+        else CmdKingdomSelection(card);
     }
 
     [Command]
-    public void CmdDevelopSelection(CardInfo card){
-        _turnManager.PlayerSelectedDevelopCard(this, card);
-    }
-
-    public void PlayerRecruits(CardInfo card){
-        if(isServer) _turnManager.PlayerSelectedRecruitCard(this, card);
-        else CmdRecruitSelection(card);
+    public void CmdKingdomSelection(CardInfo card){
+        _turnManager.PlayerSelectedKingdomTile(this, card);
     }
 
     [Command]
-    public void CmdRecruitSelection(CardInfo card){        
-        _turnManager.PlayerSelectedRecruitCard(this, card);
-    }
-
-    [Command]
-    public void CmdDeployCard(GameObject card){
-        _turnManager.PlayerDeployedCard(this, card);
+    public void CmdPlayCard(GameObject card){
+        _turnManager.PlayerPlaysCard(this, card);
         RemoveHandCard(card.GetComponent<CardStats>().cardInfo);
         PlayCard(card);
     }
 
     [Command]
-    public void CmdSkipDeploy() => _turnManager.PlayerSkipsDeploy(this);
+    public void CmdSkipCardPlay() => _turnManager.PlayerSkipsCardPlay(this);
 
     [Command]
     public void CmdPrevailSelection(List<PrevailOption> options){
@@ -432,6 +428,22 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Server]
+    private void SetInventValue(int value){
+        _invents = value;
+        if(isServer) RpcUISetInventValue(value);
+        else CmdUISetInventValue(value);
+    }
+
+    [Command]
+    private void CmdUISetInventValue(int value) => RpcUISetInventValue(value);
+
+    [ClientRpc]
+    private void RpcUISetInventValue(int value){
+        if(isOwned) _playerUI.SetInvents(value);
+        else _opponentUI.SetInvents(value);
+    }
+
+    [Server]
     private void SetDevelopValue(int value){
         _develops = value;
         if (isServer) RpcUISetDevelopValue(value);
@@ -509,18 +521,7 @@ public class PlayerManager : NetworkBehaviour
 
     [Server]
     private void PlayerSkips(PlayerManager player) {
-        switch (_turnManager.turnState)
-        {
-            case TurnState.Develop:
-                _turnManager.PlayerIsReady(player);
-                break;
-            case TurnState.Recruit:
-                _turnManager.PlayerIsReady(player);
-                break;
-            case TurnState.Deploy:
-                _turnManager.PlayerIsReady(player);
-                break;
-        }
+        _turnManager.PlayerIsReady(player);
     }
 
     private void RemoveHandCard(CardInfo cardInfo){

@@ -80,7 +80,7 @@ public class KingdomTile : MonoBehaviour
 
         // Creature
         attackText.text = card.attack.ToString();
-        description.text = string.Join(" ", cardInfo.keyword_abilities.ConvertAll(f => f.ToString()));
+        description.text = string.Join(" ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
         Kingdom.OnRecruitPhaseEnded += EndRecruitPhase;
     }
 

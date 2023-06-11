@@ -65,9 +65,7 @@ public class CardCollectionPanel : NetworkBehaviour
     [ClientRpc]
     public void RpcBeginState(TurnState state){
         foreach(var card in _detailCards) card.SetCardState(state);
-
-        if (state == TurnState.Discard) _ui.BeginDiscard();
-        else if (state == TurnState.Deploy) _ui.BeginDeploy();
+        _ui.InteractionBegin(state);
     }
 
     [TargetRpc]
@@ -84,13 +82,13 @@ public class CardCollectionPanel : NetworkBehaviour
     }
 
     [TargetRpc]
-    public void TargetCheckDeployability(NetworkConnection target, int currentCash){
-        foreach (var card in _detailCards) card.CheckDeployability(currentCash);
+    public void TargetCheckPlayability(NetworkConnection target, int currentCash){
+        foreach (var card in _detailCards) card.CheckPlayability(currentCash);
     }
 
-    public void ConfirmDeploy(){
+    public void ConfirmPlay(){
         var card = _cache[_selectedCards[0]];
-        _player.CmdDeployCard(card);
+        _player.CmdPlayCard(card);
 
         // _detailCards.Remove(card.GetComponent<DetailCard>());
         foreach (Transform child in _gridChosen) {

@@ -13,16 +13,21 @@ public class ScriptableCard : ScriptableObject
     public int cost;
     public string title;
 
-    [Header("Creature properties")]
-    public int attack;
+    [Header("Money properties")]
+    public int moneyValue;
+
+    [Header("Enitity properties")]
     public int health;
     public int points;
-    public List<Keywords> keyword_abilities;
-    public List<string> relations_texts;
 
-    [Header("Money properties")]
-    public bool isCreature;
-    public int moneyValue;
+    [Header("Development properties")]
+    public List<Triggers> effectTriggers;
+    public List<DevelopmentEffects> developmentEffects;
+
+    [Header("Creature properties")]
+    public int attack;
+    public List<Keywords> keywordAbilities;
+    public List<string> relationsTexts;
 
     [Header("Card Display Data")]
     public string description;
@@ -80,7 +85,7 @@ public enum Triggers
     Whenever_deals_combat_damage,
     Whenever_deals_damage_to_a_player,
 
-    // At the beginning of NO NAME
+    // At the beginning of [PHASE]
     Beginning_phase_DrawI,
     Beginning_phase_Develop,
     Beginning_phase_Deploy,
@@ -89,6 +94,11 @@ public enum Triggers
     Beginning_phase_Recruit,
     Beginning_phase_Prevail,
     Beginning_when_you_gain_the_initiative
+}
+
+public enum DevelopmentEffects
+{
+    Draw_card
 }
 
 public enum SpecialAbilities{

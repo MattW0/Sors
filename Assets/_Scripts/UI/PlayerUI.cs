@@ -13,6 +13,7 @@ public class PlayerUI : MonoBehaviour
 
     [Header("Turn Stats")]
     [SerializeField] private TMP_Text turnCash;
+    [SerializeField] private TMP_Text turnInvents;
     [SerializeField] private TMP_Text turnDevelops;
     [SerializeField] private TMP_Text turnDeploys;
     [SerializeField] private TMP_Text turnRecruits;
@@ -21,6 +22,7 @@ public class PlayerUI : MonoBehaviour
     public void SetHealth(int value) => playerHealth.text = value.ToString();
     public void SetScore(int value) => playerScore.text = value.ToString();
     public void SetCash(int value) => turnCash.text = value.ToString();
+    public void SetInvents(int value) => turnInvents.text = value.ToString();
     public void SetDevelops(int value) => turnDevelops.text = value.ToString();
     public void SetDeploys(int value) => turnDeploys.text = value.ToString();
     public void SetRecruits(int value) => turnRecruits.text = value.ToString();

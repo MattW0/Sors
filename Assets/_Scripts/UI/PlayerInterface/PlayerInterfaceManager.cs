@@ -42,11 +42,11 @@ public class PlayerInterfaceManager : NetworkBehaviour
     private void RpcUpdatePhaseHighlight(TurnState newState) {
         var newHighlightIndex = newState switch
         {
-            TurnState.DrawI => 0,
-            TurnState.Develop => 1,
-            TurnState.Deploy => 2,
-            TurnState.DrawII => 5,
-            TurnState.Recruit => 6,
+            TurnState.Draw => 0,
+            TurnState.Invent => 1,
+            TurnState.Develop => 2,
+            TurnState.Recruit => 5,
+            TurnState.Deploy => 6,
             TurnState.Prevail => 7,
             TurnState.CleanUp => -2,
             _ => -1

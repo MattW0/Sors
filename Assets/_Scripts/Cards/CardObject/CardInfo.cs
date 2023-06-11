@@ -15,11 +15,17 @@ public struct CardInfo : IEquatable<CardInfo>
     [Header("Money properties")]
     public int moneyValue;
 
-    [Header("Creature properties")]
-    public int attack;
+    [Header("Entity properties")]
     public int health;
     public int points;
-    public List<Keywords> keyword_abilities;
+
+    [Header("Development properties")]
+    public List<Triggers> effectTriggers;
+    public List<DevelopmentEffects> developmentEffects;
+
+    [Header("Creature properties")]
+    public int attack;
+    public List<Keywords> keywordAbilities;
 
     public CardInfo(ScriptableCard card, string gameObjectID = null)
     {
@@ -34,11 +40,17 @@ public struct CardInfo : IEquatable<CardInfo>
         // Money properties
         moneyValue = card.moneyValue;
 
-        // Creature properties
-        attack = card.attack;
+        // Enitity properties
         health = card.health;
         points = card.points;
-        keyword_abilities = card.keyword_abilities;
+
+        // Development properties
+        effectTriggers = card.effectTriggers;
+        developmentEffects = card.developmentEffects;
+
+        // Creature properties
+        attack = card.attack;
+        keywordAbilities = card.keywordAbilities;
     }
 
     public void Destroy(){
@@ -54,7 +66,7 @@ public struct CardInfo : IEquatable<CardInfo>
         // this.type = CardType.Development;
         this.moneyValue = 0;
 
-        this.keyword_abilities = null;
+        this.keywordAbilities = null;
     }
 
     public bool Equals(CardInfo other)

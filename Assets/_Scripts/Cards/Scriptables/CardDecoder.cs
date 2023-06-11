@@ -54,8 +54,8 @@ namespace CardDecoder {
             {
                 ScriptableCard cardInfo = ScriptableObject.CreateInstance<ScriptableCard>();
 
-                cardInfo.isCreature = true;
                 cardInfo.hash = card.hash;
+                cardInfo.type = CardType.Creature;
 
                 cardInfo.title = card.title;
                 cardInfo.cost = card.cost;
@@ -68,7 +68,7 @@ namespace CardDecoder {
                     var keyword = (Keywords)System.Enum.Parse(typeof(Keywords), kw);
                     keywords.Add(keyword);
                 }
-                cardInfo.keyword_abilities = keywords;
+                cardInfo.keywordAbilities = keywords;
 
                 var relationsTexts = new List<string>();
                 foreach (var relation in card.relations)
@@ -76,7 +76,7 @@ namespace CardDecoder {
                     var text = createRelationText(card.title, relation);
                     relationsTexts.Add(text);
                 }
-                cardInfo.relations_texts = relationsTexts;
+                cardInfo.relationsTexts = relationsTexts;
 
                 UnityEditor.AssetDatabase.CreateAsset(cardInfo, $"Assets/Resources/CreatureCards/{card.title}.asset");
                 UnityEditor.AssetDatabase.SaveAssets();

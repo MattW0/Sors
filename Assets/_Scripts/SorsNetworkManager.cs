@@ -9,7 +9,7 @@ public class SorsNetworkManager : NetworkManager
     private NetworkManager _manager;
     private string _playerNameBuffer;
     private string[] _networkAddresses = new string[2] {"localhost", "192.168.1.170"};
-    private GameOptions _gameOptions = new GameOptions(2, 2, false, false, "localhost");
+    private GameOptions _gameOptions = new GameOptions(1, 2, false, false, "localhost");
     public static event Action<int, int, bool, bool> OnAllPlayersReady;
 
     public override void Awake(){

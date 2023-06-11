@@ -9,8 +9,10 @@ public class DropZoneManager : NetworkBehaviour
     public static DropZoneManager Instance { get; private set; }
     [SerializeField] private MoneyZone playerMoneyZone;
     [SerializeField] private MoneyZone opponentMoneyZone;
-    [SerializeField] private PlayZoneCardHolder[] playerCardHolders = new PlayZoneCardHolder[6];
-    [SerializeField] private PlayZoneCardHolder[] opponentCardHolders = new PlayZoneCardHolder[6];
+    [SerializeField] private PlayZoneCardHolder[] playerDevelopmentHolders = new PlayZoneCardHolder[6];
+    [SerializeField] private PlayZoneCardHolder[] playerCreatureHolders = new PlayZoneCardHolder[6];
+    [SerializeField] private PlayZoneCardHolder[] opponentDevelopmentHolders = new PlayZoneCardHolder[6];
+    [SerializeField] private PlayZoneCardHolder[] opponentCreatureHolders = new PlayZoneCardHolder[6];
     [SerializeField] private List<BattleZoneEntity> _hostEntities = new();
     [SerializeField] private List<BattleZoneEntity> _clientEntities = new();
     private BoardManager _boardManager;
@@ -49,8 +51,8 @@ public class DropZoneManager : NetworkBehaviour
     [ClientRpc]
     private void RpcMoveEntityToHolder(BattleZoneEntity entity, int index)
     {
-        if(entity.isOwned) entity.transform.SetParent(playerCardHolders[index].transform, false);
-        else entity.transform.SetParent(opponentCardHolders[index].transform, false);
+        if(entity.isOwned) entity.transform.SetParent(playerCreatureHolders[index].transform, false);
+        else entity.transform.SetParent(opponentCreatureHolders[index].transform, false);
         
         entity.SetPosition(entity.isOwned);
     }
@@ -230,22 +232,35 @@ public class DropZoneManager : NetworkBehaviour
     #region UI and utils
 
     [ClientRpc]
-    public void RpcHighlightCardHolders(bool active)
+    public void RpcHighlightCardHolders()
     {
-        if (active) HighlightHolders();
-        else ResetHolders();
+        var state = TurnManager.GetTurnState();
+        print("BM - Show holders: " + state);
+
+        if(state == TurnState.Develop) HighlightDevelopmentHolders();
+        else if (state == TurnState.Deploy) HighlightCreatureHolders();
     }
 
-    public void HighlightHolders()
+    public void HighlightDevelopmentHolders()
     {
-        foreach (var holder in playerCardHolders) {
+        foreach (var holder in playerDevelopmentHolders) {
+            holder.SetHighlight();
+        }
+    }
+
+    public void HighlightCreatureHolders()
+    {
+        foreach (var holder in playerCreatureHolders) {
             holder.SetHighlight();
         }
     }
     
     public void ResetHolders()
     {
-        foreach (var holder in playerCardHolders) {
+        foreach (var holder in playerDevelopmentHolders) {
+            holder.ResetHighlight();
+        }
+        foreach (var holder in playerCreatureHolders) {
             holder.ResetHighlight();
         }
     }

@@ -22,6 +22,7 @@ public class TurnManager : NetworkBehaviour
 
     [field: Header("Game state")] 
     [SerializeField] public TurnState turnState { get; private set; }
+    public static TurnState GetTurnState() => Instance.turnState;
     public List<Phase> phasesToPlay;
     private Dictionary<PlayerManager, Phase[]> _playerPhaseChoices = new();
     private List<PrevailOption> _prevailOptionsToPlay = new();
@@ -58,26 +59,26 @@ public class TurnManager : NetworkBehaviour
                 NextPhase();
                 break;
             // --- Phases ---
-            case TurnState.DrawI:
-                DrawI();
+            case TurnState.Draw:
+                Draw();
                 break;
             case TurnState.Discard:
                 Discard();
                 break;
-            case TurnState.Develop:
-                Develop();
+            case TurnState.Invent:
+                KingdomPhase(Phase.Invent);
                 break;
-            case TurnState.Deploy:
-                Deploy(true);
+            case TurnState.Develop:
+                PlayCard(true);
                 break;
             case TurnState.Combat:
                 Combat();
                 break;
-            case TurnState.DrawII:
-                DrawIi();
-                break;
             case TurnState.Recruit:
-                Recruit();
+                KingdomPhase(Phase.Recruit);
+                break;
+            case TurnState.Deploy:
+                PlayCard(true);
                 break;
             case TurnState.Prevail:
                 Prevail();
@@ -159,7 +160,8 @@ public class TurnManager : NetworkBehaviour
         foreach (var (player, phases) in _playerPhaseChoices) {
             foreach (var phase in phases){
                 // Player turn stats
-                if (phase == Phase.Develop) player.Develops++;
+                if (phase == Phase.Invent) player.Invents++;
+                else if (phase == Phase.Develop) player.Develops++;
                 else if (phase == Phase.Deploy) player.Deploys++;
                 else if(phase == Phase.Recruit) player.Recruits++;
                 // For phaseVisuals
@@ -195,25 +197,14 @@ public class TurnManager : NetworkBehaviour
 
     #region Drawing
     
-    private void DrawI() {
+    private void Draw() {
         foreach (var player in _gameManager.players.Keys) {
             var nbCardDraw = _gameManager.nbCardDraw;
-            if (player.chosenPhases.Contains(Phase.DrawI)) nbCardDraw++;
+            if (player.chosenPhases.Contains(Phase.Draw)) nbCardDraw++;
 
             player.DrawCards(nbCardDraw);
         }
 
-        UpdateTurnState(TurnState.Discard);
-    }
-    
-    private void DrawIi(){
-        foreach (var player in _gameManager.players.Keys) {
-            var nbCardDraw = _gameManager.nbCardDraw;
-            if (player.chosenPhases.Contains(Phase.DrawII)) nbCardDraw++;
-
-            player.DrawCards(nbCardDraw);
-        }
-        
         UpdateTurnState(TurnState.Discard);
     }
 
@@ -239,45 +230,57 @@ public class TurnManager : NetworkBehaviour
     
     #endregion
 
-    #region Develop
-    private void Develop(){
+    #region KingdomPase (Invent, Recruit)
+    private void KingdomPhase(Phase phase){
         _selectedKingdomCards.Clear();
         _handManager.RpcHighlightMoney(true);
-        _kingdom.RpcBeginPhase(Phase.Develop);
+        _kingdom.RpcBeginPhase(phase);
 
         foreach (var player in _gameManager.players.Keys) {
-            if (player.chosenPhases.Contains(Phase.Develop)){
-                _kingdom.TargetKingdomBonus(player.connectionToClient, _gameManager.developPriceReduction);
+            int priceReduction = 0;
+            if (player.chosenPhases.Contains(phase)){
+                priceReduction += _gameManager.inventPriceReduction;
+                _kingdom.TargetKingdomBonus(player.connectionToClient, priceReduction);
             }
         }
     }
 
-    public void PlayerSelectedDevelopCard(PlayerManager player, CardInfo card)
+    public void PlayerSelectedKingdomTile(PlayerManager player, CardInfo card)
     {
-        player.Develops--;
-        var cost = card.cost;
-        if (player.chosenPhases.Contains(Phase.Develop)) cost -= _gameManager.developPriceReduction;
-        player.Cash -= cost;
+        var cardCost = card.cost;
+        if (turnState == TurnState.Invent) {
+            player.Invents--;
+            if (player.chosenPhases.Contains(Phase.Invent)) cardCost -= _gameManager.inventPriceReduction;
+        } else if (turnState == TurnState.Recruit){
+            player.Recruits--;
+            if (player.chosenPhases.Contains(Phase.Recruit)) cardCost -= _gameManager.recruitPriceReduction;
+        }
+        
+        player.Cash -= cardCost;
 
         if (_selectedKingdomCards.ContainsKey(player))
             _selectedKingdomCards[player].Add(card);
         else
             _selectedKingdomCards.Add(player, new List<CardInfo> { card });
         
-        _kingdom.TargetResetDevelop(player.connectionToClient, player.Develops);
+        int actionsLeft = 0;
+        if (turnState == TurnState.Invent) actionsLeft = player.Invents;
+        else if (turnState == TurnState.Recruit) actionsLeft = player.Recruits;
+        _kingdom.TargetResetKingdom(player.connectionToClient, actionsLeft);
 
         // Waiting for player to use remaining recruit actions
-        if (player.Develops > 0) return;
+        if (actionsLeft > 0) return;
         PlayerIsReady(player);
     }
 
-    private void DevelopSpawnAndReset()
+    private void KingdomSpawnAndReset()
     {
         foreach (var (owner, cards) in _selectedKingdomCards) {
             foreach (var cardInfo in cards) {
                 if(cardInfo.type == CardType.Money) _gameManager.SpawnMoney(owner, cardInfo);
                 else if(cardInfo.type == CardType.Development) _gameManager.SpawnDevelopment(owner, cardInfo);
-                _playerInterfaceManager.RpcLog("<color=#4f2d00>" + owner.PlayerName + " develops " + cardInfo.title + "</color>");
+                else if(cardInfo.type == CardType.Creature) _gameManager.SpawnCreature(owner, cardInfo);
+                _playerInterfaceManager.RpcLog("<color=#4f2d00>" + owner.PlayerName + " gains " + cardInfo.title + "to their deck.</color>");
             }
         }
         
@@ -286,70 +289,79 @@ public class TurnManager : NetworkBehaviour
         }
         
         PlayersStatsResetAndDiscardMoney();
-        _kingdom.RpcEndDevelop();
+        _kingdom.RpcEndKindomPhase();
 
         UpdateTurnState(TurnState.NextPhase);
     }
 
     #endregion
     
-    #region Deploy
+    #region PlayCardPhase (Develop, Deploy)
 
-    private void Deploy(bool firstDeploy)
-    {
-        if (firstDeploy) {
+    private void PlayCard(bool first){
+        if (first) {
             _handManager.RpcHighlightMoney(true);
             _boardManager.ShowHolders(true);
-            SpawnCreatureDetailCards();
+            SpawnDetailCards();
         }
-        _cardCollectionPanel.RpcBeginState(TurnState.Deploy);
+        _cardCollectionPanel.RpcBeginState(turnState);
     }
 
-    private void SpawnCreatureDetailCards(){
+    private void SpawnDetailCards(){
+        CardType targetCardType = 0;
+        if(turnState == TurnState.Develop) targetCardType = CardType.Development;
+        else if(turnState == TurnState.Deploy) targetCardType = CardType.Creature;
+
         foreach(var player in _gameManager.players.Keys){
-
-            List<CardInfo> creatures = new();
+            List<CardInfo> cards = new();
             foreach(var card in player.hand){
-                if(card.type == CardType.Creature) creatures.Add(card);
+                if(card.type == targetCardType) cards.Add(card);
             }
-            var cardObjects = GameManager.CardInfosToGameObjects(creatures);
+            var cardObjects = GameManager.CardInfosToGameObjects(cards);
             _cardCollectionPanel.TargetShowCardCollection(player.connectionToClient, 
-                cardObjects, creatures);
+                cardObjects, cards);
         }
     }
 
-    public void PlayerDeployedCard(PlayerManager player, GameObject card) {
-        player.Deploys--;
+    public void PlayerPlaysCard(PlayerManager player, GameObject card) {
+        if(turnState == TurnState.Develop) player.Develops--;
+        else if(turnState == TurnState.Deploy) player.Deploys--;
         player.Cash -= card.GetComponent<CardStats>().cardInfo.cost;
 
         _selectedHandCards[player].Add(card);
-        PlayerIsReady(player);        
-    }
-
-    public void PlayerSkipsDeploy(PlayerManager player) {
-        player.Deploys--;
         PlayerIsReady(player);
     }
 
-    private void DeployEntities(){
-        var anotherDeploy = false;
+    public void PlayerSkipsCardPlay(PlayerManager player) {
+        if(turnState == TurnState.Develop) player.Develops--;
+        else if(turnState == TurnState.Deploy) player.Deploys--;
+        PlayerIsReady(player);
+    }
+
+    private void PlayEntities(){
+        var anotherPlay = false;
         foreach(var (player, cards) in _selectedHandCards) {
-            foreach (var card in cards) {
+            foreach(var card in cards) {
                 var cardInfo = card.GetComponent<CardStats>().cardInfo;
                 _gameManager.SpawnFieldEntity(player, card);
             }
             cards.Clear();
-            if (player.Deploys > 0) anotherDeploy = true;
+
+            if(turnState == TurnState.Develop) {
+                if(player.Develops > 0) anotherPlay = true;
+            } else if(turnState == TurnState.Deploy) {
+                if(player.Deploys > 0) anotherPlay = true;
+            }
         }
 
-        if(anotherDeploy) {
+        if(anotherPlay) {
             _cardCollectionPanel.RpcSoftResetPanel();
-            Deploy(false);
+            PlayCard(false);
         }
-        else EndDeploy();
+        else EndPlayCards();
     }
 
-    private void EndDeploy()
+    private void EndPlayCards()
     {
         _cardCollectionPanel.RpcResetPanel();
         _boardManager.ShowHolders(false);
@@ -357,63 +369,11 @@ public class TurnManager : NetworkBehaviour
         
         UpdateTurnState(TurnState.NextPhase);
     }
+
     #endregion
 
     private void Combat() => combatManager.UpdateCombatState(CombatState.Attackers);
     public void CombatCleanUp() => UpdateTurnState(TurnState.NextPhase);
-    
-    #region Recruit
-
-    private void Recruit(){
-        _selectedKingdomCards.Clear();
-        _handManager.RpcHighlightMoney(true);
-        _kingdom.RpcBeginPhase(Phase.Recruit);
-
-        foreach (var player in _gameManager.players.Keys) {
-            if (player.chosenPhases.Contains(Phase.Recruit)){
-                _kingdom.TargetKingdomBonus(player.connectionToClient, _gameManager.recruitPriceReduction);
-            }
-        }
-    }
-
-    public void PlayerSelectedRecruitCard(PlayerManager player, CardInfo card)
-    {
-        player.Recruits--;
-        var cost = card.cost;
-        if (player.chosenPhases.Contains(Phase.Recruit)) cost -= _gameManager.recruitPriceReduction;
-        player.Cash -= cost;
-
-        if (_selectedKingdomCards.ContainsKey(player))
-            _selectedKingdomCards[player].Add(card);
-        else
-            _selectedKingdomCards.Add(player, new List<CardInfo> { card });
-        
-        _kingdom.TargetResetRecruit(player.connectionToClient, player.Recruits);
-
-        // Waiting for player to use remaining recruit actions
-        if (player.Recruits > 0) return;
-        PlayerIsReady(player);
-    }
-
-    private void RecruitSpawnAndReset()
-    {
-        foreach (var (owner, cards) in _selectedKingdomCards) {
-            foreach (var cardInfo in cards) {
-                _gameManager.SpawnCreature(owner, cardInfo);
-                _playerInterfaceManager.RpcLog("<color=#4f2d00>" + owner.PlayerName + " recruits " + cardInfo.title + "</color>");
-            }
-        }
-
-        foreach(var player in _gameManager.players.Keys){
-            player.RpcResolveCardSpawn(_gameManager.cardSpawnAnimations);
-        }
-        
-        PlayersStatsResetAndDiscardMoney();
-        _kingdom.RpcEndRecruit();
-
-        UpdateTurnState(TurnState.NextPhase);
-    }
-    #endregion 
 
     #region Prevail
     private void Prevail(){
@@ -559,14 +519,11 @@ public class TurnManager : NetworkBehaviour
             case TurnState.Discard:
                 FinishDiscard();
                 break;
-            case TurnState.Develop:
-                DevelopSpawnAndReset();
+            case TurnState.Invent or TurnState.Recruit:
+                KingdomSpawnAndReset();
                 break;
-            case TurnState.Deploy:
-                DeployEntities();
-                break;
-            case TurnState.Recruit:
-                RecruitSpawnAndReset();
+            case TurnState.Develop or TurnState.Deploy:
+                PlayEntities();
                 break;
             case TurnState.Prevail:
                 StartPrevailOptions();
@@ -587,11 +544,11 @@ public class TurnManager : NetworkBehaviour
     private void PlayerCashChanged(PlayerManager player, int newAmount)
     {
         switch (turnState) {
-            case TurnState.Develop or TurnState.Recruit:
+            case TurnState.Invent or TurnState.Recruit:
                 _kingdom.TargetCheckPriceKingdomTile(player.connectionToClient, newAmount);
                 break;
-            case TurnState.Deploy:
-                _cardCollectionPanel.TargetCheckDeployability(player.connectionToClient, newAmount);
+            case TurnState.Develop or TurnState.Deploy:
+                _cardCollectionPanel.TargetCheckPlayability(player.connectionToClient, newAmount);
                 break;
         }
     }
@@ -609,6 +566,7 @@ public class TurnManager : NetworkBehaviour
 
             if (!endOfTurn) continue;
             player.Develops = _gameManager.turnDevelops;
+            player.Invents = _gameManager.turnInvents;
             player.Deploys = _gameManager.turnDeploys;
             player.Recruits = _gameManager.turnRecruits;
 
@@ -629,12 +587,12 @@ public enum TurnState
     Idle,
     NextPhase,
     PhaseSelection,
-    DrawI,
+    Draw,
     Discard,
+    Invent,
     Develop,
     Deploy,
     Combat,
-    DrawII,
     Recruit,
     Prevail,
     Trash,
@@ -643,11 +601,11 @@ public enum TurnState
 
 public enum Phase
 {
-    DrawI,
+    Draw,
+    Invent,
     Develop,
-    Deploy,
     Combat,
-    DrawII,
     Recruit,
+    Deploy,
     Prevail,
 }
