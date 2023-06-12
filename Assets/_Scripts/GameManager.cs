@@ -31,7 +31,8 @@ public class GameManager : NetworkBehaviour {
     [SerializeField] private int nbMoneyTiles = 4;
     [SerializeField] private int nbDevelopTiles = 8;
     [SerializeField] public int initialDeckSize = 10;
-    [SerializeField] public int initialCreatures = 3;
+    [SerializeField] public int initialCreatures = 2;
+    [SerializeField] public int initialDevelopments = 2;
     [SerializeField] public int initialHandSize = 4;
     [SerializeField] public int startHealth = 30;
     [SerializeField] public int startScore = 0;
@@ -57,6 +58,7 @@ public class GameManager : NetworkBehaviour {
 
     [Header("Available cards")]
     public ScriptableCard[] startCreatures;
+    public ScriptableCard[] startDevelopments;
     public ScriptableCard[] creatureCardsDb;
     public ScriptableCard[] moneyCardsDb;
     public ScriptableCard[] developCardsDb;
@@ -67,7 +69,8 @@ public class GameManager : NetworkBehaviour {
     [SerializeField] private GameObject creatureCardPrefab;
     [SerializeField] private GameObject moneyCardPrefab;
     [SerializeField] private GameObject developCardPrefab;
-    [SerializeField] private GameObject entityObjectPrefab;
+    [SerializeField] private GameObject creatureEntityPrefab;
+    [SerializeField] private GameObject developmentEntityPrefab;
 
     // Caching all gameObjects of cards in game
     private static Dictionary<string, GameObject> Cache { get; set; } = new();
@@ -81,7 +84,8 @@ public class GameManager : NetworkBehaviour {
     {
         if (Instance == null) Instance = this;
 
-        startCreatures = Resources.LoadAll<ScriptableCard>("CreatureCards/StartCreatures/");
+        startCreatures = Resources.LoadAll<ScriptableCard>("StartCards/Creatures/");
+        startDevelopments = Resources.LoadAll<ScriptableCard>("StartCards/Developments/");
 
         creatureCardsDb = Resources.LoadAll<ScriptableCard>("CreatureCards/");
         moneyCardsDb = Resources.LoadAll<ScriptableCard>("MoneyCards/");
@@ -205,19 +209,27 @@ public class GameManager : NetworkBehaviour {
     #region Spawning
     
     private void SpawnPlayerDeck(PlayerManager playerManager){
-        // Coppers
-        for (var i = 0; i < initialDeckSize - initialCreatures; i++){
-            var moneyCard = moneyCardsDb[0]; // Only copper right now
+        // Money
+        for (var i = 0; i < initialDeckSize - initialCreatures - initialDevelopments; i++){
+            var scriptableCard = moneyCardsDb[0]; // Only paper money right now
             var cardObject = Instantiate(moneyCardPrefab) as GameObject;
-            var cardInfo = SpawnAndCacheCard(playerManager, cardObject, moneyCard);
+            var cardInfo = SpawnAndCacheCard(playerManager, cardObject, scriptableCard);
             MoveSpawnedCard(playerManager, cardObject, cardInfo, CardLocation.Deck);
         }
 
-        // Other start cards
+        // Creatures
         for (var i = 0; i < initialCreatures; i++){
-            var creatureCard = startCreatures[i]; // Special creatures 'Deathy', 'Firsty', 'Trampy'
+            var scriptableCard = startCreatures[i]; // Special creatures 'Peasant', 'Worker'
             var cardObject = Instantiate(creatureCardPrefab) as GameObject;
-            var cardInfo = SpawnAndCacheCard(playerManager, cardObject, creatureCard);
+            var cardInfo = SpawnAndCacheCard(playerManager, cardObject, scriptableCard);
+            MoveSpawnedCard(playerManager, cardObject, cardInfo, CardLocation.Deck);
+        }
+
+        // Creatures
+        for (var i = 0; i < initialCreatures; i++){
+            var scriptableCard = startDevelopments[i]; // Start Developments: 'A', 'B'
+            var cardObject = Instantiate(developCardPrefab) as GameObject;
+            var cardInfo = SpawnAndCacheCard(playerManager, cardObject, scriptableCard);
             MoveSpawnedCard(playerManager, cardObject, cardInfo, CardLocation.Deck);
         }
     }
@@ -282,9 +294,12 @@ public class GameManager : NetworkBehaviour {
         else owner.RpcMoveCard(cardObject, CardLocation.Spawned, destination);
     }
 
-    public void SpawnFieldEntity(PlayerManager owner, GameObject card)
+    public void SpawnFieldEntity(PlayerManager owner, GameObject card, CardType type)
     {
-        var entityObject = Instantiate(entityObjectPrefab);
+        GameObject entityObject;
+        if(type == CardType.Creature) entityObject = Instantiate(creatureEntityPrefab);
+        else entityObject = Instantiate(developmentEntityPrefab);
+        
         NetworkServer.Spawn(entityObject, connectionToClient);
         entityObject.GetComponent<NetworkIdentity>().AssignClientAuthority(players[owner].connectionToClient);
 

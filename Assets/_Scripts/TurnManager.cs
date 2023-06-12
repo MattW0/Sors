@@ -343,7 +343,7 @@ public class TurnManager : NetworkBehaviour
         foreach(var (player, cards) in _selectedHandCards) {
             foreach(var card in cards) {
                 var cardInfo = card.GetComponent<CardStats>().cardInfo;
-                _gameManager.SpawnFieldEntity(player, card);
+                _gameManager.SpawnFieldEntity(player, card, cardInfo.type);
             }
             cards.Clear();
 

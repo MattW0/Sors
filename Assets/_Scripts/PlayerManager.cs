@@ -34,7 +34,7 @@ public class PlayerManager : NetworkBehaviour
     public Dictionary<GameObject, CardInfo> moneyCards = new();
 
     public bool PlayerIsChoosingBlockers { get; private set; }
-    private List<BattleZoneEntity> _blockers = new();
+    private List<CreatureEntity> _blockers = new();
     private PlayerUI _playerUI;
     private PlayerUI _opponentUI;
     
@@ -347,19 +347,19 @@ public class PlayerManager : NetworkBehaviour
 
     #region Combat
 
-    public void PlayerChoosesBlocker(BattleZoneEntity blocker)
+    public void PlayerChoosesBlocker(CreatureEntity blocker)
     {
         PlayerIsChoosingBlockers = true;
         _blockers.Add(blocker);
     }
 
-    public void PlayerRemovesBlocker(BattleZoneEntity blocker)
+    public void PlayerRemovesBlocker(CreatureEntity blocker)
     {
         _blockers.Remove(blocker);
         if (_blockers.Count == 0) PlayerIsChoosingBlockers = false;
     }
 
-    public void PlayerChoosesAttackerToBlock(BattleZoneEntity target)
+    public void PlayerChoosesAttackerToBlock(CreatureEntity target)
     {
         if (isServer) _combatManager.PlayerChoosesAttackerToBlock(target, _blockers);
         else CmdPlayerChoosesAttackerToBlock(target, _blockers);
@@ -369,7 +369,7 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Command]
-    private void CmdPlayerChoosesAttackerToBlock(BattleZoneEntity target, List<BattleZoneEntity> blockers)
+    private void CmdPlayerChoosesAttackerToBlock(CreatureEntity target, List<CreatureEntity> blockers)
     {
         _combatManager.PlayerChoosesAttackerToBlock(target, blockers);
     }

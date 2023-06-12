@@ -17,9 +17,9 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     [SerializeField] private TMP_Text _health;
     [SerializeField] private TMP_Text _points;
     [SerializeField] private TMP_Text _moneyValue;
-    [SerializeField] private GameObject _creatureUi;
     [SerializeField] private GameObject _moneyUi;
-    [SerializeField] private GameObject _developmentUi;
+    [SerializeField] private GameObject _entityUi;
+    [SerializeField] private GameObject _attackObject;
 
     [Header("Card UI")]
     [SerializeField] private Image _image;
@@ -34,9 +34,9 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         _cost.text = cardInfo.cost.ToString();
         
         _moneyUi.SetActive(false);
-        _creatureUi.SetActive(false);
-        _developmentUi.SetActive(false);
+        _entityUi.SetActive(false);
 
+        // Money
         if (cardInfo.type == CardType.Money) {
             _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Money/" + cardInfo.title);
             _moneyValue.text = cardInfo.moneyValue.ToString();
@@ -44,22 +44,22 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
             return;
         }
 
-        // Creature or Development
+        // Entity
         _health.text = cardInfo.health.ToString();
         _points.text = cardInfo.points.ToString();
 
         if (cardInfo.type == CardType.Development) {
             _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Development/development");
-            _developmentUi.SetActive(true);
-            return;
+            _description.text = cardInfo.keywordAbilities.ToString();
+            _attackObject.SetActive(false);
+        } else {
+            _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Creature/creature");
+            _attack.text = cardInfo.attack.ToString();
+            _description.text = string.Join(" ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
+            _attackObject.SetActive(true);
         }
-
-        // Creature
-        _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Creature/creature");
-        _attack.text = cardInfo.attack.ToString();
-        _description.text = cardInfo.keywordAbilities.ToString();
-        _description.text = string.Join(" ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
-        _creatureUi.SetActive(true);
+        
+        _entityUi.SetActive(true);
         return;
     }
 

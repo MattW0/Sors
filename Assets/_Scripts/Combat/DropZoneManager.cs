@@ -1,3 +1,4 @@
+using System.Globalization;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,8 +14,11 @@ public class DropZoneManager : NetworkBehaviour
     [SerializeField] private PlayZoneCardHolder[] playerCreatureHolders = new PlayZoneCardHolder[6];
     [SerializeField] private PlayZoneCardHolder[] opponentDevelopmentHolders = new PlayZoneCardHolder[6];
     [SerializeField] private PlayZoneCardHolder[] opponentCreatureHolders = new PlayZoneCardHolder[6];
-    [SerializeField] private List<BattleZoneEntity> _hostEntities = new();
-    [SerializeField] private List<BattleZoneEntity> _clientEntities = new();
+    [SerializeField] private List<CreatureEntity> _hostCreatures = new();
+    [SerializeField] private List<DevelopmentEntity> _hostDevelopments = new();
+    [SerializeField] private List<CreatureEntity> _clientCreatures = new();
+    [SerializeField] private List<DevelopmentEntity> _clientDevelopments = new();
+
     private BoardManager _boardManager;
     private PlayerManager _player;
     private CombatState _combatState;
@@ -34,34 +38,79 @@ public class DropZoneManager : NetworkBehaviour
     [Server]
     public void EntityEntersDropZone(PlayerManager owner, BattleZoneEntity entity)
     {
-        var index = 0;
-        if(owner.isLocalPlayer) {
-            _hostEntities.Add(entity);
-            index = _hostEntities.Count - 1;
-        } else {
-            _clientEntities.Add(entity);
-            index = _clientEntities.Count - 1;
+        if(entity.cardType == CardType.Development) {
+            var development = entity.GetComponent<DevelopmentEntity>();
+            if(owner.isLocalPlayer) _hostDevelopments.Add(development);
+            else _clientDevelopments.Add(development);
+        } else if(entity.cardType == CardType.Creature) {
+            var creature = entity.GetComponent<CreatureEntity>();
+            if(owner.isLocalPlayer) _hostCreatures.Add(creature);
+            else _clientCreatures.Add(creature);
         }
 
-        RpcMoveEntityToHolder(entity, index);
+        RpcMoveEntityToHolder(entity);
         ResetHolders();
         entity.OnDeath += EntityLeavesPlayZone;
     }
 
     [ClientRpc]
-    private void RpcMoveEntityToHolder(BattleZoneEntity entity, int index)
+    private void RpcMoveEntityToHolder(BattleZoneEntity entity)
     {
-        if(entity.isOwned) entity.transform.SetParent(playerCreatureHolders[index].transform, false);
-        else entity.transform.SetParent(opponentCreatureHolders[index].transform, false);
+        var targetTransform = FindHolderTransform(entity);
+        if(!targetTransform) {
+            print("No free holders found! Aborting to play entity...");
+            return;
+        }
+        entity.transform.SetParent(targetTransform, false);
+    }
+
+    private Transform FindHolderTransform(BattleZoneEntity entity)
+    {
+        var index = 0;
+        if(entity.isOwned){
+            if(entity.cardType == CardType.Development){
+                index = GetFirstFreeHolderIndex(playerDevelopmentHolders);
+                return playerDevelopmentHolders[index].transform;
+            } else if(entity.cardType == CardType.Creature){
+                index = GetFirstFreeHolderIndex(playerCreatureHolders);
+                return playerCreatureHolders[index].transform;
+            }
+        }
         
-        entity.SetPosition(entity.isOwned);
+        // Opponent Entity
+        if(entity.cardType == CardType.Development){
+            index = GetFirstFreeHolderIndex(opponentDevelopmentHolders);
+            return opponentDevelopmentHolders[index].transform;
+        } else if(entity.cardType == CardType.Creature){
+            index = GetFirstFreeHolderIndex(opponentCreatureHolders);
+            return opponentCreatureHolders[index].transform;
+        }
+        
+        // Returning null if no free holders found 
+        return null;
+    }
+
+    private int GetFirstFreeHolderIndex(PlayZoneCardHolder[] holders)
+    {
+        for (int i = 0; i < holders.Length; i++){
+            if(holders[i].transform.childCount == 1) return i;
+        }
+        return -1;
     }
 
     [Server]
     private void EntityLeavesPlayZone(PlayerManager owner, BattleZoneEntity entity)
     {
-        if(owner.isLocalPlayer) _hostEntities.Remove(entity);
-        else _clientEntities.Remove(entity);
+
+        if(entity.cardType == CardType.Development) {
+            var development = entity.GetComponent<DevelopmentEntity>();
+            if(owner.isLocalPlayer) _hostDevelopments.Remove(development);
+            else _clientDevelopments.Remove(development);
+        } else if(entity.cardType == CardType.Creature) {
+            var creature = entity.GetComponent<CreatureEntity>();
+            if(owner.isLocalPlayer) _hostCreatures.Remove(creature);
+            else _clientCreatures.Remove(creature);
+        }
 
         entity.OnDeath -= EntityLeavesPlayZone;
     }
@@ -75,24 +124,24 @@ public class DropZoneManager : NetworkBehaviour
     {
         _combatState = CombatState.Attackers;
         foreach (var player in players) {
-            if (player.isLocalPlayer) TargetDeclareAttackers(player.connectionToClient, _hostEntities);
-            else TargetDeclareAttackers(player.connectionToClient, _clientEntities);
+            if (player.isLocalPlayer) TargetDeclareAttackers(player.connectionToClient, _hostCreatures);
+            else TargetDeclareAttackers(player.connectionToClient, _clientCreatures);
         }
     }
 
     [TargetRpc]
-    private void TargetDeclareAttackers(NetworkConnection conn, List<BattleZoneEntity> entities)
+    private void TargetDeclareAttackers(NetworkConnection conn, List<CreatureEntity> creatures)
     {
         // Auto-skipping if player has empty board
-        if (entities.Count == 0) {
+        if (creatures.Count == 0) {
             if (isServer) PlayerFinishedChoosingAttackers(_player, true);
             else CmdPlayerFinishedChoosingAttackers(_player, true);
             return;
         }
         // Else we enable entities to be tapped and wait for player to declare attackers and press ready btn
         OnPlayerDeclareAttackers?.Invoke();
-        foreach (var entity in entities) {
-            entity.CheckIfCanAct(CombatState.Attackers);
+        foreach (var creature in creatures) {
+            creature.CheckIfCanAct(CombatState.Attackers);
         }
     }
 
@@ -106,26 +155,26 @@ public class DropZoneManager : NetworkBehaviour
     {
         if (skip) {
             _boardManager.DisableReadyButton(player);
-            _boardManager.AttackersDeclared(player, new List<BattleZoneEntity>());
+            _boardManager.AttackersDeclared(player, new List<CreatureEntity>());
             return;
         }
 
-        List<BattleZoneEntity> entitiesList = new();
-        if (player.isLocalPlayer) entitiesList = _hostEntities;
-        else entitiesList = _clientEntities;
+        List<CreatureEntity> creaturesList = new();
+        if (player.isLocalPlayer) creaturesList = _hostCreatures;
+        else creaturesList = _clientCreatures;
 
-        TargetReturnAttackersList(player.connectionToClient, entitiesList, player);
+        TargetReturnAttackersList(player.connectionToClient, creaturesList, player);
     }
 
     [TargetRpc]
-    private void TargetReturnAttackersList(NetworkConnection conn, List<BattleZoneEntity> entities, PlayerManager player)
+    private void TargetReturnAttackersList(NetworkConnection conn, List<CreatureEntity> creatures, PlayerManager player)
     {
-        var attackers = new List<BattleZoneEntity>();
-        foreach (var entity in entities) {
-            entity.LocalPlayerIsReady();
-            if (!entity.IsAttacking) continue;
+        var attackers = new List<CreatureEntity>();
+        foreach (var creature in creatures) {
+            creature.LocalPlayerIsReady();
+            if (!creature.IsAttacking) continue;
 
-            attackers.Add(entity);
+            attackers.Add(creature);
         }
 
         if (isServer) _boardManager.AttackersDeclared(player, attackers);
@@ -133,7 +182,7 @@ public class DropZoneManager : NetworkBehaviour
     }
 
     [Command(requiresAuthority = false)]
-    private void CmdReturnAttackersList(PlayerManager player, List<BattleZoneEntity> attackers) => _boardManager.AttackersDeclared(player, attackers);
+    private void CmdReturnAttackersList(PlayerManager player, List<CreatureEntity> attackers) => _boardManager.AttackersDeclared(player, attackers);
     
     #endregion
 
@@ -147,49 +196,49 @@ public class DropZoneManager : NetworkBehaviour
             // Host Logic
             if (player.isLocalPlayer) {
                 // Is there an opponent creature attacking? 
-                var isHostAttacked = _clientEntities.Exists(entity => entity.IsAttacking);
-                TargetDeclareBlockers(player.connectionToClient, _hostEntities, isHostAttacked);
+                var isHostAttacked = _clientCreatures.Exists(entity => entity.IsAttacking);
+                TargetDeclareBlockers(player.connectionToClient, _hostCreatures, isHostAttacked);
                 return;
             }
             
             // Client Logic
-            var isClientAttacked = _hostEntities.Exists(entity => entity.IsAttacking);
-            TargetDeclareBlockers(player.connectionToClient, _clientEntities, isClientAttacked);
+            var isClientAttacked = _hostCreatures.Exists(entity => entity.IsAttacking);
+            TargetDeclareBlockers(player.connectionToClient, _clientCreatures, isClientAttacked);
         }
     }
 
     [TargetRpc]
-    private void TargetDeclareBlockers(NetworkConnection conn, List<BattleZoneEntity> entities, bool isAttacked)
+    private void TargetDeclareBlockers(NetworkConnection conn, List<CreatureEntity> creatures, bool isAttacked)
     {
         var nbAttackers = 0;
-        foreach (var entity in entities) {
-            if (entity.IsAttacking) nbAttackers++;
+        foreach (var creature in creatures) {
+            if (creature.IsAttacking) nbAttackers++;
         }
 
         // If not being attacked or all my creatures are attacking, we skip
         // isAttacked is true if there is at least one attacking opponent entity
-        if (!isAttacked || entities.Count == nbAttackers) {
+        if (!isAttacked || creatures.Count == nbAttackers) {
             PlayerFinishedChoosingBlockers();
             return;
         }
 
         // Else we enable entities to be tapped and wait for player to declare attackers and press ready btn
         OnPlayerDeclareBlockers?.Invoke();
-        foreach (var entity in entities) {
-            entity.CheckIfCanAct(CombatState.Blockers);
+        foreach (var creature in creatures) {
+            creature.CheckIfCanAct(CombatState.Blockers);
         }
     }
 
     private void PlayerFinishedChoosingBlockers()
     {
         if(isServer) {
-            foreach(var entity in _hostEntities){
+            foreach(var entity in _hostCreatures){
                 entity.SetHighlight(false);
             }
             _boardManager.DisableReadyButton(_player);
             ServerPlayerFinishedChoosingBlockers(_player, true);
         } else {
-            foreach(var entity in _clientEntities){
+            foreach(var entity in _clientCreatures){
                 entity.SetHighlight(false);
             }
             CmdPlayerFinishedChoosingBlockers(_player, true);
@@ -206,24 +255,24 @@ public class DropZoneManager : NetworkBehaviour
     [Server]
     public void ServerPlayerFinishedChoosingBlockers(PlayerManager player, bool skip = false)
     {
-        _boardManager.BlockersDeclared(player, new List<BattleZoneEntity>());
+        _boardManager.BlockersDeclared(player, new List<CreatureEntity>());
     }
 
     [Server]
     public void CombatCleanUp()
     {
         _combatState = CombatState.CleanUp;
-        var entities = new List<BattleZoneEntity>();
-        entities.AddRange(_hostEntities);
-        entities.AddRange(_clientEntities);
-        RpcResetCreatures(entities);
+        var creatures = new List<CreatureEntity>();
+        creatures.AddRange(_hostCreatures);
+        creatures.AddRange(_clientCreatures);
+        RpcResetCreatures(creatures);
     }
 
     [ClientRpc]
-    private void RpcResetCreatures(List<BattleZoneEntity> entities)
+    private void RpcResetCreatures(List<CreatureEntity> creatures)
     {
-        foreach (var entity in entities){
-            entity.ResetAfterCombat();
+        foreach (var creature in creatures){
+            creature.ResetAfterCombat();
         }
     }
 
@@ -235,8 +284,6 @@ public class DropZoneManager : NetworkBehaviour
     public void RpcHighlightCardHolders()
     {
         var state = TurnManager.GetTurnState();
-        print("BM - Show holders: " + state);
-
         if(state == TurnState.Develop) HighlightDevelopmentHolders();
         else if (state == TurnState.Deploy) HighlightCreatureHolders();
     }

@@ -14,8 +14,8 @@ public class BoardManager : NetworkBehaviour
     // Entities, corresponding card object
     private Dictionary<BattleZoneEntity, GameObject> _entitiesObjectsCache = new();
     private List<BattleZoneEntity> _deadEntities = new();
-    private List<BattleZoneEntity> _boardAttackers = new();
-    public List<BattleZoneEntity> GetBoardAttackers() => _boardAttackers;
+    private List<CreatureEntity> _boardAttackers = new();
+    public List<CreatureEntity> GetBoardAttackers() => _boardAttackers;
 
     public static event Action<PlayerManager> OnAttackersDeclared;
     public static event Action<PlayerManager> OnBlockersDeclared;
@@ -25,7 +25,6 @@ public class BoardManager : NetworkBehaviour
 
         _gameManager = GameManager.Instance;
         _phasePanel = PhasePanel.Instance;
-        _boardAttackers = new List<BattleZoneEntity>();
 
         CombatManager.OnDeclareAttackers += DeclareAttackers;
         CombatManager.OnDeclareBlockers += DeclareBlockers;
@@ -48,7 +47,7 @@ public class BoardManager : NetworkBehaviour
 
     private void DeclareAttackers() => dropZone.PlayersDeclareAttackers(_gameManager.players.Keys.ToList());
 
-    public void AttackersDeclared(PlayerManager player, List<BattleZoneEntity> playerAttackers) {
+    public void AttackersDeclared(PlayerManager player, List<CreatureEntity> playerAttackers) {
         // Is 0 for auto-skip or no attackers declared
         if (playerAttackers.Count > 0) {
             foreach (var a in playerAttackers) _boardAttackers.Add(a);
@@ -67,7 +66,7 @@ public class BoardManager : NetworkBehaviour
 
     private void DeclareBlockers() => dropZone.PlayersDeclareBlockers(_gameManager.players.Keys.ToList());
 
-    public void BlockersDeclared(PlayerManager player, List<BattleZoneEntity> playerBlockers) {
+    public void BlockersDeclared(PlayerManager player, List<CreatureEntity> playerBlockers) {
         OnBlockersDeclared?.Invoke(player);
     }
     
@@ -84,8 +83,11 @@ public class BoardManager : NetworkBehaviour
         DestroyArrows();
         foreach (var dead in _deadEntities)
         {
-            _boardAttackers.Remove(dead);
-            
+            if(dead.cardType == CardType.Creature){
+                var creature = dead.GetComponent<CreatureEntity>();
+                _boardAttackers.Remove(creature);
+            }
+
             // Move the card object to discard pile
             dead.Owner.discard.Add(_entitiesObjectsCache[dead].GetComponent<CardStats>().cardInfo);
             dead.Owner.RpcMoveCard(_entitiesObjectsCache[dead],
