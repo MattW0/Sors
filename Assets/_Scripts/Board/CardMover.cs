@@ -30,14 +30,15 @@ public class CardMover : MonoBehaviour
 
     public void MoveTo(GameObject card, bool hasAuthority, CardLocation from, CardLocation to)
     {
-        var cardUI = card.GetComponent<CardUI>();
-
         var sourcePile = GetPile(from, hasAuthority);
         if(sourcePile) sourcePile.Remove(card); // pile is null if card just spawned
 
         var destinationPile = GetPile(to, hasAuthority);
         destinationPile.Add(card);
 
+        print($"Moving {card.name} from {from} to {to}");
+
+        var cardUI = card.GetComponent<CardUI>();
         if(to == CardLocation.Discard || to == CardLocation.MoneyZone || to == CardLocation.Trash){
             cardUI.CardFrontUp();
         } else if (to == CardLocation.Hand && hasAuthority){

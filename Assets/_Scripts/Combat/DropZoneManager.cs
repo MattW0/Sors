@@ -7,20 +7,30 @@ using UnityEngine;
 
 public class DropZoneManager : NetworkBehaviour
 {
+    private const int MAX_ENTITIES = 6;
     public static DropZoneManager Instance { get; private set; }
     private BoardManager _boardManager;
     private PlayerManager _player;
     private CombatState _combatState;
     [SerializeField] private MoneyZone playerMoneyZone;
     [SerializeField] private MoneyZone opponentMoneyZone;
-    [SerializeField] private PlayZoneCardHolder[] playerDevelopmentHolders = new PlayZoneCardHolder[6];
-    [SerializeField] private PlayZoneCardHolder[] playerCreatureHolders = new PlayZoneCardHolder[6];
-    [SerializeField] private PlayZoneCardHolder[] opponentDevelopmentHolders = new PlayZoneCardHolder[6];
-    [SerializeField] private PlayZoneCardHolder[] opponentCreatureHolders = new PlayZoneCardHolder[6];
     [SerializeField] private List<CreatureEntity> _hostCreatures = new();
     [SerializeField] private List<DevelopmentEntity> _hostDevelopments = new();
     [SerializeField] private List<CreatureEntity> _clientCreatures = new();
     [SerializeField] private List<DevelopmentEntity> _clientDevelopments = new();
+
+    #region Entity Holders
+    [SerializeField] private GameObject playerCreatureZone;
+    [SerializeField] private GameObject playerDevelopmentZone;
+    [SerializeField] private GameObject opponentCreatureZone;
+    [SerializeField] private GameObject opponentDevelopmentZone;
+    private PlayZoneCardHolder[] _playerDevelopmentHolders = new PlayZoneCardHolder[MAX_ENTITIES];
+    private PlayZoneCardHolder[] _playerCreatureHolders = new PlayZoneCardHolder[MAX_ENTITIES];
+    private PlayZoneCardHolder[] _opponentDevelopmentHolders= new PlayZoneCardHolder[MAX_ENTITIES];
+    private PlayZoneCardHolder[] _opponentCreatureHolders = new PlayZoneCardHolder[MAX_ENTITIES];
+
+    #endregion
+
     public static event Action OnDeclareAttackers;
     public static event Action OnDeclareBlockers;
     public static event Action OnCombatEnded;
@@ -29,6 +39,8 @@ public class DropZoneManager : NetworkBehaviour
     {
         if (!Instance) Instance = this;
         _player = PlayerManager.GetLocalPlayer();
+
+        FindEntityHolders();
 
         if (isServer) _boardManager = BoardManager.Instance;
     }
@@ -247,26 +259,34 @@ public class DropZoneManager : NetworkBehaviour
     #endregion
 
     #region UI and utils
+    private void FindEntityHolders(){
+        for (int i = 0; i < MAX_ENTITIES; i++){
+            _playerDevelopmentHolders[i] = playerDevelopmentZone.transform.GetChild(i).GetComponent<PlayZoneCardHolder>();
+            _playerCreatureHolders[i] = playerCreatureZone.transform.GetChild(i).GetComponent<PlayZoneCardHolder>();
+            _opponentDevelopmentHolders[i] = opponentDevelopmentZone.transform.GetChild(i).GetComponent<PlayZoneCardHolder>();
+            _opponentCreatureHolders[i] = opponentCreatureZone.transform.GetChild(i).GetComponent<PlayZoneCardHolder>();
+        }
+    }
     private Transform FindHolderTransform(BattleZoneEntity entity)
     {
         var index = 0;
         if(entity.isOwned){
             if(entity.cardType == CardType.Development){
-                index = GetFirstFreeHolderIndex(playerDevelopmentHolders);
-                return playerDevelopmentHolders[index].transform;
+                index = GetFirstFreeHolderIndex(_playerDevelopmentHolders);
+                return _playerDevelopmentHolders[index].transform;
             } else if(entity.cardType == CardType.Creature){
-                index = GetFirstFreeHolderIndex(playerCreatureHolders);
-                return playerCreatureHolders[index].transform;
+                index = GetFirstFreeHolderIndex(_playerCreatureHolders);
+                return _playerCreatureHolders[index].transform;
             }
         }
         
         // Opponent Entity
         if(entity.cardType == CardType.Development){
-            index = GetFirstFreeHolderIndex(opponentDevelopmentHolders);
-            return opponentDevelopmentHolders[index].transform;
+            index = GetFirstFreeHolderIndex(_opponentDevelopmentHolders);
+            return _opponentDevelopmentHolders[index].transform;
         } else if(entity.cardType == CardType.Creature){
-            index = GetFirstFreeHolderIndex(opponentCreatureHolders);
-            return opponentCreatureHolders[index].transform;
+            index = GetFirstFreeHolderIndex(_opponentCreatureHolders);
+            return _opponentCreatureHolders[index].transform;
         }
         
         // Returning null if no free holders found 
@@ -292,24 +312,24 @@ public class DropZoneManager : NetworkBehaviour
 
     public void HighlightDevelopmentHolders()
     {
-        foreach (var holder in playerDevelopmentHolders) {
+        foreach (var holder in _playerDevelopmentHolders) {
             holder.SetHighlight();
         }
     }
 
     public void HighlightCreatureHolders()
     {
-        foreach (var holder in playerCreatureHolders) {
+        foreach (var holder in _playerCreatureHolders) {
             holder.SetHighlight();
         }
     }
     
     public void ResetHolders()
     {
-        foreach (var holder in playerDevelopmentHolders) {
+        foreach (var holder in _playerDevelopmentHolders) {
             holder.ResetHighlight();
         }
-        foreach (var holder in playerCreatureHolders) {
+        foreach (var holder in _playerCreatureHolders) {
             holder.ResetHighlight();
         }
     }

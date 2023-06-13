@@ -6,7 +6,7 @@ using UnityEngine;
 public class CardsPileSors : MonoBehaviour
 {
 	[SerializeField] private CardLocation pileType;
-	private bool _updatePosition;
+	public bool updatePosition;
 	public float height = 0.5f;
 	public float width = 1f;
 	[Range(0f, 90f)] public float maxCardAngle = 5f;
@@ -45,7 +45,7 @@ public class CardsPileSors : MonoBehaviour
 
 		OnCountChanged?.Invoke(cards.Count);
 
-		_updatePosition = true;
+		updatePosition = true;
 		// UpdateCardPositions();
 	}
 
@@ -58,14 +58,14 @@ public class CardsPileSors : MonoBehaviour
 
 		OnCountChanged?.Invoke(cards.Count);
 
-		_updatePosition = true;
+		updatePosition = true;
 		// UpdateCardPositions();
 	}
 
 	public void RemoveAt(int index)
 	{
 		Remove(cards[index]);
-		_updatePosition = true;
+		updatePosition = true;
 		// UpdateCardPositions();
 	}
 
@@ -74,7 +74,7 @@ public class CardsPileSors : MonoBehaviour
 		while (cards.Count > 0)
 			Remove(cards[0]);
 
-		_updatePosition = true;
+		updatePosition = true;
 		// UpdateCardPositions();
 	}
 
@@ -114,9 +114,9 @@ public class CardsPileSors : MonoBehaviour
 	}
 
 	private void LateUpdate(){
-		if (!_updatePosition) return;
+		if (!updatePosition) return;
 		
 		UpdateCardPositions();
-		_updatePosition = false;
+		updatePosition = false;
 	}
 }
