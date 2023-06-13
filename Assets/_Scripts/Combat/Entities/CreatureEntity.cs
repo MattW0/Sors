@@ -31,14 +31,13 @@ public class CreatureEntity : NetworkBehaviour, IPointerClickHandler
     }
 
     private void Start(){
-        // print("IsOwned: " + isOwned);
-
-        // if(isOwned) return;
-        // _creatureUI.UntapOpponentCreature();
+        DropZoneManager.OnCombatEnded += RpcResetAfterCombat;
     }
 
     public void CheckIfCanAct(CombatState newState)
     {
+        print("can act check - isOwned: " + isOwned);
+
         if (!isOwned) return;
         _combatState = newState;
 
@@ -109,7 +108,10 @@ public class CreatureEntity : NetworkBehaviour, IPointerClickHandler
     [ClientRpc]
     public void RpcSetCombatHighlight() => _creatureUI.CombatHighlight();
     public void SetHighlight(bool active) => _creatureUI.Highlight(active);
-    public void ResetAfterCombat(){
+    
+    [ClientRpc]
+    public void RpcResetAfterCombat(){
+        print("reset after combat");
         CanAct = false;
         IsAttacking = false;
         
@@ -122,4 +124,8 @@ public class CreatureEntity : NetworkBehaviour, IPointerClickHandler
     public string GetCardTitle() => _bze.Title;
     public PlayerManager GetOwner() => _bze.Owner;
     public PlayerManager GetOpponent() => _bze.Opponent;
+
+    private void OnDestroy(){
+        DropZoneManager.OnCombatEnded -= RpcResetAfterCombat;
+    }
 }

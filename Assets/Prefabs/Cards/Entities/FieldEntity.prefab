@@ -40,7 +40,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -30.0485}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 180, y: 120}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8324195914381759622
@@ -114,10 +114,6 @@ MonoBehaviour:
   - {fileID: 8244912061904355856}
   - {fileID: 9152460615299013347}
   - {fileID: 2289037644501031878}
-  highlight: {fileID: 3934348760645149788}
-  attackerImage: {fileID: 140034960745397291}
-  combatColor: {r: 0.8679245, g: 0.15966538, b: 0.15966538, a: 1}
-  highlightColor: {r: 0.006999801, g: 0.7830189, b: 0, a: 1}
 --- !u!1 &43426150844274239
 GameObject:
   m_ObjectHideFlags: 0
@@ -767,14 +763,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1727604064125132888}
-  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 14}
+  m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0, z: 2}
   m_LocalScale: {x: 18.750599, y: 1, z: 12.60126}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 734262037555017071}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
 --- !u!33 &8087753743580264878
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -803,7 +799,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 439a10ee8f8d14040be9003239449741, type: 2}
+  - {fileID: 2100000, guid: bbc7fc15dd85f214b95db9f2ade012e4, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

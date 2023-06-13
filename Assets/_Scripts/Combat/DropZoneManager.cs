@@ -8,6 +8,9 @@ using UnityEngine;
 public class DropZoneManager : NetworkBehaviour
 {
     public static DropZoneManager Instance { get; private set; }
+    private BoardManager _boardManager;
+    private PlayerManager _player;
+    private CombatState _combatState;
     [SerializeField] private MoneyZone playerMoneyZone;
     [SerializeField] private MoneyZone opponentMoneyZone;
     [SerializeField] private PlayZoneCardHolder[] playerDevelopmentHolders = new PlayZoneCardHolder[6];
@@ -18,12 +21,9 @@ public class DropZoneManager : NetworkBehaviour
     [SerializeField] private List<DevelopmentEntity> _hostDevelopments = new();
     [SerializeField] private List<CreatureEntity> _clientCreatures = new();
     [SerializeField] private List<DevelopmentEntity> _clientDevelopments = new();
-
-    private BoardManager _boardManager;
-    private PlayerManager _player;
-    private CombatState _combatState;
-    public static event Action OnPlayerDeclareAttackers;
-    public static event Action OnPlayerDeclareBlockers;
+    public static event Action OnDeclareAttackers;
+    public static event Action OnDeclareBlockers;
+    public static event Action OnCombatEnded;
 
     private void Start()
     {
@@ -33,7 +33,7 @@ public class DropZoneManager : NetworkBehaviour
         if (isServer) _boardManager = BoardManager.Instance;
     }
 
-    #region Entities
+    #region Entities ETB and LTB
     
     [Server]
     public void EntityEntersDropZone(PlayerManager owner, BattleZoneEntity entity)
@@ -64,44 +64,9 @@ public class DropZoneManager : NetworkBehaviour
         entity.transform.SetParent(targetTransform, false);
     }
 
-    private Transform FindHolderTransform(BattleZoneEntity entity)
-    {
-        var index = 0;
-        if(entity.isOwned){
-            if(entity.cardType == CardType.Development){
-                index = GetFirstFreeHolderIndex(playerDevelopmentHolders);
-                return playerDevelopmentHolders[index].transform;
-            } else if(entity.cardType == CardType.Creature){
-                index = GetFirstFreeHolderIndex(playerCreatureHolders);
-                return playerCreatureHolders[index].transform;
-            }
-        }
-        
-        // Opponent Entity
-        if(entity.cardType == CardType.Development){
-            index = GetFirstFreeHolderIndex(opponentDevelopmentHolders);
-            return opponentDevelopmentHolders[index].transform;
-        } else if(entity.cardType == CardType.Creature){
-            index = GetFirstFreeHolderIndex(opponentCreatureHolders);
-            return opponentCreatureHolders[index].transform;
-        }
-        
-        // Returning null if no free holders found 
-        return null;
-    }
-
-    private int GetFirstFreeHolderIndex(PlayZoneCardHolder[] holders)
-    {
-        for (int i = 0; i < holders.Length; i++){
-            if(holders[i].transform.childCount == 1) return i;
-        }
-        return -1;
-    }
-
     [Server]
     private void EntityLeavesPlayZone(PlayerManager owner, BattleZoneEntity entity)
     {
-
         if(entity.cardType == CardType.Development) {
             var development = entity.GetComponent<DevelopmentEntity>();
             if(owner.isLocalPlayer) _hostDevelopments.Remove(development);
@@ -120,7 +85,7 @@ public class DropZoneManager : NetworkBehaviour
     #region Attackers
 
     [Server]
-    public void PlayersDeclareAttackers(List<PlayerManager> players)
+    public void StartDeclareAttackers(List<PlayerManager> players)
     {
         _combatState = CombatState.Attackers;
         foreach (var player in players) {
@@ -139,7 +104,7 @@ public class DropZoneManager : NetworkBehaviour
             return;
         }
         // Else we enable entities to be tapped and wait for player to declare attackers and press ready btn
-        OnPlayerDeclareAttackers?.Invoke();
+        OnDeclareAttackers?.Invoke();
         foreach (var creature in creatures) {
             creature.CheckIfCanAct(CombatState.Attackers);
         }
@@ -189,7 +154,7 @@ public class DropZoneManager : NetworkBehaviour
     #region Blockers
 
     [Server]
-    public void PlayersDeclareBlockers(List<PlayerManager> players)
+    public void StartDeclareBlockers(List<PlayerManager> players)
     {
         _combatState = CombatState.Blockers;
         foreach (var player in players) {
@@ -223,7 +188,7 @@ public class DropZoneManager : NetworkBehaviour
         }
 
         // Else we enable entities to be tapped and wait for player to declare attackers and press ready btn
-        OnPlayerDeclareBlockers?.Invoke();
+        OnDeclareBlockers?.Invoke();
         foreach (var creature in creatures) {
             creature.CheckIfCanAct(CombatState.Blockers);
         }
@@ -262,23 +227,60 @@ public class DropZoneManager : NetworkBehaviour
     public void CombatCleanUp()
     {
         _combatState = CombatState.CleanUp;
-        var creatures = new List<CreatureEntity>();
-        creatures.AddRange(_hostCreatures);
-        creatures.AddRange(_clientCreatures);
-        RpcResetCreatures(creatures);
+
+        OnCombatEnded?.Invoke();
+
+        // var creatures = new List<CreatureEntity>();
+        // creatures.AddRange(_hostCreatures);
+        // creatures.AddRange(_clientCreatures);
+        // RpcResetCreatures(creatures);
     }
 
-    [ClientRpc]
-    private void RpcResetCreatures(List<CreatureEntity> creatures)
-    {
-        foreach (var creature in creatures){
-            creature.ResetAfterCombat();
-        }
-    }
+    // [ClientRpc]
+    // private void RpcResetCreatures(List<CreatureEntity> creatures)
+    // {
+    //     foreach (var creature in creatures){
+    //         creature.ResetAfterCombat();
+    //     }
+    // }
 
     #endregion
 
     #region UI and utils
+    private Transform FindHolderTransform(BattleZoneEntity entity)
+    {
+        var index = 0;
+        if(entity.isOwned){
+            if(entity.cardType == CardType.Development){
+                index = GetFirstFreeHolderIndex(playerDevelopmentHolders);
+                return playerDevelopmentHolders[index].transform;
+            } else if(entity.cardType == CardType.Creature){
+                index = GetFirstFreeHolderIndex(playerCreatureHolders);
+                return playerCreatureHolders[index].transform;
+            }
+        }
+        
+        // Opponent Entity
+        if(entity.cardType == CardType.Development){
+            index = GetFirstFreeHolderIndex(opponentDevelopmentHolders);
+            return opponentDevelopmentHolders[index].transform;
+        } else if(entity.cardType == CardType.Creature){
+            index = GetFirstFreeHolderIndex(opponentCreatureHolders);
+            return opponentCreatureHolders[index].transform;
+        }
+        
+        // Returning null if no free holders found 
+        return null;
+    }
+
+    private int GetFirstFreeHolderIndex(PlayZoneCardHolder[] holders)
+    {
+        // Only other child is holder outline image -> childCount == 1
+        for (int i = 0; i < holders.Length; i++){
+            if(holders[i].transform.childCount == 1) return i;
+        }
+        return -1;
+    }
 
     [ClientRpc]
     public void RpcHighlightCardHolders()

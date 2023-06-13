@@ -45,7 +45,7 @@ public class BoardManager : NetworkBehaviour
 
     #region Combat
 
-    private void DeclareAttackers() => dropZone.PlayersDeclareAttackers(_gameManager.players.Keys.ToList());
+    private void DeclareAttackers() => dropZone.StartDeclareAttackers(_gameManager.players.Keys.ToList());
 
     public void AttackersDeclared(PlayerManager player, List<CreatureEntity> playerAttackers) {
         // Is 0 for auto-skip or no attackers declared
@@ -58,13 +58,13 @@ public class BoardManager : NetworkBehaviour
 
     public void ShowOpponentAttackers() {
         // Share attacker state accross clients
-        foreach (var entity in _boardAttackers){
-            entity.IsAttacking = true;
-            entity.RpcIsAttacker();
+        foreach (var creature in _boardAttackers){
+            creature.IsAttacking = true;
+            creature.RpcIsAttacker();
         }
     }
 
-    private void DeclareBlockers() => dropZone.PlayersDeclareBlockers(_gameManager.players.Keys.ToList());
+    private void DeclareBlockers() => dropZone.StartDeclareBlockers(_gameManager.players.Keys.ToList());
 
     public void BlockersDeclared(PlayerManager player, List<CreatureEntity> playerBlockers) {
         OnBlockersDeclared?.Invoke(player);
@@ -73,8 +73,6 @@ public class BoardManager : NetworkBehaviour
     private void EntityDies(PlayerManager owner, BattleZoneEntity entity)
     {
         entity.OnDeath -= EntityDies;
-
-        // Update lists of active entities 
         _deadEntities.Add(entity);
     }
 

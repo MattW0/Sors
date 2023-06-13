@@ -37,8 +37,8 @@ public class PhasePanel : NetworkBehaviour
 
         _backgroundImage = turnScreen.transform.GetChild(0).GetComponent<Image>();
 
-        DropZoneManager.OnPlayerDeclareAttackers += BeginCombatAttack;
-        DropZoneManager.OnPlayerDeclareBlockers += BeginCombatBlock;
+        DropZoneManager.OnDeclareAttackers += BeginCombatAttack;
+        DropZoneManager.OnDeclareBlockers += BeginCombatBlock;
         // BoardManager.OnBlockersDeclared += TargetEndCombatBlockers;
     }
 
@@ -105,7 +105,7 @@ public class PhasePanel : NetworkBehaviour
     }
 
     private void OnDestroy() {
-        DropZoneManager.OnPlayerDeclareAttackers -= BeginCombatAttack;
-        DropZoneManager.OnPlayerDeclareBlockers -= BeginCombatBlock;
+        DropZoneManager.OnDeclareAttackers -= BeginCombatAttack;
+        DropZoneManager.OnDeclareBlockers -= BeginCombatBlock;
     }
 }

@@ -171,6 +171,10 @@ PrefabInstance:
       propertyPath: m_SortingLayer
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8497471753196507985, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: bbc7fc15dd85f214b95db9f2ade012e4, type: 2}
     - target: {fileID: 8726007311086192731, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -262,8 +266,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   highlight: {fileID: 1215541394659439661}
   attackerImage: {fileID: 2683232006759079791}
-  highlightColor: {r: 0.049241543, g: 1, b: 0, a: 0}
-  combatColor: {r: 0.6698113, g: 0.26855642, b: 0.26855642, a: 0}
+  highlightColor: {r: 0.19188325, g: 0.8301887, b: 0.2386133, a: 1}
+  combatColor: {r: 0.6698113, g: 0.26855642, b: 0.26855642, a: 1}
 --- !u!114 &3272610017555818009
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -46,6 +46,7 @@ public class CreatureEntityUI : MonoBehaviour
     }
     public void Highlight(bool active) => highlight.enabled = active;
     public void ResetHighlight(){
+        print("reset highlight");
         highlight.color = highlightColor;
         highlight.enabled = false;
     }
