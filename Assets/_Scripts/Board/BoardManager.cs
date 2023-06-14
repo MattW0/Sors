@@ -111,8 +111,10 @@ public class BoardManager : NetworkBehaviour
     #region UI
     public void ShowHolders(bool active){
 
-        if(!active) dropZone.ResetHolders();
-        dropZone.RpcHighlightCardHolders();
+        if(!active) dropZone.RpcResetHolders();
+
+        var turnState = TurnManager.GetTurnState();
+        dropZone.RpcHighlightCardHolders(turnState);
     }
 
     public void DisableReadyButton(PlayerManager player){

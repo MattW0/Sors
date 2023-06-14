@@ -15,6 +15,7 @@ public class CardUI : MonoBehaviour
     [SerializeField] private TMP_Text _attack;
     [SerializeField] private TMP_Text _health;
     [SerializeField] private TMP_Text _points;
+    [SerializeField] private TMP_Text _moneyValue;
     [SerializeField] private Image _image;
     [SerializeField] private Image _highlight;
     
@@ -39,6 +40,7 @@ public class CardUI : MonoBehaviour
             _creatureUi.SetActive(true);
         } else if (cardInfo.type == CardType.Money) {
             _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Money/" + cardInfo.title);
+            _moneyValue.text = cardInfo.moneyValue.ToString();
             _moneyUi.SetActive(true);
         } else if (cardInfo.type == CardType.Development) {
             _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Development/development");

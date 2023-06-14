@@ -14,11 +14,10 @@ public class CardMoneyPlay : MonoBehaviour, IPointerClickHandler
     public void OnPointerClick(PointerEventData eventData) {
         // Return if card can't be played (not in hand or no money card)
         if(!_cardStats.IsInteractable) return;
-        
+        // Right click to zoom only
+        if (eventData.button == PointerEventData.InputButton.Right) return;
+
         _owner.CmdPlayMoneyCard(gameObject, _cardStats.cardInfo);        
         _cardStats.IsInteractable = false;
-
-        // if (eventData.button == PointerEventData.InputButton.Left) {
-        // }
     }
 }
