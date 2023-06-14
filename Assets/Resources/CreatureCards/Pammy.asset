@@ -13,14 +13,16 @@ MonoBehaviour:
   m_Name: Pammy
   m_EditorClassIdentifier: 
   hash: 5f4cddc535324f6fcd093dcb7e1c2e60bff884e6673dfb66c2ef3e0d185e9cec
+  type: 0
   cost: 5
   title: Pammy
-  description: 
-  attack: 2
   health: 3
-  points: 2
-  keyword_abilities: 05000000
-  relations_texts:
-  - At the beginning of combat, create 1 treasure token
-  isCreature: 1
+  attack: 2
+  points: 0
   moneyValue: 0
+  triggers: 
+  effects: 
+  keywordAbilities: 05000000
+  relationsTexts: []
+  description: 
+  image: {fileID: 0}

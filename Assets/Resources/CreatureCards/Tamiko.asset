@@ -13,16 +13,16 @@ MonoBehaviour:
   m_Name: Tamiko
   m_EditorClassIdentifier: 
   hash: 3efbc29c5cf8835a9d00976100491fd5473d5e2ee4194a4cfa7e26e6d503b29a
+  type: 0
   cost: 6
   title: Tamiko
-  description: 
-  attack: 4
   health: 4
+  attack: 4
   points: 0
-  keyword_abilities: 06000000
-  relations_texts:
-  - At the beginning of DrawI, mill 2
-  - Whenever Tamiko deals combat damage, scry 2
-  - At the beginning of Recruit, create 2 treasure token
-  isCreature: 1
   moneyValue: 0
+  triggers: 
+  effects: 
+  keywordAbilities: 06000000
+  relationsTexts: []
+  description: 
+  image: {fileID: 0}

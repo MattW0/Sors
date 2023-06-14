@@ -13,14 +13,16 @@ MonoBehaviour:
   m_Name: Babb
   m_EditorClassIdentifier: 
   hash: 5300074dbfc07d72a58a7804de3e15eab31af2c8157e67e3c24f6860a5d032bb
+  type: 0
   cost: 4
   title: Babb
-  description: 
-  attack: 1
   health: 6
-  points: 1
-  keyword_abilities: 06000000
-  relations_texts:
-  - When Babb blocks, create 2 creature token
-  isCreature: 1
+  attack: 1
+  points: 0
   moneyValue: 0
+  triggers: 
+  effects: 
+  keywordAbilities: 06000000
+  relationsTexts: []
+  description: 
+  image: {fileID: 0}

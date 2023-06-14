@@ -10,21 +10,20 @@ public struct CardInfo : IEquatable<CardInfo>
     public string hash;
     public CardType type;
     public string title;
-    public int cost;
+    public string description;
 
-    [Header("Money properties")]
+    [Header("General stats")]
+    public int cost;
+    public int health;
+    public int attack;
+    public int points;
     public int moneyValue;
 
-    [Header("Entity properties")]
-    public int health;
-    public int points;
-
     [Header("Development properties")]
-    public List<Triggers> effectTriggers;
-    public List<DevelopmentEffects> developmentEffects;
+    public List<Triggers> triggers;
+    public List<Effects> effects;
 
     [Header("Creature properties")]
-    public int attack;
     public List<Keywords> keywordAbilities;
 
     public CardInfo(ScriptableCard card, string gameObjectID = null)
@@ -35,6 +34,7 @@ public struct CardInfo : IEquatable<CardInfo>
         hash = card.hash;
         type = card.type;
         title = card.title;
+        description = card.description;
         cost = card.cost;
 
         // Money properties
@@ -45,8 +45,8 @@ public struct CardInfo : IEquatable<CardInfo>
         points = card.points;
 
         // Development properties
-        effectTriggers = card.effectTriggers;
-        developmentEffects = card.developmentEffects;
+        triggers = card.triggers;
+        effects = card.effects;
 
         // Creature properties
         attack = card.attack;

@@ -12,6 +12,7 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     [Header("Card Stats")]
     [SerializeField] private TMP_Text _title;
     [SerializeField] private TMP_Text _description;
+    [SerializeField] private TMP_Text _keywords;
     [SerializeField] private TMP_Text _cost;
     [SerializeField] private TMP_Text _attack;
     [SerializeField] private TMP_Text _health;
@@ -22,6 +23,7 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     [SerializeField] private GameObject _attackObject;
 
     [Header("Card UI")]
+    public bool enableFocus = true;
     [SerializeField] private Image _image;
     [SerializeField] private Image _highlight;
     [SerializeField] private Color highlightColor = Color.white;
@@ -47,15 +49,16 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         // Entity
         _health.text = cardInfo.health.ToString();
         _points.text = cardInfo.points.ToString();
+        _description.text = cardInfo.description;
 
         if (cardInfo.type == CardType.Development) {
             _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Development/development");
-            _description.text = cardInfo.keywordAbilities.ToString();
+            _keywords.text = "";
             _attackObject.SetActive(false);
         } else {
             _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Creature/creature");
             _attack.text = cardInfo.attack.ToString();
-            _description.text = string.Join(" ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
+            _keywords.text = string.Join(", ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
             _attackObject.SetActive(true);
         }
         
@@ -72,6 +75,8 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     }
 
     public void OnPointerEnter(PointerEventData eventData){
+        if(!enableFocus) return;
+
         // Puts the card on top of others
         _tempCanvas = gameObject.AddComponent<Canvas>();
         _tempCanvas.overrideSorting = true;
@@ -93,6 +98,7 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         // _highlight.DOColor(standardHighlight, 0.2f);
     }
 
+    public void DisableFocus() => enableFocus = false;
     public void EnableHighlight() => _highlight.enabled = true;
     public void DisableHighlight() => _highlight.enabled = false;
 }

@@ -1,15 +1,16 @@
+using System.Globalization;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using DG.Tweening;
 using System.Linq;
 
-public class CardUI : MonoBehaviour {
-
+public class CardUI : MonoBehaviour
+{
     [SerializeField] private TMP_Text _title;
     [SerializeField] private TMP_Text _description;
+    [SerializeField] private TMP_Text _keywords;
     [SerializeField] private TMP_Text _cost;
     [SerializeField] private TMP_Text _attack;
     [SerializeField] private TMP_Text _health;
@@ -21,6 +22,7 @@ public class CardUI : MonoBehaviour {
     [SerializeField] private GameObject _front;
     [SerializeField] private GameObject _creatureUi;
     [SerializeField] private GameObject _moneyUi;
+    [SerializeField] private Image _border;
 
     public void SetCardUI(CardInfo cardInfo){
 
@@ -29,13 +31,12 @@ public class CardUI : MonoBehaviour {
         
         if (cardInfo.type == CardType.Creature){
             _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Creature/creature");
-            _description.text = cardInfo.keywordAbilities.ToString();
             _attack.text = cardInfo.attack.ToString();
             _health.text = cardInfo.health.ToString();
             _points.text = cardInfo.points.ToString();
-            _description.text = string.Join(" ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
+            _description.text = cardInfo.description;
+            _keywords.text = string.Join(", ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
             _creatureUi.SetActive(true);
-
         } else if (cardInfo.type == CardType.Money) {
             _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Money/" + cardInfo.title);
             _moneyUi.SetActive(true);
@@ -43,11 +44,18 @@ public class CardUI : MonoBehaviour {
             _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Development/development");
             _points.text = cardInfo.points.ToString();
             _health.text = cardInfo.health.ToString();
+            _description.text = cardInfo.description;
         }
     }
 
-    public void CardBackUp() => _front.SetActive(false);
-    public void CardFrontUp() => _front.SetActive(true);
+    public void CardBackUp(){
+        _front.SetActive(false);
+        _border.enabled = false;
+    }
+    public void CardFrontUp(){
+        _front.SetActive(true);
+        _border.enabled = true;
+    }
 
     public void Highlight(bool active, Color color){
         if(!_highlight) return;

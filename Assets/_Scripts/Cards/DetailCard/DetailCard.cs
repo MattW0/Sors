@@ -46,4 +46,6 @@ public class DetailCard : MonoBehaviour, IPointerClickHandler
         IsChosen = !_chosen;
     }
 
+    public void DisableFocus() => _ui.DisableFocus();
+
 }

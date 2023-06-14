@@ -70,7 +70,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2754976486999726370}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -671,7 +671,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2754976486999726370}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -752,8 +752,8 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8879299632482997073}
-  - {fileID: 107007899798802298}
   - {fileID: 460139446724025517}
+  - {fileID: 107007899798802298}
   - {fileID: 6848853567780868434}
   - {fileID: 3537615612726209833}
   m_Father: {fileID: 0}
@@ -816,18 +816,20 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0.1
-  owner: {fileID: 0}
   cardInfo:
     goID: 
-    title: 
     hash: 
-    isCreature: 0
-    moneyValue: 0
+    type: 0
+    title: 
+    description: 
     cost: 0
-    attack: 0
     health: 0
+    attack: 0
     points: 0
-    keyword_abilities: 
+    moneyValue: 0
+    triggers: 
+    effects: 
+    keywordAbilities: 
 --- !u!114 &1662656646801267718
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -842,6 +844,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _title: {fileID: 7196564867689549168}
   _description: {fileID: 411265824569140634}
+  _keywords: {fileID: 0}
   _cost: {fileID: 3548967704764983626}
   _attack: {fileID: 3495054210160948786}
   _health: {fileID: 2640777893297503465}
@@ -852,6 +855,7 @@ MonoBehaviour:
   _front: {fileID: 1965346598283185727}
   _creatureUi: {fileID: 8993847580205264523}
   _moneyUi: {fileID: 3749662679023146322}
+  _border: {fileID: 7905462983876552093}
 --- !u!23 &1722170098310412828
 MeshRenderer:
   m_ObjectHideFlags: 0

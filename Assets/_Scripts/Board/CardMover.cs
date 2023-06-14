@@ -36,8 +36,6 @@ public class CardMover : MonoBehaviour
         var destinationPile = GetPile(to, hasAuthority);
         destinationPile.Add(card);
 
-        print($"Moving {card.name} from {from} to {to}");
-
         var cardUI = card.GetComponent<CardUI>();
         if(to == CardLocation.Discard || to == CardLocation.MoneyZone || to == CardLocation.Trash){
             cardUI.CardFrontUp();

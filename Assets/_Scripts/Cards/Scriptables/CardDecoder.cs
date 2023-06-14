@@ -11,9 +11,9 @@ namespace CardDecoder {
     public class Card{
 
         public string hash;
-        public string title;
-        public bool isCreature;
+        public CardType type;
         public int cost;
+        public string title;
         public int attack;
         public int health;
         public int points;
@@ -52,23 +52,23 @@ namespace CardDecoder {
             
             private static void CreateScriptableObjectCard(Card card)
             {
-                ScriptableCard cardInfo = ScriptableObject.CreateInstance<ScriptableCard>();
+                ScriptableCard scriptableCard = ScriptableObject.CreateInstance<ScriptableCard>();
 
-                cardInfo.hash = card.hash;
-                cardInfo.type = CardType.Creature;
+                scriptableCard.hash = card.hash;
+                scriptableCard.type = CardType.Creature;
 
-                cardInfo.title = card.title;
-                cardInfo.cost = card.cost;
-                cardInfo.attack = card.attack;
-                cardInfo.health = card.health;
-                cardInfo.points = card.points;
+                scriptableCard.title = card.title;
+                scriptableCard.cost = card.cost;
+                scriptableCard.attack = card.attack;
+                scriptableCard.health = card.health;
+                scriptableCard.points = card.points;
 
                 var keywords = new List<Keywords>();
                 foreach(var kw in card.keyword_abilities){
                     var keyword = (Keywords)System.Enum.Parse(typeof(Keywords), kw);
                     keywords.Add(keyword);
                 }
-                cardInfo.keywordAbilities = keywords;
+                scriptableCard.keywordAbilities = keywords;
 
                 var relationsTexts = new List<string>();
                 foreach (var relation in card.relations)
@@ -76,9 +76,9 @@ namespace CardDecoder {
                     var text = createRelationText(card.title, relation);
                     relationsTexts.Add(text);
                 }
-                cardInfo.relationsTexts = relationsTexts;
+                scriptableCard.relationsTexts = relationsTexts;
 
-                UnityEditor.AssetDatabase.CreateAsset(cardInfo, $"Assets/Resources/CreatureCards/{card.title}.asset");
+                UnityEditor.AssetDatabase.CreateAsset(scriptableCard, $"Assets/Resources/CreatureCards/{card.title}.asset");
                 UnityEditor.AssetDatabase.SaveAssets();
             }
 

@@ -1,20 +1,20 @@
+using System.Globalization;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
 
 [System.Serializable]
 public class KingdomTile : MonoBehaviour
 {
     private Kingdom _kingdom;
     public CardInfo cardInfo;
+    [SerializeField] private KingdomTileUI _ui;
     private int _cost;
     public int Cost{
         get => _cost;
         set{
             _cost = value;
-            costText.text = value.ToString();
+            _ui.SetCost(value);
         }
     }
     
@@ -23,7 +23,7 @@ public class KingdomTile : MonoBehaviour
         get => _isInteractable;
         set {
             _isInteractable = value;
-            Highlight(value, Color.green);
+            _ui.Highlight(value, Color.green);
         }
     }
     private bool _isSelected;
@@ -33,26 +33,15 @@ public class KingdomTile : MonoBehaviour
             _isSelected = value;
             if(value) {
                 _kingdom.PlayerSelectsTile(cardInfo);
-                Highlight(true, Color.blue);
+                _ui.Highlight(true, Color.blue);
             } else {
                 _kingdom.PlayerDeselectsTile(cardInfo);
-                Highlight(true, Color.green);
+                _ui.Highlight(true, Color.green);
             }
         }
     }
 
     private bool _alreadyRecruited;
-    
-    // UI
-    [SerializeField] private TMP_Text title;
-    [SerializeField] private TMP_Text costText;
-    [SerializeField] private TMP_Text moneyValueText;
-    [SerializeField] private TMP_Text defenseText;
-    [SerializeField] private TMP_Text pointsText;
-    [SerializeField] private TMP_Text attackText;
-    [SerializeField] private TMP_Text description;
-    [SerializeField] private Image highlight;
-    // [SerializeField] private Image image;
 
     private void Awake(){
         _kingdom = Kingdom.Instance;
@@ -60,28 +49,14 @@ public class KingdomTile : MonoBehaviour
 
     public void SetTile(CardInfo card){
         cardInfo = card;
-        title.text = card.title;
         Cost = card.cost;
+        _ui.SetTileUI(card);
 
-        if(card.type == CardType.Money){
-            moneyValueText.text = card.moneyValue.ToString();
+        if(card.type == CardType.Money || card.type == CardType.Development){
             Kingdom.OnDevelopPhaseEnded += EndDevelopPhase;
-            return;
+        } else if (card.type == CardType.Creature){
+            Kingdom.OnRecruitPhaseEnded += EndRecruitPhase;
         }
-
-        // Creature or Development
-        defenseText.text = card.health.ToString();
-        pointsText.text = card.points.ToString();
-
-        if (card.type == CardType.Development){
-            Kingdom.OnDevelopPhaseEnded += EndDevelopPhase;
-            return;
-        }
-
-        // Creature
-        attackText.text = card.attack.ToString();
-        description.text = string.Join(" ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
-        Kingdom.OnRecruitPhaseEnded += EndRecruitPhase;
     }
 
     public void SetBonus(int priceReduction){
@@ -95,13 +70,8 @@ public class KingdomTile : MonoBehaviour
     }
 
     public void ShowAsRecruited(){
-        Highlight(true, Color.yellow);
+        _ui.Highlight(true, Color.yellow);
         _alreadyRecruited = true;
-    }
-
-    public void Highlight(bool active, Color color = default(Color)){
-        highlight.enabled = active;
-        highlight.color = color;
     }
     
     private void EndDevelopPhase() => ResetTile();

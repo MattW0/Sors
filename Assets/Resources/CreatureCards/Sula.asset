@@ -13,14 +13,16 @@ MonoBehaviour:
   m_Name: Sula
   m_EditorClassIdentifier: 
   hash: 14dd0abec299c494e13ed9136958004f0d500c7ca68c3af77ef23194edc66146
+  type: 0
   cost: 4
   title: Sula
-  description: 
-  attack: 0
   health: 7
-  points: 1
-  keyword_abilities: 06000000
-  relations_texts:
-  - Whenever Sula takes damage, destroy target creature
-  isCreature: 1
+  attack: 0
+  points: 0
   moneyValue: 0
+  triggers: 
+  effects: 
+  keywordAbilities: 06000000
+  relationsTexts: []
+  description: 
+  image: {fileID: 0}

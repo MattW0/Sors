@@ -13,15 +13,16 @@ MonoBehaviour:
   m_Name: Sarena
   m_EditorClassIdentifier: 
   hash: b5de0ddc273762fd8478532a8846b6b2e172a1b90f0848f15826c64b7d813460
+  type: 0
   cost: 6
   title: Sarena
-  description: 
-  attack: 3
   health: 4
-  points: 2
-  keyword_abilities: 0e000000
-  relations_texts:
-  - At the beginning of Prevail, gain 2 life
-  - When Sarena blocks, Put a Vigilance marker on target creature
-  isCreature: 1
+  attack: 3
+  points: 0
   moneyValue: 0
+  triggers: 
+  effects: 
+  keywordAbilities: 0e000000
+  relationsTexts: []
+  description: 
+  image: {fileID: 0}

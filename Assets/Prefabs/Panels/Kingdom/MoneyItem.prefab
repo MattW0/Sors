@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 6852238914269705449}
   - component: {fileID: 2476821137206774664}
   - component: {fileID: 3497456181633374413}
+  - component: {fileID: 622995912660170914}
   m_Layer: 5
   m_Name: MoneyItem
   m_TagString: Untagged
@@ -155,12 +156,28 @@ MonoBehaviour:
     hash: 
     type: 0
     title: 
+    description: 
     cost: 0
-    moneyValue: 0
-    attack: 0
     health: 0
+    attack: 0
     points: 0
-    keyword_abilities: 
+    moneyValue: 0
+    triggers: 
+    effects: 
+    keywordAbilities: 
+  _ui: {fileID: 622995912660170914}
+--- !u!114 &622995912660170914
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1027945366825006326}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d24aa398b34803c42975a85979a1c6ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
   title: {fileID: 7941874915372642403}
   costText: {fileID: 5313878756349333276}
   moneyValueText: {fileID: 8598104123446396507}

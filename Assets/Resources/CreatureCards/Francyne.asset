@@ -13,14 +13,16 @@ MonoBehaviour:
   m_Name: Francyne
   m_EditorClassIdentifier: 
   hash: 9d12b84a5b28cdec41b91bcb67abb147d3ff38b29c3032a4ebf03e19de4b5ba6
+  type: 0
   cost: 4
   title: Francyne
-  description: 
-  attack: 3
   health: 2
-  points: 1
-  keyword_abilities: 09000000
-  relations_texts:
-  - Whenever Francyne deals damage to a player, scry 1
-  isCreature: 1
+  attack: 3
+  points: 0
   moneyValue: 0
+  triggers: 
+  effects: 
+  keywordAbilities: 09000000
+  relationsTexts: []
+  description: 
+  image: {fileID: 0}
