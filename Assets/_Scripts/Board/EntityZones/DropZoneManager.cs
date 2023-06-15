@@ -7,10 +7,10 @@ using UnityEngine;
 
 public class DropZoneManager : NetworkBehaviour
 {
-    private PlayerManager _player;
     public static DropZoneManager Instance { get; private set; }
-    private BoardManager _boardManager;
+    private PlayerManager _player;
     private CombatState _combatState;
+    [SerializeField] private BoardManager _boardManager;
     [SerializeField] private EntityZones entityZones;
     [SerializeField] private MoneyZone playerMoneyZone;
     [SerializeField] private MoneyZone opponentMoneyZone;
@@ -18,13 +18,10 @@ public class DropZoneManager : NetworkBehaviour
     public static event Action OnStartBlocking;
     public static event Action OnCombatEnded;
 
-    private void Start()
-    {
+    private void Awake(){
         if (!Instance) Instance = this;
-        _player = PlayerManager.GetLocalPlayer();
-
-        if (isServer) _boardManager = BoardManager.Instance;
     }
+    private void Start() => _player = PlayerManager.GetLocalPlayer(); 
 
     #region Entities ETB and LTB
     

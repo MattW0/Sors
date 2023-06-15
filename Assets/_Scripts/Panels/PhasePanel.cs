@@ -11,20 +11,23 @@ public class PhasePanel : NetworkBehaviour
     public static PhasePanel Instance { get; private set; }
     [SerializeField] private List<Phase> _selectedPhases = new();
     private int _nbPhasesToChose;
-    [SerializeField] private Button confirm;
     [SerializeField] private PhaseItemUI attack;
     [SerializeField] private PhaseItemUI block;
     public static event Action OnPhaseSelectionStarted;
     public static event Action OnPhaseSelectionConfirmed;
 
-    [Header("Turn screen")]
-    private bool _animate;
+    [Header("UI Elements")]
+    [SerializeField] private GameObject confirm;
     [SerializeField] private TMP_Text turnText;
-    [SerializeField] private TMP_Text turnScreenText;
-    [SerializeField] private GameObject turnScreen;
-    private Image _backgroundImage;
-    [SerializeField] private int turnScreenWaitTime = 1;
-    [SerializeField] private float turnScreenFadeTime = 0.5f;
+    [SerializeField] private TMP_Text actionDescriptionText;
+
+    [Header("Overlay turn screen")]
+    [SerializeField] private TMP_Text overlayTurnText;
+    [SerializeField] private Image overlayImage;
+    [SerializeField] private Color overlayImageColor;
+    [SerializeField] private int overlayScreenWaitTime = 1;
+    [SerializeField] private float overlayScreenFadeTime = 0.5f;
+    private bool _animate;
     
     private void Awake() {
         if (!Instance) Instance = this;
@@ -34,8 +37,6 @@ public class PhasePanel : NetworkBehaviour
     public void RpcPreparePhasePanel(int nbPhasesToChose, bool animations){
         _nbPhasesToChose = nbPhasesToChose;
         _animate = animations;
-
-        _backgroundImage = turnScreen.transform.GetChild(0).GetComponent<Image>();
 
         DropZoneManager.OnStartAttacking += BeginCombatAttack;
         DropZoneManager.OnStartBlocking += BeginCombatBlock;
@@ -49,8 +50,25 @@ public class PhasePanel : NetworkBehaviour
         OnPhaseSelectionStarted?.Invoke();
 
         if(!_animate) return;
-        turnScreenText.text = "Turn " + currentTurn.ToString();
+        overlayTurnText.text = "Turn " + currentTurn.ToString();
         StartCoroutine(WaitAndFade());
+    }
+
+    [ClientRpc]
+    public void RpcChangeActionDescriptionText(TurnState state){
+        var text = state switch {
+            TurnState.PhaseSelection => "Select " + _nbPhasesToChose.ToString() + " phases",
+            TurnState.Discard => "Discard cards",
+            TurnState.Invent => "Buy developments",
+            TurnState.Develop => "Play developments",
+            TurnState.Recruit => "Buy creatures",
+            TurnState.Deploy => "Play creatures",
+            TurnState.Prevail => "Choose prevail options",
+            TurnState.Trash => "Trash cards",
+            _ => ""
+        };
+
+        actionDescriptionText.text = text;
     }
 
     public void UpdateActive(Phase phase){
@@ -60,13 +78,15 @@ public class PhasePanel : NetworkBehaviour
             _selectedPhases.Add(phase);
         }
         
-        confirm.interactable = _selectedPhases.Count == _nbPhasesToChose;
+        confirm.SetActive(_selectedPhases.Count == _nbPhasesToChose);
     }
 
-    public void BeginCombatAttack() => attack.StartSelection();
-
+    public void BeginCombatAttack(){
+        actionDescriptionText.text = "Select attackers";
+        attack.StartSelection();
+    }
     public void BeginCombatBlock(){
-        // attack.Reset();
+        actionDescriptionText.text = "Select blockers";
         block.StartSelection();
     }
 
@@ -82,7 +102,8 @@ public class PhasePanel : NetworkBehaviour
     }
 
     public void ConfirmButtonPressed(){
-        confirm.interactable = false;
+        actionDescriptionText.text = "Wait for opponent...";
+        confirm.SetActive(false);
 
         var player = PlayerManager.GetLocalPlayer();
         player.CmdPhaseSelection(_selectedPhases);
@@ -93,15 +114,18 @@ public class PhasePanel : NetworkBehaviour
 
     private IEnumerator WaitAndFade() {
 
-        turnScreen.SetActive(true);
+        overlayImage.enabled = true;
         
         // Wait and fade
-        yield return new WaitForSeconds(turnScreenWaitTime);
-        _backgroundImage.CrossFadeAlpha(0f, turnScreenFadeTime, false);
+        yield return new WaitForSeconds(overlayScreenWaitTime);
+        overlayImage.CrossFadeAlpha(0f, overlayScreenFadeTime, false);
+        overlayTurnText.text = "";
 
         // Wait and disable
-        yield return new WaitForSeconds(turnScreenFadeTime);
-        turnScreen.SetActive(false);
+        yield return new WaitForSeconds(overlayScreenFadeTime);
+
+        overlayImage.enabled = false;
+        overlayImage.CrossFadeAlpha(1f, 0f, false);
     }
 
     private void OnDestroy() {

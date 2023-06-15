@@ -13,31 +13,30 @@ public class EntityUI : MonoBehaviour
     [SerializeField] private TMP_Text attack;
     [SerializeField] private GameObject pointsObject;
     [SerializeField] private TMP_Text points;
-    [SerializeField] private List<TMP_Text> keyWords;
+
+    [Header("Body")]
+    [SerializeField] private GameObject keywordsObject;
+    [SerializeField] private TMP_Text keywords;
+    [SerializeField] private TMP_Text description;
+
 
     public void SetEntityUI(CardInfo cardInfo)
     {
         // Set card stats
         title.text = cardInfo.title;
         health.text = cardInfo.health.ToString();
+        description.text = cardInfo.description;
 
         if(cardInfo.type == CardType.Creature){
             attackObject.SetActive(true);
             pointsObject.SetActive(false);
             attack.text = cardInfo.attack.ToString();
+            keywords.text = string.Join(", ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
         } else if (cardInfo.type == CardType.Development){
             attackObject.SetActive(false);
             pointsObject.SetActive(true);
             points.text = cardInfo.points.ToString();
-        }
-
-        // Set keywords
-        int i = 0;
-        foreach (var kw in cardInfo.keywordAbilities)
-        {
-            keyWords[i].text = kw.ToString();
-            keyWords[i].enabled = true;
-            i++;
+            keywordsObject.SetActive(false);
         }
     }
 

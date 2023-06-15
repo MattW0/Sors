@@ -30,15 +30,16 @@ public class GameManager : NetworkBehaviour {
     [SerializeField] private int nbRecruitTiles = 8;
     [SerializeField] private int nbMoneyTiles = 4;
     [SerializeField] private int nbDevelopTiles = 8;
-    [SerializeField] public int initialDeckSize = 10;
-    [SerializeField] public int initialCreatures = 2;
-    [SerializeField] public int initialDevelopments = 2;
-    [SerializeField] public int initialHandSize = 4;
-    [SerializeField] public int startHealth = 30;
-    [SerializeField] public int startScore = 0;
+    [SerializeField] private int initialDeckSize = 10;
+    [SerializeField] private int initialCreatures = 2;
+    [SerializeField] private int initialDevelopments = 2;
+    [SerializeField] private int initialHandSize = 6;
+    public int startHealth = 10;
+    public int startScore = 0;
 
     [Header("Turn specifics")]
     public int nbPhasesToChose;
+    [SerializeField] public int fixCardDraw = 2;
     [SerializeField] public int nbCardDraw = 2;
     [SerializeField] public int nbDiscard = 1;
     public int turnCash = 0;
@@ -49,6 +50,7 @@ public class GameManager : NetworkBehaviour {
     public int prevailOptionsToChoose = 1;
 
     [Header("Turn Boni")]
+    public int extraDraw = 2;
     public int inventPriceReduction = 1;
     public int developPriceReduction = 1;
     public int recruitPriceReduction = 1;

@@ -8,8 +8,9 @@ public class BoardManager : NetworkBehaviour
 {
     public static BoardManager Instance { get; private set; }
     private GameManager _gameManager;
-    [SerializeField] private DropZoneManager dropZone;
-    private PhasePanel _phasePanel;
+    [SerializeField] private CardEffectsHandler _cardEffectsHandler;
+    private DropZoneManager _dropZone;
+    [SerializeField] private PhasePanel _phasePanel;
 
     // Entities, corresponding card object
     private Dictionary<BattleZoneEntity, GameObject> _entitiesObjectsCache = new();
@@ -24,7 +25,7 @@ public class BoardManager : NetworkBehaviour
         if (!Instance) Instance = this;
 
         _gameManager = GameManager.Instance;
-        _phasePanel = PhasePanel.Instance;
+        _dropZone = DropZoneManager.Instance;
 
         CombatManager.OnDeclareAttackers += DeclareAttackers;
         CombatManager.OnDeclareBlockers += DeclareBlockers;
@@ -38,14 +39,15 @@ public class BoardManager : NetworkBehaviour
         _entitiesObjectsCache.Add(entity, card);
 
         entity.RpcInitializeEntity(owner, opponent, cardInfo);
-        dropZone.EntityEntersDropZone(owner, entity);
+        _dropZone.EntityEntersDropZone(owner, entity);
+        _cardEffectsHandler.CardIsPlayed(owner, entity, cardInfo);
 
         entity.OnDeath += EntityDies;
     }
 
     #region Combat
 
-    private void DeclareAttackers() => dropZone.StartDeclareAttackers(_gameManager.players.Keys.ToList());
+    private void DeclareAttackers() => _dropZone.StartDeclareAttackers(_gameManager.players.Keys.ToList());
 
     public void AttackersDeclared(PlayerManager player, List<CreatureEntity> playerAttackers) {
         // Is 0 for auto-skip or no attackers declared
@@ -64,7 +66,7 @@ public class BoardManager : NetworkBehaviour
         }
     }
 
-    private void DeclareBlockers() => dropZone.StartDeclareBlockers(_gameManager.players.Keys.ToList());
+    private void DeclareBlockers() => _dropZone.StartDeclareBlockers(_gameManager.players.Keys.ToList());
 
     public void BlockersDeclared(PlayerManager player, List<CreatureEntity> playerBlockers) {
         OnBlockersDeclared?.Invoke(player);
@@ -101,7 +103,7 @@ public class BoardManager : NetworkBehaviour
         }
         _boardAttackers.Clear();
 
-        dropZone.CombatCleanUp();
+        _dropZone.CombatCleanUp();
     }
 
     // public void PlayerSkipsCombatPhase(PlayerManager player) => OnSkipCombatPhase?.Invoke(player);
@@ -111,10 +113,12 @@ public class BoardManager : NetworkBehaviour
     #region UI
     public void ShowHolders(bool active){
 
-        if(!active) dropZone.RpcResetHolders();
-
-        var turnState = TurnManager.GetTurnState();
-        dropZone.RpcHighlightCardHolders(turnState);
+        if(!active) { 
+            _dropZone.RpcResetHolders();
+        } else {
+            var turnState = TurnManager.GetTurnState();
+            _dropZone.RpcHighlightCardHolders(turnState);
+        }
     }
 
     public void DisableReadyButton(PlayerManager player){
@@ -127,7 +131,7 @@ public class BoardManager : NetworkBehaviour
         }
     }
 
-    public void DiscardMoney() => dropZone.RpcDiscardMoney();
+    public void DiscardMoney() => _dropZone.RpcDiscardMoney();
     #endregion
     
     private void OnDestroy()

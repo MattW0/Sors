@@ -230,6 +230,9 @@ public class PlayerManager : NetworkBehaviour
     [Command]
     public void CmdUndoPlayMoney(){
         if (moneyCards.Count == 0) return;
+        
+        var totalMoneyPlayed = moneyCards.Sum(card => card.Value.moneyValue);
+        if(totalMoneyPlayed > Cash) return; // Don't allow undo if player already spent money
 
         foreach(var (card, info) in moneyCards){
             Cash -= info.moneyValue;

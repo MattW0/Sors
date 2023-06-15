@@ -25,18 +25,16 @@ public class KingdomTileUI : MonoBehaviour
             return;
         }
 
-        // Creature or Development
+        // Creature and Development
         defenseText.text = card.health.ToString();
-        pointsText.text = card.points.ToString();
         description.text = card.description;
 
         if (card.type == CardType.Development){
-            return;
+            pointsText.text = card.points.ToString();
+        } else if (card.type == CardType.Creature){
+            attackText.text = card.attack.ToString();
+            keywords.text = string.Join(", ", card.keywordAbilities.ConvertAll(f => f.ToString()));
         }
-
-        // Creature
-        attackText.text = card.attack.ToString();
-        keywords.text = string.Join(", ", card.keywordAbilities.ConvertAll(f => f.ToString()));
     }
 
     public void SetCost(int cost) => costText.text = cost.ToString();

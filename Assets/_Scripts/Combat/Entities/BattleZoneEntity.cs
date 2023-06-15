@@ -12,7 +12,7 @@ public class BattleZoneEntity : NetworkBehaviour
     [SerializeField] private DevelopmentEntity _developmentEntity;
     
     [Header("Stats")]
-    private CardInfo _cardInfo;
+    [SerializeField] private CardInfo _cardInfo;
     public CardType cardType;
     [SerializeField] private int _health;
     public int Health
@@ -71,9 +71,7 @@ public class BattleZoneEntity : NetworkBehaviour
         _entityUI.SetEntityUI(cardInfo);
         
         if (!isServer) return;
-        
         _boardManager = BoardManager.Instance;
-        if (cardInfo.triggers.Contains(Triggers.When_enters_the_battlefield)) Owner.DrawCards(1);
     }
 
     [ClientRpc]

@@ -34,10 +34,7 @@ public class CreatureEntity : NetworkBehaviour, IPointerClickHandler
         DropZoneManager.OnCombatEnded += RpcResetAfterCombat;
     }
 
-    public void CheckIfCanAct(CombatState newState)
-    {
-        print("can act check - isOwned: " + isOwned);
-
+    public void CheckIfCanAct(CombatState newState){
         if (!isOwned) return;
         _combatState = newState;
 
@@ -111,7 +108,6 @@ public class CreatureEntity : NetworkBehaviour, IPointerClickHandler
     
     [ClientRpc]
     public void RpcResetAfterCombat(){
-        print("reset after combat");
         CanAct = false;
         IsAttacking = false;
         

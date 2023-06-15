@@ -18,6 +18,7 @@ public class TurnManager : NetworkBehaviour
     private PlayerInterfaceManager _playerInterfaceManager;
     private Hand _handManager;
     private BoardManager _boardManager;
+    private CardEffectsHandler _cardEffectsHandler;
     [SerializeField] private CombatManager combatManager;
 
     [field: Header("Game state")] 
@@ -95,12 +96,15 @@ public class TurnManager : NetworkBehaviour
                 print("<color=red>Invalid turn state</color>");
                 throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
         }
+
+        _phasePanel.RpcChangeActionDescriptionText(turnState);
     }
 
     private void Prepare(int nbPlayers) {
         _gameManager = GameManager.Instance;
         _handManager = Hand.Instance;
         _boardManager = BoardManager.Instance;
+        _cardEffectsHandler = CardEffectsHandler.Instance;
         _kingdom = Kingdom.Instance;
         _playerInterfaceManager = PlayerInterfaceManager.Instance;
         
@@ -132,6 +136,11 @@ public class TurnManager : NetworkBehaviour
     private void PhaseSelection() {
         _gameManager.turnNb++;
         _playerInterfaceManager.RpcLog($"<color=#000142> ------------ Turn {_gameManager.turnNb}</color> ------------");
+
+        // Fix draw per turn
+        foreach (var player in _gameManager.players.Keys)
+            player.DrawCards(_gameManager.fixCardDraw);
+
         _phasePanel.RpcBeginPhaseSelection(_gameManager.turnNb);
     }
 
@@ -185,13 +194,15 @@ public class TurnManager : NetworkBehaviour
             return;
         }
 
-        Enum.TryParse(phasesToPlay[0].ToString(), out TurnState nextPhase);
+        var nextPhase = phasesToPlay[0];
         phasesToPlay.RemoveAt(0);
+        _cardEffectsHandler.CheckPhaseTriggers(nextPhase);
 
-        _playerInterfaceManager.RpcLog($"<color=#004208>Turn changed to {nextPhase}</color>");
+        Enum.TryParse(nextPhase.ToString(), out TurnState nextTurnState);
+        _playerInterfaceManager.RpcLog($"<color=#004208>Turn changed to {nextTurnState}</color>");
         
-        OnPhaseChanged?.Invoke(nextPhase);
-        UpdateTurnState(nextPhase);
+        OnPhaseChanged?.Invoke(nextTurnState);
+        UpdateTurnState(nextTurnState);
     }
     #endregion
 
@@ -200,7 +211,7 @@ public class TurnManager : NetworkBehaviour
     private void Draw() {
         foreach (var player in _gameManager.players.Keys) {
             var nbCardDraw = _gameManager.nbCardDraw;
-            if (player.chosenPhases.Contains(Phase.Draw)) nbCardDraw++;
+            if (player.chosenPhases.Contains(Phase.Draw)) nbCardDraw += _gameManager.extraDraw;
 
             player.DrawCards(nbCardDraw);
         }
@@ -280,7 +291,7 @@ public class TurnManager : NetworkBehaviour
                 if(cardInfo.type == CardType.Money) _gameManager.SpawnMoney(owner, cardInfo);
                 else if(cardInfo.type == CardType.Development) _gameManager.SpawnDevelopment(owner, cardInfo);
                 else if(cardInfo.type == CardType.Creature) _gameManager.SpawnCreature(owner, cardInfo);
-                _playerInterfaceManager.RpcLog("<color=#4f2d00>" + owner.PlayerName + " gains " + cardInfo.title + "to their deck.</color>");
+                _playerInterfaceManager.RpcLog("<color=#4f2d00>" + owner.PlayerName + " gains " + cardInfo.title + " to their deck.</color>");
             }
         }
         
@@ -591,9 +602,9 @@ public enum TurnState
     Discard,
     Invent,
     Develop,
-    Deploy,
     Combat,
     Recruit,
+    Deploy,
     Prevail,
     Trash,
     CleanUp
@@ -608,4 +619,5 @@ public enum Phase
     Recruit,
     Deploy,
     Prevail,
+    None,
 }

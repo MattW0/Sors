@@ -11,8 +11,6 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 
     [Header("Card Stats")]
     [SerializeField] private TMP_Text _title;
-    [SerializeField] private TMP_Text _description;
-    [SerializeField] private TMP_Text _keywords;
     [SerializeField] private TMP_Text _cost;
     [SerializeField] private TMP_Text _attack;
     [SerializeField] private TMP_Text _health;
@@ -20,7 +18,10 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     [SerializeField] private TMP_Text _moneyValue;
     [SerializeField] private GameObject _moneyUi;
     [SerializeField] private GameObject _entityUi;
+    [SerializeField] private TMP_Text _description;
+    [SerializeField] private TMP_Text _keywords;
     [SerializeField] private GameObject _attackObject;
+    [SerializeField] private GameObject _pointsObject;
 
     [Header("Card UI")]
     public bool enableFocus = true;
@@ -59,6 +60,7 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
             _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Creature/creature");
             _attack.text = cardInfo.attack.ToString();
             _keywords.text = string.Join(", ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
+            _pointsObject.SetActive(false);
             _attackObject.SetActive(true);
         }
         

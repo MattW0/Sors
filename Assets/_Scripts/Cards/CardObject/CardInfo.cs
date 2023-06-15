@@ -19,7 +19,7 @@ public struct CardInfo : IEquatable<CardInfo>
     public int points;
     public int moneyValue;
 
-    [Header("Development properties")]
+    [Header("Triggers and effects")]
     public List<Triggers> triggers;
     public List<Effects> effects;
 
@@ -44,7 +44,7 @@ public struct CardInfo : IEquatable<CardInfo>
         health = card.health;
         points = card.points;
 
-        // Development properties
+        // Triggers and effects
         triggers = card.triggers;
         effects = card.effects;
 

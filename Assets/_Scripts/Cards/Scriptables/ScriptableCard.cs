@@ -68,51 +68,6 @@ public enum Keywords{
     Vigilance,
 }
 
-public enum Triggers
-{
-    // When NAME
-    When_enters_the_battlefield,
-    When_attacks,
-    When_blocks,
-    When_dies,
-    When_is_put_into_the_discard_pile,
-    When_gets_blocked,
-
-    // Whenever NAME
-    Whenever_becomes_a_target,
-    Whenever_takes_damage,
-    Whenever_deals_damage,
-    Whenever_deals_combat_damage,
-    Whenever_deals_damage_to_a_player,
-
-    // At the beginning of [PHASE]
-    Beginning_Draw,
-    Beginning_Invent,
-    Beginning_Develop,
-    Beginning_Combat,
-    Beginning_Recruit,
-    Beginning_Deploy,
-    Beginning_Prevail,
-    Beginning_when_you_gain_the_initiative
-}
-
-public enum Effects
-{
-    card_draw_1,
-    card_draw_2,
-    card_draw_3,
-
-    creature_price_reduction_1,
-    development_price_reduction_1,
-
-    money_1,
-    money_2,
-    money_3,
-
-    damage_to_opponent_1,
-    life_gain_1,
-}
-
 public enum SpecialAbilities{
     // With X -> X needs to be differently distributed probably:
     gain_X_life,
