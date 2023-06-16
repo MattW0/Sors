@@ -49,7 +49,7 @@ public class BattleZoneEntity : NetworkBehaviour
     }
 
     private BoardManager _boardManager;
-    public event Action<PlayerManager, BattleZoneEntity> OnDeath;
+    // public event Action<PlayerManager, BattleZoneEntity> OnDeath;
     [SerializeField] private EntityUI _entityUI;
 
     [ClientRpc]
@@ -83,5 +83,8 @@ public class BattleZoneEntity : NetworkBehaviour
     [ClientRpc]
     private void RpcSetPoints(int value)=> _entityUI.SetPoints(value);
 
-    private void Die() => OnDeath?.Invoke(Owner, this);
+    [ClientRpc]
+    public void RpcEffectHighlight(bool value) => _entityUI.EffectHighlight(value);
+
+    private void Die() => _boardManager.EntityDies(this);
 }

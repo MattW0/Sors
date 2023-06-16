@@ -10,7 +10,7 @@ using UnityEngine.UI;
 public class Kingdom : NetworkBehaviour
 {
     public static Kingdom Instance { get; private set; }
-    private GameManager _gameManager;
+    [SerializeField] private GameManager _gameManager;
     private Phase _currentPhase;
     // private List<RecruitTile> _previouslyRecruited = new ();
     // public List<RecruitTile> GetPreviouslySelectedRecruitTiles() => _previouslyRecruited;
@@ -30,26 +30,34 @@ public class Kingdom : NetworkBehaviour
     private void Awake()
     {
         if (Instance == null) Instance = this;
-        _gameManager = GameManager.Instance;
+    }
+
+    private void Start()
+    {
+        moneyTiles = moneyGrid.GetComponentsInChildren<KingdomTile>();
+        technologyTiles = developmentsGrid.GetComponentsInChildren<KingdomTile>();
+        creatureTiles = creaturesGrid.GetComponentsInChildren<KingdomTile>();
+
+        _gameManager.SetNumberOfKingdomTiles(moneyTiles.Length, technologyTiles.Length, creatureTiles.Length);
     }
 
     #region Setup
     [ClientRpc]
     public void RpcSetMoneyTiles(CardInfo[] moneyTilesInfo){
-        moneyTiles = moneyGrid.GetComponentsInChildren<KingdomTile>();
-        for (var i = 0; i < moneyTilesInfo.Length; i++) moneyTiles[i].SetTile(moneyTilesInfo[i]);
+        for (var i = 0; i < moneyTilesInfo.Length; i++) 
+            moneyTiles[i].SetTile(moneyTilesInfo[i]);
     }
 
     [ClientRpc]
     public void RpcSetDevelopmentTiles(CardInfo[] technologyTilesInfo){
-        technologyTiles = developmentsGrid.GetComponentsInChildren<KingdomTile>();
-        for (var i = 0; i < technologyTilesInfo.Length; i++) technologyTiles[i].SetTile(technologyTilesInfo[i]);
+        for (var i = 0; i < technologyTilesInfo.Length; i++) 
+            technologyTiles[i].SetTile(technologyTilesInfo[i]);
     }
 
     [ClientRpc]
     public void RpcSetRecruitTiles(CardInfo[] creatureTilesInfo){   
-        creatureTiles = creaturesGrid.GetComponentsInChildren<KingdomTile>();
-        for (var i = 0; i < creatureTilesInfo.Length; i++) creatureTiles[i].SetTile(creatureTilesInfo[i]);
+        for (var i = 0; i < creatureTilesInfo.Length; i++) 
+            creatureTiles[i].SetTile(creatureTilesInfo[i]);
     }
 
     [ClientRpc]

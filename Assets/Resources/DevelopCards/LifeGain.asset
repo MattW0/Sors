@@ -10,19 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 26c270d0a29eb0a4bbcc4f0c6bba43a7, type: 3}
-  m_Name: B
+  m_Name: LifeGain
   m_EditorClassIdentifier: 
-  hash: B
+  hash: LifeGain
   type: 2
-  cost: 2
-  title: B
-  health: 2
+  cost: 1
+  title: LifeGain
+  health: 1
   attack: 0
   points: 0
   moneyValue: 0
   triggers: 07000000
-  effects: 00000000
+  effects: 09000000
   keywordAbilities: 
   relationsTexts: []
-  description: At the beginning of combat, draw a card
+  description: At the beginning of 'Combat', gain 1 life.
   image: {fileID: 0}

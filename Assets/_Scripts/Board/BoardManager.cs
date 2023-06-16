@@ -42,7 +42,7 @@ public class BoardManager : NetworkBehaviour
         _dropZone.EntityEntersDropZone(owner, entity);
         _cardEffectsHandler.CardIsPlayed(owner, entity, cardInfo);
 
-        entity.OnDeath += EntityDies;
+        // entity.OnDeath += EntityDies;
     }
 
     #region Combat
@@ -72,17 +72,31 @@ public class BoardManager : NetworkBehaviour
         OnBlockersDeclared?.Invoke(player);
     }
     
-    private void EntityDies(PlayerManager owner, BattleZoneEntity entity)
+    public void EntityDies(BattleZoneEntity entity)
     {
-        entity.OnDeath -= EntityDies;
         _deadEntities.Add(entity);
+        // entity.OnDeath -= EntityDies;
     }
 
     public void CombatCleanUp()
     {
         DestroyArrows();
+        ClearDeadEntities();
+
+        foreach (var attacker in _boardAttackers){
+            attacker.RpcRetreatAttacker();
+        }
+        _boardAttackers.Clear();
+
+        _dropZone.CombatCleanUp();
+    }
+
+    public void ClearDeadEntities(){
         foreach (var dead in _deadEntities)
         {
+            _dropZone.EntityLeavesPlayZone(dead);
+            _cardEffectsHandler.EntityDies(dead);
+
             if(dead.cardType == CardType.Creature){
                 var creature = dead.GetComponent<CreatureEntity>();
                 _boardAttackers.Remove(creature);
@@ -97,18 +111,16 @@ public class BoardManager : NetworkBehaviour
             NetworkServer.Destroy(dead.gameObject);
         }
         _deadEntities.Clear();
-
-        foreach (var attacker in _boardAttackers){
-            attacker.RpcRetreatAttacker();
-        }
-        _boardAttackers.Clear();
-
-        _dropZone.CombatCleanUp();
     }
 
     // public void PlayerSkipsCombatPhase(PlayerManager player) => OnSkipCombatPhase?.Invoke(player);
 
     #endregion
+
+    public void DevelopmentsLooseHealth(){
+        _dropZone.DevelopmentsLooseHealth();
+        ClearDeadEntities();
+    }
 
     #region UI
     public void ShowHolders(bool active){

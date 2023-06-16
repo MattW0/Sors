@@ -37,21 +37,21 @@ public class DropZoneManager : NetworkBehaviour
         }
 
         entityZones.RpcMoveEntityToHolder(entity);
-        entity.OnDeath += EntityLeavesPlayZone;
+        // entity.OnDeath += EntityLeavesPlayZone;
     }
 
     [Server]
-    private void EntityLeavesPlayZone(PlayerManager owner, BattleZoneEntity entity)
+    public void EntityLeavesPlayZone(BattleZoneEntity entity)
     {
         if(entity.cardType == CardType.Development) {
             var development = entity.GetComponent<DevelopmentEntity>();
-            entityZones.RemoveDevelopment(development, owner.isLocalPlayer);
+            entityZones.RemoveDevelopment(development, entity.Owner.isLocalPlayer);
         } else if(entity.cardType == CardType.Creature) {
             var creature = entity.GetComponent<CreatureEntity>();
-            entityZones.RemoveCreature(creature, owner.isLocalPlayer);
+            entityZones.RemoveCreature(creature, entity.Owner.isLocalPlayer);
         }
 
-        entity.OnDeath -= EntityLeavesPlayZone;
+        // entity.OnDeath -= EntityLeavesPlayZone;
     }
 
     #endregion
@@ -182,6 +182,16 @@ public class DropZoneManager : NetworkBehaviour
         OnCombatEnded?.Invoke();
     }
     #endregion
+
+    public void DevelopmentsLooseHealth(){
+        var developments = entityZones.GetDevelopments(true);
+        developments.AddRange(entityZones.GetDevelopments(false));
+
+        foreach(var development in developments){
+            var entity = development.gameObject.GetComponent<BattleZoneEntity>();
+            entity.Health -= 1;
+        }
+    }
 
     #region UI and utils
 

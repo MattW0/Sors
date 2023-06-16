@@ -7,8 +7,10 @@ using Mirror;
 public class CardEffectsHandler : NetworkBehaviour
 {
     public static CardEffectsHandler Instance { get; private set; }
+    [SerializeField] private TurnManager turnManager;
     private List<Phase> _phaseTriggers = new(); // List to reduce number of searches on all entities and their triggers
     private Dictionary<BattleZoneEntity, Dictionary<Triggers, Effects>> _entityRelations = new();
+    private Phase _nextPhase;
 
     private void Awake() {
         if (!Instance) Instance = this;
@@ -24,9 +26,8 @@ public class CardEffectsHandler : NetworkBehaviour
 
             // Dont add the relation to the dict as it resolves immediately
             if (trigger == Triggers.When_enters_the_battlefield){
-                print($"{entity.Title} triggers on ETB with effect {cardInfo.effects[index]}");
-
-                EvaluateEffect(owner, entity, cardInfo.effects[index]);
+                print($"{cardInfo.title} triggers on ETB with effect {cardInfo.effects[index]}");
+                StartCoroutine(EffectAnimation(owner, entity, cardInfo.effects[index]));
                 continue;
             }
             
@@ -35,54 +36,75 @@ public class CardEffectsHandler : NetworkBehaviour
             // Beginning of phase triggers
             var phase = TriggerToPhase(trigger);
             // print($"New phase trigger: {trigger} in phase {phase}");
-            if (phase != Phase.None && !_phaseTriggers.Contains(phase)) 
+            if (phase != Phase.None && !_phaseTriggers.Contains(phase))
                 _phaseTriggers.Add(phase);
         }
 
         _entityRelations.Add(entity, relations);
     }
 
+    public void EntityDies(BattleZoneEntity entity){
+        _entityRelations.Remove(entity);
+    }
+
     public void CheckPhaseTriggers(Phase phase){
         // We only search relations if the current phase triggers at least one effect
-        if (!_phaseTriggers.Contains(phase)) return;
+        _nextPhase = phase;
+        if (!_phaseTriggers.Contains(phase)){
+            turnManager.NextTurnState(_nextPhase);
+            return;
+        }
 
         // TODO: Should probably rebuild this to not search ALL entities
         // Maybe create a dict for each trigger separately and add entities to it
         // Then get the corresponding effect from the entity
         // Also think about how to handle multiple effects on the same trigger
         // 1-many relations
-        var currentTrigger = PhaseToTrigger(phase);
+
+        bool hasTriggered = false;
+        var phaseTrigger = PhaseToTrigger(phase);
         foreach (var entity in _entityRelations.Keys){
             var relations = _entityRelations[entity];
             foreach (var trigger in relations.Keys){
-                if (trigger == currentTrigger){
-                    var effect = relations[trigger];
-                    print($"{entity.Title} triggers at phase {phase} with effect {relations[trigger]}");
-                    EvaluateEffect(entity, effect);
-                }
+                if (trigger != phaseTrigger) continue;
+                
+                hasTriggered = true;
+                var effect = relations[trigger];
+                print($"{entity.Title} triggers at phase {phase} with effect {relations[trigger]}");
+                StartCoroutine(EffectAnimation(entity, effect));
             }
         }
+
+        if (!hasTriggered) turnManager.NextTurnState(_nextPhase);
+    }
+    
+    private IEnumerator EffectAnimation(BattleZoneEntity entity, Effects effect){
+        var owner = entity.Owner;
+
+        // TODO: Owner is null if entity ETBd as the last action before this method call
+        // network timing issues... similar to skipping phases after combat auto-skip ?
+        if(!owner) {
+            print("Owner is null! Skipping effect... ");
+            turnManager.NextTurnState(_nextPhase);
+        } else {
+            StartCoroutine(EffectAnimation(owner, entity, effect));
+        }
+
+        yield return null;
     }
 
     // Overload because owner is not set on entity as it ETBs
-    private void EvaluateEffect(PlayerManager owner, BattleZoneEntity entity, Effects effect){
-        // TODO: Make it apparent which entity triggers (highlight, animation, etc.)
-
+    private IEnumerator EffectAnimation(PlayerManager owner, BattleZoneEntity entity, Effects effect){
+        entity.RpcEffectHighlight(true);
+        yield return new WaitForSeconds(1f);
+        
         var nbCards = CardDraw(effect);
         owner.DrawCards(nbCards);
-    }
+        yield return new WaitForSeconds(1f);
+        entity.RpcEffectHighlight(false);
 
-    
-    private void EvaluateEffect(BattleZoneEntity entity, Effects effect){
-        var owner = entity.Owner;
-
-        // TODO: Owner is null if entity ETBd as the last action before this check
-        if(!owner) {
-            print("Owner is null! Skipping effect... ");
-            return;
-        }
-
-        EvaluateEffect(owner, entity, effect);
+        turnManager.NextTurnState(_nextPhase);
+        yield return null;
     }
 
     private int CardDraw(Effects effect){
@@ -147,6 +169,7 @@ public enum Triggers
     // Whenever_deals_damage_to_a_player,
 
     // At the beginning of [PHASE]
+    Beginning_Turn,
     Beginning_Draw,
     Beginning_Invent,
     Beginning_Develop,

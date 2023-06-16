@@ -27,9 +27,9 @@ public class GameManager : NetworkBehaviour {
     private List<PlayerManager> _loosingPlayers = new();
 
     [Header("Game start settings")]
-    [SerializeField] private int nbRecruitTiles = 8;
-    [SerializeField] private int nbMoneyTiles = 4;
-    [SerializeField] private int nbDevelopTiles = 8;
+    private int _nbMoneyTiles;
+    private int _nbDevelopTiles;
+    private int _nbCreatureTiles;
     [SerializeField] private int initialDeckSize = 10;
     [SerializeField] private int initialCreatures = 2;
     [SerializeField] private int initialDevelopments = 2;
@@ -64,7 +64,8 @@ public class GameManager : NetworkBehaviour {
     public ScriptableCard[] creatureCardsDb;
     public ScriptableCard[] moneyCardsDb;
     public ScriptableCard[] developCardsDb;
-    private List<int> _cardsIdCache = new();
+    private List<int> _availableCreatureIds = new();
+    private List<int> _availableDevelopmentIds = new();
     private Sprite[] _moneySprites;
     
     [Header("Prefabs")]
@@ -86,16 +87,7 @@ public class GameManager : NetworkBehaviour {
     {
         if (Instance == null) Instance = this;
 
-        startCreatures = Resources.LoadAll<ScriptableCard>("StartCards/Creatures/");
-        startDevelopments = Resources.LoadAll<ScriptableCard>("StartCards/Developments/");
-
-        creatureCardsDb = Resources.LoadAll<ScriptableCard>("CreatureCards/");
-        moneyCardsDb = Resources.LoadAll<ScriptableCard>("MoneyCards/");
-        developCardsDb = Resources.LoadAll<ScriptableCard>("DevelopCards/");
-
-        print("Creature cards: " + creatureCardsDb.Length);
-        print("Money cards: " + moneyCardsDb.Length);
-        print("Develop cards: " + developCardsDb.Length);
+        LoadCards();
 
         _moneySprites = Resources.LoadAll<Sprite>("Sprites/Money/");
 
@@ -128,48 +120,62 @@ public class GameManager : NetworkBehaviour {
     }
 
     #region Setup
+
+    private void LoadCards(){
+        startCreatures = Resources.LoadAll<ScriptableCard>("StartCards/Creatures/");
+        startDevelopments = Resources.LoadAll<ScriptableCard>("StartCards/Developments/");
+
+        // Databases of generated cards
+        creatureCardsDb = Resources.LoadAll<ScriptableCard>("CreatureCards/");
+        developCardsDb = Resources.LoadAll<ScriptableCard>("DevelopCards/");
+        moneyCardsDb = Resources.LoadAll<ScriptableCard>("MoneyCards/");
+
+        print(" ---------- Available cards: ---------- ");
+        print("Creature cards: " + creatureCardsDb.Length);
+        print("Money cards: " + moneyCardsDb.Length);
+        print("Develop cards: " + developCardsDb.Length);
+    }
     
     private void KingdomSetup(){
         // Developments: right now only money
-        var moneyCards = new CardInfo[nbMoneyTiles];
-        moneyCards[0] = new CardInfo(moneyCardsDb[1]); // Silver
-        moneyCards[1] = new CardInfo(moneyCardsDb[2]); // Gold
-        moneyCards[2] = new CardInfo(moneyCardsDb[0]); // Gold
-        moneyCards[3] = new CardInfo(moneyCardsDb[0]); // Gold
+        var moneyCards = new CardInfo[_nbMoneyTiles];
+        for (var i = 0; i < _nbMoneyTiles; i++) moneyCards[i] = new CardInfo(moneyCardsDb[i]);
         _kingdom.RpcSetMoneyTiles(moneyCards);
 
-        var developCards = new CardInfo[nbDevelopTiles];
-        for (var i = 0; i < nbDevelopTiles; i++) developCards[i] = GetNewDevelopmentFromDb();
+        var developCards = new CardInfo[_nbDevelopTiles];
+        for (var i = 0; i < _nbDevelopTiles; i++) developCards[i] = GetNewDevelopmentFromDb();
         _kingdom.RpcSetDevelopmentTiles(developCards);
 
         // Recruits: Creatures
-        var recruitCards = new CardInfo[nbRecruitTiles];
-        for (var i = 0; i < nbRecruitTiles; i++) recruitCards[i] = GetNewCreatureFromDb();
+        var recruitCards = new CardInfo[_nbCreatureTiles];
+        for (var i = 0; i < _nbCreatureTiles; i++) recruitCards[i] = GetNewCreatureFromDb();
         _kingdom.RpcSetRecruitTiles(recruitCards);
     }
 
     private CardInfo GetNewDevelopmentFromDb(){
-        // Get new random card
-        // var id = Random.Range(0, developmentCardsDb.Length);
-        // while (_cardsIdCache.Contains(id)) id = Random.Range(0, creatureCardsDb.Length);
+        if(_availableDevelopmentIds.Count == 0) {
+            // Random order of ids -> pop first element for random card
+            _availableDevelopmentIds = Enumerable.Range(0, developCardsDb.Length)
+                                        .OrderBy(x => Random.value)
+                                        .ToList();
+        }
 
-        // _cardsIdCache.Add(id);
-        // var card = creatureCardsDb[id];
-
-        // return new CardInfo(card);
-
-        return new CardInfo(developCardsDb[0]);
+        var id = _availableDevelopmentIds[0];
+        _availableDevelopmentIds.RemoveAt(0);
+        return new CardInfo(developCardsDb[id]);
     }
 
     private CardInfo GetNewCreatureFromDb(){
-        // Get new random card
-        var id = Random.Range(0, creatureCardsDb.Length);
-        while (_cardsIdCache.Contains(id)) id = Random.Range(0, creatureCardsDb.Length);
+        if(_availableCreatureIds.Count == 0) {
+            // Random order of ids -> pop first element for random card
+            _availableCreatureIds = Enumerable.Range(0, creatureCardsDb.Length)
+                                        .OrderBy(x => Random.value)
+                                        .ToList();
+        }
 
-        _cardsIdCache.Add(id);
-        var card = creatureCardsDb[id];
-
-        return new CardInfo(card);
+        var id = _availableCreatureIds[0];
+        _availableCreatureIds.RemoveAt(0);
+        return new CardInfo(creatureCardsDb[id]);
     }
 
     private void PlayerSetup(){
@@ -337,6 +343,13 @@ public class GameManager : NetworkBehaviour {
     }
 
     #endregion
+
+    public void SetNumberOfKingdomTiles(int money, int development, int creature)
+    {
+        _nbMoneyTiles = money;
+        _nbDevelopTiles = development;
+        _nbCreatureTiles = creature;
+    }
 
     private IEnumerator PreGameWaitRoutine(){
         yield return new WaitForSeconds(6f);

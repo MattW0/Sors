@@ -197,13 +197,16 @@ public class TurnManager : NetworkBehaviour
         var nextPhase = phasesToPlay[0];
         phasesToPlay.RemoveAt(0);
         _cardEffectsHandler.CheckPhaseTriggers(nextPhase);
+    }
 
+    public void NextTurnState(Phase nextPhase){
         Enum.TryParse(nextPhase.ToString(), out TurnState nextTurnState);
         _playerInterfaceManager.RpcLog($"<color=#004208>Turn changed to {nextTurnState}</color>");
         
         OnPhaseChanged?.Invoke(nextTurnState);
         UpdateTurnState(nextTurnState);
     }
+
     #endregion
 
     #region Drawing
@@ -496,6 +499,7 @@ public class TurnManager : NetworkBehaviour
     private void CleanUp(){
         if(GameEnds()) return;
 
+        _boardManager.DevelopmentsLooseHealth();
         PlayersStatsResetAndDiscardMoney(endOfTurn: true);       
         _readyPlayers.Clear();
         UpdateTurnState(TurnState.PhaseSelection);
