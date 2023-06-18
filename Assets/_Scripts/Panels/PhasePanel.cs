@@ -33,6 +33,7 @@ public class PhasePanel : NetworkBehaviour
         if (!Instance) Instance = this;
     }
 
+    #region Prepare and Phase Selection
     [ClientRpc]
     public void RpcPreparePhasePanel(int nbPhasesToChose, bool animations){
         _nbPhasesToChose = nbPhasesToChose;
@@ -54,6 +55,58 @@ public class PhasePanel : NetworkBehaviour
         StartCoroutine(WaitAndFade());
     }
 
+    public void UpdateSelectedPhase(Phase phase){
+        if (_selectedPhases.Contains(phase)){
+            _selectedPhases.Remove(phase);
+        } else {
+            _selectedPhases.Add(phase);
+        }
+        
+        confirm.SetActive(_selectedPhases.Count == _nbPhasesToChose);
+    }
+    #endregion
+
+    #region Combat
+
+    [ClientRpc]
+    public void RpcStartCombatPhase(CombatState state){
+        if (state == CombatState.Attackers) BeginCombatAttack();
+        else if (state == CombatState.Blockers) BeginCombatBlock();
+    }
+    
+    private void BeginCombatAttack(){
+        actionDescriptionText.text = "Select attackers";
+        attack.StartSelection();
+    }
+    private void BeginCombatBlock(){
+        actionDescriptionText.text = "Select blockers";
+        block.StartSelection();
+    }
+
+    [TargetRpc]
+    public void TargetDisableCombatButtons(NetworkConnection conn){
+        attack.Reset();
+        block.Reset();
+    }
+
+    public void PlayerPressedCombatButton(){
+        var player = PlayerManager.GetLocalPlayer();
+        player.PlayerPressedCombatButton();
+    }
+
+    #endregion
+
+    public void ConfirmButtonPressed(){
+        actionDescriptionText.text = "Wait for opponent...";
+        confirm.SetActive(false);
+
+        var player = PlayerManager.GetLocalPlayer();
+        player.CmdPhaseSelection(_selectedPhases);
+
+        _selectedPhases.Clear();
+        OnPhaseSelectionConfirmed?.Invoke();
+    }
+
     [ClientRpc]
     public void RpcChangeActionDescriptionText(TurnState state){
         var text = state switch {
@@ -69,47 +122,6 @@ public class PhasePanel : NetworkBehaviour
         };
 
         actionDescriptionText.text = text;
-    }
-
-    public void UpdateActive(Phase phase){
-        if (_selectedPhases.Contains(phase)){
-            _selectedPhases.Remove(phase);
-        } else {
-            _selectedPhases.Add(phase);
-        }
-        
-        confirm.SetActive(_selectedPhases.Count == _nbPhasesToChose);
-    }
-
-    public void BeginCombatAttack(){
-        actionDescriptionText.text = "Select attackers";
-        attack.StartSelection();
-    }
-    public void BeginCombatBlock(){
-        actionDescriptionText.text = "Select blockers";
-        block.StartSelection();
-    }
-
-    [TargetRpc]
-    public void TargetDisableButtons(NetworkConnection conn){
-        attack.Reset();
-        block.Reset();
-    }
-
-    public void PlayerPressedCombatButton(){
-        var player = PlayerManager.GetLocalPlayer();
-        player.PlayerPressedCombatButton();
-    }
-
-    public void ConfirmButtonPressed(){
-        actionDescriptionText.text = "Wait for opponent...";
-        confirm.SetActive(false);
-
-        var player = PlayerManager.GetLocalPlayer();
-        player.CmdPhaseSelection(_selectedPhases);
-
-        _selectedPhases.Clear();
-        OnPhaseSelectionConfirmed?.Invoke();
     }
 
     private IEnumerator WaitAndFade() {

@@ -13,7 +13,6 @@ public class CombatManager : NetworkBehaviour
 
     [SerializeField] private float combatDamageWaitTime = 0.8f;
     public static event Action<CombatState> OnCombatStateChanged;
-    public static event Action OnDeclareAttackers;
     public static event Action OnDeclareBlockers;
 
     private Dictionary<CreatureEntity, List<CreatureEntity>> _attackersBlockers = new ();
@@ -43,7 +42,7 @@ public class CombatManager : NetworkBehaviour
             case CombatState.Idle:
                 break;
             case CombatState.Attackers:
-                OnDeclareAttackers?.Invoke();
+                StartCombat();
                 break;
             case CombatState.Blockers:
                 OnDeclareBlockers?.Invoke();
@@ -68,6 +67,11 @@ public class CombatManager : NetworkBehaviour
         _playerInterfaceManager = PlayerInterfaceManager.Instance;
     }
 
+    private void StartCombat(){
+        _playerInterfaceManager.RpcLog("<color=#420028> --- Starting Combat --- </color>");
+        _boardManager.StartCombat();
+    }
+
     private void PlayerDeclaredAttackers(PlayerManager player)
     {
         _readyPlayers.Add(player);
@@ -80,7 +84,7 @@ public class CombatManager : NetworkBehaviour
         
         _boardManager.ShowOpponentAttackers();
         _readyPlayers.Clear();
-        _playerInterfaceManager.RpcLog("<color=#42000c> --- Attackers declared --- </color>");
+        _playerInterfaceManager.RpcLog("<color=#42000c> --- Attackers declared </color>");
         UpdateCombatState(CombatState.Blockers);
     }
 
@@ -98,7 +102,7 @@ public class CombatManager : NetworkBehaviour
         _readyPlayers.Add(player);
         if (_readyPlayers.Count != _gameManager.players.Count) return;
         
-        _playerInterfaceManager.RpcLog("<color=#420028> --- Blockers declared --- </color>");
+        _playerInterfaceManager.RpcLog("<color=#420028> --- Blockers declared </color>");
         ShowAllBlockers();
         UpdateCombatState(CombatState.Damage);
     }

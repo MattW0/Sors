@@ -117,6 +117,7 @@ public class TurnManager : NetworkBehaviour
         _prevailPanel.RpcPreparePrevailPanel(_gameManager.prevailOptionsToChoose);
 
         _nbPlayers = nbPlayers;
+        // print($"TurnManager prepare for {_nbPlayers} players");
         foreach (var player in _gameManager.players.Keys)
         {
             _playerHealth.Add(player, _gameManager.startHealth);

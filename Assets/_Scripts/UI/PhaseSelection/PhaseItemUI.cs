@@ -69,7 +69,7 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
             return;
         }
         
-        _phasePanel.UpdateActive(_phase);
+        _phasePanel.UpdateSelectedPhase(_phase);
     }
 
     public void OnPointerEnter(PointerEventData eventData)

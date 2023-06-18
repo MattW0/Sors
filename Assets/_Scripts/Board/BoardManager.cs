@@ -1,8 +1,11 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Mirror;
 using UnityEngine;
+using UnityEditor;
+
 
 public class BoardManager : NetworkBehaviour
 {
@@ -27,7 +30,6 @@ public class BoardManager : NetworkBehaviour
         _gameManager = GameManager.Instance;
         _dropZone = DropZoneManager.Instance;
 
-        CombatManager.OnDeclareAttackers += DeclareAttackers;
         CombatManager.OnDeclareBlockers += DeclareBlockers;
 
     }
@@ -46,6 +48,16 @@ public class BoardManager : NetworkBehaviour
     }
 
     #region Combat
+
+    public void StartCombat(){
+        StartCoroutine(CombatTransitionAnimation(CombatState.Attackers));
+    }
+
+    private IEnumerator CombatTransitionAnimation(CombatState state){
+        _phasePanel.RpcStartCombatPhase(state);
+        yield return new WaitForSeconds(1f);
+        DeclareAttackers();
+    }
 
     private void DeclareAttackers() => _dropZone.StartDeclareAttackers(_gameManager.players.Keys.ToList());
 
@@ -134,7 +146,7 @@ public class BoardManager : NetworkBehaviour
     }
 
     public void DisableReadyButton(PlayerManager player){
-        _phasePanel.TargetDisableButtons(player.connectionToClient);
+        _phasePanel.TargetDisableCombatButtons(player.connectionToClient);
     }
 
     private void DestroyArrows(){
@@ -148,7 +160,6 @@ public class BoardManager : NetworkBehaviour
     
     private void OnDestroy()
     {
-        CombatManager.OnDeclareAttackers -= DeclareAttackers;
         CombatManager.OnDeclareBlockers -= DeclareBlockers;
     }
 }

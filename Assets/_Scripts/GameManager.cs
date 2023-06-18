@@ -205,11 +205,12 @@ public class GameManager : NetworkBehaviour {
             if(!cardSpawnAnimations) {
                 player.deck.Shuffle();
                 player.DrawInitialHand(initialHandSize);
-                OnGameStart?.Invoke(players.Count);
             } else {
                 player.RpcResolveCardSpawn(cardSpawnAnimations);
             }
         }
+
+        if(!cardSpawnAnimations) OnGameStart?.Invoke(players.Count);
     }
 
     #endregion

@@ -72,6 +72,7 @@ public class EntityZones : NetworkBehaviour
             return;
         }
         entity.transform.SetParent(targetTransform, false);
+        entity.transform.localPosition = Vector3.zero;
     }
 
     #region Entity holders

@@ -20,7 +20,7 @@ public class CreatureEntityUI : MonoBehaviour
 
     private void Start(){
         _transform = gameObject.transform;
-        _transform.position = _untappedPosition;
+        // _transform.position = _untappedPosition;
     }
 
     public void ShowAsAttacker(bool active) => attackerImage.color = active ? combatColor : _idleColor;
