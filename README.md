@@ -10,7 +10,7 @@ It's a card game. Networked Host-Client model on LAN with Mirror. Created with U
 * .NET Sdk - v6.0+: https://dotnet.microsoft.com/en-us/download
 * Project files - branch 'dev': https://github.com/MattW0/Sors
 ~~~
-git clone -b dev git@github.com:user/myproject.git
+git clone -b dev https://github.com/MattW0/Sors.git
 ~~~
 
 **Open the project**:
