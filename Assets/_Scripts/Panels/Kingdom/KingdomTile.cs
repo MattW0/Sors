@@ -32,10 +32,10 @@ public class KingdomTile : MonoBehaviour
         set {
             _isSelected = value;
             if(value) {
-                _kingdom.PlayerSelectsTile(cardInfo);
+                _kingdom.PlayerSelectsTile(this);
                 _ui.Highlight(true, Color.blue);
             } else {
-                _kingdom.PlayerDeselectsTile(cardInfo);
+                _kingdom.PlayerDeselectsTile();
                 _ui.Highlight(true, Color.green);
             }
         }
@@ -82,7 +82,7 @@ public class KingdomTile : MonoBehaviour
     }
 
     private void ResetTile(){
-        Interactable = true;
+        Interactable = false;
         _isSelected = false;
         // Reset cost (after bonus)
         Cost = cardInfo.cost;

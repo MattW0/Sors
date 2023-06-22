@@ -1,3 +1,4 @@
+using System.Globalization;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,6 +9,8 @@ public class CardEffectsHandler : NetworkBehaviour
 {
     public static CardEffectsHandler Instance { get; private set; }
     [SerializeField] private TurnManager turnManager;
+    [SerializeField] private PlayerInterfaceManager _playerInterfaceManager;
+    public float effectWaitTime = 0.5f;
     private List<Phase> _phaseTriggers = new(); // List to reduce number of searches on all entities and their triggers
     private Dictionary<BattleZoneEntity, Dictionary<Triggers, Effects>> _entityRelations = new();
     private Phase _nextPhase;
@@ -26,8 +29,7 @@ public class CardEffectsHandler : NetworkBehaviour
 
             // Dont add the relation to the dict as it resolves immediately
             if (trigger == Triggers.When_enters_the_battlefield){
-                print($"{cardInfo.title} triggers on ETB with effect {cardInfo.effects[index]}");
-                StartCoroutine(EffectAnimation(owner, entity, cardInfo.effects[index]));
+                StartCoroutine(FindEntityOwner(entity, cardInfo.effects[index], trigger));
                 continue;
             }
             
@@ -61,55 +63,70 @@ public class CardEffectsHandler : NetworkBehaviour
         // Also think about how to handle multiple effects on the same trigger
         // 1-many relations
 
-        bool hasTriggered = false;
         var phaseTrigger = PhaseToTrigger(phase);
         foreach (var entity in _entityRelations.Keys){
             var relations = _entityRelations[entity];
             foreach (var trigger in relations.Keys){
                 if (trigger != phaseTrigger) continue;
                 
-                hasTriggered = true;
                 var effect = relations[trigger];
-                print($"{entity.Title} triggers at phase {phase} with effect {relations[trigger]}");
-                StartCoroutine(EffectAnimation(entity, effect));
+                StartCoroutine(FindEntityOwner(entity, effect, trigger));
             }
         }
 
-        if (!hasTriggered) turnManager.NextTurnState(_nextPhase);
+        // Only have to call turnManager.NextTurnState if the effect triggers at the beginning of a phase
+        // TODO: Verify if there is a better solution to sync the animation and turnManager continuation
+        turnManager.NextTurnState(_nextPhase);
     }
     
-    private IEnumerator EffectAnimation(BattleZoneEntity entity, Effects effect){
-        var owner = entity.Owner;
+    private IEnumerator FindEntityOwner(BattleZoneEntity entity, Effects effect, Triggers trigger){
+        // Wait for Owner (and other info) to be initialized
+        // It isn't if entity ETBd as the last action before this trigger
+        while(!entity.Owner) yield return null;
 
-        // TODO: Owner is null if entity ETBd as the last action before this method call
-        // network timing issues... similar to skipping phases after combat auto-skip ?
-        if(!owner) {
-            print("Owner is null! Skipping effect... ");
-            turnManager.NextTurnState(_nextPhase);
-        } else {
-            StartCoroutine(EffectAnimation(owner, entity, effect));
-        }
-
-        yield return null;
+        _playerInterfaceManager.RpcLog($"<color=#1118BA>'{entity.Title}': {trigger} -> {effect}</color>");
+        StartCoroutine(EffectAnimation(entity, effect));
     }
 
-    // Overload because owner is not set on entity as it ETBs
-    private IEnumerator EffectAnimation(PlayerManager owner, BattleZoneEntity entity, Effects effect){
+    private IEnumerator EffectAnimation(BattleZoneEntity entity, Effects effect){
         entity.RpcEffectHighlight(true);
-        yield return new WaitForSeconds(1f);
-        
-        var nbCards = CardDraw(effect);
-        owner.DrawCards(nbCards);
-        yield return new WaitForSeconds(1f);
-        entity.RpcEffectHighlight(false);
+        yield return new WaitForSeconds(effectWaitTime);
 
-        turnManager.NextTurnState(_nextPhase);
-        yield return null;
+        ExecuteEffect(entity, effect);
+        // if(entity.cardType == CardType.Development) entity.Health -= 1;
+
+        yield return new WaitForSeconds(effectWaitTime);
+        entity.RpcEffectHighlight(false);
+    }
+
+    #region Effects
+    private void ExecuteEffect(BattleZoneEntity entity, Effects effect){
+        switch (effect.ToString().Split('_')[0]){
+            case "card":
+                entity.Owner.DrawCards(CardDraw(effect));
+                break;
+            case "price":
+                var (cardType, reduction) = PriceReduction(effect);
+                turnManager.PlayerGetsKingdomBonus(entity.Owner, cardType, reduction);
+                break;
+            case "money":
+                entity.Owner.Cash += Money(effect);
+                break;
+            case "damage":
+                if(!entity.Opponent){
+                    print("No opponent found");
+                    return;
+                }
+                entity.Opponent.Health -= Damage(effect);
+                break;
+            case "life":
+                entity.Owner.Health += LifeGain(effect);
+                break;
+        }
     }
 
     private int CardDraw(Effects effect){
-        return effect switch
-        {
+        return effect switch{
             Effects.card_draw_1 => 1,
             Effects.card_draw_2 => 2,
             Effects.card_draw_3 => 3,
@@ -117,6 +134,50 @@ public class CardEffectsHandler : NetworkBehaviour
         };
     }
 
+    private (CardType, int) PriceReduction(Effects effect){
+        var strArray = effect.ToString().Split('_');
+        
+        // Card type is always the second last element
+        var type = strArray[^2];
+        type = type[0].ToString().ToUpper() + type.Substring(1);
+        Enum.TryParse(type, out CardType cardType);
+
+        // Reduction is always the last element
+        var reduction = int.Parse(strArray[^1], CultureInfo.InvariantCulture);
+        
+        return (cardType, reduction);
+    }
+
+    private int Money(Effects effect){
+        return effect switch{
+            Effects.money_1 => 1,
+            Effects.money_2 => 2,
+            Effects.money_3 => 3,
+            _ => 0
+        };
+    }
+
+    private int Damage(Effects effect){
+        return effect switch{
+            Effects.damage_to_opponent_1 => 1,
+            // Effects.damage_2 => 2,
+            // Effects.damage_3 => 3,
+            _ => 0
+        };
+    }
+
+    private int LifeGain(Effects effect){
+        return effect switch{
+            Effects.life_gain_1 => 1,
+            // Effects.life_2 => 2,
+            // Effects.life_3 => 3,
+            _ => 0
+        };
+    }
+
+    #endregion
+
+    #region Helper Functions
     private Phase TriggerToPhase(Triggers trigger){
         Phase phase = trigger switch
         {
@@ -148,6 +209,7 @@ public class CardEffectsHandler : NetworkBehaviour
 
         return trigger;
     }
+    #endregion
 }
 
 public enum Triggers
@@ -186,8 +248,9 @@ public enum Effects
     card_draw_2,
     card_draw_3,
 
-    creature_price_reduction_1,
-    development_price_reduction_1,
+    price_reduction_creature_1,
+    price_reduction_development_1,
+    price_reduction_money_1,
 
     money_1,
     money_2,

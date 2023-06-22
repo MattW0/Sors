@@ -29,9 +29,6 @@ public class BoardManager : NetworkBehaviour
 
         _gameManager = GameManager.Instance;
         _dropZone = DropZoneManager.Instance;
-
-        CombatManager.OnDeclareBlockers += DeclareBlockers;
-
     }
 
     public void AddEntity(PlayerManager owner, PlayerManager opponent, GameObject card, BattleZoneEntity entity) {
@@ -49,14 +46,15 @@ public class BoardManager : NetworkBehaviour
 
     #region Combat
 
-    public void StartCombat(){
-        StartCoroutine(CombatTransitionAnimation(CombatState.Attackers));
+    public void StartCombatPhase(CombatState state){
+        StartCoroutine(CombatTransitionAnimation(state));
     }
 
     private IEnumerator CombatTransitionAnimation(CombatState state){
         _phasePanel.RpcStartCombatPhase(state);
         yield return new WaitForSeconds(1f);
-        DeclareAttackers();
+        if (state == CombatState.Attackers) DeclareAttackers();
+        else if (state == CombatState.Blockers) DeclareBlockers();
     }
 
     private void DeclareAttackers() => _dropZone.StartDeclareAttackers(_gameManager.players.Keys.ToList());
@@ -95,11 +93,7 @@ public class BoardManager : NetworkBehaviour
         DestroyArrows();
         ClearDeadEntities();
 
-        foreach (var attacker in _boardAttackers){
-            attacker.RpcRetreatAttacker();
-        }
         _boardAttackers.Clear();
-
         _dropZone.CombatCleanUp();
     }
 
@@ -115,9 +109,9 @@ public class BoardManager : NetworkBehaviour
             }
 
             // Move the card object to discard pile
-            dead.Owner.discard.Add(_entitiesObjectsCache[dead].GetComponent<CardStats>().cardInfo);
-            dead.Owner.RpcMoveCard(_entitiesObjectsCache[dead],
-                CardLocation.PlayZone, CardLocation.Discard);
+            var cardObject = _entitiesObjectsCache[dead];
+            dead.Owner.discard.Add(cardObject.GetComponent<CardStats>().cardInfo);
+            dead.Owner.RpcMoveCard(cardObject, CardLocation.PlayZone, CardLocation.Discard);
 
             _entitiesObjectsCache.Remove(dead);
             NetworkServer.Destroy(dead.gameObject);
@@ -157,9 +151,4 @@ public class BoardManager : NetworkBehaviour
 
     public void DiscardMoney() => _dropZone.RpcDiscardMoney();
     #endregion
-    
-    private void OnDestroy()
-    {
-        CombatManager.OnDeclareBlockers -= DeclareBlockers;
-    }
 }

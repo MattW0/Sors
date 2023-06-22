@@ -292,6 +292,7 @@ public class PlayerManager : NetworkBehaviour
 
     [Command]
     public void CmdDiscardSelection(List<GameObject> cardsToDiscard){
+        _discardSelection.Clear();
         _discardSelection = cardsToDiscard;
         _turnManager.PlayerSelectedDiscardCards(this);
     }
@@ -306,18 +307,16 @@ public class PlayerManager : NetworkBehaviour
             discard.Add(cardInfo);
             RpcMoveCard(card, CardLocation.Hand, CardLocation.Discard);
         }
-
-        _discardSelection.Clear();
     }
 
-    public void PlayerSelectsKingdomTile(CardInfo card){
-        if(isServer) _turnManager.PlayerSelectedKingdomTile(this, card);
-        else CmdKingdomSelection(card);
+    public void PlayerSelectsKingdomTile(CardInfo card, int cost){
+        if(isServer) _turnManager.PlayerSelectedKingdomTile(this, card, cost);
+        else CmdKingdomSelection(card, cost);
     }
 
     [Command]
-    public void CmdKingdomSelection(CardInfo card){
-        _turnManager.PlayerSelectedKingdomTile(this, card);
+    public void CmdKingdomSelection(CardInfo card, int cost){
+        _turnManager.PlayerSelectedKingdomTile(this, card, cost);
     }
 
     [Command]
@@ -555,6 +554,11 @@ public class PlayerManager : NetworkBehaviour
     // private void PlayerClickedCollectionViewButton(PlayerManager player) {
     //     _cardCollectionPanel.TargetShowCardCollection(player.connectionToClient, hand);
     // }
+
+    [Server]
+    public void ForceEndTurn(){
+        _turnManager.ForceEndTurn();
+    }
 
     #endregion
 }

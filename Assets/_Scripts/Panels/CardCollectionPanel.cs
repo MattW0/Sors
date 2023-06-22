@@ -91,8 +91,8 @@ public class CardCollectionPanel : NetworkBehaviour
         _player.CmdPlayCard(card);
 
         // _detailCards.Remove(card.GetComponent<DetailCard>());
+        _selectedCards.Clear();
         foreach (Transform child in _gridChosen) {
-            _selectedCards.Clear();
             _detailCards.Remove(child.gameObject.GetComponent<DetailCard>());
             Destroy(child.gameObject);
         }
@@ -114,8 +114,7 @@ public class CardCollectionPanel : NetworkBehaviour
 
     [ClientRpc]
     public void RpcSoftResetPanel(){
-        foreach (Transform child in _gridChosen) child.SetParent(_gridAll, false);
-        _selectedCards.Clear();
+        ClearPanel();
         _ui.ResetPanelUI(false);
     }
 

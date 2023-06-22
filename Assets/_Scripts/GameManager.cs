@@ -51,9 +51,8 @@ public class GameManager : NetworkBehaviour {
 
     [Header("Turn Boni")]
     public int extraDraw = 2;
-    public int inventPriceReduction = 1;
+    public int kingdomPriceReduction = 1;
     public int developPriceReduction = 1;
-    public int recruitPriceReduction = 1;
     public int prevailExtraOptions = 1;
     public int deployBonusDeploys = 1;
 
@@ -265,7 +264,7 @@ public class GameManager : NetworkBehaviour {
         var scriptableCard = Resources.Load<ScriptableCard>("creatureCards/" + card.title);
         var cardObject = Instantiate(creatureCardPrefab);
         var cardInfo = SpawnAndCacheCard(player, cardObject, scriptableCard);
-        MoveSpawnedCard(player, cardObject, cardInfo, CardLocation.Deck);
+        MoveSpawnedCard(player, cardObject, cardInfo, CardLocation.Discard);
     }
     
     private CardInfo SpawnAndCacheCard(PlayerManager owner, GameObject cardObject, ScriptableCard scriptableCard){

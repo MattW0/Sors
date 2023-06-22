@@ -110,8 +110,9 @@ public class CreatureEntity : NetworkBehaviour, IPointerClickHandler
     public void RpcResetAfterCombat(){
         CanAct = false;
         IsAttacking = false;
-        
-        _creatureUI.ShowAsAttacker(false);
+
+        if (isOwned) _creatureUI.UntapCreature(false);
+        else _creatureUI.UntapOpponentCreature();
         _creatureUI.ResetHighlight();
     }
 

@@ -11,20 +11,20 @@ public class PlayerInterfaceButtons : MonoBehaviour
     private Kingdom _kingdom;
     private CardCollectionPanel _cardCollectionPanel;
     [SerializeField] private Button _undoButton;
+    [SerializeField] private Button _utilityButton;
     private bool _isOpen = false;
-
-
 
     private void Awake()
     {
         if (!Instance) Instance = this;
-        // _readyButton.interactable = false;
     }
 
     private void Start(){
         _kingdom = Kingdom.Instance;
         _cardCollectionPanel = CardCollectionPanel.Instance;
+
         _player = PlayerManager.GetLocalPlayer();
+        if(!_player.isServer) _utilityButton.interactable = false;
     }
 
     // public void OnHandButtonPressed(){
@@ -42,7 +42,8 @@ public class PlayerInterfaceButtons : MonoBehaviour
         _kingdom.MaxButton();
     }
     
-    public void OnResignButtonPressed() {
+    public void OnUtilityButtonPressed(){
+        _player.ForceEndTurn();
     }
     
     public void OnUndoButtonPressed() {

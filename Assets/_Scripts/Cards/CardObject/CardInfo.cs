@@ -81,5 +81,5 @@ public enum CardType
     Creature,
     Money,
     Development,
-
+    None
 }

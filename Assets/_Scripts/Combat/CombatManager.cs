@@ -13,7 +13,6 @@ public class CombatManager : NetworkBehaviour
 
     [SerializeField] private float combatDamageWaitTime = 0.8f;
     public static event Action<CombatState> OnCombatStateChanged;
-    public static event Action OnDeclareBlockers;
 
     private Dictionary<CreatureEntity, List<CreatureEntity>> _attackersBlockers = new ();
     private List<CreatureEntity> _unblockedAttackers = new();
@@ -42,16 +41,19 @@ public class CombatManager : NetworkBehaviour
             case CombatState.Idle:
                 break;
             case CombatState.Attackers:
-                StartCombat();
+                _playerInterfaceManager.RpcLog("<color=#420028> --- Starting Combat --- </color>");
+                _boardManager.StartCombatPhase(CombatState.Attackers);
                 break;
             case CombatState.Blockers:
-                OnDeclareBlockers?.Invoke();
+                _playerInterfaceManager.RpcLog("<color=#42000c>  - Attackers declared </color>");
+                _boardManager.StartCombatPhase(CombatState.Blockers);
                 break;
             case CombatState.Damage:
+                _playerInterfaceManager.RpcLog("<color=#420028>  - Blockers declared </color>");
                 ResolveDamage();
                 break;
             case CombatState.CleanUp:
-                ResolveCombat();
+                ResolveCombat(false);
                 break;
             default:
                 print("<color=red>Invalid turn state</color>");
@@ -68,8 +70,7 @@ public class CombatManager : NetworkBehaviour
     }
 
     private void StartCombat(){
-        _playerInterfaceManager.RpcLog("<color=#420028> --- Starting Combat --- </color>");
-        _boardManager.StartCombat();
+        
     }
 
     private void PlayerDeclaredAttackers(PlayerManager player)
@@ -84,7 +85,6 @@ public class CombatManager : NetworkBehaviour
         
         _boardManager.ShowOpponentAttackers();
         _readyPlayers.Clear();
-        _playerInterfaceManager.RpcLog("<color=#42000c> --- Attackers declared </color>");
         UpdateCombatState(CombatState.Blockers);
     }
 
@@ -102,7 +102,6 @@ public class CombatManager : NetworkBehaviour
         _readyPlayers.Add(player);
         if (_readyPlayers.Count != _gameManager.players.Count) return;
         
-        _playerInterfaceManager.RpcLog("<color=#420028> --- Blockers declared </color>");
         ShowAllBlockers();
         UpdateCombatState(CombatState.Damage);
     }
@@ -165,7 +164,7 @@ public class CombatManager : NetworkBehaviour
         // Skip if in single-player (for debugging)
         if (_gameManager.singlePlayer) {
             UpdateCombatState(CombatState.CleanUp);
-            yield return null;
+            yield break;
         }
 
         foreach (var attacker in _unblockedAttackers){
@@ -240,14 +239,14 @@ public class CombatManager : NetworkBehaviour
     }
     #endregion
 
-    private void ResolveCombat(){
+    public void ResolveCombat(bool forced){
         _readyPlayers.Clear();
         _attackersBlockers.Clear();
         _unblockedAttackers.Clear();
         _boardManager.CombatCleanUp();
         
         UpdateCombatState(CombatState.Idle);
-        _turnManager.CombatCleanUp();
+        if(!forced) _turnManager.CombatCleanUp();
     }
 
     private void OnDestroy(){

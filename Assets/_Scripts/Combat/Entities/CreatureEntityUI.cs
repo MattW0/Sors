@@ -39,7 +39,11 @@ public class CreatureEntityUI : MonoBehaviour
     }
 
     public void TapOpponentCreature() => _transform.DOLocalMove(_untappedPosition, TappingDuration);
-    public void UntapOpponentCreature() => _transform.DOLocalMove(_tappedPosition, TappingDuration);
+    public void UntapOpponentCreature(){
+        _transform.DOLocalMove(_tappedPosition, TappingDuration);
+        ShowAsAttacker(false);
+    }
+
     public void CombatHighlight(){
         highlight.color = combatColor;
         highlight.enabled = true;

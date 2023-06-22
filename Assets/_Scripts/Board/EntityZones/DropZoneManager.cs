@@ -114,11 +114,11 @@ public class DropZoneManager : NetworkBehaviour
         }
 
         if (isServer) _boardManager.AttackersDeclared(player, attackers);
-        else CmdReturnAttackersList(player, attackers);
+        else CmdAttackersDeclared(player, attackers);
     }
 
     [Command(requiresAuthority = false)]
-    private void CmdReturnAttackersList(PlayerManager player, List<CreatureEntity> attackers) => _boardManager.AttackersDeclared(player, attackers);
+    private void CmdAttackersDeclared(PlayerManager player, List<CreatureEntity> attackers) => _boardManager.AttackersDeclared(player, attackers);
     
     #endregion
 
@@ -183,6 +183,8 @@ public class DropZoneManager : NetworkBehaviour
     }
     #endregion
 
+    // TODO: Check if it makes sense to loose health after triggering or at the end of the turn
+    // How to handle developments without trigger ? 
     public void DevelopmentsLooseHealth(){
         var developments = entityZones.GetDevelopments(true);
         developments.AddRange(entityZones.GetDevelopments(false));

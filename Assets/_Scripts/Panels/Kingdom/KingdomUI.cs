@@ -47,7 +47,7 @@ public class KingdomUI : MonoBehaviour
         confirm.interactable = true;
     }
 
-    public void DeselectTile(CardInfo cardInfo){
+    public void DeselectTile(){
         previewCard.gameObject.SetActive(false);
         confirm.interactable = false;
     }

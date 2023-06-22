@@ -22,7 +22,7 @@ public class Kingdom : NetworkBehaviour
     [SerializeField] private GameObject moneyGrid;
     [SerializeField] private GameObject developmentsGrid;
     [SerializeField] private GameObject creaturesGrid;
-    public CardInfo selection;
+    private KingdomTile _selectedTile;
 
     public static event Action OnDevelopPhaseEnded;
     public static event Action OnRecruitPhaseEnded;
@@ -79,6 +79,17 @@ public class Kingdom : NetworkBehaviour
     }
 
     [TargetRpc]
+    public void TargetKingdomPriceReduction(NetworkConnection target, CardType type, int priceReduction){
+        if (type == CardType.Money){
+            foreach(var tile in moneyTiles) tile.SetBonus(priceReduction);
+        } else if (type == CardType.Development){
+            foreach(var tile in technologyTiles) tile.SetBonus(priceReduction);
+        } else if (_currentPhase == Phase.Recruit){
+            foreach(var tile in creatureTiles) tile.SetBonus(priceReduction);
+        }
+    }
+
+    [TargetRpc]
     public void TargetCheckPriceKingdomTile(NetworkConnection target, int playerCash){
         if (_currentPhase == Phase.Invent){
             foreach(var tile in moneyTiles) tile.Interactable = playerCash >= tile.Cost;
@@ -92,14 +103,14 @@ public class Kingdom : NetworkBehaviour
     }
     #endregion
     
-    public void PlayerSelectsTile(CardInfo cardInfo){
-        selection = cardInfo;
-        _ui.SelectTile(cardInfo);
+    public void PlayerSelectsTile(KingdomTile tile){
+        _selectedTile = tile;
+        _ui.SelectTile(tile.cardInfo);
     }
 
-    public void PlayerDeselectsTile(CardInfo cardInfo){
-        selection.title = null; // hack-around for check in TurnManager
-        _ui.DeselectTile(cardInfo);
+    public void PlayerDeselectsTile(){
+        _selectedTile = null;
+        _ui.DeselectTile();
     }
 
     #region Reset and EoP
@@ -109,14 +120,14 @@ public class Kingdom : NetworkBehaviour
         _ui.ResetInteractionButtons();
     }
 
-    [TargetRpc]
-    public void TargetResetRecruit(NetworkConnection target, int recruitsLeft){        
-        // _previouslyRecruited.Add(tile);
-        // foreach (var tile in _previouslySelected) tile.ShowAsRecruited();
+    // [TargetRpc]
+    // public void TargetResetRecruit(NetworkConnection target, int recruitsLeft){        
+    //     // _previouslyRecruited.Add(tile);
+    //     // foreach (var tile in _previouslySelected) tile.ShowAsRecruited();
 
-        if (recruitsLeft <= 0) return;
-        _ui.ResetInteractionButtons();
-    }
+    //     if (recruitsLeft <= 0) return;
+    //     _ui.ResetInteractionButtons();
+    // }
 
     [ClientRpc]
     public void RpcReplaceRecruitTile(string oldTitle, CardInfo newCardInfo){
@@ -129,7 +140,7 @@ public class Kingdom : NetworkBehaviour
     }
     
     [ClientRpc]
-    public void RpcEndKindomPhase(){
+    public void RpcEndKingdomPhase(){
         _ui.EndPhase();
         OnDevelopPhaseEnded?.Invoke();
     }
@@ -146,12 +157,25 @@ public class Kingdom : NetworkBehaviour
     {
         var player = PlayerManager.GetLocalPlayer();
         if(skip) {
+
+            if (_currentPhase == Phase.Invent){
+                player.Invents = 0;
+            } else if (_currentPhase == Phase.Recruit){
+                player.Recruits = 0;
+            }
+
             player.PlayerSkips();
             return;
         }
 
-        player.PlayerSelectsKingdomTile(selection);
-        selection.Destroy();
+        if (_currentPhase == Phase.Invent){
+            player.Invents--;
+        } else if (_currentPhase == Phase.Recruit){
+            player.Recruits--;
+        }
+        
+        player.PlayerSelectsKingdomTile(_selectedTile.cardInfo, _selectedTile.Cost);
+        _selectedTile = null;
     }
 
     public void MaxButton() => _ui.MaxButton();

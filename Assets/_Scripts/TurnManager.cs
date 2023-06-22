@@ -187,14 +187,12 @@ public class TurnManager : NetworkBehaviour
 
     private void NextPhase(){
 
-        _readyPlayers.Clear();
-
         if (phasesToPlay.Count == 0) {
             UpdateTurnState(TurnState.CleanUp);
-            OnPhaseChanged?.Invoke(TurnState.CleanUp);
             return;
         }
 
+        _readyPlayers.Clear();
         var nextPhase = phasesToPlay[0];
         phasesToPlay.RemoveAt(0);
         _cardEffectsHandler.CheckPhaseTriggers(nextPhase);
@@ -252,25 +250,20 @@ public class TurnManager : NetworkBehaviour
         _kingdom.RpcBeginPhase(phase);
 
         foreach (var player in _gameManager.players.Keys) {
-            int priceReduction = 0;
             if (player.chosenPhases.Contains(phase)){
-                priceReduction += _gameManager.inventPriceReduction;
-                _kingdom.TargetKingdomBonus(player.connectionToClient, priceReduction);
+                _kingdom.TargetKingdomBonus(player.connectionToClient, _gameManager.kingdomPriceReduction);
+                _kingdom.TargetCheckPriceKingdomTile(player.connectionToClient, player.Cash);
             }
         }
     }
 
-    public void PlayerSelectedKingdomTile(PlayerManager player, CardInfo card)
-    {
-        var cardCost = card.cost;
-        if (turnState == TurnState.Invent) {
-            player.Invents--;
-            if (player.chosenPhases.Contains(Phase.Invent)) cardCost -= _gameManager.inventPriceReduction;
-        } else if (turnState == TurnState.Recruit){
-            player.Recruits--;
-            if (player.chosenPhases.Contains(Phase.Recruit)) cardCost -= _gameManager.recruitPriceReduction;
-        }
-        
+    public void PlayerGetsKingdomBonus(PlayerManager player, CardType type, int amount) {
+        // Public because effectsHandler can call this
+        _kingdom.TargetKingdomPriceReduction(player.connectionToClient, type, amount);
+    }
+
+    public void PlayerSelectedKingdomTile(PlayerManager player, CardInfo card, int cardCost)
+    {        
         player.Cash -= cardCost;
 
         if (_selectedKingdomCards.ContainsKey(player))
@@ -295,7 +288,7 @@ public class TurnManager : NetworkBehaviour
                 if(cardInfo.type == CardType.Money) _gameManager.SpawnMoney(owner, cardInfo);
                 else if(cardInfo.type == CardType.Development) _gameManager.SpawnDevelopment(owner, cardInfo);
                 else if(cardInfo.type == CardType.Creature) _gameManager.SpawnCreature(owner, cardInfo);
-                _playerInterfaceManager.RpcLog("<color=#4f2d00>" + owner.PlayerName + " gains " + cardInfo.title + " to their deck.</color>");
+                _playerInterfaceManager.RpcLog("<color=#4f2d00>" + owner.PlayerName + " buys '" + cardInfo.title + "'</color>");
             }
         }
         
@@ -304,7 +297,7 @@ public class TurnManager : NetworkBehaviour
         }
         
         PlayersStatsResetAndDiscardMoney();
-        _kingdom.RpcEndKindomPhase();
+        _kingdom.RpcEndKingdomPhase();
 
         UpdateTurnState(TurnState.NextPhase);
     }
@@ -314,16 +307,17 @@ public class TurnManager : NetworkBehaviour
     #region PlayCardPhase (Develop, Deploy)
 
     private void PlayCard(bool first){
-        if (first) {
-            _handManager.RpcHighlightMoney(true);
-            _boardManager.ShowHolders(true);
-            SpawnDetailCards();
-        }
+        if (first) _boardManager.ShowHolders(true);
+
+        foreach(var cardsList in _selectedHandCards.Values) cardsList.Clear();
+
+        _handManager.RpcHighlightMoney(true);
+        SpawnDetailCards();
         _cardCollectionPanel.RpcBeginState(turnState);
     }
 
     private void SpawnDetailCards(){
-        CardType targetCardType = 0;
+        CardType targetCardType = CardType.None;
         if(turnState == TurnState.Develop) targetCardType = CardType.Development;
         else if(turnState == TurnState.Deploy) targetCardType = CardType.Creature;
 
@@ -360,7 +354,6 @@ public class TurnManager : NetworkBehaviour
                 var cardInfo = card.GetComponent<CardStats>().cardInfo;
                 _gameManager.SpawnFieldEntity(player, card, cardInfo.type);
             }
-            cards.Clear();
 
             if(turnState == TurnState.Develop) {
                 if(player.Develops > 0) anotherPlay = true;
@@ -369,11 +362,14 @@ public class TurnManager : NetworkBehaviour
             }
         }
 
-        if(anotherPlay) {
-            _cardCollectionPanel.RpcSoftResetPanel();
-            PlayCard(false);
-        }
+        if(anotherPlay) StartCoroutine(PlayCardsIntermission());
         else EndPlayCards();
+    }
+
+    private IEnumerator PlayCardsIntermission(){
+        yield return new WaitForSeconds(2*_cardEffectsHandler.effectWaitTime);
+        _cardCollectionPanel.RpcSoftResetPanel();
+        PlayCard(false);
     }
 
     private void EndPlayCards()
@@ -388,7 +384,9 @@ public class TurnManager : NetworkBehaviour
     #endregion
 
     private void Combat() => combatManager.UpdateCombatState(CombatState.Attackers);
-    public void CombatCleanUp() => UpdateTurnState(TurnState.NextPhase);
+    public void CombatCleanUp(){
+        UpdateTurnState(TurnState.NextPhase);
+    } 
 
     #region Prevail
     private void Prevail(){
@@ -449,6 +447,12 @@ public class TurnManager : NetworkBehaviour
 
     private void StartPrevailTrash(){
         turnState = TurnState.Trash;
+
+        foreach (var (player, cards) in _selectedHandCards){
+            player.trashSelection.Clear();
+            cards.Clear();
+        }
+
         foreach (var (player, options) in _playerPrevailOptions){
             var cardObjects = GameManager.CardInfosToGameObjects(player.hand);
             _cardCollectionPanel.TargetShowCardCollection(player.connectionToClient, 
@@ -476,8 +480,6 @@ public class TurnManager : NetworkBehaviour
                 player.RpcTrashCard(card);
                 tempList.Add(card);
             }
-            player.trashSelection.Clear();
-            cards.Clear();
         }
 
         foreach(var obj in tempList){
@@ -497,12 +499,27 @@ public class TurnManager : NetworkBehaviour
     }
     #endregion
 
+    public void ForceEndTurn(){
+        _handManager.RpcResetHighlight();
+        _cardCollectionPanel.RpcResetPanel();
+        _kingdom.RpcEndKingdomPhase();
+        _boardManager.ShowHolders(false);
+
+        combatManager.ResolveCombat(true);
+
+        _prevailPanel.RpcOptionsSelected();
+        _prevailPanel.RpcReset();
+
+        CleanUp();
+    }
+
     private void CleanUp(){
         if(GameEnds()) return;
 
+        OnPhaseChanged?.Invoke(TurnState.CleanUp);
+        _readyPlayers.Clear();
         _boardManager.DevelopmentsLooseHealth();
         PlayersStatsResetAndDiscardMoney(endOfTurn: true);       
-        _readyPlayers.Clear();
         UpdateTurnState(TurnState.PhaseSelection);
     }
 
