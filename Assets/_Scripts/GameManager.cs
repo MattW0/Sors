@@ -136,6 +136,8 @@ public class GameManager : NetworkBehaviour {
     }
     
     private void KingdomSetup(){
+        _kingdom.RpcSetPlayer();
+        
         // Developments: right now only money
         var moneyCards = new CardInfo[_nbMoneyTiles];
         for (var i = 0; i < _nbMoneyTiles; i++) moneyCards[i] = new CardInfo(moneyCardsDb[i]);

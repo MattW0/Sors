@@ -11,6 +11,7 @@ public class Kingdom : NetworkBehaviour
 {
     public static Kingdom Instance { get; private set; }
     [SerializeField] private GameManager _gameManager;
+    private PlayerManager _player;
     private Phase _currentPhase;
     // private List<RecruitTile> _previouslyRecruited = new ();
     // public List<RecruitTile> GetPreviouslySelectedRecruitTiles() => _previouslyRecruited;
@@ -42,6 +43,11 @@ public class Kingdom : NetworkBehaviour
     }
 
     #region Setup
+
+    [ClientRpc]
+    public void RpcSetPlayer(){
+        _player = PlayerManager.GetLocalPlayer();
+    }
     [ClientRpc]
     public void RpcSetMoneyTiles(CardInfo[] moneyTilesInfo){
         for (var i = 0; i < moneyTilesInfo.Length; i++) 
@@ -153,28 +159,13 @@ public class Kingdom : NetworkBehaviour
     }
     #endregion
 
-    public void PlayerPressedButton(bool skip)
-    {
-        var player = PlayerManager.GetLocalPlayer();
+    public void PlayerPressedButton(bool skip){
         if(skip) {
-
-            if (_currentPhase == Phase.Invent){
-                player.Invents = 0;
-            } else if (_currentPhase == Phase.Recruit){
-                player.Recruits = 0;
-            }
-
-            player.PlayerSkips();
+            _player.CmdSkipKingdomBuy();
             return;
         }
-
-        if (_currentPhase == Phase.Invent){
-            player.Invents--;
-        } else if (_currentPhase == Phase.Recruit){
-            player.Recruits--;
-        }
         
-        player.PlayerSelectsKingdomTile(_selectedTile.cardInfo, _selectedTile.Cost);
+        _player.CmdSelectKingdomTile(_selectedTile.cardInfo, _selectedTile.Cost);
         _selectedTile = null;
     }
 

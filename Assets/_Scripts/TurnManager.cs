@@ -262,8 +262,11 @@ public class TurnManager : NetworkBehaviour
         _kingdom.TargetKingdomPriceReduction(player.connectionToClient, type, amount);
     }
 
-    public void PlayerSelectedKingdomTile(PlayerManager player, CardInfo card, int cardCost)
-    {        
+    public void PlayerSelectedKingdomTile(PlayerManager player, CardInfo card, int cardCost){
+
+        if(turnState == TurnState.Invent) player.Invents--;
+        else if(turnState == TurnState.Recruit) player.Recruits--;
+
         player.Cash -= cardCost;
 
         if (_selectedKingdomCards.ContainsKey(player))
@@ -296,7 +299,7 @@ public class TurnManager : NetworkBehaviour
             player.RpcResolveCardSpawn(_gameManager.cardSpawnAnimations);
         }
         
-        PlayersStatsResetAndDiscardMoney();
+        PlayersStatsResetAndDiscardMoney(false);
         _kingdom.RpcEndKingdomPhase();
 
         UpdateTurnState(TurnState.NextPhase);
@@ -376,7 +379,7 @@ public class TurnManager : NetworkBehaviour
     {
         _cardCollectionPanel.RpcResetPanel();
         _boardManager.ShowHolders(false);
-        PlayersStatsResetAndDiscardMoney();
+        PlayersStatsResetAndDiscardMoney(false);
         
         UpdateTurnState(TurnState.NextPhase);
     }
@@ -554,6 +557,8 @@ public class TurnManager : NetworkBehaviour
                 break;
             case TurnState.Invent or TurnState.Recruit:
                 KingdomSpawnAndReset();
+                if(turnState == TurnState.Invent) player.Invents = 0;
+                else if(turnState == TurnState.Recruit) player.Recruits = 0;
                 break;
             case TurnState.Develop or TurnState.Deploy:
                 PlayEntities();
@@ -595,7 +600,7 @@ public class TurnManager : NetworkBehaviour
         {
             player.DiscardMoneyCards();
             player.moneyCards.Clear();
-            player.Cash = _gameManager.turnCash;
+            player.Cash = 0;
 
             if (!endOfTurn) continue;
             player.Develops = _gameManager.turnDevelops;

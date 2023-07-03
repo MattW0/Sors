@@ -309,15 +309,13 @@ public class PlayerManager : NetworkBehaviour
         }
     }
 
-    public void PlayerSelectsKingdomTile(CardInfo card, int cost){
-        if(isServer) _turnManager.PlayerSelectedKingdomTile(this, card, cost);
-        else CmdKingdomSelection(card, cost);
-    }
-
     [Command]
-    public void CmdKingdomSelection(CardInfo card, int cost){
+    public void CmdSelectKingdomTile(CardInfo card, int cost){
         _turnManager.PlayerSelectedKingdomTile(this, card, cost);
     }
+    
+    [Command]
+    public void CmdSkipKingdomBuy() => _turnManager.PlayerIsReady(this);
 
     [Command]
     public void CmdPlayCard(GameObject card){
@@ -510,20 +508,6 @@ public class PlayerManager : NetworkBehaviour
     {
         var networkIdentity = NetworkClient.connection.identity;
         return networkIdentity.GetComponent<PlayerManager>();
-    }
-
-    public void PlayerSkips() {
-        // For Kingdom skip button in Develop, Recruit and Deploy
-        if (isServer) PlayerSkips(this);
-        else CmdPlayerSkips(this);
-    }
-    
-    [Command]
-    private void CmdPlayerSkips(PlayerManager player) => PlayerSkips(player);
-
-    [Server]
-    private void PlayerSkips(PlayerManager player) {
-        _turnManager.PlayerIsReady(player);
     }
 
     private void RemoveHandCard(CardInfo cardInfo){
