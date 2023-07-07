@@ -41,6 +41,13 @@ public class KingdomUI : MonoBehaviour
     }
 
     #region Selection
+
+    public void PreviewCard(CardInfo cardInfo){
+        // Spawn an overlay canvas at mouse location
+        print("Spawned preview card");
+
+    }
+
     public void SelectTile(CardInfo cardInfo){ 
         previewCard.SetCardUI(cardInfo);
         previewCard.gameObject.SetActive(true);

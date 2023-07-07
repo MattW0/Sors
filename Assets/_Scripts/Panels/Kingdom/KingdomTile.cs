@@ -1,10 +1,9 @@
-using System.Globalization;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using System.Collections;
 
 [System.Serializable]
-public class KingdomTile : MonoBehaviour
+public class KingdomTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
     private Kingdom _kingdom;
     public CardInfo cardInfo;
@@ -22,6 +21,7 @@ public class KingdomTile : MonoBehaviour
     public bool Interactable {
         get => _isInteractable;
         set {
+            if(_alreadyChosen) return;
             _isInteractable = value;
             _ui.Highlight(value, Color.green);
         }
@@ -35,13 +35,13 @@ public class KingdomTile : MonoBehaviour
                 _kingdom.PlayerSelectsTile(this);
                 _ui.Highlight(true, Color.blue);
             } else {
-                _kingdom.PlayerDeselectsTile();
                 _ui.Highlight(true, Color.green);
             }
         }
     }
 
-    private bool _alreadyRecruited;
+    private bool _alreadyChosen;
+    private bool _hovering;
 
     private void Awake(){
         _kingdom = Kingdom.Instance;
@@ -64,27 +64,50 @@ public class KingdomTile : MonoBehaviour
         else Cost -= priceReduction;
     }
 
-    public void OnTileClick(){
+    public void OnPointerEnter(PointerEventData eventData){
+        StopAllCoroutines();
+        StartCoroutine(HoverPreviewWaitTimer());
+    }
+
+    private IEnumerator HoverPreviewWaitTimer(){
+        yield return new WaitForSeconds(0.5f);
+        KingdomHoverPreview.OnHoverTile(cardInfo);
+    }
+
+    public void OnPointerExit(PointerEventData eventData){
+        StopAllCoroutines();
+        KingdomHoverPreview.OnHoverExit();
+    }
+
+    public void OnPointerClick(PointerEventData eventData){
         if (!_isInteractable) return;
+
+        // Reset highlight and preview in kingdom if 2nd click on selected tile
+        if(_isSelected) _kingdom.PlayerDeselectsTile();
         IsSelected = !_isSelected;
     }
 
-    public void ShowAsRecruited(){
+    public void ResetSelected(){
+        if(!IsSelected) return;
+        IsSelected = false;
+    }
+
+    public void HasBeenChosen(){
+        IsSelected = false;
+        Interactable = false;
+
+        _alreadyChosen = true;
         _ui.Highlight(true, Color.yellow);
-        _alreadyRecruited = true;
     }
     
     private void EndDevelopPhase() => ResetTile();
-
-    private void EndRecruitPhase(){
-        _alreadyRecruited = false;
-        ResetTile();
-    }
-
+    private void EndRecruitPhase() => ResetTile();
     private void ResetTile(){
         Interactable = false;
         _isSelected = false;
-        // Reset cost (after bonus)
+        _alreadyChosen = false;
+
+        // Reset cost (undo bonus)
         Cost = cardInfo.cost;
     }
 

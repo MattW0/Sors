@@ -13,8 +13,6 @@ public class Kingdom : NetworkBehaviour
     [SerializeField] private GameManager _gameManager;
     private PlayerManager _player;
     private Phase _currentPhase;
-    // private List<RecruitTile> _previouslyRecruited = new ();
-    // public List<RecruitTile> GetPreviouslySelectedRecruitTiles() => _previouslyRecruited;
 
     [SerializeField] private KingdomUI _ui;
     [SerializeField] private KingdomTile[] moneyTiles;
@@ -28,13 +26,11 @@ public class Kingdom : NetworkBehaviour
     public static event Action OnDevelopPhaseEnded;
     public static event Action OnRecruitPhaseEnded;
 
-    private void Awake()
-    {
+    private void Awake(){
         if (Instance == null) Instance = this;
     }
 
-    private void Start()
-    {
+    private void Start(){
         moneyTiles = moneyGrid.GetComponentsInChildren<KingdomTile>();
         technologyTiles = developmentsGrid.GetComponentsInChildren<KingdomTile>();
         creatureTiles = creaturesGrid.GetComponentsInChildren<KingdomTile>();
@@ -101,17 +97,23 @@ public class Kingdom : NetworkBehaviour
             foreach(var tile in moneyTiles) tile.Interactable = playerCash >= tile.Cost;
             foreach (var tile in technologyTiles) tile.Interactable = playerCash >= tile.Cost;
         } else if (_currentPhase == Phase.Recruit){
-            foreach (var tile in creatureTiles){
-                // if (_previouslyRecruited.Contains(tile)) continue;
-                tile.Interactable = playerCash >= tile.Cost;
-            }
+            foreach (var tile in creatureTiles) tile.Interactable = playerCash >= tile.Cost;
         }
     }
     #endregion
     
+    public void PreviewCard(CardInfo cardInfo) => _ui.PreviewCard(cardInfo);
     public void PlayerSelectsTile(KingdomTile tile){
         _selectedTile = tile;
         _ui.SelectTile(tile.cardInfo);
+
+        // Reset all other tiles -> single selection
+        if (_currentPhase == Phase.Invent){
+            foreach (var t in moneyTiles) if (t != tile) t.ResetSelected();
+            foreach (var t in technologyTiles) if (t != tile) t.ResetSelected();
+        } else if (_currentPhase == Phase.Recruit){
+            foreach (var t in creatureTiles) if (t != tile) t.ResetSelected();
+        }        
     }
 
     public void PlayerDeselectsTile(){
@@ -121,19 +123,13 @@ public class Kingdom : NetworkBehaviour
 
     #region Reset and EoP
     [TargetRpc]
-    public void TargetResetKingdom(NetworkConnection target, int actionsLeft){        
+    public void TargetResetKingdom(NetworkConnection target, int actionsLeft){
         if (actionsLeft <= 0) return;
+
+        _selectedTile.HasBeenChosen();
+        PlayerDeselectsTile();
         _ui.ResetInteractionButtons();
     }
-
-    // [TargetRpc]
-    // public void TargetResetRecruit(NetworkConnection target, int recruitsLeft){        
-    //     // _previouslyRecruited.Add(tile);
-    //     // foreach (var tile in _previouslySelected) tile.ShowAsRecruited();
-
-    //     if (recruitsLeft <= 0) return;
-    //     _ui.ResetInteractionButtons();
-    // }
 
     [ClientRpc]
     public void RpcReplaceRecruitTile(string oldTitle, CardInfo newCardInfo){
@@ -153,7 +149,6 @@ public class Kingdom : NetworkBehaviour
 
     [ClientRpc]
     public void RpcEndRecruit(){
-        // _previouslySelected.Clear();
         _ui.EndPhase();
         OnRecruitPhaseEnded?.Invoke();
     }
@@ -165,8 +160,8 @@ public class Kingdom : NetworkBehaviour
             return;
         }
         
-        _player.CmdSelectKingdomTile(_selectedTile.cardInfo, _selectedTile.Cost);
-        _selectedTile = null;
+        if(_selectedTile) _player.CmdSelectKingdomTile(_selectedTile.cardInfo, _selectedTile.Cost);
+        else print("ERROR: No tile selected");
     }
 
     public void MaxButton() => _ui.MaxButton();
