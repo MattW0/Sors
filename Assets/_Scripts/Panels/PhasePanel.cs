@@ -17,7 +17,7 @@ public class PhasePanel : NetworkBehaviour
     public static event Action OnPhaseSelectionConfirmed;
 
     [Header("UI Elements")]
-    [SerializeField] private GameObject confirm;
+    [SerializeField] private Button confirm;
     [SerializeField] private TMP_Text turnText;
     [SerializeField] private TMP_Text actionDescriptionText;
 
@@ -62,7 +62,7 @@ public class PhasePanel : NetworkBehaviour
             _selectedPhases.Add(phase);
         }
         
-        confirm.SetActive(_selectedPhases.Count == _nbPhasesToChose);
+        confirm.interactable = _selectedPhases.Count == _nbPhasesToChose;
     }
     #endregion
 
@@ -98,7 +98,7 @@ public class PhasePanel : NetworkBehaviour
 
     public void ConfirmButtonPressed(){
         actionDescriptionText.text = "Wait for opponent...";
-        confirm.SetActive(false);
+        confirm.interactable = false;
 
         var player = PlayerManager.GetLocalPlayer();
         player.CmdPhaseSelection(_selectedPhases);

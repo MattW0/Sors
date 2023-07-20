@@ -140,6 +140,10 @@ public class CardCollectionPanelUI : MonoBehaviour
     }
 
     public void OnCloseButtonPressed() => Close();
+    public void ToggleView() {
+        if(_container.activeSelf) Close();
+        else Open();
+    }
     public void Open() => _container.SetActive(true);
     public void Close() => _container.SetActive(false);
 }

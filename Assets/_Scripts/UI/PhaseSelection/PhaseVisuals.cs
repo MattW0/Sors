@@ -10,14 +10,20 @@ public class PhaseVisuals : MonoBehaviour
     public static PhaseVisuals Instance { get; private set; }
     private PlayerInterfaceManager _playerInterfaceManager;
 
+    [Header("Player Settings")]
     private int _nbPlayers;
-    [SerializeField] private List<Image> extendedHighlights;
-    [SerializeField] private List<Image> phaseHighlights;
-    [SerializeField] private List<Image> playerChoiceHighlights;
-    [SerializeField] private float playerChoiceInactiveAlpha = 0.3f;
     [SerializeField] private Color playerColor1;
     [SerializeField] private Color playerColor2;
+    [SerializeField] private float playerChoiceInactiveAlpha = 0.3f;
     [SerializeField] private float fadeDuration = 1f;
+
+    [Header("Progress Bar")]
+    [SerializeField] private Transform progressBar;
+    private float[] progressBarCheckpoints = {0.02f, 0.11f, 0.24f, 0.36f, 0.45f, 0.55f, 0.64f, 0.76f, 0.89f};
+
+    [Header("Phase Highlights")]
+    [SerializeField] private List<Image> phaseHighlights;
+    [SerializeField] private List<Image> playerChoiceHighlights;
     private Image _oldHighlight;
     private Image _newHighlight;
 
@@ -76,7 +82,13 @@ public class PhaseVisuals : MonoBehaviour
             case -2: // In CleanUp or PhaseSelection
                 ClearPlayerChoiceHighlights();
                 return;
+            default:
+                progressBar.localScale = new Vector3(progressBarCheckpoints[newHighlightIndex+1], 1f, 1f);
+                break;
         }
+
+
+
         _newHighlight = phaseHighlights[newHighlightIndex];
         HighlightTransition(_oldHighlight, _newHighlight);
         _oldHighlight = _newHighlight;
@@ -86,6 +98,8 @@ public class PhaseVisuals : MonoBehaviour
         foreach(var img in playerChoiceHighlights){
             if (img) img.enabled = false;
         }
+
+        progressBar.localScale = new Vector3(progressBarCheckpoints[0], 1f, 1f);
     }
     
     private void HighlightTransition(Graphic oldImg, Graphic newImg, bool phaseSelection=false)

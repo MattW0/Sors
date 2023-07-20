@@ -125,4 +125,6 @@ public class CardCollectionPanel : NetworkBehaviour
         _selectedCards.Clear();
         _cache.Clear();
     }
+
+    public void ToggleView() => _ui.ToggleView();
 }

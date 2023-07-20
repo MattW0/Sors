@@ -12,6 +12,9 @@ public class PlayerInterfaceButtons : MonoBehaviour
     private CardCollectionPanel _cardCollectionPanel;
     [SerializeField] private Button _undoButton;
     [SerializeField] private Button _utilityButton;
+    [SerializeField] private Button _handButton;
+    [SerializeField] private Button _kingdomButton;
+
     private bool _isOpen = false;
 
     private void Awake()
@@ -25,18 +28,17 @@ public class PlayerInterfaceButtons : MonoBehaviour
 
         _player = PlayerManager.GetLocalPlayer();
         if(!_player.isServer) _utilityButton.interactable = false;
+
+        // Add event listeners to the buttons
+        _handButton.onClick.AddListener(OnHandButtonPressed);
+        _kingdomButton.onClick.AddListener(OnKingdomButtonPressed);
+        _utilityButton.onClick.AddListener(OnUtilityButtonPressed);
+        _undoButton.onClick.AddListener(OnUndoButtonPressed);
     }
 
-    // public void OnHandButtonPressed(){
-    //     if(_isOpen) {
-    //         _isOpen = false;
-    //         _cardCollectionPanel.ClearPanel();
-    //         return;
-    //     }
-
-    //     _isOpen = true;
-    //     _player.PlayerClickedCollectionViewButton();
-    // }
+    public void OnHandButtonPressed(){
+        _cardCollectionPanel.ToggleView();
+    }
 
     public void OnKingdomButtonPressed(){
         _kingdom.MaxButton();
