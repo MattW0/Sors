@@ -32,7 +32,8 @@ public class BoardManager : NetworkBehaviour
     }
 
     public void AddEntity(PlayerManager owner, PlayerManager opponent, GameObject card, BattleZoneEntity entity) {
-
+        
+        print("Adding entity, owner: " + owner.name + ", opponent: " + opponent.name + ", card: " + card.name + ", entity: " + entity.name);
         var cardInfo = card.GetComponent<CardStats>().cardInfo;
         // To keep track which card object corresponds to which entity
         _entitiesObjectsCache.Add(entity, card);

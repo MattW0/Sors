@@ -353,6 +353,7 @@ public class TurnManager : NetworkBehaviour
     private void PlayEntities(){
         var anotherPlay = false;
         foreach(var (player, cards) in _selectedHandCards) {
+            print("Player " + player.PlayerName + " plays " + cards.Count + " cards");
             foreach(var card in cards) {
                 var cardInfo = card.GetComponent<CardStats>().cardInfo;
                 _gameManager.SpawnFieldEntity(player, card, cardInfo.type);
@@ -593,13 +594,15 @@ public class TurnManager : NetworkBehaviour
     
     private void PlayersStatsResetAndDiscardMoney(bool endOfTurn = false)
     {
-        _boardManager.DiscardMoney();
+        _playerInterfaceManager.RpcLog($"<color=#000000> ------------ Discarding money ------------</color>");
+        // _boardManager.DiscardMoney();
         _handManager.RpcHighlightMoney(false);
+        // RpcDiscardMoneyCards();
 
         foreach (var player in _gameManager.players.Keys)
         {
-            player.DiscardMoneyCards();
-            player.moneyCards.Clear();
+            // player.RpcDiscardMoneyCards();
+            player.RemoveMoneyFromHand();
             player.Cash = 0;
 
             if (!endOfTurn) continue;

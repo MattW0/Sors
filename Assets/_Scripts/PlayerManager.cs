@@ -224,7 +224,7 @@ public class PlayerManager : NetworkBehaviour
         Cash += cardInfo.moneyValue;
         moneyCards.Add(card, cardInfo);
 
-        TargetMoveMoneyCard(connectionToClient, card, false);
+        TargetMoveMoneyCard(connectionToClient, card, false, false);
     }
 
     [Command]
@@ -236,14 +236,20 @@ public class PlayerManager : NetworkBehaviour
 
         foreach(var (card, info) in moneyCards){
             Cash -= info.moneyValue;
-            TargetMoveMoneyCard(connectionToClient, card, true);
+            TargetMoveMoneyCard(connectionToClient, card, false, true);
         }
         moneyCards.Clear();
         _handManager.TargetHighlightMoney(connectionToClient);
     }
 
     [TargetRpc]
-    private void TargetMoveMoneyCard(NetworkConnection conn, GameObject card, bool undo){
+    private void TargetMoveMoneyCard(NetworkConnection conn, GameObject card, bool discard, bool undo){
+        if (discard) {
+            if(conn == connectionToServer) _cardMover.MoveTo(card, isOwned, CardLocation.MoneyZone, CardLocation.Discard);
+            else _cardMover.MoveTo(card, isOwned, CardLocation.Hand, CardLocation.Discard);
+            return;
+        }
+        
         if (undo) {
             _cardMover.MoveTo(card, isOwned, CardLocation.MoneyZone, CardLocation.Hand);
             _handManager.UpdateHandsCardList(card, true);
@@ -254,25 +260,31 @@ public class PlayerManager : NetworkBehaviour
     }
 
 
+    // [ClientRpc]
+    // public void RpcDiscardMoneyCards(){
+    //     // Only need opponent list info
+    //     print("Discarding money cards");
+
+    //     // if(isOwned) return;
+    //     _cardMover.DiscardMoney(moneyCards.Keys.ToList(), isOwned);
+    // }
+
     [Server]
-    public void DiscardMoneyCards(){
+    public void RemoveMoneyFromHand(){
+        print("Player " + playerName + " has " + moneyCards.Count + " money cards");
         if (moneyCards.Count == 0) return;
         
-        RpcDiscardMoneyCards(new List<GameObject>(moneyCards.Keys));
-        foreach (var cardInfo in moneyCards.Values) {
+        // DiscardMoneyCards(new List<GameObject>(moneyCards.Keys));
+        foreach (var card in moneyCards.Keys) {
+            var cardInfo = moneyCards[card];
             RemoveHandCard(cardInfo); // TODO: Check if this can be done on clients
             discard.Add(cardInfo);
+            TargetMoveMoneyCard(connectionToClient, card, true, true);
         }
         
         moneyCards.Clear();
     }
 
-    [ClientRpc]
-    private void RpcDiscardMoneyCards(List<GameObject> cards){
-        // Only need opponent list info 
-        if(isOwned) return;
-        _cardMover.DiscardMoney(cards, isOwned);
-    }
 
     [ClientRpc]
     public void RpcTrashCard(GameObject card){

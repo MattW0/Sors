@@ -27,29 +27,37 @@ public class EntityZones : NetworkBehaviour
         FindEntityHolders();
     }
 
-    public List<DevelopmentEntity> GetDevelopments(bool isHost){
-        if(isHost) return _hostDevelopments;
-        else return _clientDevelopments;
+    public List<DevelopmentEntity> GetDevelopments(){
+        var developments = new List<DevelopmentEntity>();
+        developments.AddRange(_hostDevelopments);
+        developments.AddRange(_clientDevelopments);
+
+        return developments;
     }
 
+    [Server]
     public void AddDevelopment(DevelopmentEntity development, bool isHost){
+        print("Adding development: " + development.name + ", isHost: " + isHost);
         if(isHost) _hostDevelopments.Add(development);
         else _clientDevelopments.Add(development);
 
-        // MoveEntityToHolder(development.gameObject.GetComponent<BattleZoneEntity>());
+        print("Development counts: host - " + _hostDevelopments.Count + ", client - " + _clientDevelopments.Count);
         ResetHolders();
     }
 
+    [Server]
     public void RemoveDevelopment(DevelopmentEntity development, bool isHost){
         if(isHost) _hostDevelopments.Remove(development);
         else _clientDevelopments.Remove(development);
     }
 
+    [Server]
     public List<CreatureEntity> GetCreatures(bool isHost){
         if(isHost) return _hostCreatures;
         else return _clientCreatures;
     }
 
+    [Server]
     public void AddCreature(CreatureEntity creature, bool isHost){
         if(isHost) _hostCreatures.Add(creature);
         else _clientCreatures.Add(creature);

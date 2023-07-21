@@ -28,6 +28,7 @@ public class DropZoneManager : NetworkBehaviour
     [Server]
     public void EntityEntersDropZone(PlayerManager owner, BattleZoneEntity entity)
     {
+        print("Entering dropzone, owner: " + owner.name + ", card: " + entity.name);
         if(entity.cardType == CardType.Development) {
             var development = entity.GetComponent<DevelopmentEntity>();
             entityZones.AddDevelopment(development, owner.isLocalPlayer);
@@ -185,9 +186,9 @@ public class DropZoneManager : NetworkBehaviour
 
     // TODO: Check if it makes sense to loose health after triggering or at the end of the turn
     // How to handle developments without trigger ? 
+    [Server]
     public void DevelopmentsLooseHealth(){
-        var developments = entityZones.GetDevelopments(true);
-        developments.AddRange(entityZones.GetDevelopments(false));
+        var developments = entityZones.GetDevelopments();
 
         foreach(var development in developments){
             var entity = development.gameObject.GetComponent<BattleZoneEntity>();
