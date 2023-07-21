@@ -14,8 +14,6 @@ public class DropZoneManager : NetworkBehaviour
     [SerializeField] private EntityZones entityZones;
     [SerializeField] private MoneyZone playerMoneyZone;
     [SerializeField] private MoneyZone opponentMoneyZone;
-    public static event Action OnStartAttacking;
-    public static event Action OnStartBlocking;
     public static event Action OnCombatEnded;
 
     private void Awake(){
@@ -28,7 +26,7 @@ public class DropZoneManager : NetworkBehaviour
     [Server]
     public void EntityEntersDropZone(PlayerManager owner, BattleZoneEntity entity)
     {
-        print("Entering dropzone, owner: " + owner.name + ", card: " + entity.name);
+        // print("Entering dropzone, owner: " + owner.name + ", card: " + entity.name);
         if(entity.cardType == CardType.Development) {
             var development = entity.GetComponent<DevelopmentEntity>();
             entityZones.AddDevelopment(development, owner.isLocalPlayer);
@@ -38,7 +36,6 @@ public class DropZoneManager : NetworkBehaviour
         }
 
         entityZones.RpcMoveEntityToHolder(entity);
-        // entity.OnDeath += EntityLeavesPlayZone;
     }
 
     [Server]
@@ -51,8 +48,6 @@ public class DropZoneManager : NetworkBehaviour
             var creature = entity.GetComponent<CreatureEntity>();
             entityZones.RemoveCreature(creature, entity.Owner.isLocalPlayer);
         }
-
-        // entity.OnDeath -= EntityLeavesPlayZone;
     }
 
     #endregion
@@ -79,7 +74,6 @@ public class DropZoneManager : NetworkBehaviour
             return;
         }
         // Else we enable entities to be tapped and wait for player to declare attackers and press ready btn
-        OnStartAttacking?.Invoke();
         foreach (var creature in creatures) {
             creature.CheckIfCanAct(CombatState.Attackers);
         }
@@ -93,8 +87,9 @@ public class DropZoneManager : NetworkBehaviour
     [Server]
     private void PlayerFinishedChoosingAttackers(PlayerManager player, bool skip = false)
     {
+        _boardManager.DisableReadyButton(player);
+        
         if (skip) {
-            _boardManager.DisableReadyButton(player);
             _boardManager.AttackersDeclared(player, new List<CreatureEntity>());
             return;
         }
@@ -133,7 +128,9 @@ public class DropZoneManager : NetworkBehaviour
             // Inverting isLocalPlayer because we want opponent creatures
             var opponentCreatures = entityZones.GetCreatures(!player.isLocalPlayer);
             var isAttacked = opponentCreatures.Exists(entity => entity.IsAttacking);
-            TargetDeclareBlockers(player.connectionToClient, opponentCreatures, isAttacked);
+
+            var playerCreatures = entityZones.GetCreatures(player.isLocalPlayer);
+            TargetDeclareBlockers(player.connectionToClient, playerCreatures, isAttacked);
         }
     }
 
@@ -153,7 +150,6 @@ public class DropZoneManager : NetworkBehaviour
         }
 
         // Else we enable entities to be tapped and wait for player to declare attackers and press ready btn
-        OnStartBlocking?.Invoke();
         foreach (var creature in creatures) {
             creature.CheckIfCanAct(CombatState.Blockers);
         }
@@ -188,7 +184,7 @@ public class DropZoneManager : NetworkBehaviour
     // How to handle developments without trigger ? 
     [Server]
     public void DevelopmentsLooseHealth(){
-        var developments = entityZones.GetDevelopments();
+        var developments = entityZones.GetAllDevelopments();
 
         foreach(var development in developments){
             var entity = development.gameObject.GetComponent<BattleZoneEntity>();

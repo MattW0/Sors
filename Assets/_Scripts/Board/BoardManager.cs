@@ -33,7 +33,7 @@ public class BoardManager : NetworkBehaviour
 
     public void AddEntity(PlayerManager owner, PlayerManager opponent, GameObject card, BattleZoneEntity entity) {
         
-        print("Adding entity, owner: " + owner.name + ", opponent: " + opponent.name + ", card: " + card.name + ", entity: " + entity.name);
+        // print("Adding entity, owner: " + owner.name + ", opponent: " + opponent.name + ", card: " + card.name + ", entity: " + entity.name);
         var cardInfo = card.GetComponent<CardStats>().cardInfo;
         // To keep track which card object corresponds to which entity
         _entitiesObjectsCache.Add(entity, card);
@@ -61,11 +61,7 @@ public class BoardManager : NetworkBehaviour
     private void DeclareAttackers() => _dropZone.StartDeclareAttackers(_gameManager.players.Keys.ToList());
 
     public void AttackersDeclared(PlayerManager player, List<CreatureEntity> playerAttackers) {
-        // Is 0 for auto-skip or no attackers declared
-        if (playerAttackers.Count > 0) {
-            foreach (var a in playerAttackers) _boardAttackers.Add(a);
-        }
-
+        foreach (var a in playerAttackers) _boardAttackers.Add(a);
         OnAttackersDeclared?.Invoke(player);
     }
 

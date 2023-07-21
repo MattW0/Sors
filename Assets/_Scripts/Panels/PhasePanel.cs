@@ -38,10 +38,6 @@ public class PhasePanel : NetworkBehaviour
     public void RpcPreparePhasePanel(int nbPhasesToChose, bool animations){
         _nbPhasesToChose = nbPhasesToChose;
         _animate = animations;
-
-        DropZoneManager.OnStartAttacking += BeginCombatAttack;
-        DropZoneManager.OnStartBlocking += BeginCombatBlock;
-        // BoardManager.OnBlockersDeclared += TargetEndCombatBlockers;
     }
 
 
@@ -76,11 +72,11 @@ public class PhasePanel : NetworkBehaviour
     
     private void BeginCombatAttack(){
         actionDescriptionText.text = "Select attackers";
-        attack.StartSelection();
+        attack.StartCombatPhase();
     }
     private void BeginCombatBlock(){
         actionDescriptionText.text = "Select blockers";
-        block.StartSelection();
+        block.StartCombatPhase();
     }
 
     [TargetRpc]
@@ -126,7 +122,8 @@ public class PhasePanel : NetworkBehaviour
 
     private IEnumerator WaitAndFade() {
 
-        overlayImage.enabled = true;
+        overlayImage.gameObject.SetActive(true);
+        // overlayImage.enabled = true;
         
         // Wait and fade
         yield return new WaitForSeconds(overlayScreenWaitTime);
@@ -136,12 +133,12 @@ public class PhasePanel : NetworkBehaviour
         // Wait and disable
         yield return new WaitForSeconds(overlayScreenFadeTime);
 
-        overlayImage.enabled = false;
+        // overlayImage.enabled = false;
+        overlayImage.gameObject.SetActive(false);
         overlayImage.CrossFadeAlpha(1f, 0f, false);
     }
 
     private void OnDestroy() {
-        DropZoneManager.OnStartAttacking -= BeginCombatAttack;
-        DropZoneManager.OnStartBlocking -= BeginCombatBlock;
+        
     }
 }

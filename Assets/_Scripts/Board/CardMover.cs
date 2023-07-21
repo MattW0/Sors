@@ -30,7 +30,6 @@ public class CardMover : MonoBehaviour
 
     public void MoveTo(GameObject card, bool hasAuthority, CardLocation from, CardLocation to)
     {
-        print("Moving card from: " + from + ", to: " + to + ", hasAuthority: " + hasAuthority);
         var sourcePile = GetPile(from, hasAuthority);
         if(sourcePile) sourcePile.Remove(card); // pile is null if card just spawned
 

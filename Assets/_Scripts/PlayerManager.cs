@@ -224,62 +224,44 @@ public class PlayerManager : NetworkBehaviour
         Cash += cardInfo.moneyValue;
         moneyCards.Add(card, cardInfo);
 
-        TargetMoveMoneyCard(connectionToClient, card, false, false);
+        // TargetMoveMoneyCard(connectionToClient, card, false, false);
+        RemoveHandCard(cardInfo);
+        RpcPlayMoney(card);
     }
 
     [Command]
     public void CmdUndoPlayMoney(){
         if (moneyCards.Count == 0) return;
         
-        var totalMoneyPlayed = moneyCards.Sum(card => card.Value.moneyValue);
-        if(totalMoneyPlayed > Cash) return; // Don't allow undo if player already spent money
-
+        // Don't allow undo already spent money
+        var totalMoneyBack = 0;
+        var cardsToUndo = new Dictionary<GameObject, CardInfo>();
         foreach(var (card, info) in moneyCards){
-            Cash -= info.moneyValue;
-            TargetMoveMoneyCard(connectionToClient, card, false, true);
+            if (totalMoneyBack + info.moneyValue > Cash) continue;
+            
+            totalMoneyBack += info.moneyValue;
+            cardsToUndo.Add(card, info);
         }
-        moneyCards.Clear();
+
+        // Return to hand
+        foreach(var (card, info) in cardsToUndo){
+            moneyCards.Remove(card);
+            Cash -= info.moneyValue;
+            hand.Add(info);
+            RpcUndoPlayMoney(card);
+        }
+
         _handManager.TargetHighlightMoney(connectionToClient);
     }
 
-    [TargetRpc]
-    private void TargetMoveMoneyCard(NetworkConnection conn, GameObject card, bool discard, bool undo){
-        if (discard) {
-            if(conn == connectionToServer) _cardMover.MoveTo(card, isOwned, CardLocation.MoneyZone, CardLocation.Discard);
-            else _cardMover.MoveTo(card, isOwned, CardLocation.Hand, CardLocation.Discard);
-            return;
-        }
-        
-        if (undo) {
-            _cardMover.MoveTo(card, isOwned, CardLocation.MoneyZone, CardLocation.Hand);
-            _handManager.UpdateHandsCardList(card, true);
-        } else {
-            _cardMover.MoveTo(card, isOwned, CardLocation.Hand, CardLocation.MoneyZone);
-            _handManager.UpdateHandsCardList(card, false);
-        }
-    }
-
-
-    // [ClientRpc]
-    // public void RpcDiscardMoneyCards(){
-    //     // Only need opponent list info
-    //     print("Discarding money cards");
-
-    //     // if(isOwned) return;
-    //     _cardMover.DiscardMoney(moneyCards.Keys.ToList(), isOwned);
-    // }
-
     [Server]
-    public void RemoveMoneyFromHand(){
-        print("Player " + playerName + " has " + moneyCards.Count + " money cards");
+    public void DiscardMoneyCards(){
         if (moneyCards.Count == 0) return;
         
-        // DiscardMoneyCards(new List<GameObject>(moneyCards.Keys));
         foreach (var card in moneyCards.Keys) {
             var cardInfo = moneyCards[card];
-            RemoveHandCard(cardInfo); // TODO: Check if this can be done on clients
+            RpcDiscardMoneyCard(card);
             discard.Add(cardInfo);
-            TargetMoveMoneyCard(connectionToClient, card, true, true);
         }
         
         moneyCards.Clear();
@@ -522,6 +504,24 @@ public class PlayerManager : NetworkBehaviour
         return networkIdentity.GetComponent<PlayerManager>();
     }
 
+    [ClientRpc]
+    private void RpcPlayMoney(GameObject card){
+        _cardMover.MoveTo(card, isOwned, CardLocation.Hand, CardLocation.MoneyZone);
+        if (isOwned) _handManager.UpdateHandsCardList(card, false);
+    }
+
+    [ClientRpc]
+    private void RpcUndoPlayMoney(GameObject card){
+        _cardMover.MoveTo(card, isOwned, CardLocation.MoneyZone, CardLocation.Hand);
+        if (isOwned) _handManager.UpdateHandsCardList(card, true);
+    }
+
+    [ClientRpc]
+    private void RpcDiscardMoneyCard(GameObject card){
+        _cardMover.MoveTo(card, isOwned, CardLocation.MoneyZone, CardLocation.Discard);
+    }
+
+    [Server]
     private void RemoveHandCard(CardInfo cardInfo){
         var cardToRemove = hand.FirstOrDefault(c => c.Equals(cardInfo));
         hand.Remove(cardToRemove);
