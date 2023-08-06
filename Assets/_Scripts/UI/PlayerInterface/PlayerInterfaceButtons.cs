@@ -15,7 +15,7 @@ public class PlayerInterfaceButtons : MonoBehaviour
     [SerializeField] private Button _handButton;
     [SerializeField] private Button _kingdomButton;
 
-    private bool _isOpen = false;
+    // private bool _isOpen = false;
 
     private void Awake()
     {

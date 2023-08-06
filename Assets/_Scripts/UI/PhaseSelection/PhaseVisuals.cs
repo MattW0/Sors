@@ -12,8 +12,6 @@ public class PhaseVisuals : MonoBehaviour
 
     [Header("Player Settings")]
     private int _nbPlayers;
-    [SerializeField] private Color playerColor1;
-    [SerializeField] private Color playerColor2;
     [SerializeField] private float playerChoiceInactiveAlpha = 0.3f;
     [SerializeField] private float fadeDuration = 1f;
 
@@ -44,8 +42,8 @@ public class PhaseVisuals : MonoBehaviour
         int i = 0;
         foreach (var img in playerChoiceHighlights) {
             if(!img) continue;
-            if (i%2 == 0) img.color = playerColor1;
-            else img.color = playerColor2;
+            if (i%2 == 0) img.color = ColorManager.playerOne;
+            else img.color = ColorManager.playerTwo;
             img.enabled = false;
             i++;
             // PlayerChoiceTransition(img, false);

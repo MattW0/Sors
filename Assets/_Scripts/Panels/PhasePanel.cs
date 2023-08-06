@@ -24,7 +24,6 @@ public class PhasePanel : NetworkBehaviour
     [Header("Overlay turn screen")]
     [SerializeField] private TMP_Text overlayTurnText;
     [SerializeField] private Image overlayImage;
-    [SerializeField] private Color overlayImageColor;
     [SerializeField] private int overlayScreenWaitTime = 1;
     [SerializeField] private float overlayScreenFadeTime = 0.5f;
     private bool _animate;

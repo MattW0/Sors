@@ -89,7 +89,7 @@ public class TurnManager : NetworkBehaviour
                 CleanUp();
                 break;
             case TurnState.Idle:
-                _playerInterfaceManager.RpcLog("Game finished");
+                _playerInterfaceManager.RpcLog("Game finished", LogType.Standard);
                 break;
                 
             default:
@@ -136,7 +136,7 @@ public class TurnManager : NetworkBehaviour
     #region PhaseSelection
     private void PhaseSelection() {
         _gameManager.turnNb++;
-        _playerInterfaceManager.RpcLog($"<color=#000142> ------------ Turn {_gameManager.turnNb}</color> ------------");
+        _playerInterfaceManager.RpcLog($" ------------ Turn {_gameManager.turnNb} ------------ ", LogType.TurnChange);
 
         // Fix draw per turn
         foreach (var player in _gameManager.players.Keys)
@@ -162,7 +162,7 @@ public class TurnManager : NetworkBehaviour
         // Combat each round
         phasesToPlay.Add(Phase.Combat);
         phasesToPlay.Sort();
-        _playerInterfaceManager.RpcLog($"<color=#383838>Phases to play: {string.Join(", ", phasesToPlay)}</color>");
+        _playerInterfaceManager.RpcLog($"Phases to play: {string.Join(", ", phasesToPlay)}", LogType.Phase);
 
         // Give the player choices to player turn stats and UI
         var choices = new Phase[_nbPlayers * _gameManager.nbPhasesToChose];
@@ -200,7 +200,7 @@ public class TurnManager : NetworkBehaviour
 
     public void NextTurnState(Phase nextPhase){
         Enum.TryParse(nextPhase.ToString(), out TurnState nextTurnState);
-        _playerInterfaceManager.RpcLog($"<color=#004208>Turn changed to {nextTurnState}</color>");
+        _playerInterfaceManager.RpcLog($"Turn changed to {nextTurnState}", LogType.Phase);
         
         OnPhaseChanged?.Invoke(nextTurnState);
         UpdateTurnState(nextTurnState);
@@ -291,7 +291,7 @@ public class TurnManager : NetworkBehaviour
                 if(cardInfo.type == CardType.Money) _gameManager.SpawnMoney(owner, cardInfo);
                 else if(cardInfo.type == CardType.Development) _gameManager.SpawnDevelopment(owner, cardInfo);
                 else if(cardInfo.type == CardType.Creature) _gameManager.SpawnCreature(owner, cardInfo);
-                _playerInterfaceManager.RpcLog("<color=#4f2d00>" + owner.PlayerName + " buys '" + cardInfo.title + "'</color>");
+                _playerInterfaceManager.RpcLog($"{owner.PlayerName} buys '{cardInfo.title}", LogType.CreatureBuy);
             }
         }
         
@@ -594,7 +594,7 @@ public class TurnManager : NetworkBehaviour
     
     private void PlayersStatsResetAndDiscardMoney(bool endOfTurn = false)
     {
-        _playerInterfaceManager.RpcLog($"<color=#000000> ... Discarding money ... </color>");
+        _playerInterfaceManager.RpcLog("... Discarding money ...", LogType.Standard);
         _handManager.RpcHighlightMoney(false);
 
         foreach (var player in _gameManager.players.Keys)

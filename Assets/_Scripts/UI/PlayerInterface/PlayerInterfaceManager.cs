@@ -68,12 +68,39 @@ public class PlayerInterfaceManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcLog(string message) => _logger.Log(message);
+    public void RpcLog(string message, LogType type){
+        
+        var messageColor = type switch{
+            LogType.EffectTrigger => ColorManager.effectTrigger,
+            LogType.TurnChange => ColorManager.turnChange,
+            LogType.Phase => ColorManager.phase,
+            LogType.CreatureBuy => ColorManager.creatureBuy,
+            LogType.Combat => ColorManager.combat,
+            LogType.CombatDamage => ColorManager.combatDamage,
+            LogType.CombatClash => ColorManager.combatClash,
+            LogType.Standard => ColorManager.standardLog,
+            // _ => ColorManager.standardLog
+        };
+
+        _logger.Log($"<color={messageColor}>{message}</color>");
+    } 
 
     private void OnDestroy()
     {
         GameManager.OnGameStart -= RpcPrepareUIs;
+        TurnManager.OnPhasesSelected -= RpcShowPlayerChoices;
         TurnManager.OnPhaseChanged -= RpcUpdatePhaseHighlight;
         CombatManager.OnCombatStateChanged -= RpcUpdateCombatHighlight;
     }
+}
+
+public enum LogType{
+    Standard,
+    EffectTrigger,
+    TurnChange,
+    Phase,
+    CreatureBuy,
+    Combat,
+    CombatDamage,
+    CombatClash
 }

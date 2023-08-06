@@ -1846,6 +1846,7 @@ Transform:
   - {fileID: 1172329945}
   - {fileID: 246039999}
   - {fileID: 430033923}
+  - {fileID: 708403770}
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2441,7 +2442,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f231c4fb786f3946a6b90b886c48677, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SendPointerHoverToParent: 1
   m_HorizontalAxis: Horizontal
   m_VerticalAxis: Vertical
   m_SubmitButton: Submit
@@ -4876,6 +4876,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 704657465}
   m_CullTransparentMesh: 1
+--- !u!1 &708403769
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 708403770}
+  - component: {fileID: 708403771}
+  m_Layer: 0
+  m_Name: UiManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &708403770
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 708403769}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 252454869}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &708403771
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 708403769}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba2a78e39390ae94ba18b963605b5cdd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &744072724
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11034,7 +11078,6 @@ MonoBehaviour:
   enableFocus: 1
   _image: {fileID: 2283931012788643254}
   _highlight: {fileID: 6960641938357161268}
-  highlightColor: {r: 1, g: 0.9271956, b: 0.3066038, a: 1}
 --- !u!222 &469376163249834404
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -22463,7 +22506,6 @@ MonoBehaviour:
   enableFocus: 1
   _image: {fileID: 4360968069491610407}
   _highlight: {fileID: 4876915210850057125}
-  highlightColor: {r: 1, g: 0.9271956, b: 0.3066038, a: 1}
 --- !u!222 &2695041507705330854
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -44994,7 +45036,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 464, y: 32}
+  m_AnchoredPosition: {x: 464.00003, y: 32}
   m_SizeDelta: {x: 240, y: 150}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &7643369945807216646

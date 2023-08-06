@@ -41,15 +41,15 @@ public class CombatManager : NetworkBehaviour
             case CombatState.Idle:
                 break;
             case CombatState.Attackers:
-                _playerInterfaceManager.RpcLog("<color=#420028> --- Starting Combat --- </color>");
+                _playerInterfaceManager.RpcLog(" --- Starting Combat --- ", LogType.Combat);
                 _boardManager.StartCombatPhase(CombatState.Attackers);
                 break;
             case CombatState.Blockers:
-                _playerInterfaceManager.RpcLog("<color=#42000c>  - Attackers declared </color>");
+                _playerInterfaceManager.RpcLog("   - Attackers declared", LogType.Combat);
                 _boardManager.StartCombatPhase(CombatState.Blockers);
                 break;
             case CombatState.Damage:
-                _playerInterfaceManager.RpcLog("<color=#420028>  - Blockers declared </color>");
+                _playerInterfaceManager.RpcLog("   - Blockers declared", LogType.Combat);
                 ResolveDamage();
                 break;
             case CombatState.CleanUp:
@@ -145,7 +145,7 @@ public class CombatManager : NetworkBehaviour
             int totalBlockerHealth = 0;
             foreach (var blocker in _attackersBlockers[attacker]){
                 blocker.RpcSetCombatHighlight();
-                _playerInterfaceManager.RpcLog("Clashing creatures: " + attacker.GetCardTitle() + " vs " + blocker.GetCardTitle() + "");
+                _playerInterfaceManager.RpcLog($"Clashing creatures: {attacker.GetCardTitle()} vs {blocker.GetCardTitle()}", LogType.CombatClash);
                 
                 totalBlockerHealth += blocker.GetHealth();
                 CombatClash(attacker, blocker);
@@ -169,7 +169,7 @@ public class CombatManager : NetworkBehaviour
 
         foreach (var attacker in _unblockedAttackers){
             attacker.RpcSetCombatHighlight();
-            _playerInterfaceManager.RpcLog("" + attacker.GetCardTitle() + " is unblocked");
+            _playerInterfaceManager.RpcLog($"{attacker.GetCardTitle()} deals {attacker.GetAttack()} damage", LogType.CombatDamage);
 
             // player takes damage from unblocked creatures
             var targetPlayer = attacker.GetOpponent();

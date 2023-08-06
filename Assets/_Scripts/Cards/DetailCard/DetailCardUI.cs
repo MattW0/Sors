@@ -27,7 +27,6 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     public bool enableFocus = true;
     [SerializeField] private Image _image;
     [SerializeField] private Image _highlight;
-    [SerializeField] private Color highlightColor = Color.white;
     private Canvas _tempCanvas;
     private GraphicRaycaster _tempRaycaster;
     private TurnState _state;
@@ -71,9 +70,9 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     public void SetCardState(TurnState state) {
         _state = state;
         
-        if(state == TurnState.Discard) _highlight.color = Color.yellow;
-        else if(state == TurnState.Deploy) _highlight.color = Color.cyan;
-        else if(state == TurnState.Trash) _highlight.color = Color.red;
+        if(state == TurnState.Discard) _highlight.color = ColorManager.discardHighlight;
+        else if(state == TurnState.Deploy) _highlight.color = ColorManager.deployHighlight;
+        else if(state == TurnState.Trash) _highlight.color = ColorManager.trashHighlight;
     }
 
     public void OnPointerEnter(PointerEventData eventData){

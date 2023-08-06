@@ -15,8 +15,6 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
     [SerializeField] private TMP_Text _phaseTitleMesh;
     [SerializeField] private Image _icon;
     [SerializeField] private Graphic outline;
-    [SerializeField] private Color phaseHighlightColor = new Color32(147, 147, 147, 255);
-    [SerializeField] private Color phaseSelectedColor = new Color32(150, 100, 200, 255);
 
     private bool _selectable;
     private bool _isSelected;
@@ -24,8 +22,8 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
         get => _isSelected;
         set{
             _isSelected = value;
-            if(_isSelected) outline.color = phaseSelectedColor;
-            else outline.color = phaseHighlightColor;
+            if(_isSelected) outline.color = ColorManager.phaseSelected;
+            else outline.color = ColorManager.phaseHighlight;
         }
     }
 
@@ -49,13 +47,13 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
     }
 
     public void StartSelection(){
-        outline.color = phaseHighlightColor;
+        outline.color = ColorManager.phaseHighlight;
         _selectable = true;
         outline.CrossFadeAlpha(1f, 0f, false);
     }
 
     public void StartCombatPhase(){
-        _icon.color = phaseHighlightColor;
+        _icon.color = ColorManager.phaseHighlight;
         _mesh.SetActive(true);
         _selectable = true;
     }
@@ -74,7 +72,7 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
 
         if(_phase == Phase.Combat) {
             _phasePanel.PlayerPressedCombatButton();
-            _mesh.GetComponent<Image>().color = phaseSelectedColor;
+            _mesh.GetComponent<Image>().color = ColorManager.phaseSelected;
             return;
         }
         

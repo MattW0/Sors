@@ -14,16 +14,14 @@ public class CreatureEntityUI : MonoBehaviour
     [Header("Entity UI")]
     [SerializeField] private Image highlight;
     [SerializeField] private Image attackerImage;
-    [SerializeField] private Color highlightColor;
-    [SerializeField] private Color combatColor;
-    private readonly Color _idleColor = new Color32( 0x50, 0x50, 0x50, 0xFF );
 
     private void Start(){
         _transform = gameObject.transform;
         // _transform.position = _untappedPosition;
     }
 
-    public void ShowAsAttacker(bool active) => attackerImage.color = active ? combatColor : _idleColor;
+    public void ShowAsAttacker(bool active) => attackerImage.color = 
+        active ? ColorManager.creatureAttacking : ColorManager.creatureIdle;
 
     public void TapCreature() {
         _transform.DOLocalMove(_tappedPosition, TappingDuration).OnComplete(
@@ -45,12 +43,12 @@ public class CreatureEntityUI : MonoBehaviour
     }
 
     public void CombatHighlight(){
-        highlight.color = combatColor;
+        highlight.color = ColorManager.creatureAttacking;
         highlight.enabled = true;
     }
     public void Highlight(bool active) => highlight.enabled = active;
     public void ResetHighlight(){
-        highlight.color = highlightColor;
+        highlight.color = ColorManager.creatureHighlight;
         highlight.enabled = false;
     }
 }

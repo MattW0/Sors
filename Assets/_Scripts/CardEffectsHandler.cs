@@ -84,7 +84,7 @@ public class CardEffectsHandler : NetworkBehaviour
         // It isn't if entity ETBd as the last action before this trigger
         while(!entity.Owner) yield return null;
 
-        _playerInterfaceManager.RpcLog($"<color=#1118BA>'{entity.Title}': {trigger} -> {effect}</color>");
+        _playerInterfaceManager.RpcLog($"'{entity.Title}': {trigger} -> {effect}", LogType.EffectTrigger);
         StartCoroutine(EffectAnimation(entity, effect));
     }
 

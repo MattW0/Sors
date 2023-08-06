@@ -17,9 +17,7 @@ public class CardUI : MonoBehaviour
     [SerializeField] private TMP_Text _points;
     [SerializeField] private TMP_Text _moneyValue;
     [SerializeField] private Image _image;
-    [SerializeField] private Image _highlight;
-    
-    public Color standardHighlight = Color.white;
+    [SerializeField] private Image _highlight;    
     [SerializeField] private GameObject _front;
     [SerializeField] private GameObject _creatureUi;
     [SerializeField] private GameObject _moneyUi;
@@ -60,14 +58,14 @@ public class CardUI : MonoBehaviour
     }
 
     public void Highlight(bool active, Color color){
-        if(!_highlight) return;
+        // if(!_highlight) return;
 
         _highlight.color = color;
         _highlight.enabled = active;
     }
     
     public void HighlightReset(){
-        _highlight.color = standardHighlight;
+        _highlight.color = ColorManager.standardHighlight;
         _highlight.enabled = false;
     }
 }
