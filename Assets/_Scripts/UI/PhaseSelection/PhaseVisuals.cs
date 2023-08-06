@@ -42,8 +42,8 @@ public class PhaseVisuals : MonoBehaviour
         int i = 0;
         foreach (var img in playerChoiceHighlights) {
             if(!img) continue;
-            if (i%2 == 0) img.color = ColorManager.playerOne;
-            else img.color = ColorManager.playerTwo;
+            if (i%2 == 0) img.color = SorsColors.playerOne;
+            else img.color = SorsColors.playerTwo;
             img.enabled = false;
             i++;
             // PlayerChoiceTransition(img, false);

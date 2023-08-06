@@ -22,8 +22,8 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
         get => _isSelected;
         set{
             _isSelected = value;
-            if(_isSelected) outline.color = ColorManager.phaseSelected;
-            else outline.color = ColorManager.phaseHighlight;
+            if(_isSelected) outline.color = SorsColors.phaseSelected;
+            else outline.color = SorsColors.phaseHighlight;
         }
     }
 
@@ -47,13 +47,13 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
     }
 
     public void StartSelection(){
-        outline.color = ColorManager.phaseHighlight;
+        outline.color = SorsColors.phaseHighlight;
         _selectable = true;
         outline.CrossFadeAlpha(1f, 0f, false);
     }
 
     public void StartCombatPhase(){
-        _icon.color = ColorManager.phaseHighlight;
+        _icon.color = SorsColors.phaseHighlight;
         _mesh.SetActive(true);
         _selectable = true;
     }
@@ -72,7 +72,7 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
 
         if(_phase == Phase.Combat) {
             _phasePanel.PlayerPressedCombatButton();
-            _mesh.GetComponent<Image>().color = ColorManager.phaseSelected;
+            _mesh.GetComponent<Image>().color = SorsColors.phaseSelected;
             return;
         }
         

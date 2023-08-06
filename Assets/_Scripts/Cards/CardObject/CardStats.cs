@@ -17,7 +17,7 @@ public class CardStats : NetworkBehaviour, IPointerClickHandler
         get => _interactable;
         set {
             _interactable = value;
-            _cardUI.Highlight(value, ColorManager.interactionHighlight);
+            _cardUI.Highlight(value, SorsColors.interactionHighlight);
         }
     }
 
@@ -26,7 +26,7 @@ public class CardStats : NetworkBehaviour, IPointerClickHandler
         get => _discardable;
         set {
             _discardable = value;
-            _cardUI.Highlight(value, ColorManager.discardHighlight);
+            _cardUI.Highlight(value, SorsColors.discardHighlight);
         }
     }
 
@@ -35,7 +35,7 @@ public class CardStats : NetworkBehaviour, IPointerClickHandler
         get => _trashable;
         set {
             _trashable = value;
-            _cardUI.Highlight(value, ColorManager.trashHighlight);
+            _cardUI.Highlight(value, SorsColors.trashHighlight);
         }
     }
     
@@ -63,5 +63,5 @@ public class CardStats : NetworkBehaviour, IPointerClickHandler
         }
     }
 
-    public void SetHighlight() => _cardUI.Highlight(IsInteractable, ColorManager.interactionHighlight);
+    public void SetHighlight() => _cardUI.Highlight(IsInteractable, SorsColors.interactionHighlight);
 }

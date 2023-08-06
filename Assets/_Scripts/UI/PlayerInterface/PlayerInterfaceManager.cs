@@ -71,15 +71,15 @@ public class PlayerInterfaceManager : NetworkBehaviour
     public void RpcLog(string message, LogType type){
         
         var messageColor = type switch{
-            LogType.EffectTrigger => ColorManager.effectTrigger,
-            LogType.TurnChange => ColorManager.turnChange,
-            LogType.Phase => ColorManager.phase,
-            LogType.CreatureBuy => ColorManager.creatureBuy,
-            LogType.Combat => ColorManager.combat,
-            LogType.CombatDamage => ColorManager.combatDamage,
-            LogType.CombatClash => ColorManager.combatClash,
-            LogType.Standard => ColorManager.standardLog,
-            // _ => ColorManager.standardLog
+            LogType.EffectTrigger => SorsColors.effectTrigger,
+            LogType.TurnChange => SorsColors.turnChange,
+            LogType.Phase => SorsColors.phase,
+            LogType.CreatureBuy => SorsColors.creatureBuy,
+            LogType.Combat => SorsColors.combat,
+            LogType.CombatDamage => SorsColors.combatDamage,
+            LogType.CombatClash => SorsColors.combatClash,
+            LogType.Standard => SorsColors.standardLog,
+            _ => SorsColors.standardLog
         };
 
         _logger.Log($"<color={messageColor}>{message}</color>");

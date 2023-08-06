@@ -70,9 +70,9 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     public void SetCardState(TurnState state) {
         _state = state;
         
-        if(state == TurnState.Discard) _highlight.color = ColorManager.discardHighlight;
-        else if(state == TurnState.Deploy) _highlight.color = ColorManager.deployHighlight;
-        else if(state == TurnState.Trash) _highlight.color = ColorManager.trashHighlight;
+        if(state == TurnState.Discard) _highlight.color = SorsColors.discardHighlight;
+        else if(state == TurnState.Deploy) _highlight.color = SorsColors.deployHighlight;
+        else if(state == TurnState.Trash) _highlight.color = SorsColors.trashHighlight;
     }
 
     public void OnPointerEnter(PointerEventData eventData){

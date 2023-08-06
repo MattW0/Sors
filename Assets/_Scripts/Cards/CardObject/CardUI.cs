@@ -65,7 +65,7 @@ public class CardUI : MonoBehaviour
     }
     
     public void HighlightReset(){
-        _highlight.color = ColorManager.standardHighlight;
+        _highlight.color = SorsColors.standardHighlight;
         _highlight.enabled = false;
     }
 }

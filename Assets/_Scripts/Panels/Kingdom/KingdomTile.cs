@@ -23,7 +23,7 @@ public class KingdomTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
         set {
             if(_alreadyChosen) return;
             _isInteractable = value;
-            _ui.Highlight(value, ColorManager.tileSelectable);
+            _ui.Highlight(value, SorsColors.tileSelectable);
         }
     }
     private bool _isSelected;
@@ -33,9 +33,9 @@ public class KingdomTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
             _isSelected = value;
             if(value) {
                 _kingdom.PlayerSelectsTile(this);
-                _ui.Highlight(true, ColorManager.tileSelected);
+                _ui.Highlight(true, SorsColors.tileSelected);
             } else {
-                _ui.Highlight(true, ColorManager.tileSelectable);
+                _ui.Highlight(true, SorsColors.tileSelectable);
             }
         }
     }
@@ -97,7 +97,7 @@ public class KingdomTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
         Interactable = false;
 
         _alreadyChosen = true;
-        _ui.Highlight(true, ColorManager.tilePreviouslySelected);
+        _ui.Highlight(true, SorsColors.tilePreviouslySelected);
     }
     
     private void EndDevelopPhase() => ResetTile();

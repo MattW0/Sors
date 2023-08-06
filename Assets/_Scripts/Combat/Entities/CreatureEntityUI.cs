@@ -21,7 +21,7 @@ public class CreatureEntityUI : MonoBehaviour
     }
 
     public void ShowAsAttacker(bool active) => attackerImage.color = 
-        active ? ColorManager.creatureAttacking : ColorManager.creatureIdle;
+        active ? SorsColors.creatureAttacking : SorsColors.creatureIdle;
 
     public void TapCreature() {
         _transform.DOLocalMove(_tappedPosition, TappingDuration).OnComplete(
@@ -43,12 +43,12 @@ public class CreatureEntityUI : MonoBehaviour
     }
 
     public void CombatHighlight(){
-        highlight.color = ColorManager.creatureAttacking;
+        highlight.color = SorsColors.creatureAttacking;
         highlight.enabled = true;
     }
     public void Highlight(bool active) => highlight.enabled = active;
     public void ResetHighlight(){
-        highlight.color = ColorManager.creatureHighlight;
+        highlight.color = SorsColors.creatureHighlight;
         highlight.enabled = false;
     }
 }

@@ -2,36 +2,42 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+// using System.Drawing;
 
-public class ColorManager : MonoBehaviour
+public static class SorsColors
 {
-    [Header("Players")]
-    public static Color playerOne = Color.blue;
+
+    // load css from C:\Users\Matthias\Desktop\Sors\MirrorSors\Assets\Resources\colors.css
+    // and get colors by calling GetColor() with a string from the css file
+
+
+    // [Header("Players")]
+    public static Color playerOne = GetColor("#1118BA");
     public static Color playerTwo = Color.yellow;
 
 
-    [Header("Entities")]
+    // [Header("Entities")]
     public static Color creatureHighlight = Color.green;
-    public static Color creatureAttacking = new Color( 0xFF, 0x00, 0x50 );
+    public static Color creatureAttacking = new Color( 0x00, 0x00, 0x00);
     public static readonly Color creatureIdle = new Color( 0x50, 0x50, 0x50 );
 
-    [Header("Kingdom Tiles")]
+    // [Header("Kingdom Tiles")]
     public static Color tileSelectable = Color.green;
     public static Color tileSelected = Color.blue;
     public static Color tilePreviouslySelected = Color.yellow;
 
-    [Header("Phases")]
+    // [Header("Phases")]
     public static Color phaseHighlight = new Color(147, 147, 147);
     public static Color phaseSelected = new Color(150, 100, 200);
 
-    [Header("Highlights")]
+    // [Header("Highlights")]
     public static Color standardHighlight = Color.white;
     public static Color interactionHighlight = Color.green;
     public static Color discardHighlight = Color.yellow;
     public static Color deployHighlight = Color.cyan;
     public static Color trashHighlight = Color.red;
 
-    [Header("Log Messages")]
+    // [Header("Log Messages")]
     public static string standardLog = "#000000";
     public static string effectTrigger = "#1118BA";
     public static string turnChange = "#000142";
@@ -41,4 +47,12 @@ public class ColorManager : MonoBehaviour
     public static string combatDamage = combat;
     public static string combatClash = combat;
 
+    // [Header("Play Board")]
+    // public static Color creatureIcon = Color.brown;
+    // public static Color technologyIcon = Color.DarkGoldenrod;
+
+    public static Color GetColor(string hexColor){
+        ColorUtility.TryParseHtmlString(hexColor, out Color color);
+        return color;
+    }
 }
