@@ -9,8 +9,8 @@ public class KingdomHoverPreview : MonoBehaviour
 
     // _offset = absolute position of preview window + half of its size
     private Vector3 _offset = new Vector3(960f, 540f, 0f);
-    private float viewHeight = 380f;
-    private float viewWidth = 240f;
+    private const float viewHeight = 400f;
+    private const float viewWidth = 260f;
 
     public static Action<CardInfo> OnHoverTile;
     public static Action OnHoverExit;
