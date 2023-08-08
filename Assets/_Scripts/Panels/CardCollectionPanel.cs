@@ -25,15 +25,13 @@ public class CardCollectionPanel : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcPrepareCardCollectionPanel(int nbCardsToDiscard)
-    {
+    public void RpcPrepareCardCollectionPanel(int nbCardsToDiscard){
         _ui.PrepareCardCollectionPanelUi(nbCardsToDiscard);
         _player = PlayerManager.GetLocalPlayer();
     }
 
     [TargetRpc]
-    public void TargetShowCardCollection(NetworkConnection target, List<GameObject> cardObjects, List<CardInfo> cardInfos)
-    {
+    public void TargetShowCardCollection(NetworkConnection target, List<GameObject> cardObjects, List<CardInfo> cardInfos){
         for (var i=0; i<cardInfos.Count; i++) SpawnDetailCardObject(cardObjects[i], cardInfos[i]);
         _ui.Open();
     }
@@ -69,8 +67,7 @@ public class CardCollectionPanel : NetworkBehaviour
     }
 
     [TargetRpc]
-    public void TargetBeginTrash(NetworkConnection conn, int nbCardsToTrash)
-    {
+    public void TargetBeginTrash(NetworkConnection conn, int nbCardsToTrash){
         foreach(var card in _detailCards) card.SetCardState(TurnState.Trash);
 
         _ui.BeginTrash(nbCardsToTrash);

@@ -23,7 +23,7 @@ public class PlayerManager : NetworkBehaviour
     private DropZoneManager _dropZone;
     private CardMover _cardMover;
     private Hand _handManager;
-    public PlayerManager opponent { get; private set; }
+    private PhasePanelUI _phaseVisualsUI;
 
     [Header("Game State")]
     public List<Phase> chosenPhases = new();
@@ -109,6 +109,7 @@ public class PlayerManager : NetworkBehaviour
         _handManager = Hand.Instance;
         _cardMover = CardMover.Instance;
         _dropZone = DropZoneManager.Instance;
+        _phaseVisualsUI = PhasePanelUI.Instance;
         _playerUI = GameObject.Find("PlayerInfo").GetComponent<PlayerUI>();
         _opponentUI = GameObject.Find("OpponentInfo").GetComponent<PlayerUI>();
         
@@ -282,6 +283,12 @@ public class PlayerManager : NetworkBehaviour
         // Saving local player choice
         chosenPhases = phases;
         _turnManager.PlayerSelectedPhases(this, phases.ToArray());
+    }
+
+    [ClientRpc]
+    public void RpcShowOpponentChoices(Phase[] phases){
+        if (isLocalPlayer) return;
+        _phaseVisualsUI.ShowOpponentChoices(phases);
     }
 
     [Command]

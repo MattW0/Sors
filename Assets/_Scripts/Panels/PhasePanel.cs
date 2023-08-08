@@ -10,35 +10,38 @@ public class PhasePanel : NetworkBehaviour
 {
     public static PhasePanel Instance { get; private set; }
     [SerializeField] private List<Phase> _selectedPhases = new();
-    private int _nbPhasesToChose;
     [SerializeField] private PhaseItemUI attack;
     [SerializeField] private PhaseItemUI block;
-    public static event Action OnPhaseSelectionStarted;
-    public static event Action OnPhaseSelectionConfirmed;
 
     [Header("UI Elements")]
-    [SerializeField] private Button confirm;
+    [SerializeField] private GameObject confirmPhaseSelection;
     [SerializeField] private TMP_Text turnText;
     [SerializeField] private TMP_Text actionDescriptionText;
-
-    [Header("Overlay turn screen")]
-    [SerializeField] private TMP_Text overlayTurnText;
-    [SerializeField] private Image overlayImage;
-    [SerializeField] private int overlayScreenWaitTime = 1;
-    [SerializeField] private float overlayScreenFadeTime = 0.5f;
+    
     private bool _animate;
+    private int _nbPhasesToChose;
+    private PhasePanelUI _phaseVisualsUI;
+    private TurnScreenOverlay _turnScreenOverlay;
+    public static event Action OnPhaseSelectionStarted;
+    public static event Action OnPhaseSelectionConfirmed;
     
     private void Awake() {
         if (!Instance) Instance = this;
+
+        TurnManager.OnPhaseChanged += RpcUpdatePhaseHighlight;
+        CombatManager.OnCombatStateChanged += RpcUpdateCombatHighlight;
     }
 
     #region Prepare and Phase Selection
     [ClientRpc]
-    public void RpcPreparePhasePanel(int nbPhasesToChose, bool animations){
+    public void RpcPreparePhasePanel(int nbPlayers, int nbPhasesToChose, bool animations){
+        _phaseVisualsUI = PhasePanelUI.Instance;
+        _phaseVisualsUI.PrepareUI(nbPlayers);
+        _turnScreenOverlay = TurnScreenOverlay.Instance;
+
         _nbPhasesToChose = nbPhasesToChose;
         _animate = animations;
     }
-
 
     [ClientRpc]
     public void RpcBeginPhaseSelection(int currentTurn){
@@ -46,8 +49,7 @@ public class PhasePanel : NetworkBehaviour
         OnPhaseSelectionStarted?.Invoke();
 
         if(!_animate) return;
-        overlayTurnText.text = "Turn " + currentTurn.ToString();
-        StartCoroutine(WaitAndFade());
+        _turnScreenOverlay.UpdateTurnScreen(currentTurn);
     }
 
     public void UpdateSelectedPhase(Phase phase){
@@ -57,8 +59,53 @@ public class PhasePanel : NetworkBehaviour
             _selectedPhases.Add(phase);
         }
         
-        confirm.interactable = _selectedPhases.Count == _nbPhasesToChose;
+        confirmPhaseSelection.SetActive(_selectedPhases.Count == _nbPhasesToChose);
     }
+
+    public void ConfirmButtonPressed(){
+        actionDescriptionText.text = "Wait for opponent...";
+        confirmPhaseSelection.SetActive(false);
+
+        var player = PlayerManager.GetLocalPlayer();
+        player.CmdPhaseSelection(_selectedPhases);
+
+        _selectedPhases.Clear();
+        OnPhaseSelectionConfirmed?.Invoke();
+    }
+    #endregion
+
+    #region Phases
+
+    [ClientRpc]
+    private void RpcUpdatePhaseHighlight(TurnState newState) {
+        var newHighlightIndex = newState switch
+        {
+            TurnState.PhaseSelection => 0,
+            TurnState.Draw => 1,
+            TurnState.Invent => 2,
+            TurnState.Develop => 3,
+            TurnState.Recruit => 6,
+            TurnState.Deploy => 7,
+            TurnState.Prevail => 8,
+            TurnState.CleanUp => 9,
+            _ => -1
+        };
+
+        _phaseVisualsUI.UpdatePhaseHighlight(newHighlightIndex);
+    }
+    
+    [ClientRpc]
+    private void RpcUpdateCombatHighlight(CombatState newState) {
+        var newHighlightIndex = newState switch
+        {
+            CombatState.Attackers => 4,
+            CombatState.Blockers => 5,
+            _ => -1
+        };
+        
+        _phaseVisualsUI.UpdatePhaseHighlight(newHighlightIndex);
+    }
+
     #endregion
 
     #region Combat
@@ -91,17 +138,6 @@ public class PhasePanel : NetworkBehaviour
 
     #endregion
 
-    public void ConfirmButtonPressed(){
-        actionDescriptionText.text = "Wait for opponent...";
-        confirm.interactable = false;
-
-        var player = PlayerManager.GetLocalPlayer();
-        player.CmdPhaseSelection(_selectedPhases);
-
-        _selectedPhases.Clear();
-        OnPhaseSelectionConfirmed?.Invoke();
-    }
-
     [ClientRpc]
     public void RpcChangeActionDescriptionText(TurnState state){
         var text = state switch {
@@ -119,25 +155,10 @@ public class PhasePanel : NetworkBehaviour
         actionDescriptionText.text = text;
     }
 
-    private IEnumerator WaitAndFade() {
-
-        overlayImage.gameObject.SetActive(true);
-        // overlayImage.enabled = true;
-        
-        // Wait and fade
-        yield return new WaitForSeconds(overlayScreenWaitTime);
-        overlayImage.CrossFadeAlpha(0f, overlayScreenFadeTime, false);
-        overlayTurnText.text = "";
-
-        // Wait and disable
-        yield return new WaitForSeconds(overlayScreenFadeTime);
-
-        // overlayImage.enabled = false;
-        overlayImage.gameObject.SetActive(false);
-        overlayImage.CrossFadeAlpha(1f, 0f, false);
-    }
+    
 
     private void OnDestroy() {
-        
+        TurnManager.OnPhaseChanged -= RpcUpdatePhaseHighlight;
+        CombatManager.OnCombatStateChanged -= RpcUpdateCombatHighlight;
     }
 }

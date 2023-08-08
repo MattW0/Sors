@@ -132,8 +132,8 @@ public class CardCollectionPanelUI : MonoBehaviour
     public void ResetPanelUI(bool hard){
         _buttons.SetActive(true);
         _waitingText.SetActive(false);
-
         if(!hard) return;
+        
         _interaction.SetActive(false);
         _skipButton.SetActive(false);
         Close();

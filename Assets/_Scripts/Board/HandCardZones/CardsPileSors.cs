@@ -22,15 +22,6 @@ public class CardsPileSors : MonoBehaviour
 	public event Action<int> OnCountChanged;
 	readonly List<GameObject> forceSetPosition = new List<GameObject>();
 
-	private void Awake(){
-		if (pileType == CardLocation.Hand){
-			height = 14f;
-			width = 500f;
-			maxCardAngle = 90f;
-			zDistance = -0.1f;
-		}
-	}
-
 	public void Add(GameObject card, bool moveAnimation = true) => Add(card, -1, moveAnimation);
 
 	public void Add(GameObject card, int index, bool moveAnimation = true)

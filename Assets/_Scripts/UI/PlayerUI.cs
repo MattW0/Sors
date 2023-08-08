@@ -18,6 +18,14 @@ public class PlayerUI : MonoBehaviour
     [SerializeField] private TMP_Text turnDeploys;
     [SerializeField] private TMP_Text turnRecruits;
 
+    [Header("UI")]
+    [SerializeField] private Image background;
+
+    private void Awake(){
+        if (gameObject.name == "PlayerInfo") background.color = SorsColors.playerOne;
+        else background.color = SorsColors.playerTwo;
+    }
+
     public void SetName(string name) => playerName.text = name;
     public void SetHealth(int value) => playerHealth.text = value.ToString();
     public void SetScore(int value) => playerScore.text = value.ToString();

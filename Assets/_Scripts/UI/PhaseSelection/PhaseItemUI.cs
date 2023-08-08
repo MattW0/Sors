@@ -15,6 +15,7 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
     [SerializeField] private TMP_Text _phaseTitleMesh;
     [SerializeField] private Image _icon;
     [SerializeField] private Graphic outline;
+    [SerializeField] private Image playerChoice;
 
     private bool _selectable;
     private bool _isSelected;
@@ -22,8 +23,7 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
         get => _isSelected;
         set{
             _isSelected = value;
-            if(_isSelected) outline.color = SorsColors.phaseSelected;
-            else outline.color = SorsColors.phaseHighlight;
+            playerChoice.enabled = value;
         }
     }
 
@@ -43,13 +43,15 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
             PhasePanel.OnPhaseSelectionConfirmed += Reset;
         }
 
+        outline.color = SorsColors.phaseHighlight;
         _mesh.SetActive(false);
     }
 
     public void StartSelection(){
-        outline.color = SorsColors.phaseHighlight;
         _selectable = true;
-        outline.CrossFadeAlpha(1f, 0f, false);
+        IsSelected = false;
+
+        outline.CrossFadeAlpha(0.5f, 1f, false);
     }
 
     public void StartCombatPhase(){
@@ -60,7 +62,7 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
 
     public void Reset(){
         _selectable = false;
-        IsSelected = false;
+        // IsSelected = false;
 
         outline.CrossFadeAlpha(0f, 1f, false);
         _mesh.SetActive(false);
@@ -68,15 +70,14 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
 
     public void OnPointerClick(PointerEventData data){
         if (!_selectable) return;
-        IsSelected = !_isSelected;
 
-        if(_phase == Phase.Combat) {
+        if(_phase != Phase.Combat) {
+            _phasePanel.UpdateSelectedPhase(_phase);
+            IsSelected = !_isSelected;
+        } else {
             _phasePanel.PlayerPressedCombatButton();
             _mesh.GetComponent<Image>().color = SorsColors.phaseSelected;
-            return;
         }
-        
-        _phasePanel.UpdateSelectedPhase(_phase);
     }
 
     public void OnPointerEnter(PointerEventData eventData)

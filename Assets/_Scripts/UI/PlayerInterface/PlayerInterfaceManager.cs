@@ -6,9 +6,7 @@ using System.Collections.Generic;
 public class PlayerInterfaceManager : NetworkBehaviour
 {
     public static PlayerInterfaceManager Instance { get; private set; }
-    private TurnManager _turnManager;
     [SerializeField] private Logger _logger;
-    private PhaseVisuals _phaseVisualsUI;
     private PlayerInterfaceButtons _buttons;
     
     
@@ -17,54 +15,11 @@ public class PlayerInterfaceManager : NetworkBehaviour
         if (!Instance) Instance = this;
         
         GameManager.OnGameStart += RpcPrepareUIs;
-        TurnManager.OnPhasesSelected += RpcShowPlayerChoices;
-        TurnManager.OnPhaseChanged += RpcUpdatePhaseHighlight;
-        CombatManager.OnCombatStateChanged += RpcUpdateCombatHighlight;
-        
-        _turnManager = TurnManager.Instance;
     }
 
     [ClientRpc]
-    private void RpcPrepareUIs(int nbPlayers)
-    {
-        _phaseVisualsUI = PhaseVisuals.Instance;
+    private void RpcPrepareUIs(int nbPlayers){
         _buttons = PlayerInterfaceButtons.Instance;
-     
-        _phaseVisualsUI.PrepareUI(nbPlayers);
-    }
-
-    [ClientRpc]
-    private void RpcShowPlayerChoices(Phase[] choices){
-        _phaseVisualsUI.ShowPlayerChoices(choices);
-    }
-
-    [ClientRpc]
-    private void RpcUpdatePhaseHighlight(TurnState newState) {
-        var newHighlightIndex = newState switch
-        {
-            TurnState.Draw => 0,
-            TurnState.Invent => 1,
-            TurnState.Develop => 2,
-            TurnState.Recruit => 5,
-            TurnState.Deploy => 6,
-            TurnState.Prevail => 7,
-            TurnState.CleanUp => -2,
-            _ => -1
-        };
-
-        _phaseVisualsUI.UpdatePhaseHighlight(newHighlightIndex);
-    }
-    
-    [ClientRpc]
-    private void RpcUpdateCombatHighlight(CombatState newState) {
-        var newHighlightIndex = newState switch
-        {
-            CombatState.Attackers => 3,
-            CombatState.Blockers => 4,
-            _ => -1
-        };
-        
-        _phaseVisualsUI.UpdatePhaseHighlight(newHighlightIndex);
     }
 
     [ClientRpc]
@@ -85,12 +40,8 @@ public class PlayerInterfaceManager : NetworkBehaviour
         _logger.Log($"<color={messageColor}>{message}</color>");
     } 
 
-    private void OnDestroy()
-    {
+    private void OnDestroy(){
         GameManager.OnGameStart -= RpcPrepareUIs;
-        TurnManager.OnPhasesSelected -= RpcShowPlayerChoices;
-        TurnManager.OnPhaseChanged -= RpcUpdatePhaseHighlight;
-        CombatManager.OnCombatStateChanged -= RpcUpdateCombatHighlight;
     }
 }
 

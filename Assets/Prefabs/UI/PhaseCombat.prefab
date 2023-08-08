@@ -66,7 +66,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Defend
+  m_text: Attack
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -148,7 +148,7 @@ GameObject:
   - component: {fileID: 4262530005446225219}
   - component: {fileID: 8541185983238872372}
   m_Layer: 5
-  m_Name: PlayerInterfacePhaseCombat
+  m_Name: PhaseCombat
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -198,7 +198,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.9622642, g: 0.9622642, b: 0.9622642, a: 0.9647059}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -227,13 +227,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75c1a6c0ada30354e911915b40c588b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _phaseTitle: Defend
+  _phaseTitle: Attack
   _mesh: {fileID: 2169655906813910809}
   _phaseTitleUI: {fileID: 4096760680459506166}
   _phaseTitleMesh: {fileID: 6085488630153285749}
+  _icon: {fileID: 8561790675743861653}
   outline: {fileID: 4262530005446225219}
-  phaseHighlightColor: {r: 0.9607843, g: 0.92941177, b: 0.6117647, a: 1}
-  phaseSelectedColor: {r: 1, g: 0.4117647, b: 0.40392157, a: 1}
 --- !u!1 &2169655906813910809
 GameObject:
   m_ObjectHideFlags: 0
@@ -243,8 +242,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3341481951488425012}
-  - component: {fileID: 1197603489}
   - component: {fileID: 1197603488}
+  - component: {fileID: 1822314049}
   m_Layer: 5
   m_Name: Mesh
   m_TagString: Untagged
@@ -260,7 +259,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2169655906813910809}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -272,16 +271,8 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 10, y: 10}
+  m_SizeDelta: {x: 10, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!222 &1197603489
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2169655906813910809}
-  m_CullTransparentMesh: 1
 --- !u!114 &1197603488
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -295,7 +286,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0.44613567, b: 0.39215684, a: 1}
+  m_Color: {r: 1, g: 0.09032257, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -312,6 +303,14 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1822314049
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2169655906813910809}
+  m_CullTransparentMesh: 1
 --- !u!1 &3896033858776708331
 GameObject:
   m_ObjectHideFlags: 0
@@ -378,7 +377,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Draw
+  m_text: Attack
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -513,7 +512,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 0682010c057f3b5408134805fc79182b, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 895222a0382e9c649970e0b6d2e80d3c, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -549,7 +548,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8822452992950238787}
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: -0.7071068}
-  m_LocalPosition: {x: -0.000022888184, y: 0, z: -1.7000062}
+  m_LocalPosition: {x: 0, y: -0, z: -14.4}
   m_LocalScale: {x: 8.700001, y: 15, z: 5.6}
   m_ConstrainProportionsScale: 0
   m_Children: []

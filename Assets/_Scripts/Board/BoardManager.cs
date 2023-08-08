@@ -120,7 +120,8 @@ public class BoardManager : NetworkBehaviour
 
     #endregion
 
-    public void DevelopmentsLooseHealth(){
+    public void BoardCleanUp(){
+        // _phasePanel.RpcStartBoardCleanUp();
         _dropZone.DevelopmentsLooseHealth();
         ClearDeadEntities();
     }

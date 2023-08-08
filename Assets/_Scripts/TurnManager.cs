@@ -38,7 +38,6 @@ public class TurnManager : NetworkBehaviour
     private Dictionary<PlayerManager, List<GameObject>> _selectedHandCards = new();
     
     // Events
-    public static event Action<Phase[]> OnPhasesSelected;
     public static event Action<TurnState> OnPhaseChanged;
     public static event Action<PlayerManager> OnPlayerDies;
 
@@ -112,7 +111,7 @@ public class TurnManager : NetworkBehaviour
         _cardCollectionPanel = CardCollectionPanel.Instance;
         _cardCollectionPanel.RpcPrepareCardCollectionPanel(_gameManager.nbDiscard);
         _phasePanel = PhasePanel.Instance;
-        _phasePanel.RpcPreparePhasePanel(_gameManager.nbPhasesToChose, _gameManager.animations);
+        _phasePanel.RpcPreparePhasePanel(nbPlayers, _gameManager.nbPhasesToChose, _gameManager.animations);
         _prevailPanel = PrevailPanel.Instance;
         _prevailPanel.RpcPreparePrevailPanel(_gameManager.prevailOptionsToChoose);
 
@@ -137,6 +136,7 @@ public class TurnManager : NetworkBehaviour
     private void PhaseSelection() {
         _gameManager.turnNb++;
         _playerInterfaceManager.RpcLog($" ------------ Turn {_gameManager.turnNb} ------------ ", LogType.TurnChange);
+        OnPhaseChanged?.Invoke(TurnState.PhaseSelection);
 
         // Fix draw per turn
         foreach (var player in _gameManager.players.Keys)
@@ -164,9 +164,6 @@ public class TurnManager : NetworkBehaviour
         phasesToPlay.Sort();
         _playerInterfaceManager.RpcLog($"Phases to play: {string.Join(", ", phasesToPlay)}", LogType.Phase);
 
-        // Give the player choices to player turn stats and UI
-        var choices = new Phase[_nbPlayers * _gameManager.nbPhasesToChose];
-        var i = 0;
         foreach (var (player, phases) in _playerPhaseChoices) {
             foreach (var phase in phases){
                 // Player turn stats
@@ -174,14 +171,12 @@ public class TurnManager : NetworkBehaviour
                 else if (phase == Phase.Develop) player.Develops++;
                 else if (phase == Phase.Deploy) player.Deploys++;
                 else if(phase == Phase.Recruit) player.Recruits++;
-                // For phaseVisuals
-                choices[i] = phase;
-                i++;
             }
+
+            // Show opponent choices in PhaseVisuals
+            if(_gameManager.players.Count > 1) player.RpcShowOpponentChoices(phases);
         }
 
-        // Send choices to PhaseVisuals (via PlayerInterfaceManager)
-        OnPhasesSelected?.Invoke(choices);
         UpdateTurnState(TurnState.NextPhase);
     }
 
@@ -519,11 +514,17 @@ public class TurnManager : NetworkBehaviour
 
     private void CleanUp(){
         if(GameEnds()) return;
+        StartCoroutine(CleanUpIntermission());
+    }
 
+    private IEnumerator CleanUpIntermission(){
         OnPhaseChanged?.Invoke(TurnState.CleanUp);
         _readyPlayers.Clear();
-        _boardManager.DevelopmentsLooseHealth();
-        PlayersStatsResetAndDiscardMoney(endOfTurn: true);       
+        _boardManager.BoardCleanUp();
+        PlayersStatsResetAndDiscardMoney(endOfTurn: true);
+
+        yield return new WaitForSeconds(1f);
+
         UpdateTurnState(TurnState.PhaseSelection);
     }
 
