@@ -32,6 +32,9 @@ public class CreatureEntity : NetworkBehaviour, IPointerClickHandler
 
     private void Start(){
         DropZoneManager.OnCombatEnded += RpcResetAfterCombat;
+
+        if (isOwned) _creatureUI.UntapCreature(false);
+        else _creatureUI.UntapOpponentCreature();
     }
 
     public void CheckIfCanAct(CombatState newState){
@@ -44,12 +47,11 @@ public class CreatureEntity : NetworkBehaviour, IPointerClickHandler
     }
 
     [ClientRpc]
-    public void RpcIsAttacker(){
-        IsAttacking = true;
-        CanAct = false;
-        _creatureUI.ShowAsAttacker(true);
-        
+    public void RpcOpponentCreatureIsAttacker(){
         if (isOwned) return;
+
+        _isAttacking = true;
+        _creatureUI.ShowAsAttacker(true);
         _creatureUI.TapOpponentCreature();
     }
 
@@ -78,8 +80,7 @@ public class CreatureEntity : NetworkBehaviour, IPointerClickHandler
     [ClientRpc]
     public void RpcShowOpponentsBlockers(List<CreatureEntity> blockers){
         if (!isOwned) return;
-        foreach (var blocker in blockers)
-        {
+        foreach (var blocker in blockers){
             _arrowHandler.ShowOpponentBlocker(blocker.gameObject);
         }
     }
@@ -94,26 +95,26 @@ public class CreatureEntity : NetworkBehaviour, IPointerClickHandler
     }
 
     [ClientRpc]
-    public void RpcRetreatAttacker(){
-        if (isOwned) _creatureUI.UntapCreature(highlight: false);
-        else {
-            _creatureUI.UntapOpponentCreature();
-            _creatureUI.ShowAsAttacker(false);
-        }
-    }
-
-    [ClientRpc]
     public void RpcSetCombatHighlight() => _creatureUI.CombatHighlight();
     public void SetHighlight(bool active) => _creatureUI.Highlight(active);
     
     [ClientRpc]
     public void RpcResetAfterCombat(){
         CanAct = false;
-        IsAttacking = false;
+        if(IsAttacking){
+            RetreatAttacker();
+            IsAttacking = false;
+        }
 
-        if (isOwned) _creatureUI.UntapCreature(false);
-        else _creatureUI.UntapOpponentCreature();
         _creatureUI.ResetHighlight();
+    }
+
+    [ClientRpc]
+    public void RpcRetreatAttacker() => RetreatAttacker();
+
+    private void RetreatAttacker(){
+        if (isOwned) _creatureUI.UntapCreature(highlight: false);
+        else _creatureUI.UntapOpponentCreature();
     }
 
     public int GetHealth() => _bze.Health;

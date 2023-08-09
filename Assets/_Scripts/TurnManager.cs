@@ -513,7 +513,12 @@ public class TurnManager : NetworkBehaviour
     }
 
     private void CleanUp(){
-        if(GameEnds()) return;
+        if(GameEnds()){
+            _gameManager.EndGame();
+            UpdateTurnState(TurnState.Idle);
+            return;
+        }
+
         StartCoroutine(CleanUpIntermission());
     }
 
@@ -535,11 +540,6 @@ public class TurnManager : NetworkBehaviour
             
             OnPlayerDies?.Invoke(player);
             gameEnds = true;
-        }
-
-        if (gameEnds){
-            _gameManager.EndGame();
-            UpdateTurnState(TurnState.Idle);
         }
 
         return gameEnds;

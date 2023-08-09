@@ -19,7 +19,7 @@ public static class SorsColors
 
     // -- Entities --
     public static Color creatureHighlight = Color.green;
-    public static Color creatureAttacking = new Color( 0x00, 0x00, 0x00);
+    public static Color creatureClashing = new Color( 150, 0, 0);
     public static readonly Color creatureIdle = new Color( 0x50, 0x50, 0x50 );
 
     // -- Kingdom Tiles --
@@ -29,7 +29,6 @@ public static class SorsColors
 
     // -- Phases --
     public static Color phaseHighlight = new Color(1f, 1f, 0.7f, .6f);
-    public static Color phaseSelected = new Color(150, 100, 0);
 
     // -- Highlight --
     public static Color standardHighlight = Color.white;

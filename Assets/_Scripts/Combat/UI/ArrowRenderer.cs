@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class ArrowRenderer : MonoBehaviour
 {
+    public bool stopUpdating;
     public float height = 0.5f;
     public float segmentLength = 0.5f;
     public float fadeDistance = 0.35f;
@@ -14,32 +15,23 @@ public class ArrowRenderer : MonoBehaviour
     [Space] [SerializeField] Vector3 start;
     [SerializeField] Vector3 end;
     [SerializeField] Vector3 upwards = Vector3.up;
-
-    Transform arrow;
+    private Transform _arrow;
 
     readonly List<Transform> segments = new List<Transform>();
     readonly List<MeshRenderer> renderers = new List<MeshRenderer>();
 
-    public void SetOrigin(Vector3 origin)
-    {
-        start = origin;
-    }
+    public void SetOrigin(Vector3 origin) => start = origin;
+    public void SetTarget(Vector3 target) => end = target;
 
-    public void SetTarget(Vector3 target)
-    {
-        end = target;
-    }
-
-    public void SetPositions(Vector3 start0, Vector3 end0)
-    {
+    public void SetPositions(Vector3 start0, Vector3 end0){
         print("Setting position: " + start0 + end0);
         
         start = start0;
         end = end0;
     }
 
-    private void Update()
-    {
+    private void Update(){
+        if (stopUpdating) return;
         UpdateSegments();
     }
 
@@ -84,11 +76,11 @@ public class ArrowRenderer : MonoBehaviour
             rend.material.color = currentColor;
         }
 
-        if (!arrow)
-            arrow = Instantiate(arrowPrefab, transform).transform;
+        if (!_arrow)
+            _arrow = Instantiate(arrowPrefab, transform).transform;
 
-        arrow.localPosition = right;
-        arrow.localRotation = Quaternion.FromToRotation(Vector3.up, right - center);
+        _arrow.localPosition = right;
+        _arrow.localRotation = Quaternion.FromToRotation(Vector3.up, right - center);
 
         transform.position = start;
         transform.rotation = Quaternion.LookRotation(end - start, upwards);

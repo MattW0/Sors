@@ -20,7 +20,7 @@ public class PhasePanel : NetworkBehaviour
     
     private bool _animate;
     private int _nbPhasesToChose;
-    private PhasePanelUI _phaseVisualsUI;
+    private PhasePanelUI _phasePanelUI;
     private TurnScreenOverlay _turnScreenOverlay;
     public static event Action OnPhaseSelectionStarted;
     public static event Action OnPhaseSelectionConfirmed;
@@ -35,8 +35,8 @@ public class PhasePanel : NetworkBehaviour
     #region Prepare and Phase Selection
     [ClientRpc]
     public void RpcPreparePhasePanel(int nbPlayers, int nbPhasesToChose, bool animations){
-        _phaseVisualsUI = PhasePanelUI.Instance;
-        _phaseVisualsUI.PrepareUI(nbPlayers);
+        _phasePanelUI = PhasePanelUI.Instance;
+        _phasePanelUI.PrepareUI(nbPlayers);
         _turnScreenOverlay = TurnScreenOverlay.Instance;
 
         _nbPhasesToChose = nbPhasesToChose;
@@ -91,7 +91,7 @@ public class PhasePanel : NetworkBehaviour
             _ => -1
         };
 
-        _phaseVisualsUI.UpdatePhaseHighlight(newHighlightIndex);
+        _phasePanelUI.UpdatePhaseHighlight(newHighlightIndex);
     }
     
     [ClientRpc]
@@ -103,7 +103,7 @@ public class PhasePanel : NetworkBehaviour
             _ => -1
         };
         
-        _phaseVisualsUI.UpdatePhaseHighlight(newHighlightIndex);
+        _phasePanelUI.UpdatePhaseHighlight(newHighlightIndex);
     }
 
     #endregion
@@ -155,8 +155,10 @@ public class PhasePanel : NetworkBehaviour
         actionDescriptionText.text = text;
     }
 
-    
-
+    [ClientRpc]
+    public void RpcClearPlayerChoiceHighlights(){
+        _phasePanelUI.ClearPlayerChoiceHighlights();
+    }
     private void OnDestroy() {
         TurnManager.OnPhaseChanged -= RpcUpdatePhaseHighlight;
         CombatManager.OnCombatStateChanged -= RpcUpdateCombatHighlight;

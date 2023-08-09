@@ -62,9 +62,6 @@ public class PhasePanelUI : MonoBehaviour
         switch (newHighlightIndex) {
             case -1:  // No highlightable phase
                 return;
-            case -2: // End of turn (after clean-up)
-                ClearPlayerChoiceHighlights();
-                return;
             default:
                 progressBar.localScale = new Vector3(progressBarCheckpoints[newHighlightIndex], 1f, 1f);
                 break;
@@ -75,12 +72,10 @@ public class PhasePanelUI : MonoBehaviour
         _oldHighlight = _newHighlight;
     }
 
-    private void ClearPlayerChoiceHighlights(){
+    public void ClearPlayerChoiceHighlights(){
         foreach(var img in playerChoiceHighlights){
             if (img) img.enabled = false;
         }
-
-        progressBar.localScale = new Vector3(progressBarCheckpoints[0], 1f, 1f);
     }
     
     private void HighlightTransition(Graphic oldImg, Graphic newImg, bool phaseSelection=false){

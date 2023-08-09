@@ -69,7 +69,7 @@ public class BoardManager : NetworkBehaviour
         // Share attacker state accross clients
         foreach (var creature in _boardAttackers){
             creature.IsAttacking = true;
-            creature.RpcIsAttacker();
+            creature.RpcOpponentCreatureIsAttacker();
         }
     }
 
@@ -123,6 +123,7 @@ public class BoardManager : NetworkBehaviour
     public void BoardCleanUp(){
         // _phasePanel.RpcStartBoardCleanUp();
         _dropZone.DevelopmentsLooseHealth();
+        _phasePanel.RpcClearPlayerChoiceHighlights();
         ClearDeadEntities();
     }
 

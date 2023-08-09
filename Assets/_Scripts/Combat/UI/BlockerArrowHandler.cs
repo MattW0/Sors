@@ -27,11 +27,13 @@ public class BlockerArrowHandler : NetworkBehaviour, IPointerClickHandler
         }
     }
     
-    private void SpawnArrow()
+    private ArrowRenderer SpawnArrow()
     {
         var obj = Instantiate(arrowPrefab);
-        _arrow = obj.GetComponent<ArrowRenderer>();
-        _arrow.SetOrigin(creature.transform.position);
+        var arrow = obj.GetComponent<ArrowRenderer>();
+        arrow.SetOrigin(creature.transform.position);
+
+        return arrow;
     }
 
     public void OnPointerClick(PointerEventData eventData)
@@ -48,7 +50,7 @@ public class BlockerArrowHandler : NetworkBehaviour, IPointerClickHandler
         if (!creature.CanAct || creature.IsAttacking || _hasTarget) return;
         
         if (!_arrow) {
-            SpawnArrow();
+            _arrow = SpawnArrow();
             creature.GetOwner().PlayerChoosesBlocker(creature);
             return;
         }
@@ -76,8 +78,8 @@ public class BlockerArrowHandler : NetworkBehaviour, IPointerClickHandler
     
     public void ShowOpponentBlocker(GameObject blocker)
     {
-        SpawnArrow();
-        _arrow.SetTarget(blocker.transform.position);
+        var arrow = SpawnArrow();
+        arrow.SetTarget(blocker.transform.position);
     }
 
     private void FixedUpdate(){
@@ -89,9 +91,9 @@ public class BlockerArrowHandler : NetworkBehaviour, IPointerClickHandler
         // y value should be around 1.5f
         var v = Input.mousePosition;
         print(v);
-        v = v / 1000f;
         var v2 = new Vector3(v.x, 1.5f, v.y);
-        // v2 = v2 - _offset;
+        v2 = v2 - _offset;
+        v2 = v2 / 500f;
         print(v2);
         _arrow.SetTarget(v2);
     }

@@ -34,6 +34,7 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
             _phase = Phase.Combat;
             _phaseTitleUI.text = _phaseTitle;
             _phaseTitleMesh.text = _phaseTitle;
+            outline.CrossFadeAlpha(0f, 1f, false);
         } else {
             _phase = (Phase) System.Enum.Parse(typeof(Phase), gameObject.name);
             _phaseTitleUI.text = _phase.ToString();
@@ -50,7 +51,6 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
     public void StartSelection(){
         _selectable = true;
         IsSelected = false;
-
         outline.CrossFadeAlpha(0.5f, 1f, false);
     }
 
@@ -76,7 +76,6 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
             IsSelected = !_isSelected;
         } else {
             _phasePanel.PlayerPressedCombatButton();
-            _mesh.GetComponent<Image>().color = SorsColors.phaseSelected;
         }
     }
 

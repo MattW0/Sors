@@ -167,6 +167,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6006491305243057090, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7890556389027737346, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
       propertyPath: _creatureEntity
       value: 
@@ -210,36 +214,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 996279788543620859}
   m_CullTransparentMesh: 1
---- !u!114 &2683232006759079791
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 996279788543620859}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
 --- !u!114 &1215541394659439661 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3934348760645149788, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
@@ -269,9 +243,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   highlight: {fileID: 1215541394659439661}
-  attackerImage: {fileID: 2683232006759079791}
-  highlightColor: {r: 0.19188325, g: 0.8301887, b: 0.2386133, a: 1}
-  combatColor: {r: 0.6698113, g: 0.26855642, b: 0.26855642, a: 1}
+  attackerImage: {fileID: 5132242955792617022}
 --- !u!114 &3272610017555818009
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -310,6 +282,17 @@ MonoBehaviour:
   syncInterval: 0
   creature: {fileID: 3272610017555818009}
   arrowPrefab: {fileID: 1267180111628874, guid: b24208c45ab77f34ca68000102dfa908, type: 3}
+--- !u!114 &5132242955792617022 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7025200807447420495, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
+  m_PrefabInstance: {fileID: 2758425286859411569}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 996279788543620859}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &5460339764141637491 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7890556389027737346, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}

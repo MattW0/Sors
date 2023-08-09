@@ -33,6 +33,7 @@ public class DropZoneManager : NetworkBehaviour
         } else if(entity.cardType == CardType.Creature) {
             var creature = entity.GetComponent<CreatureEntity>();
             entityZones.AddCreature(creature, owner.isLocalPlayer);
+            creature.RpcRetreatAttacker();
         }
 
         entityZones.RpcMoveEntityToHolder(entity);
