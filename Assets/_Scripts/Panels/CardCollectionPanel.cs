@@ -12,7 +12,9 @@ public class CardCollectionPanel : NetworkBehaviour
     private PlayerManager _player;
 
     [Header("Helper Fields")]
-    [SerializeField] private GameObject _detailCardPrefab;
+    [SerializeField] private GameObject _creatureDetailCardPrefab;
+    [SerializeField] private GameObject _technologyDetailCardPrefab;
+    [SerializeField] private GameObject _moneyDetailCardPrefab;
     [SerializeField] private Transform _gridAll;
     [SerializeField] private Transform _gridChosen;
     private List<DetailCard> _detailCards = new();
@@ -51,7 +53,13 @@ public class CardCollectionPanel : NetworkBehaviour
     private void SpawnDetailCardObject(GameObject card, CardInfo cardInfo){
         _cache.Add(cardInfo, card);
 
-        var detailCardObject = Instantiate(_detailCardPrefab) as GameObject;
+        
+        var detailCardObject = cardInfo.type switch{
+            CardType.Creature => Instantiate(_creatureDetailCardPrefab) as GameObject,
+            CardType.Technology => Instantiate(_technologyDetailCardPrefab) as GameObject,
+            CardType.Money => Instantiate(_moneyDetailCardPrefab) as GameObject,
+            _ => throw new System.Exception("Card type not found")
+        };
         detailCardObject.transform.SetParent(_gridAll, false);
 
         var detailCard = detailCardObject.GetComponent<DetailCard>();

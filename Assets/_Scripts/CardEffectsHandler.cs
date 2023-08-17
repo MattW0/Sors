@@ -93,7 +93,7 @@ public class CardEffectsHandler : NetworkBehaviour
         yield return new WaitForSeconds(effectWaitTime);
 
         ExecuteEffect(entity, effect);
-        // if(entity.cardType == CardType.Development) entity.Health -= 1;
+        // if(entity.cardType == CardType.Technology) entity.Health -= 1;
 
         yield return new WaitForSeconds(effectWaitTime);
         entity.RpcEffectHighlight(false);

@@ -29,7 +29,7 @@ public class EntityUI : MonoBehaviour
         if(cardInfo.type == CardType.Creature){
             attack.text = cardInfo.attack.ToString();
             keywords.text = string.Join(", ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
-        } else if (cardInfo.type == CardType.Development){
+        } else if (cardInfo.type == CardType.Technology){
             points.text = cardInfo.points.ToString();
         }
     }

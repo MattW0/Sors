@@ -16,12 +16,8 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     [SerializeField] private TMP_Text _health;
     [SerializeField] private TMP_Text _points;
     [SerializeField] private TMP_Text _moneyValue;
-    [SerializeField] private GameObject _moneyUi;
-    [SerializeField] private GameObject _entityUi;
     [SerializeField] private TMP_Text _description;
     [SerializeField] private TMP_Text _keywords;
-    [SerializeField] private GameObject _attackObject;
-    [SerializeField] private GameObject _pointsObject;
 
     [Header("Card UI")]
     public bool enableFocus = true;
@@ -35,14 +31,10 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         _title.text = cardInfo.title;
         _cost.text = cardInfo.cost.ToString();
         
-        _moneyUi.SetActive(false);
-        _entityUi.SetActive(false);
-
         // Money
         if (cardInfo.type == CardType.Money) {
             _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Money/" + cardInfo.title);
             _moneyValue.text = cardInfo.moneyValue.ToString();
-            _moneyUi.SetActive(true);
             return;
         }
 
@@ -51,19 +43,14 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         _points.text = cardInfo.points.ToString();
         _description.text = cardInfo.description;
 
-        if (cardInfo.type == CardType.Development) {
+        if (cardInfo.type == CardType.Technology) {
             _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Development/development");
-            _keywords.text = "";
-            _attackObject.SetActive(false);
         } else {
             _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Creature/creature");
             _attack.text = cardInfo.attack.ToString();
             _keywords.text = string.Join(", ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
-            _pointsObject.SetActive(false);
-            _attackObject.SetActive(true);
         }
         
-        _entityUi.SetActive(true);
         return;
     }
 

@@ -25,11 +25,11 @@ public class KingdomTileUI : MonoBehaviour
             return;
         }
 
-        // Creature and Development
+        // Creature and Technology
         defenseText.text = card.health.ToString();
         description.text = card.description;
 
-        if (card.type == CardType.Development){
+        if (card.type == CardType.Technology){
             pointsText.text = card.points.ToString();
         } else if (card.type == CardType.Creature){
             attackText.text = card.attack.ToString();

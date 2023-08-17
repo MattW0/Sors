@@ -19,11 +19,17 @@ public class KingdomUI : MonoBehaviour
     [SerializeField] private TMP_Text _switchBtnText;
     [SerializeField] private Button confirm;
     [SerializeField] private Button skip;
-    [SerializeField] private DetailCard previewCard;
-
+    [SerializeField] private GameObject _creatureDetailCard;
+    [SerializeField] private GameObject _technologyDetailCard;
+    [SerializeField] private GameObject _moneyDetailCard;
     private void Awake()
     {
         if (!Instance) Instance = this;
+
+        maxView.SetActive(false);
+        _creatureDetailCard.SetActive(false);
+        _technologyDetailCard.SetActive(false);
+        _moneyDetailCard.SetActive(false);
     }
 
     private void Start()
@@ -48,14 +54,27 @@ public class KingdomUI : MonoBehaviour
 
     }
 
-    public void SelectTile(CardInfo cardInfo){ 
-        previewCard.SetCardUI(cardInfo);
-        previewCard.gameObject.SetActive(true);
+    public void SelectTile(CardInfo cardInfo){
+
+        var previewCardObject = cardInfo.type switch{
+            CardType.Creature => _creatureDetailCard,
+            CardType.Technology => _technologyDetailCard,
+            CardType.Money => _moneyDetailCard,
+            _ => null
+        };
+
+        var detailCard = previewCardObject.GetComponent<DetailCard>();
+        detailCard.SetCardUI(cardInfo);
+        previewCardObject.SetActive(true);
+
         confirm.interactable = true;
     }
 
     public void DeselectTile(){
-        previewCard.gameObject.SetActive(false);
+        _creatureDetailCard.SetActive(false);
+        _technologyDetailCard.SetActive(false);
+        _moneyDetailCard.SetActive(false);
+
         confirm.interactable = false;
     }
     #endregion
@@ -98,7 +117,11 @@ public class KingdomUI : MonoBehaviour
 
     public void EndPhase(){
         MinButton();
-        previewCard.gameObject.SetActive(false);
+        
+        _creatureDetailCard.SetActive(false);
+        _technologyDetailCard.SetActive(false);
+        _moneyDetailCard.SetActive(false);
+
         _interactionButtons.SetActive(true);
         _waitingText.SetActive(false);
         confirm.interactable = false;

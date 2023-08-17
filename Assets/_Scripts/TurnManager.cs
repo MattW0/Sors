@@ -284,7 +284,7 @@ public class TurnManager : NetworkBehaviour
         foreach (var (owner, cards) in _selectedKingdomCards) {
             foreach (var cardInfo in cards) {
                 if(cardInfo.type == CardType.Money) _gameManager.SpawnMoney(owner, cardInfo);
-                else if(cardInfo.type == CardType.Development) _gameManager.SpawnDevelopment(owner, cardInfo);
+                else if(cardInfo.type == CardType.Technology) _gameManager.SpawnDevelopment(owner, cardInfo);
                 else if(cardInfo.type == CardType.Creature) _gameManager.SpawnCreature(owner, cardInfo);
                 _playerInterfaceManager.RpcLog($"{owner.PlayerName} buys '{cardInfo.title}", LogType.CreatureBuy);
             }
@@ -316,7 +316,7 @@ public class TurnManager : NetworkBehaviour
 
     private void SpawnDetailCards(){
         CardType targetCardType = CardType.None;
-        if(turnState == TurnState.Develop) targetCardType = CardType.Development;
+        if(turnState == TurnState.Develop) targetCardType = CardType.Technology;
         else if(turnState == TurnState.Deploy) targetCardType = CardType.Creature;
 
         foreach(var player in _gameManager.players.Keys){

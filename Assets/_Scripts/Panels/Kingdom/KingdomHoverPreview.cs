@@ -5,12 +5,15 @@ using UnityEngine;
 public class KingdomHoverPreview : MonoBehaviour
 {
     [SerializeField] private RectTransform previewWindow;
-    [SerializeField] private DetailCard previewCard;
+    [SerializeField] private GameObject _creatureDetailCard;
+    [SerializeField] private GameObject _technologyDetailCard;
+    [SerializeField] private GameObject _moneyDetailCard;
 
     // _offset = absolute position of preview window + half of its size
-    private Vector3 _offset = new Vector3(960f, 540f, 0f);
-    private const float viewHeight = 400f;
-    private const float viewWidth = 260f;
+    // TODO: Is not proper yet
+    private Vector3 _offset = new Vector3(940f, 520f, 0f);
+    private const float viewHeight = 440f;
+    private const float viewWidth = 280f;
 
     public static Action<CardInfo> OnHoverTile;
     public static Action OnHoverExit;
@@ -28,17 +31,33 @@ public class KingdomHoverPreview : MonoBehaviour
 
     private void Start(){
         HidePreview();
+
+        _creatureDetailCard.SetActive(false);
+        _technologyDetailCard.SetActive(false);
+        _moneyDetailCard.SetActive(false);
     }
 
     //TODO: Make sure the whole window is within screen bounds
     private void ShowPreview(CardInfo cardInfo){
-        previewCard.SetCardUI(cardInfo);
+
+        var previewCardObject = cardInfo.type switch{
+            CardType.Creature => _creatureDetailCard,
+            CardType.Technology => _technologyDetailCard,
+            CardType.Money => _moneyDetailCard,
+            _ => null
+        };
+
+        var detailCard = previewCardObject.GetComponent<DetailCard>();
+        detailCard.SetCardUI(cardInfo);
+
         SetViewPosition();
-        previewWindow.gameObject.SetActive(true);
+        previewCardObject.SetActive(true);
     }
 
     private void HidePreview(){
-        previewWindow.gameObject.SetActive(false);
+        _creatureDetailCard.SetActive(false);
+        _technologyDetailCard.SetActive(false);
+        _moneyDetailCard.SetActive(false);
     }
 
     private void SetViewPosition(){

@@ -63,7 +63,7 @@ public struct CardInfo : IEquatable<CardInfo>
         this.health = 0;
         this.goID = null;
 
-        // this.type = CardType.Development;
+        // this.type = CardType.Technology;
         this.moneyValue = 0;
 
         this.keywordAbilities = null;
@@ -80,6 +80,6 @@ public enum CardType
 {
     Creature,
     Money,
-    Development,
+    Technology,
     None
 }

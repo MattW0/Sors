@@ -52,7 +52,7 @@ public class KingdomTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
         Cost = card.cost;
         _ui.SetTileUI(card);
 
-        if(card.type == CardType.Money || card.type == CardType.Development){
+        if(card.type == CardType.Money || card.type == CardType.Technology){
             Kingdom.OnDevelopPhaseEnded += EndDevelopPhase;
         } else if (card.type == CardType.Creature){
             Kingdom.OnRecruitPhaseEnded += EndRecruitPhase;

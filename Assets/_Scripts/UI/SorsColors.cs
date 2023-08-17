@@ -1,21 +1,21 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 // using System.Drawing;
 
 public static class SorsColors
 {
-
-    // load css from C:\Users\Matthias\Desktop\Sors\MirrorSors\Assets\Resources\colors.css
-    // and get colors by calling GetColor() with a string from the css file
-
-
-
     // -- Players --
     public static Color playerOne = new Color(0f, 0.5f, 0.01f);
     public static Color playerTwo = new Color(0f, 0.08f, 0.54f);
 
+    // -- Play Board --
+    public static Color creature = new Color(0.34f, 0f, 0f);
+    public static Color technology = new Color(0f, 0f, 0.34f);
+    public static Color cash = new Color(0.1f, 0.5f, 0.35f);
+    public static Color costValue = new Color(1f, 0.9f, 0.3f);
+    public static Color attackValue = new Color(0.96f, 0.27f, 0.25f);
+    public static Color healthValue = new Color(0.2f, 0.44f, 0.92f);
+    public static Color pointsValue = new Color(0.37f, 0.77f, 0.29f);
+    public static Color moneyValue = Color.grey;
 
     // -- Entities --
     public static Color creatureHighlight = Color.green;
@@ -51,4 +51,16 @@ public static class SorsColors
         ColorUtility.TryParseHtmlString(hexColor, out Color color);
         return color;
     }
+}
+
+
+public enum ColorType{
+    Creature,
+    Technology,
+    Cash,
+    Cost,
+    Attack,
+    Health,
+    Points,
+    MoneyValue,
 }

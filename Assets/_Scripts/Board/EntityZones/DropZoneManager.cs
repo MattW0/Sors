@@ -27,7 +27,7 @@ public class DropZoneManager : NetworkBehaviour
     public void EntityEntersDropZone(PlayerManager owner, BattleZoneEntity entity)
     {
         // print("Entering dropzone, owner: " + owner.name + ", card: " + entity.name);
-        if(entity.cardType == CardType.Development) {
+        if(entity.cardType == CardType.Technology) {
             var development = entity.GetComponent<DevelopmentEntity>();
             entityZones.AddDevelopment(development, owner.isLocalPlayer);
         } else if(entity.cardType == CardType.Creature) {
@@ -42,7 +42,7 @@ public class DropZoneManager : NetworkBehaviour
     [Server]
     public void EntityLeavesPlayZone(BattleZoneEntity entity)
     {
-        if(entity.cardType == CardType.Development) {
+        if(entity.cardType == CardType.Technology) {
             var development = entity.GetComponent<DevelopmentEntity>();
             entityZones.RemoveDevelopment(development, entity.Owner.isLocalPlayer);
         } else if(entity.cardType == CardType.Creature) {

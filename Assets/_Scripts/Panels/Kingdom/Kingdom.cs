@@ -84,7 +84,7 @@ public class Kingdom : NetworkBehaviour
     public void TargetKingdomPriceReduction(NetworkConnection target, CardType type, int priceReduction){
         if (type == CardType.Money){
             foreach(var tile in moneyTiles) tile.SetBonus(priceReduction);
-        } else if (type == CardType.Development){
+        } else if (type == CardType.Technology){
             foreach(var tile in technologyTiles) tile.SetBonus(priceReduction);
         } else if (_currentPhase == Phase.Recruit){
             foreach(var tile in creatureTiles) tile.SetBonus(priceReduction);
@@ -104,6 +104,8 @@ public class Kingdom : NetworkBehaviour
     
     public void PreviewCard(CardInfo cardInfo) => _ui.PreviewCard(cardInfo);
     public void PlayerSelectsTile(KingdomTile tile){
+        PlayerDeselectsTile();
+        
         _selectedTile = tile;
         _ui.SelectTile(tile.cardInfo);
 

@@ -40,7 +40,7 @@ public class CardUI : MonoBehaviour
             _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Money/" + cardInfo.title);
             _moneyValue.text = cardInfo.moneyValue.ToString();
             _moneyUi.SetActive(true);
-        } else if (cardInfo.type == CardType.Development) {
+        } else if (cardInfo.type == CardType.Technology) {
             _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Development/development");
             _points.text = cardInfo.points.ToString();
             _health.text = cardInfo.health.ToString();

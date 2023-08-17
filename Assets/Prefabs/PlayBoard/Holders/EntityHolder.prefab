@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 5234390986977463035}
   - component: {fileID: 5234390986977463029}
   - component: {fileID: 5234390986977463028}
+  - component: {fileID: 1366503083813118826}
   m_Layer: 5
   m_Name: Outline
   m_TagString: Untagged
@@ -59,7 +60,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.9528302, g: 0.7459278, b: 0.4719206, a: 0.46666667}
+  m_Color: {r: 0, g: 0, b: 0.34, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -76,6 +77,21 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &1366503083813118826
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5234390986977463034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d61b8ef3f6da1d4d9dfea13aec14fd2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  colorType: 1
+  image: {fileID: 5234390986977463028}
+  alpha: 0.5
 --- !u!1 &5234390987631226598
 GameObject:
   m_ObjectHideFlags: 0

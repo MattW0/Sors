@@ -93,7 +93,7 @@ public class EntityZones : NetworkBehaviour
     {
         var index = 0;
         if(entity.isOwned){
-            if(entity.cardType == CardType.Development){
+            if(entity.cardType == CardType.Technology){
                 index = GetFirstFreeHolderIndex(_playerDevelopmentHolders);
                 return _playerDevelopmentHolders[index].transform;
             } else if(entity.cardType == CardType.Creature){
@@ -103,7 +103,7 @@ public class EntityZones : NetworkBehaviour
         }
         
         // Opponent Entity
-        if(entity.cardType == CardType.Development){
+        if(entity.cardType == CardType.Technology){
             index = GetFirstFreeHolderIndex(_opponentDevelopmentHolders);
             return _opponentDevelopmentHolders[index].transform;
         } else if(entity.cardType == CardType.Creature){

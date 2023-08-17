@@ -68,7 +68,7 @@ public class PlayerManager : NetworkBehaviour
     private int _cash;
     public int Cash { 
         get => _cash;
-        set => SetCashValue(value); // Invoke OnCashChanged and update UI
+        set => SetMoneyValue(value); // Invoke OnCashChanged and update UI
     }
 
     [SyncVar] private int _invents = 1;
@@ -415,13 +415,13 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Server]
-    private void SetCashValue(int value){
+    private void SetMoneyValue(int value){
         _cash = value;
-        RpcUISetCashValue(value);
+        RpcUISetMoneyValue(value);
     }
 
     [ClientRpc]
-    private void RpcUISetCashValue(int value){
+    private void RpcUISetMoneyValue(int value){
         OnCashChanged?.Invoke(this, value);
         
         if(isOwned) _playerUI.SetCash(value);
