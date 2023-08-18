@@ -1,8 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
-public class CardZoomView : MonoBehaviour
+public class CardZoomView : MonoBehaviour, IPointerClickHandler
 {
     public static CardZoomView Instance { get; private set; }
     [SerializeField] private GameObject _cardZoomView;
@@ -37,7 +36,11 @@ public class CardZoomView : MonoBehaviour
         detailCard.DisableFocus();
     }
 
-    public void OnClose(){
+    public void OnPointerClick(PointerEventData eventData){
+        if (eventData.button == PointerEventData.InputButton.Left) Close();
+    }
+
+    public void Close(){
         _cardZoomView.SetActive(false);
         _openedCardObject.SetActive(false);
     }

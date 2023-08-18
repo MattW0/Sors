@@ -6,8 +6,7 @@ public class SetColor : MonoBehaviour
 {
     [SerializeField] private ColorType colorType;
     [SerializeField] private Image image;
-    [Range(0, 1)]
-    [SerializeField] private float alpha = 1f;
+    [Range(0, 1), SerializeField] private float alpha = 1f;
     
 #if UNITY_EDITOR
     void Start()
@@ -22,6 +21,7 @@ public class SetColor : MonoBehaviour
             ColorType.Health => SorsColors.healthValue,
             ColorType.Points => SorsColors.pointsValue,
             ColorType.MoneyValue => SorsColors.moneyValue,
+            ColorType.Neutral => SorsColors.neutral_dark,
             _ => Color.white
         };
 

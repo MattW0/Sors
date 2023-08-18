@@ -1,16 +1,11 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using Mirror;
-using UnityEngine.EventSystems;
 
 
-public class CardStats : NetworkBehaviour, IPointerClickHandler
+public class CardStats : NetworkBehaviour
 {
     public PlayerManager owner { get; private set; }
     public CardInfo cardInfo;
     private CardUI _cardUI;
-    private CardZoomView _cardZoomView;
 
     private bool _interactable;
     public bool IsInteractable { 
@@ -45,22 +40,12 @@ public class CardStats : NetworkBehaviour, IPointerClickHandler
         owner = networkIdentity.GetComponent<PlayerManager>();
         
         _cardUI = gameObject.GetComponent<CardUI>();
-        _cardZoomView = CardZoomView.Instance;
     }
 
     [ClientRpc]
-    public void RpcSetCardStats(CardInfo card)
-    {
+    public void RpcSetCardStats(CardInfo card){
         cardInfo = card;
         _cardUI.SetCardUI(card);
-    }
-
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        if (eventData.button == PointerEventData.InputButton.Right)
-        {
-            _cardZoomView.ZoomCard(cardInfo);
-        }
     }
 
     public void SetHighlight() => _cardUI.Highlight(IsInteractable, SorsColors.interactionHighlight);

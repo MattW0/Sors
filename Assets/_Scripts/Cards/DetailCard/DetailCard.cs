@@ -31,6 +31,7 @@ public class DetailCard : MonoBehaviour, IPointerClickHandler
 
     public void SetCardUI(CardInfo card) {
         _cardInfo = card;
+        gameObject.GetComponent<CardClick>().SetCardInfo(card);
         _ui.SetCardUI(card);
     }
 
@@ -40,8 +41,11 @@ public class DetailCard : MonoBehaviour, IPointerClickHandler
         if(state == TurnState.Discard || state == TurnState.Trash) isChoosable = true;
     }
 
-    public void OnPointerClick(PointerEventData eventData)
-    {
+    public void OnPointerClick(PointerEventData eventData){
+
+        // check if right click
+        if (eventData.button != PointerEventData.InputButton.Left) return;
+
         if (!isChoosable) return;
         IsChosen = !_chosen;
     }
