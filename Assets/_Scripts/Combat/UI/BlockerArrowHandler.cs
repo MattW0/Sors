@@ -83,18 +83,22 @@ public class BlockerArrowHandler : NetworkBehaviour, IPointerClickHandler
 
     private void FixedUpdate(){
         if (!_arrow || _hasTarget) return;
-        
-        // TODO: Arrow position is something in the range of [(-10, -7), (10, 7)] (x, z)
-        // Find exact values, and offset to middle of screen (0, 0)
-        // Normalize mouse position to this range and it will work
-        // y value should be around 1.5f
-        var v = Input.mousePosition;
-        print(v);
-        var v2 = new Vector3(v.x, 1.5f, v.y);
-        v2 = v2 - _offset;
-        v2 = v2 / 500f;
-        print(v2);
-        _arrow.SetTarget(v2);
+        var input = new Vector3(Input.mousePosition.x, 0.5f, Input.mousePosition.y);
+
+        // Input range X: [0, 1920], Y: 0, Z: [0, 1080]
+        // Arrow renderer range X: [-9.7, 9.7], Y: 0.5, Z: [-5.5, 5.5]
+
+        // X: [0, 1920] -> X: [-9.7, 9.7]
+        input.x = (input.x / 1920f) * 19.4f - 9.7f;
+
+        // Z: [0, 1080] -> Z: [-5.5, 5.5]
+        input.z = (input.z / 1080f) * 11f - 5.5f;
+
+        // clamp
+        input.x = Mathf.Clamp(input.x, -9.7f, 9.7f);
+        input.z = Mathf.Clamp(input.z, -5.5f, 5.5f);
+
+        _arrow.SetTarget(input);
     }
 
     private void OnDestroy()

@@ -220,10 +220,8 @@ public class TurnManager : NetworkBehaviour
         foreach(var player in _gameManager.players.Keys){
             var cardObjects = GameManager.CardInfosToGameObjects(player.hand);
             _cardCollectionPanel.TargetShowCardCollection(player.connectionToClient, 
-                cardObjects, player.hand);
+                turnState, cardObjects, player.hand);
         }
-
-        _cardCollectionPanel.RpcBeginState(TurnState.Discard);
     }
     public void PlayerSelectedDiscardCards(PlayerManager player) => PlayerIsReady(player);
 
@@ -310,23 +308,15 @@ public class TurnManager : NetworkBehaviour
         foreach(var cardsList in _selectedHandCards.Values) cardsList.Clear();
 
         _handManager.RpcHighlightMoney(true);
-        SpawnDetailCards();
-        _cardCollectionPanel.RpcBeginState(turnState);
+        StartShowPlayerHand();
     }
 
-    private void SpawnDetailCards(){
-        CardType targetCardType = CardType.None;
-        if(turnState == TurnState.Develop) targetCardType = CardType.Technology;
-        else if(turnState == TurnState.Deploy) targetCardType = CardType.Creature;
-
+    private void StartShowPlayerHand(){
+        
         foreach(var player in _gameManager.players.Keys){
-            List<CardInfo> cards = new();
-            foreach(var card in player.hand){
-                if(card.type == targetCardType) cards.Add(card);
-            }
-            var cardObjects = GameManager.CardInfosToGameObjects(cards);
+            var cardObjects = GameManager.CardInfosToGameObjects(player.hand);
             _cardCollectionPanel.TargetShowCardCollection(player.connectionToClient, 
-                cardObjects, cards);
+                turnState, cardObjects, player.hand);
         }
     }
 
@@ -361,6 +351,7 @@ public class TurnManager : NetworkBehaviour
             }
         }
 
+        // TODO: Need to await resolution of ability queue from cards that were just played
         if(anotherPlay) StartCoroutine(PlayCardsIntermission());
         else EndPlayCards();
     }
@@ -455,7 +446,7 @@ public class TurnManager : NetworkBehaviour
         foreach (var (player, options) in _playerPrevailOptions){
             var cardObjects = GameManager.CardInfosToGameObjects(player.hand);
             _cardCollectionPanel.TargetShowCardCollection(player.connectionToClient, 
-                cardObjects, player.hand);
+                turnState, cardObjects, player.hand);
 
             var nbPicks = options.Count(option => option == PrevailOption.Trash);
             _cardCollectionPanel.TargetBeginTrash(player.connectionToClient, nbPicks);

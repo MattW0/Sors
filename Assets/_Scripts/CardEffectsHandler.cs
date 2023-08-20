@@ -16,7 +16,7 @@ public class CardEffectsHandler : NetworkBehaviour
         get => _continue; 
         set {
             _continue = value;
-            if(value) _turnManager.NextTurnState(_nextPhase);
+            // if(value) _turnManager.NextTurnState(_nextPhase);
         }
     }
 
@@ -44,7 +44,7 @@ public class CardEffectsHandler : NetworkBehaviour
 
             // Dont add the relation to the dict as it resolves immediately
             if (trigger == Trigger.When_enters_the_battlefield){
-                StartCoroutine(FindEntityOwner(entity, ability));
+                StartCoroutine(BeginAbility(entity, ability));
                 continue;
             }
             
@@ -83,7 +83,7 @@ public class CardEffectsHandler : NetworkBehaviour
             foreach (var ability in _presentAbilities[entity]){
                 if (ability.trigger != phaseTrigger) 
                     continue;
-                StartCoroutine(FindEntityOwner(entity, ability));
+                StartCoroutine(BeginAbility(entity, ability));
             }
         }
 
@@ -91,17 +91,17 @@ public class CardEffectsHandler : NetworkBehaviour
         // TODO: Verify if there is a better solution to sync the animation and _turnManager continuation
     }
     
-    private IEnumerator FindEntityOwner(BattleZoneEntity entity, Ability ability){
+    private IEnumerator BeginAbility(BattleZoneEntity entity, Ability ability){
         // Wait for Owner (and other info) to be initialized
         // It isn't if entity ETBd as the last action before this trigger
         while(!entity.Owner) yield return null;
 
         _playerInterfaceManager.RpcLog($"'{entity.Title}': {ability.trigger} -> {ability.effect}", LogType.EffectTrigger);
         print($"'{entity.Title}': {ability.trigger} -> {ability.effect}");
-        StartCoroutine(BeginEffectExecution(entity, ability));
+        StartCoroutine(BeginAbilityExecution(entity, ability));
     }
 
-    private IEnumerator BeginEffectExecution(BattleZoneEntity entity, Ability ability){
+    private IEnumerator BeginAbilityExecution(BattleZoneEntity entity, Ability ability){
 
         entity.RpcEffectHighlight(true);
         CheckForPlayerInput(entity, ability);
@@ -121,13 +121,6 @@ public class CardEffectsHandler : NetworkBehaviour
 
         yield return new WaitForSeconds(effectWaitTime);
         entity.RpcEffectHighlight(false);
-    }
-
-    private IEnumerator WaitForInput(){
-        while(!_continue) yield return null;
-
-        _continue = false;
-        yield return null;
     }
 
     private void CheckForPlayerInput(BattleZoneEntity entity, Ability ability){

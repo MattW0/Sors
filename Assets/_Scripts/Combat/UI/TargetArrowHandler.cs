@@ -17,7 +17,6 @@ public class TargetArrowHandler : MonoBehaviour, IPointerClickHandler
         var origin = entity.transform.position;
         origin.y = 0.5f;
         _arrow.SetOrigin(origin);
-        print("Spawned arrow at : " + entity.transform.position);
     }
 
     public void OnPointerClick(PointerEventData eventData)
@@ -33,19 +32,18 @@ public class TargetArrowHandler : MonoBehaviour, IPointerClickHandler
     {
         if (!_arrow || _hasTarget) return;
         var input = new Vector3(Input.mousePosition.x, 0.5f, Input.mousePosition.y);
-        // print(input);
 
         // Input range X: [0, 1920], Y: 0, Z: [0, 1080]
-        // Arrow renderer range X: [-10, 10.3], Y: 0.5, Z: [-5.5, 5.5]
+        // Arrow renderer range X: [-9.7, 9.7], Y: 0.5, Z: [-5.5, 5.5]
 
-        // X: [0, 1920] -> X: [-10, 10.3]
-        input.x = (input.x / 1920f) * 20.3f - 10f;
+        // X: [0, 1920] -> X: [-9.7, 9.7]
+        input.x = (input.x / 1920f) * 19.4f - 9.7f;
 
         // Z: [0, 1080] -> Z: [-5.5, 5.5]
         input.z = (input.z / 1080f) * 11f - 5.5f;
 
         // clamp
-        input.x = Mathf.Clamp(input.x, -10f, 10.3f);
+        input.x = Mathf.Clamp(input.x, -9.7f, 9.7f);
         input.z = Mathf.Clamp(input.z, -5.5f, 5.5f);
 
         _arrow.SetTarget(input);

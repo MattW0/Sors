@@ -9,14 +9,11 @@ public class CardCollectionPanel : NetworkBehaviour
 {
     public static CardCollectionPanel Instance { get; private set; }
     [SerializeField] private CardCollectionPanelUI _ui;
+    [SerializeField] private CardSpawner _cardSpawner;
     private PlayerManager _player;
 
     [Header("Helper Fields")]
-    [SerializeField] private GameObject _creatureDetailCardPrefab;
-    [SerializeField] private GameObject _technologyDetailCardPrefab;
-    [SerializeField] private GameObject _moneyDetailCardPrefab;
-    [SerializeField] private Transform _gridAll;
-    [SerializeField] private Transform _gridChosen;
+    
     private List<DetailCard> _detailCards = new();
     private List<CardInfo> _selectedCards = new();
     // Linking detail cards with their hand card gameobject
@@ -33,38 +30,36 @@ public class CardCollectionPanel : NetworkBehaviour
     }
 
     [TargetRpc]
-    public void TargetShowCardCollection(NetworkConnection target, List<GameObject> cardObjects, List<CardInfo> cardInfos){
-        for (var i=0; i<cardInfos.Count; i++) SpawnDetailCardObject(cardObjects[i], cardInfos[i]);
+    public void TargetShowCardCollection(NetworkConnection target, TurnState turnState, 
+                                         List<GameObject> cardObjects, List<CardInfo> handCards)
+    {
+        var targetCardType = CardType.None;
+        if(turnState == TurnState.Develop) targetCardType = CardType.Technology;
+        else if(turnState == TurnState.Deploy) targetCardType = CardType.Creature;
+
+        var detailCardObjects = new List<GameObject>();
+        for(var i=0; i<handCards.Count; i++){
+
+            var cardInfo = handCards[i];
+            _cache.Add(cardInfo, cardObjects[i]);
+
+            if(targetCardType == CardType.None){
+                // Show all cards
+                var detailCard = _cardSpawner.SpawnDetailCardObject(cardInfo);
+                _detailCards.Add(detailCard);
+                continue;
+            }
+
+            // Else show only cards of the target type and money in seperate grids
+            // if(cardInfo.type == CardType.Money) moneyCards.Add(card);
+            // else if(cardInfo.type == targetCardType) entityCards.Add(card);
+        }
+
         _ui.ToggleView();
     }
 
-    public void AddCardToChosen(Transform t, CardInfo card){
-        t.SetParent(_gridChosen, false);
-        _selectedCards.Add(card);
-        _ui.UpdateInteractionElements(_selectedCards.Count);
-    }
+    private void SpawnMoneyDetailCard(CardInfo cardInfo){
 
-    public void RemoveCardFromChosen(Transform t, CardInfo card){
-        t.SetParent(_gridAll, false);
-        _selectedCards.Remove(card);
-        _ui.UpdateInteractionElements(_selectedCards.Count);
-    }
-
-    private void SpawnDetailCardObject(GameObject card, CardInfo cardInfo){
-        _cache.Add(cardInfo, card);
-
-        
-        var detailCardObject = cardInfo.type switch{
-            CardType.Creature => Instantiate(_creatureDetailCardPrefab) as GameObject,
-            CardType.Technology => Instantiate(_technologyDetailCardPrefab) as GameObject,
-            CardType.Money => Instantiate(_moneyDetailCardPrefab) as GameObject,
-            _ => throw new System.Exception("Card type not found")
-        };
-        detailCardObject.transform.SetParent(_gridAll, false);
-
-        var detailCard = detailCardObject.GetComponent<DetailCard>();
-        detailCard.SetCardUI(cardInfo);
-        _detailCards.Add(detailCard);
     }
 
     #region States
@@ -81,11 +76,6 @@ public class CardCollectionPanel : NetworkBehaviour
         _ui.BeginTrash(nbCardsToTrash);
     }
 
-    public void ConfirmDiscard(){
-        var cards = _selectedCards.Select(card => _cache[card]).ToList();
-        _player.CmdDiscardSelection(cards);
-    }
-
     [TargetRpc]
     public void TargetCheckPlayability(NetworkConnection target, int currentCash){
         foreach (var card in _detailCards) card.CheckPlayability(currentCash);
@@ -94,13 +84,16 @@ public class CardCollectionPanel : NetworkBehaviour
     public void ConfirmPlay(){
         var card = _cache[_selectedCards[0]];
         _player.CmdPlayCard(card);
+        _detailCards.Remove(card.GetComponent<DetailCard>());
 
         // _detailCards.Remove(card.GetComponent<DetailCard>());
         _selectedCards.Clear();
-        foreach (Transform child in _gridChosen) {
-            _detailCards.Remove(child.gameObject.GetComponent<DetailCard>());
-            Destroy(child.gameObject);
-        }
+        _cardSpawner.ClearChosenGrid();
+    }
+
+    public void ConfirmDiscard(){
+        var cards = _selectedCards.Select(card => _cache[card]).ToList();
+        _player.CmdDiscardSelection(cards);
     }
 
     public void ConfirmTrash(){
@@ -110,6 +103,18 @@ public class CardCollectionPanel : NetworkBehaviour
 
     
     #endregion
+
+    public void AddCardToChosen(Transform t, CardInfo card){
+        t.SetParent(_gridChosen, false);
+        _selectedCards.Add(card);
+        _ui.UpdateInteractionElements(_selectedCards.Count);
+    }
+
+    public void RemoveCardFromChosen(Transform t, CardInfo card){
+        t.SetParent(_gridAll, false);
+        _selectedCards.Remove(card);
+        _ui.UpdateInteractionElements(_selectedCards.Count);
+    }
 
     [ClientRpc]
     public void RpcResetPanel(){
@@ -124,8 +129,7 @@ public class CardCollectionPanel : NetworkBehaviour
     }
 
     public void ClearPanel(){
-        foreach (Transform child in _gridAll) Destroy(child.gameObject);
-        foreach (Transform child in _gridChosen) Destroy(child.gameObject);
+        _cardSpawner.ClearGrids();
         _detailCards.Clear();
         _selectedCards.Clear();
         _cache.Clear();
