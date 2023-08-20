@@ -253,7 +253,7 @@ public class TurnManager : NetworkBehaviour
     }
 
     public void PlayerGetsKingdomBonus(PlayerManager player, CardType type, int amount) {
-        // Public because effectsHandler can call this
+        // Public because EffectHandler can call this
         _kingdom.TargetKingdomPriceReduction(player.connectionToClient, type, amount);
     }
 
@@ -498,20 +498,17 @@ public class TurnManager : NetworkBehaviour
     }
     #endregion
 
-    public void ForceEndTurn(){
-        _handManager.RpcResetHighlight();
-        _cardCollectionPanel.RpcResetPanel();
-        _kingdom.RpcEndKingdomPhase();
-        _boardManager.ShowHolders(false);
+    #region PlayerInputs
 
-        combatManager.ResolveCombat(true);
-
-        _prevailPanel.RpcOptionsSelected();
-        _prevailPanel.RpcReset();
-
-        CleanUp();
+    public void PlayerStartSelectTarget(BattleZoneEntity entity, Ability ability){
+        var owner = entity.Owner;
+        _boardManager.FindTargets(entity, ability.target);
+        entity.TargetSpawnTargetArrow(owner.connectionToClient);
     }
 
+    #endregion
+
+    #region EndPhase
     private void CleanUp(){
         if(GameEnds()){
             _gameManager.EndGame();
@@ -544,6 +541,8 @@ public class TurnManager : NetworkBehaviour
 
         return gameEnds;
     }
+
+    #endregion
     
     #region HelperFunctions
     public void PlayerIsReady(PlayerManager player){
@@ -612,6 +611,20 @@ public class TurnManager : NetworkBehaviour
             player.chosenPhases.Clear();
             player.chosenPrevailOptions.Clear();
         }
+    }
+
+    public void ForceEndTurn(){ // experimental
+        _handManager.RpcResetHighlight();
+        _cardCollectionPanel.RpcResetPanel();
+        _kingdom.RpcEndKingdomPhase();
+        _boardManager.ShowHolders(false);
+
+        combatManager.ResolveCombat(true);
+
+        _prevailPanel.RpcOptionsSelected();
+        _prevailPanel.RpcReset();
+
+        CleanUp();
     }
     #endregion
 

@@ -53,6 +53,22 @@ public class DropZoneManager : NetworkBehaviour
 
     #endregion
 
+    [Server]
+    public void ShowEntities(PlayerManager owner, EffectTarget target){
+        var entities = entityZones.GetAllEntities();
+        print("Showing targets, owner: " + owner.PlayerName + ", target: " + target);
+        print("targets count: " + entities.Count);
+
+        TargetMakeTargetable(owner.connectionToClient, entities);
+    }
+
+    [TargetRpc]
+    private void TargetMakeTargetable(NetworkConnection conn, List<BattleZoneEntity> entities){
+        foreach (var entity in entities) {
+            entity.Targetable = true;
+        }
+    }
+
     #region Attackers
 
     [Server]

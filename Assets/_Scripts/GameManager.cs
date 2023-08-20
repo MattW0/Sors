@@ -31,7 +31,7 @@ public class GameManager : NetworkBehaviour {
     private int _nbDevelopTiles;
     private int _nbCreatureTiles;
     [SerializeField] private int initialDeckSize = 10;
-    [SerializeField] private int initialCreatures = 2;
+    [SerializeField] private int initialCreatures = 3;
     [SerializeField] private int initialDevelopments = 2;
     [SerializeField] private int initialHandSize = 6;
     public int startHealth = 10;
@@ -121,13 +121,13 @@ public class GameManager : NetworkBehaviour {
     #region Setup
 
     private void LoadCards(){
-        startCreatures = Resources.LoadAll<ScriptableCard>("StartCards/Creatures/");
-        startDevelopments = Resources.LoadAll<ScriptableCard>("StartCards/Developments/");
+        startCreatures = Resources.LoadAll<ScriptableCard>("Cards/StartCards/Creatures/");
+        startDevelopments = Resources.LoadAll<ScriptableCard>("Cards/StartCards/Developments/");
 
         // Databases of generated cards
-        creatureCardsDb = Resources.LoadAll<ScriptableCard>("CreatureCards/");
-        developCardsDb = Resources.LoadAll<ScriptableCard>("DevelopCards/");
-        moneyCardsDb = Resources.LoadAll<ScriptableCard>("MoneyCards/");
+        creatureCardsDb = Resources.LoadAll<ScriptableCard>("Cards/CreatureCards/");
+        developCardsDb = Resources.LoadAll<ScriptableCard>("Cards/DevelopCards/");
+        moneyCardsDb = Resources.LoadAll<ScriptableCard>("Cards/MoneyCards/");
 
         print(" ---------- Available cards: ---------- ");
         print("Creature cards: " + creatureCardsDb.Length);
@@ -236,7 +236,7 @@ public class GameManager : NetworkBehaviour {
         }
 
         // Creatures
-        for (var i = 0; i < initialCreatures; i++){
+        for (var i = 0; i < initialDevelopments; i++){
             var scriptableCard = startDevelopments[i]; // Start Developments: 'A', 'B'
             var cardObject = Instantiate(developCardPrefab) as GameObject;
             var cardInfo = SpawnAndCacheCard(playerManager, cardObject, scriptableCard);
@@ -246,7 +246,7 @@ public class GameManager : NetworkBehaviour {
 
     public void SpawnMoney(PlayerManager player, CardInfo card){
         // using hash as index for currency scriptable objects
-        var scriptableCard = Resources.Load<ScriptableCard>("MoneyCards/" + card.hash + "_" + card.title);
+        var scriptableCard = Resources.Load<ScriptableCard>("Cards/MoneyCards/" + card.hash + "_" + card.title);
         var cardObject = Instantiate(moneyCardPrefab);
         var cardInfo = SpawnAndCacheCard(player, cardObject, scriptableCard);
         MoveSpawnedCard(player, cardObject, cardInfo, CardLocation.Discard);
@@ -254,7 +254,7 @@ public class GameManager : NetworkBehaviour {
 
     public void SpawnDevelopment(PlayerManager player, CardInfo card){
         // using hash as index for currency scriptable objects
-        var scriptableCard = Resources.Load<ScriptableCard>("DevelopCards/" + card.title);
+        var scriptableCard = Resources.Load<ScriptableCard>("Cards/DevelopCards/" + card.title);
         var cardObject = Instantiate(developCardPrefab);
         var cardInfo = SpawnAndCacheCard(player, cardObject, scriptableCard);
         MoveSpawnedCard(player, cardObject, cardInfo, CardLocation.Discard);
@@ -263,7 +263,7 @@ public class GameManager : NetworkBehaviour {
     public void SpawnCreature(PlayerManager player, CardInfo card){
         _kingdom.RpcReplaceRecruitTile(card.title, GetNewCreatureFromDb());
 
-        var scriptableCard = Resources.Load<ScriptableCard>("creatureCards/" + card.title);
+        var scriptableCard = Resources.Load<ScriptableCard>("Cards/CreatureCards/" + card.title);
         var cardObject = Instantiate(creatureCardPrefab);
         var cardInfo = SpawnAndCacheCard(player, cardObject, scriptableCard);
         MoveSpawnedCard(player, cardObject, cardInfo, CardLocation.Discard);

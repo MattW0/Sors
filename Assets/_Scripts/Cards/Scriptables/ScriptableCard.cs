@@ -22,8 +22,7 @@ public class ScriptableCard : ScriptableObject
     public int moneyValue;
 
     [Header("Special Effects")]
-    public List<Triggers> triggers;
-    public List<Effects> effects;
+    public List<Ability> abilities;
 
     [Header("Creature properties")]
     public List<Keywords> keywordAbilities;
@@ -40,7 +39,7 @@ public class ScriptableCard : ScriptableObject
             if (_cache == null) {
                 // Load all ScriptableCards from our Resources folder
                 Debug.Log("Caching cards");
-                ScriptableCard[] cards = Resources.LoadAll<ScriptableCard>("CreatureCards/");
+                ScriptableCard[] cards = Resources.LoadAll<ScriptableCard>("Cards/CreatureCards/");
                 _cache = cards.ToDictionary(card => card.hash, card => card);
             }
             return _cache;

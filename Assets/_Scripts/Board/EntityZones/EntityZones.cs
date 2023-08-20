@@ -27,14 +27,6 @@ public class EntityZones : NetworkBehaviour
         FindEntityHolders();
     }
 
-    public List<DevelopmentEntity> GetAllDevelopments(){
-        var developments = new List<DevelopmentEntity>();
-        developments.AddRange(_hostDevelopments);
-        developments.AddRange(_clientDevelopments);
-
-        return developments;
-    }
-
     [Server]
     public void AddDevelopment(DevelopmentEntity development, bool isHost){
         if(isHost) _hostDevelopments.Add(development);
@@ -66,6 +58,37 @@ public class EntityZones : NetworkBehaviour
     public List<CreatureEntity> GetCreatures(bool isHost){
         if(isHost) return _hostCreatures;
         else return _clientCreatures;
+    }
+
+    public List<DevelopmentEntity> GetAllDevelopments(){
+        var developments = new List<DevelopmentEntity>();
+        developments.AddRange(_hostDevelopments);
+        developments.AddRange(_clientDevelopments);
+
+        return developments;
+    }
+
+    public List<CreatureEntity> GetAllCreatures(){
+        var creatures = new List<CreatureEntity>();
+        creatures.AddRange(_hostCreatures);
+        creatures.AddRange(_clientCreatures);
+
+        return creatures;
+    }
+
+    public List<BattleZoneEntity> GetAllEntities(){
+        var developments = GetAllDevelopments();
+        var creatures = GetAllCreatures();
+
+        var entities = new List<BattleZoneEntity>();
+        foreach (var development in developments){
+            entities.Add(development.GetComponent<BattleZoneEntity>());
+        }
+        foreach (var creature in creatures){
+            entities.Add(creature.GetComponent<BattleZoneEntity>());
+        }
+
+        return entities;
     }
 
     [ClientRpc]

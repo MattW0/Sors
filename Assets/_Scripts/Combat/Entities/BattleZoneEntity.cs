@@ -10,7 +10,16 @@ public class BattleZoneEntity : NetworkBehaviour
     public string Title { get; private set; }
     [SerializeField] private CreatureEntity _creatureEntity;
     [SerializeField] private DevelopmentEntity _developmentEntity;
-    
+    [SerializeField] private TargetArrowHandler _targetArrowHandler;
+    private bool _targetable;
+    public bool Targetable {
+        get => _targetable;
+        set {
+            _targetable = value;
+            _entityUI.EffectHighlight(value, Color.black);
+        }
+    }
+
     [Header("Stats")]
     [SerializeField] private CardInfo _cardInfo;
     public CardType cardType;
@@ -84,7 +93,14 @@ public class BattleZoneEntity : NetworkBehaviour
     private void RpcSetPoints(int value)=> _entityUI.SetPoints(value);
 
     [ClientRpc]
-    public void RpcEffectHighlight(bool value) => _entityUI.EffectHighlight(value);
+    public void RpcEffectHighlight(bool value) => _entityUI.EffectHighlight(value, Color.white);
+
+    [TargetRpc]
+    public void TargetSpawnTargetArrow(NetworkConnection target){
+        print("Spawning arrow at : " + transform.position);
+        print("Local Position: " + transform.localPosition);
+        _targetArrowHandler.SpawnArrow();
+    }
 
     private void Die() => _boardManager.EntityDies(this);
 }

@@ -8,32 +8,47 @@ using Mirror;
 public class CardEffectsHandler : NetworkBehaviour
 {
     public static CardEffectsHandler Instance { get; private set; }
-    [SerializeField] private TurnManager turnManager;
-    [SerializeField] private PlayerInterfaceManager _playerInterfaceManager;
+    private TurnManager _turnManager;
+    private PlayerInterfaceManager _playerInterfaceManager;
     public float effectWaitTime = 0.5f;
-    private List<Phase> _phaseTriggers = new(); // List to reduce number of searches on all entities and their triggers
-    private Dictionary<BattleZoneEntity, Dictionary<Triggers, Effects>> _entityRelations = new();
+    private bool _continue = false;
+    public bool Continue { 
+        get => _continue; 
+        set {
+            _continue = value;
+            if(value) _turnManager.NextTurnState(_nextPhase);
+        }
+    }
+
+    // Helper fields
     private Phase _nextPhase;
+    private List<Phase> _phaseTriggers = new(); // List to reduce number of searches on all entities and their triggers
+    private Dictionary<BattleZoneEntity, List<Ability>> _presentAbilities = new();
 
     private void Awake() {
         if (!Instance) Instance = this;
     }
 
-    public void CardIsPlayed(PlayerManager owner, BattleZoneEntity entity, CardInfo cardInfo){
-        if (cardInfo.triggers.Count == 0) return;
+    private void Start(){
+        _turnManager = TurnManager.Instance;
+        _playerInterfaceManager = PlayerInterfaceManager.Instance;
+    }
 
-        var relations = new Dictionary<Triggers, Effects>();
-        foreach (var trigger in cardInfo.triggers){
+    public void CardIsPlayed(PlayerManager owner, BattleZoneEntity entity, CardInfo cardInfo){
+        if (cardInfo.abilities.Count == 0) return;
+
+        var activeAbilities = new List<Ability>();
+        foreach (var ability in cardInfo.abilities){
             // Triggers and effects have the same index and a 1-1 relation
-            var index = cardInfo.triggers.IndexOf(trigger);
+            var trigger = ability.trigger;
 
             // Dont add the relation to the dict as it resolves immediately
-            if (trigger == Triggers.When_enters_the_battlefield){
-                StartCoroutine(FindEntityOwner(entity, cardInfo.effects[index], trigger));
+            if (trigger == Trigger.When_enters_the_battlefield){
+                StartCoroutine(FindEntityOwner(entity, ability));
                 continue;
             }
             
-            relations.Add(trigger, cardInfo.effects[index]);
+            activeAbilities.Add(ability);
 
             // Beginning of phase triggers
             var phase = TriggerToPhase(trigger);
@@ -42,18 +57,18 @@ public class CardEffectsHandler : NetworkBehaviour
                 _phaseTriggers.Add(phase);
         }
 
-        _entityRelations.Add(entity, relations);
+        _presentAbilities.Add(entity, activeAbilities);
     }
 
     public void EntityDies(BattleZoneEntity entity){
-        _entityRelations.Remove(entity);
+        _presentAbilities.Remove(entity);
     }
 
     public void CheckPhaseTriggers(Phase phase){
         // We only search relations if the current phase triggers at least one effect
         _nextPhase = phase;
         if (!_phaseTriggers.Contains(phase)){
-            turnManager.NextTurnState(_nextPhase);
+            _turnManager.NextTurnState(_nextPhase);
             return;
         }
 
@@ -64,198 +79,172 @@ public class CardEffectsHandler : NetworkBehaviour
         // 1-many relations
 
         var phaseTrigger = PhaseToTrigger(phase);
-        foreach (var entity in _entityRelations.Keys){
-            var relations = _entityRelations[entity];
-            foreach (var trigger in relations.Keys){
-                if (trigger != phaseTrigger) continue;
-                
-                var effect = relations[trigger];
-                StartCoroutine(FindEntityOwner(entity, effect, trigger));
+        foreach (var entity in _presentAbilities.Keys){
+            foreach (var ability in _presentAbilities[entity]){
+                if (ability.trigger != phaseTrigger) 
+                    continue;
+                StartCoroutine(FindEntityOwner(entity, ability));
             }
         }
 
-        // Only have to call turnManager.NextTurnState if the effect triggers at the beginning of a phase
-        // TODO: Verify if there is a better solution to sync the animation and turnManager continuation
-        turnManager.NextTurnState(_nextPhase);
+        // Only have to call _turnManager.NextTurnState if the effect triggers at the beginning of a phase
+        // TODO: Verify if there is a better solution to sync the animation and _turnManager continuation
     }
     
-    private IEnumerator FindEntityOwner(BattleZoneEntity entity, Effects effect, Triggers trigger){
+    private IEnumerator FindEntityOwner(BattleZoneEntity entity, Ability ability){
         // Wait for Owner (and other info) to be initialized
         // It isn't if entity ETBd as the last action before this trigger
         while(!entity.Owner) yield return null;
 
-        _playerInterfaceManager.RpcLog($"'{entity.Title}': {trigger} -> {effect}", LogType.EffectTrigger);
-        StartCoroutine(EffectAnimation(entity, effect));
+        _playerInterfaceManager.RpcLog($"'{entity.Title}': {ability.trigger} -> {ability.effect}", LogType.EffectTrigger);
+        print($"'{entity.Title}': {ability.trigger} -> {ability.effect}");
+        StartCoroutine(BeginEffectExecution(entity, ability));
     }
 
-    private IEnumerator EffectAnimation(BattleZoneEntity entity, Effects effect){
+    private IEnumerator BeginEffectExecution(BattleZoneEntity entity, Ability ability){
+
         entity.RpcEffectHighlight(true);
+        CheckForPlayerInput(entity, ability);
         yield return new WaitForSeconds(effectWaitTime);
 
-        ExecuteEffect(entity, effect);
+        while(!_continue) {
+            // print("Waiting for player input");
+            yield return new WaitForSeconds(effectWaitTime);
+        }
+        print("Player input received");
+        _continue = false;
+
+        ExecuteEffect(entity, ability);
+        
+        
         // if(entity.cardType == CardType.Technology) entity.Health -= 1;
 
         yield return new WaitForSeconds(effectWaitTime);
         entity.RpcEffectHighlight(false);
     }
 
+    private IEnumerator WaitForInput(){
+        while(!_continue) yield return null;
+
+        _continue = false;
+        yield return null;
+    }
+
+    private void CheckForPlayerInput(BattleZoneEntity entity, Ability ability){
+        
+        print($"Ability: {ability.effect} - {ability.target} - {ability.amount} - {ability.trigger}");
+        print("Continue: " + _continue);
+        // Only need input for damage and lifegain currently
+        if(!(ability.effect.Equals(Effect.Damage) || ability.effect.Equals(Effect.LifeGain))){
+            _continue = true;
+            return;
+        }
+
+        _turnManager.PlayerStartSelectTarget(entity, ability);
+        if (ability.target == EffectTarget.AnyPlayer){
+
+        } else if (ability.target == EffectTarget.Entity){
+        } else if (ability.target == EffectTarget.Technology){
+
+        } else if (ability.target == EffectTarget.Creature){
+
+        } else if (ability.target == EffectTarget.Any){
+
+        }
+    }
+
     #region Effects
-    private void ExecuteEffect(BattleZoneEntity entity, Effects effect){
-        switch (effect.ToString().Split('_')[0]){
-            case "card":
-                entity.Owner.DrawCards(CardDraw(effect));
+    private void ExecuteEffect(BattleZoneEntity entity, Ability ability){
+        var effect = ability.effect;
+
+        switch (effect){
+            case Effect.CardDraw:
+                HandleCardDraw(entity, ability);
                 break;
-            case "price":
-                var (cardType, reduction) = PriceReduction(effect);
-                turnManager.PlayerGetsKingdomBonus(entity.Owner, cardType, reduction);
+            case Effect.PriceReduction:
+                HandlePriceReduction(entity, ability);
                 break;
-            case "money":
-                entity.Owner.Cash += Money(effect);
+            case Effect.MoneyGain:
+                HandleMoneyGain(entity, ability);
                 break;
-            case "damage":
-                if(!entity.Opponent){
-                    print("No opponent found");
-                    return;
-                }
-                entity.Opponent.Health -= Damage(effect);
+            case Effect.Damage:
+                HandleDamage(false, entity, ability);
                 break;
-            case "life":
-                entity.Owner.Health += LifeGain(effect);
+            case Effect.LifeGain:
+                HandleLifeGain(entity, ability);
                 break;
         }
     }
 
-    private int CardDraw(Effects effect){
-        return effect switch{
-            Effects.card_draw_1 => 1,
-            Effects.card_draw_2 => 2,
-            Effects.card_draw_3 => 3,
-            _ => 0
-        };
+    private void HandleCardDraw(BattleZoneEntity entity, Ability ability){
+        entity.Owner.DrawCards(ability.amount);
     }
 
-    private (CardType, int) PriceReduction(Effects effect){
-        var strArray = effect.ToString().Split('_');
+    private void HandlePriceReduction(BattleZoneEntity entity, Ability ability){
         
-        // Card type is always the second last element
-        var type = strArray[^2];
-        type = type[0].ToString().ToUpper() + type.Substring(1);
-        Enum.TryParse(type, out CardType cardType);
+        // convert ability.target (EffectTarget enum) to CardType enum
+        var cardType = (CardType)Enum.Parse(typeof(CardType), ability.target.ToString());
+        var reduction = ability.amount;
 
-        // Reduction is always the last element
-        var reduction = int.Parse(strArray[^1], CultureInfo.InvariantCulture);
-        
-        return (cardType, reduction);
+        _turnManager.PlayerGetsKingdomBonus(entity.Owner, cardType, reduction);
     }
 
-    private int Money(Effects effect){
-        return effect switch{
-            Effects.money_1 => 1,
-            Effects.money_2 => 2,
-            Effects.money_3 => 3,
-            _ => 0
-        };
+    private void HandleMoneyGain(BattleZoneEntity entity, Ability ability){
+        entity.Owner.Cash += ability.amount;
     }
 
-    private int Damage(Effects effect){
-        return effect switch{
-            Effects.damage_to_opponent_1 => 1,
-            // Effects.damage_2 => 2,
-            // Effects.damage_3 => 3,
-            _ => 0
-        };
+    private void HandleDamage(bool needsInput, BattleZoneEntity entity, Ability ability){       
+        // Without player input
+        if(ability.target == EffectTarget.Opponent){
+            if(!entity.Opponent){ // For single player
+                print("No opponent found");
+            } else {
+                entity.Opponent.Health -= ability.amount;
+            }
+        } else if (ability.target == EffectTarget.Player){
+            entity.Owner.Health -= ability.amount;
+        } else if (ability.target == EffectTarget.Self){
+            entity.Health -= ability.amount;
+        }
     }
 
-    private int LifeGain(Effects effect){
-        return effect switch{
-            Effects.life_gain_1 => 1,
-            // Effects.life_2 => 2,
-            // Effects.life_3 => 3,
-            _ => 0
-        };
+    private void HandleLifeGain(BattleZoneEntity entity, Ability ability){
+        entity.Owner.Health += ability.amount;
     }
 
     #endregion
 
     #region Helper Functions
-    private Phase TriggerToPhase(Triggers trigger){
+    private Phase TriggerToPhase(Trigger trigger){
         Phase phase = trigger switch
         {
-            Triggers.Beginning_Draw => Phase.Draw,
-            Triggers.Beginning_Invent => Phase.Invent,
-            Triggers.Beginning_Develop => Phase.Develop,
-            Triggers.Beginning_Combat => Phase.Combat,
-            Triggers.Beginning_Recruit => Phase.Recruit,
-            Triggers.Beginning_Deploy => Phase.Deploy,
-            Triggers.Beginning_Prevail => Phase.Prevail,
+            Trigger.Beginning_Draw => Phase.Draw,
+            Trigger.Beginning_Invent => Phase.Invent,
+            Trigger.Beginning_Develop => Phase.Develop,
+            Trigger.Beginning_Combat => Phase.Combat,
+            Trigger.Beginning_Recruit => Phase.Recruit,
+            Trigger.Beginning_Deploy => Phase.Deploy,
+            Trigger.Beginning_Prevail => Phase.Prevail,
             _ => Phase.None
         };
 
         return phase;
     }
 
-    private Triggers PhaseToTrigger(Phase phase){
-        Triggers trigger = phase switch
+    private Trigger PhaseToTrigger(Phase phase){
+        Trigger trigger = phase switch
         {
-            Phase.Draw => Triggers.Beginning_Draw,
-            Phase.Invent => Triggers.Beginning_Invent,
-            Phase.Develop => Triggers.Beginning_Develop,
-            Phase.Combat => Triggers.Beginning_Combat,
-            Phase.Recruit => Triggers.Beginning_Recruit,
-            Phase.Deploy => Triggers.Beginning_Deploy,
-            Phase.Prevail => Triggers.Beginning_Prevail,
-            _ => Triggers.None
+            Phase.Draw => Trigger.Beginning_Draw,
+            Phase.Invent => Trigger.Beginning_Invent,
+            Phase.Develop => Trigger.Beginning_Develop,
+            Phase.Combat => Trigger.Beginning_Combat,
+            Phase.Recruit => Trigger.Beginning_Recruit,
+            Phase.Deploy => Trigger.Beginning_Deploy,
+            Phase.Prevail => Trigger.Beginning_Prevail,
+            _ => Trigger.None
         };
 
         return trigger;
     }
     #endregion
-}
-
-public enum Triggers
-{
-    None,
-    // When NAME
-    When_enters_the_battlefield,
-    // When_attacks,
-    // When_blocks,
-    When_dies,
-    // When_is_put_into_the_discard_pile,
-    // When_gets_blocked,
-
-    // Whenever NAME
-    // Whenever_becomes_a_target,
-    // Whenever_takes_damage,
-    // Whenever_deals_damage,
-    // Whenever_deals_combat_damage,
-    // Whenever_deals_damage_to_a_player,
-
-    // At the beginning of [PHASE]
-    Beginning_Turn,
-    Beginning_Draw,
-    Beginning_Invent,
-    Beginning_Develop,
-    Beginning_Combat,
-    Beginning_Recruit,
-    Beginning_Deploy,
-    Beginning_Prevail,
-    // Beginning_when_you_gain_the_initiative
-}
-
-public enum Effects
-{
-    card_draw_1,
-    card_draw_2,
-    card_draw_3,
-
-    price_reduction_creature_1,
-    price_reduction_development_1,
-    price_reduction_money_1,
-
-    money_1,
-    money_2,
-    money_3,
-
-    damage_to_opponent_1,
-    life_gain_1,
 }

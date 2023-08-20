@@ -7,7 +7,6 @@ public class BlockerArrowHandler : NetworkBehaviour, IPointerClickHandler
 {
     [SerializeField] private CreatureEntity creature;
     [SerializeField] private GameObject arrowPrefab;
-    
     private ArrowRenderer _arrow;
     private CombatState _currentState;
     private bool _hasTarget;

@@ -45,6 +45,23 @@ public class BoardManager : NetworkBehaviour
         // entity.OnDeath += EntityDies;
     }
 
+    #region Effects
+
+    public void FindTargets(BattleZoneEntity entity, EffectTarget target){
+        if (! target.Equals(EffectTarget.Entity)){
+            _cardEffectsHandler.Continue = true;
+            return;
+        }
+
+        print("Entity " + entity.Title + " Target: " + target);
+
+        var owner = entity.Owner;
+        _dropZone.ShowEntities(owner, target);
+        
+    }
+
+    #endregion
+
     #region Combat
 
     public void StartCombatPhase(CombatState state){

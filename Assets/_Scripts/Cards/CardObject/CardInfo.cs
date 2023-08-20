@@ -20,8 +20,7 @@ public struct CardInfo : IEquatable<CardInfo>
     public int moneyValue;
 
     [Header("Triggers and effects")]
-    public List<Triggers> triggers;
-    public List<Effects> effects;
+    public List<Ability> abilities;
 
     [Header("Creature properties")]
     public List<Keywords> keywordAbilities;
@@ -45,8 +44,7 @@ public struct CardInfo : IEquatable<CardInfo>
         points = card.points;
 
         // Triggers and effects
-        triggers = card.triggers;
-        effects = card.effects;
+        abilities = card.abilities;
 
         // Creature properties
         attack = card.attack;

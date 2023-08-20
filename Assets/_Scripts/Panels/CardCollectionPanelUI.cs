@@ -12,7 +12,7 @@ public class CardCollectionPanelUI : MonoBehaviour
     private PlayerManager _localPlayer;
 
     [Header("UI")]
-    [SerializeField] private GameObject _container;
+    [SerializeField] private static GameObject _maxView;
     [SerializeField] private GameObject _interaction;
     [SerializeField] private GameObject _waitingText;
     [SerializeField] private GameObject _buttons;
@@ -33,6 +33,7 @@ public class CardCollectionPanelUI : MonoBehaviour
 
         _nbCardsToDiscard = nbCardsToDiscard;
 
+        _maxView = gameObject.transform.GetChild(0).gameObject;
         _interaction.SetActive(false);
         _buttons.SetActive(false);
         _skipButton.SetActive(false);
@@ -49,6 +50,7 @@ public class CardCollectionPanelUI : MonoBehaviour
     }
 
     public void InteractionBegin(TurnState state){
+        _maxView.SetActive(true);
         StartHandInteractionUI();
 
         _state = state;
@@ -141,9 +143,9 @@ public class CardCollectionPanelUI : MonoBehaviour
 
     public void OnCloseButtonPressed() => Close();
     public void ToggleView() {
-        if(_container.activeSelf) Close();
+        if(_maxView.activeSelf) Close();
         else Open();
     }
-    public void Open() => _container.SetActive(true);
-    public void Close() => _container.SetActive(false);
+    public static void Open() => _maxView.SetActive(true);
+    public static void Close() => _maxView.SetActive(false);
 }

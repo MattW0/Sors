@@ -38,5 +38,8 @@ public class EntityUI : MonoBehaviour
     public void SetAttack(int newValue) => attack.text = newValue.ToString();
     public void SetPoints(int newValue) => points.text = newValue.ToString();
 
-    public void EffectHighlight(bool value) => effectHighlight.enabled = value;
+    public void EffectHighlight(bool enabled, Color color){
+        effectHighlight.enabled = enabled;
+        effectHighlight.color = color;
+    } 
 }

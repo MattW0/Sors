@@ -44,10 +44,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f286638949f248146a0066495a2f57b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  height: 0.4
-  segmentLength: 0.25
-  fadeDistance: 0.275
-  speed: 1.5
+  stopUpdating: 0
+  height: 1
+  segmentLength: 0.7
+  fadeDistance: 0.3
+  speed: 2
   arrowPrefab: {fileID: 1047237291554972, guid: 4025f56cf5c370c4c824eca6f1655fff, type: 3}
   segmentPrefab: {fileID: 1648654368789128, guid: 115b1cbb63deb2e458cd9997a396a3be, type: 3}
   start: {x: -3, y: 0.5, z: -1}
