@@ -12,7 +12,7 @@ public class TurnManager : NetworkBehaviour
     [Header("Entities")]
     private GameManager _gameManager;
     private Kingdom _kingdom;
-    private CardCollectionPanel _cardCollectionPanel;
+    private HandInteractionPanel _cardCollectionPanel;
     private PhasePanel _phasePanel;
     private PrevailPanel _prevailPanel;
     private PlayerInterfaceManager _playerInterfaceManager;
@@ -108,7 +108,7 @@ public class TurnManager : NetworkBehaviour
         _playerInterfaceManager = PlayerInterfaceManager.Instance;
         
         // Panels with setup (GameManager handles kingdom setup)
-        _cardCollectionPanel = CardCollectionPanel.Instance;
+        _cardCollectionPanel = HandInteractionPanel.Instance;
         _cardCollectionPanel.RpcPrepareCardCollectionPanel(_gameManager.nbDiscard);
         _phasePanel = PhasePanel.Instance;
         _phasePanel.RpcPreparePhasePanel(nbPlayers, _gameManager.nbPhasesToChose, _gameManager.animations);
@@ -217,11 +217,7 @@ public class TurnManager : NetworkBehaviour
     }
 
     private void Discard(){
-        foreach(var player in _gameManager.players.Keys){
-            var cardObjects = GameManager.CardInfosToGameObjects(player.hand);
-            _cardCollectionPanel.TargetShowCardCollection(player.connectionToClient, 
-                turnState, cardObjects, player.hand);
-        }
+        ShowCardCollection();
     }
     public void PlayerSelectedDiscardCards(PlayerManager player) => PlayerIsReady(player);
 
@@ -308,16 +304,7 @@ public class TurnManager : NetworkBehaviour
         foreach(var cardsList in _selectedHandCards.Values) cardsList.Clear();
 
         _handManager.RpcHighlightMoney(true);
-        StartShowPlayerHand();
-    }
-
-    private void StartShowPlayerHand(){
-        
-        foreach(var player in _gameManager.players.Keys){
-            var cardObjects = GameManager.CardInfosToGameObjects(player.hand);
-            _cardCollectionPanel.TargetShowCardCollection(player.connectionToClient, 
-                turnState, cardObjects, player.hand);
-        }
+        ShowCardCollection();
     }
 
     public void PlayerPlaysCard(PlayerManager player, GameObject card) {
@@ -444,13 +431,11 @@ public class TurnManager : NetworkBehaviour
         }
 
         foreach (var (player, options) in _playerPrevailOptions){
-            var cardObjects = GameManager.CardInfosToGameObjects(player.hand);
-            _cardCollectionPanel.TargetShowCardCollection(player.connectionToClient, 
-                turnState, cardObjects, player.hand);
-
             var nbPicks = options.Count(option => option == PrevailOption.Trash);
             _cardCollectionPanel.TargetBeginTrash(player.connectionToClient, nbPicks);
         }
+
+        ShowCardCollection();
     }
 
     public void PlayerSelectedTrashCards(PlayerManager player, List<GameObject> selectedCards){
@@ -536,6 +521,19 @@ public class TurnManager : NetworkBehaviour
     #endregion
     
     #region HelperFunctions
+
+    private void ShowCardCollection(){
+
+        foreach(var player in _gameManager.players.Keys){
+            List<CardInfo> cards = player.hand;
+            if (turnState == TurnState.Discard || turnState == TurnState.Trash) cards = player.hand;
+            else if (turnState == TurnState.Develop) cards = cards.Where(card => card.type == CardType.Technology).ToList();
+            else if (turnState == TurnState.Deploy) cards = cards.Where(card => card.type == CardType.Creature).ToList();
+
+            var cardObjects = GameManager.CardInfosToGameObjects(cards);
+            _cardCollectionPanel.TargetShowCardCollection(player.connectionToClient, turnState, cardObjects, cards);
+        }
+    }
     public void PlayerIsReady(PlayerManager player){
         if(!_readyPlayers.Contains(player)) _readyPlayers.Add(player);
         if (_readyPlayers.Count < _nbPlayers) return;

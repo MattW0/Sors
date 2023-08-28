@@ -97,8 +97,6 @@ public class BattleZoneEntity : NetworkBehaviour
 
     [TargetRpc]
     public void TargetSpawnTargetArrow(NetworkConnection target){
-        print("Spawning arrow at : " + transform.position);
-        print("Local Position: " + transform.localPosition);
         _targetArrowHandler.SpawnArrow();
     }
 

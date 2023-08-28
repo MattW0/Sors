@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 public class DetailCard : MonoBehaviour, IPointerClickHandler
 {
     private CardInfo _cardInfo;
-    private CardCollectionPanel _collectionPanel;
+    private HandInteractionPanel _collectionPanel;
     [SerializeField] private DetailCardUI _ui;
     public bool isChoosable;
     private bool _chosen;
@@ -20,11 +20,12 @@ public class DetailCard : MonoBehaviour, IPointerClickHandler
     }
 
     private void Awake(){
-        _collectionPanel = CardCollectionPanel.Instance;
+        _collectionPanel = HandInteractionPanel.Instance;
     }
 
     public void CheckPlayability(int cash){
         isChoosable = cash >= _cardInfo.cost;
+
         if(isChoosable) _ui.EnableHighlight();
         else _ui.DisableHighlight();
     }

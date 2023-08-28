@@ -19,7 +19,7 @@ public class PlayerManager : NetworkBehaviour
     private TurnManager _turnManager;
     private CombatManager _combatManager;
     private BoardManager _boardManager;
-    private CardCollectionPanel _cardCollectionPanel;
+    private HandInteractionPanel _cardCollectionPanel;
     private DropZoneManager _dropZone;
     private CardMover _cardMover;
     private Hand _handManager;
@@ -117,7 +117,7 @@ public class PlayerManager : NetworkBehaviour
         _turnManager = TurnManager.Instance;
         _combatManager = CombatManager.Instance;
         _boardManager = BoardManager.Instance;
-        _cardCollectionPanel = CardCollectionPanel.Instance;
+        _cardCollectionPanel = HandInteractionPanel.Instance;
     }
     
     [Server] // GameManager calls this on player object

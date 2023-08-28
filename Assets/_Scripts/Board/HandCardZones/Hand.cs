@@ -24,8 +24,8 @@ public class Hand : NetworkBehaviour
     [ClientRpc]
     public void RpcResetHighlight() {
         foreach (var card in _handCards) {
-            card.IsDiscardable = false;
-            card.IsTrashable = false;
+            // card.IsDiscardable = false;
+            // card.IsTrashable = false;
         }
     }
 

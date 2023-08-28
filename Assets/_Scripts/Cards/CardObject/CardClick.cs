@@ -20,7 +20,10 @@ public class CardClick : MonoBehaviour, IPointerClickHandler
     }
     public void OnPointerClick(PointerEventData eventData) {
         // Right click to zoom only
-        if (eventData.button == PointerEventData.InputButton.Right) _cardZoomView.ZoomCard(_cardInfo);
+        if (eventData.button == PointerEventData.InputButton.Right) {
+            _cardZoomView.ZoomCard(_cardInfo);
+            return;
+        }
 
         // Return if card can't be played (not in hand or no money card)
         if(!cardStats || !cardStats.IsInteractable) return;

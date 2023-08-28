@@ -5,21 +5,22 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class CardCollectionPanelUI : MonoBehaviour
+public class HandInteractionUI : MonoBehaviour
 {   
     [Header("Entities")]
-    [SerializeField] private CardCollectionPanel _cardCollectionPanel;
+    [SerializeField] private HandInteractionPanel _handInteractionPanel;
     private PlayerManager _localPlayer;
 
     [Header("UI")]
-    [SerializeField] private static GameObject _maxView;
-    [SerializeField] private GameObject _interaction;
+    [SerializeField] private static GameObject _view;
+    
+    // [SerializeField] private GameObject _interaction;
+    [SerializeField] private Image _fullViewImage;
     [SerializeField] private GameObject _waitingText;
     [SerializeField] private GameObject _buttons;
     [SerializeField] private GameObject _skipButton;
     [SerializeField] private Button _confirmButton;
     [SerializeField] private TMP_Text _collectionTitle;
-    [SerializeField] private TMP_Text _selectionTitle;
     [SerializeField] private TMP_Text _displayText;
 
     [Header("Helper Fields")]
@@ -33,8 +34,8 @@ public class CardCollectionPanelUI : MonoBehaviour
 
         _nbCardsToDiscard = nbCardsToDiscard;
 
-        _maxView = gameObject.transform.GetChild(0).gameObject;
-        _interaction.SetActive(false);
+        _view = gameObject.transform.GetChild(0).gameObject;
+        // _interaction.SetActive(false);
         _buttons.SetActive(false);
         _skipButton.SetActive(false);
 
@@ -50,16 +51,17 @@ public class CardCollectionPanelUI : MonoBehaviour
     }
 
     public void InteractionBegin(TurnState state){
-        _maxView.SetActive(true);
+        _view.SetActive(true);
         StartHandInteractionUI();
 
         _state = state;
         switch (_state){
-            case TurnState.Discard:
-                _displayText.text = $"Discard 0/{_nbCardsToDiscard} cards";                
-                break;
             case TurnState.Develop or TurnState.Deploy:
                 PlayCardInteraction();
+                break;
+            case TurnState.Discard:
+                _displayText.text = $"Discard 0/{_nbCardsToDiscard} cards";
+                _fullViewImage.enabled = true;
                 break;
             case TurnState.Trash:
                 _confirmButton.interactable = true;
@@ -92,10 +94,10 @@ public class CardCollectionPanelUI : MonoBehaviour
 
     public void OnConfirmButtonPressed(){
 
-        if (_state == TurnState.Discard) _cardCollectionPanel.ConfirmDiscard();
-        else if (_state == TurnState.Trash) _cardCollectionPanel.ConfirmTrash();
+        if (_state == TurnState.Discard) _handInteractionPanel.ConfirmDiscard();
+        else if (_state == TurnState.Trash) _handInteractionPanel.ConfirmTrash();
         else if (_state == TurnState.Develop || _state == TurnState.Deploy) 
-            _cardCollectionPanel.ConfirmPlay();
+            _handInteractionPanel.ConfirmPlay();
 
         _buttons.SetActive(false);
         _waitingText.SetActive(true);
@@ -125,27 +127,29 @@ public class CardCollectionPanelUI : MonoBehaviour
 
     private void StartHandInteractionUI(){
         _buttons.SetActive(true);
-        _interaction.SetActive(true);
+        // _interaction.SetActive(true);
         _waitingText.SetActive(false);
         _confirmButton.interactable = false;
         _collectionTitle.text = "Hand";
     }
 
     public void ResetPanelUI(bool hard){
+        _fullViewImage.enabled = false;
         _buttons.SetActive(true);
         _waitingText.SetActive(false);
         if(!hard) return;
         
-        _interaction.SetActive(false);
+        // _interaction.SetActive(false);
         _skipButton.SetActive(false);
         Close();
     }
 
     public void OnCloseButtonPressed() => Close();
     public void ToggleView() {
-        if(_maxView.activeSelf) Close();
+        if(_view.activeSelf) Close();
         else Open();
     }
-    public static void Open() => _maxView.SetActive(true);
-    public static void Close() => _maxView.SetActive(false);
+    public static void Open() => _view.SetActive(true);
+    public static void Close() => _view.SetActive(false);
+
 }

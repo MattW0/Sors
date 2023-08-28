@@ -9,7 +9,7 @@ public class PlayerInterfaceButtons : MonoBehaviour
     public static PlayerInterfaceButtons Instance { get; private set; }
     private PlayerManager _player;
     private Kingdom _kingdom;
-    private CardCollectionPanel _cardCollectionPanel;
+    private HandInteractionPanel _cardCollectionPanel;
     [SerializeField] private Button _undoButton;
     [SerializeField] private Button _utilityButton;
     [SerializeField] private Button _handButton;
@@ -24,7 +24,7 @@ public class PlayerInterfaceButtons : MonoBehaviour
 
     private void Start(){
         _kingdom = Kingdom.Instance;
-        _cardCollectionPanel = CardCollectionPanel.Instance;
+        _cardCollectionPanel = HandInteractionPanel.Instance;
 
         _player = PlayerManager.GetLocalPlayer();
         if(!_player.isServer) _utilityButton.interactable = false;

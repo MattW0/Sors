@@ -4,16 +4,14 @@ using UnityEngine;
 using Mirror;
 using System.Linq;
 
-
-public class CardCollectionPanel : NetworkBehaviour
+public class HandInteractionPanel : NetworkBehaviour
 {
-    public static CardCollectionPanel Instance { get; private set; }
-    [SerializeField] private CardCollectionPanelUI _ui;
+    public static HandInteractionPanel Instance { get; private set; }
+    [SerializeField] private HandInteractionUI _ui;
     [SerializeField] private CardSpawner _cardSpawner;
     private PlayerManager _player;
 
     [Header("Helper Fields")]
-    
     private List<DetailCard> _detailCards = new();
     private List<CardInfo> _selectedCards = new();
     // Linking detail cards with their hand card gameobject
@@ -33,29 +31,16 @@ public class CardCollectionPanel : NetworkBehaviour
     public void TargetShowCardCollection(NetworkConnection target, TurnState turnState, 
                                          List<GameObject> cardObjects, List<CardInfo> handCards)
     {
-        var targetCardType = CardType.None;
-        if(turnState == TurnState.Develop) targetCardType = CardType.Technology;
-        else if(turnState == TurnState.Deploy) targetCardType = CardType.Creature;
+        _ui.InteractionBegin(turnState);
 
-        var detailCardObjects = new List<GameObject>();
+        // caching hand cards gameobjects
         for(var i=0; i<handCards.Count; i++){
-
             var cardInfo = handCards[i];
             _cache.Add(cardInfo, cardObjects[i]);
-
-            if(targetCardType == CardType.None){
-                // Show all cards
-                var detailCard = _cardSpawner.SpawnDetailCardObject(cardInfo);
-                _detailCards.Add(detailCard);
-                continue;
-            }
-
-            // Else show only cards of the target type and money in seperate grids
-            // if(cardInfo.type == CardType.Money) moneyCards.Add(card);
-            // else if(cardInfo.type == targetCardType) entityCards.Add(card);
         }
-
-        _ui.ToggleView();
+        
+        var detailCards = _cardSpawner.SpawnDetailCardObjects(handCards, turnState);
+        _detailCards.AddRange(detailCards);
     }
 
     private void SpawnMoneyDetailCard(CardInfo cardInfo){
@@ -65,8 +50,7 @@ public class CardCollectionPanel : NetworkBehaviour
     #region States
     [ClientRpc]
     public void RpcBeginState(TurnState state){
-        foreach(var card in _detailCards) card.SetCardState(state);
-        _ui.InteractionBegin(state);
+        
     }
 
     [TargetRpc]
@@ -84,11 +68,6 @@ public class CardCollectionPanel : NetworkBehaviour
     public void ConfirmPlay(){
         var card = _cache[_selectedCards[0]];
         _player.CmdPlayCard(card);
-        _detailCards.Remove(card.GetComponent<DetailCard>());
-
-        // _detailCards.Remove(card.GetComponent<DetailCard>());
-        _selectedCards.Clear();
-        _cardSpawner.ClearChosenGrid();
     }
 
     public void ConfirmDiscard(){
@@ -105,14 +84,14 @@ public class CardCollectionPanel : NetworkBehaviour
     #endregion
 
     public void AddCardToChosen(Transform t, CardInfo card){
-        t.SetParent(_gridChosen, false);
         _selectedCards.Add(card);
+        _cardSpawner.SelectCard(t);
         _ui.UpdateInteractionElements(_selectedCards.Count);
     }
 
     public void RemoveCardFromChosen(Transform t, CardInfo card){
-        t.SetParent(_gridAll, false);
         _selectedCards.Remove(card);
+        _cardSpawner.DeselectCard(t);
         _ui.UpdateInteractionElements(_selectedCards.Count);
     }
 

@@ -15,24 +15,6 @@ public class CardStats : NetworkBehaviour
             _cardUI.Highlight(value, SorsColors.interactionHighlight);
         }
     }
-
-    private bool _discardable;
-    public bool IsDiscardable { 
-        get => _discardable;
-        set {
-            _discardable = value;
-            _cardUI.Highlight(value, SorsColors.discardHighlight);
-        }
-    }
-
-    private bool _trashable;
-    public bool IsTrashable { 
-        get => _trashable;
-        set {
-            _trashable = value;
-            _cardUI.Highlight(value, SorsColors.trashHighlight);
-        }
-    }
     
     private void Awake()
     {
