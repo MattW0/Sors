@@ -32,6 +32,7 @@ public class TurnManager : NetworkBehaviour
     private int _nbPlayers;
     private Dictionary<PlayerManager, int> _playerHealth = new();
     public int GetHealth(PlayerManager player) => _playerHealth[player];
+    private bool _playAnotherCard = false;
 
     [Header("Helper Fields")]
     private Dictionary<PlayerManager, List<CardInfo>> _selectedKingdomCards = new();
@@ -66,19 +67,19 @@ public class TurnManager : NetworkBehaviour
                 Discard();
                 break;
             case TurnState.Invent:
-                KingdomPhase(Phase.Invent);
+                KingdomPhase();
                 break;
             case TurnState.Develop:
-                PlayCard(true);
+                PlayCard();
                 break;
             case TurnState.Combat:
                 Combat();
                 break;
             case TurnState.Recruit:
-                KingdomPhase(Phase.Recruit);
+                KingdomPhase();
                 break;
             case TurnState.Deploy:
-                PlayCard(true);
+                PlayCard();
                 break;
             case TurnState.Prevail:
                 Prevail();
@@ -233,7 +234,12 @@ public class TurnManager : NetworkBehaviour
     #endregion
 
     #region KingdomPase (Invent, Recruit)
-    private void KingdomPhase(Phase phase){
+    private void KingdomPhase(){
+
+        // convert current turnState (TurnState enum) to Phase enum
+        var phase = Phase.Recruit;
+        if (turnState == TurnState.Invent) phase = Phase.Invent;
+
         _selectedKingdomCards.Clear();
         _handManager.RpcHighlightMoney(true);
         _kingdom.RpcBeginPhase(phase);
@@ -298,9 +304,9 @@ public class TurnManager : NetworkBehaviour
     
     #region PlayCardPhase (Develop, Deploy)
 
-    private void PlayCard(bool first){
-        if (first) _boardManager.ShowHolders(true);
+    private void PlayCard(){
 
+        _boardManager.ShowHolders(true);
         foreach(var cardsList in _selectedHandCards.Values) cardsList.Clear();
 
         _handManager.RpcHighlightMoney(true);
@@ -323,7 +329,6 @@ public class TurnManager : NetworkBehaviour
     }
 
     private void PlayEntities(){
-        var anotherPlay = false;
         foreach(var (player, cards) in _selectedHandCards) {
             // print("Player " + player.PlayerName + " plays " + cards.Count + " cards");
             foreach(var card in cards) {
@@ -332,25 +337,32 @@ public class TurnManager : NetworkBehaviour
             }
 
             if(turnState == TurnState.Develop) {
-                if(player.Develops > 0) anotherPlay = true;
+                if(player.Develops > 0) _playAnotherCard = true;
             } else if(turnState == TurnState.Deploy) {
-                if(player.Deploys > 0) anotherPlay = true;
+                if(player.Deploys > 0) _playAnotherCard = true;
             }
         }
 
-        // TODO: Need to await resolution of ability queue from cards that were just played
-        if(anotherPlay) StartCoroutine(PlayCardsIntermission());
+        StartCoroutine(PlayCardsIntermission());
+    }
+
+    private IEnumerator WaitForAbilityQueueResolution(){
+        while(!_cardEffectsHandler.Continue) yield return new WaitForSeconds(0.5f);
+
+        if(_playAnotherCard) StartCoroutine(PlayCardsIntermission());
         else EndPlayCards();
     }
 
     private IEnumerator PlayCardsIntermission(){
         yield return new WaitForSeconds(2*_cardEffectsHandler.effectWaitTime);
-        _cardCollectionPanel.RpcSoftResetPanel();
-        PlayCard(false);
+        StartCoroutine(_cardEffectsHandler.StartResolvingQueue());
+        // _cardCollectionPanel.RpcSoftResetPanel();
+        // PlayCard();
     }
 
     private void EndPlayCards()
     {
+        _playAnotherCard = false;
         _cardCollectionPanel.RpcResetPanel();
         _boardManager.ShowHolders(false);
         PlayersStatsResetAndDiscardMoney(false);
@@ -480,6 +492,7 @@ public class TurnManager : NetworkBehaviour
         var owner = entity.Owner;
         _boardManager.FindTargets(entity, ability.target);
         entity.TargetSpawnTargetArrow(owner.connectionToClient);
+        owner.TargetPlayerStartChooseTarget();
     }
 
     #endregion

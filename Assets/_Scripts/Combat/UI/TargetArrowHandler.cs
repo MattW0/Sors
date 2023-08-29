@@ -21,11 +21,16 @@ public class TargetArrowHandler : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        // return if not in Blockers Phase
+        // return if entity is not targetable 
         if (!entity.Targetable) return;
 
         _arrow.SetTarget(entity.transform.position);
         _hasTarget = true;
+
+        var player = PlayerManager.GetLocalPlayer();
+        if(!player.PlayerIsChoosingTarget) return;
+        
+        player.PlayerChoosesEntityTarget(entity);
     }
 
     private void FixedUpdate()

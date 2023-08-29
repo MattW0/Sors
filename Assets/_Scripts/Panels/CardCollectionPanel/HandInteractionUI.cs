@@ -13,8 +13,9 @@ public class HandInteractionUI : MonoBehaviour
 
     [Header("UI")]
     [SerializeField] private static GameObject _view;
-    
-    // [SerializeField] private GameObject _interaction;
+    [SerializeField] private Transform _playerHand;
+    private Vector3 _handPositionStandard = new Vector3(70f, 50f, 0f);
+    private Vector3 _handPositionPlayCards = new Vector3(-220f, 50f, 0f);
     [SerializeField] private Image _fullViewImage;
     [SerializeField] private GameObject _waitingText;
     [SerializeField] private GameObject _buttons;
@@ -64,13 +65,17 @@ public class HandInteractionUI : MonoBehaviour
                 _fullViewImage.enabled = true;
                 break;
             case TurnState.Trash:
-                _confirmButton.interactable = true;
                 _displayText.text = $"Trash up to {_nbCardsToTrashMax} cards";
+                _confirmButton.interactable = true;
+                _fullViewImage.enabled = true;
                 break;
         }
     }
 
     private void PlayCardInteraction(){
+
+        _playerHand.localPosition = _handPositionPlayCards;
+
         int playerActionsLeft = 0;
         string displayText = "";
         if (_state == TurnState.Develop) {
@@ -140,6 +145,7 @@ public class HandInteractionUI : MonoBehaviour
         if(!hard) return;
         
         // _interaction.SetActive(false);
+        _playerHand.localPosition = _handPositionStandard;
         _skipButton.SetActive(false);
         Close();
     }

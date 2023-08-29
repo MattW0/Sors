@@ -10,18 +10,20 @@ public class CardEffectsHandler : NetworkBehaviour
     public static CardEffectsHandler Instance { get; private set; }
     private TurnManager _turnManager;
     private PlayerInterfaceManager _playerInterfaceManager;
+    private Dictionary<BattleZoneEntity, Ability> _abilityQueue = new();
+    private BattleZoneEntity _effectTarget;
     public float effectWaitTime = 0.5f;
     private bool _continue = false;
     public bool Continue { 
         get => _continue; 
         set {
             _continue = value;
-            // if(value) _turnManager.NextTurnState(_nextPhase);
+            // if(value) _turnManager.NextTurnState(_currentPhase);
         }
     }
 
     // Helper fields
-    private Phase _nextPhase;
+    private Phase _currentPhase;
     private List<Phase> _phaseTriggers = new(); // List to reduce number of searches on all entities and their triggers
     private Dictionary<BattleZoneEntity, List<Ability>> _presentAbilities = new();
 
@@ -44,7 +46,7 @@ public class CardEffectsHandler : NetworkBehaviour
 
             // Dont add the relation to the dict as it resolves immediately
             if (trigger == Trigger.When_enters_the_battlefield){
-                StartCoroutine(BeginAbility(entity, ability));
+                StartCoroutine(AddAbilityToQueue(entity, ability));
                 continue;
             }
             
@@ -66,9 +68,9 @@ public class CardEffectsHandler : NetworkBehaviour
 
     public void CheckPhaseTriggers(Phase phase){
         // We only search relations if the current phase triggers at least one effect
-        _nextPhase = phase;
+        _currentPhase = phase;
         if (!_phaseTriggers.Contains(phase)){
-            _turnManager.NextTurnState(_nextPhase);
+            _turnManager.NextTurnState(_currentPhase);
             return;
         }
 
@@ -83,7 +85,7 @@ public class CardEffectsHandler : NetworkBehaviour
             foreach (var ability in _presentAbilities[entity]){
                 if (ability.trigger != phaseTrigger) 
                     continue;
-                StartCoroutine(BeginAbility(entity, ability));
+                StartCoroutine(AddAbilityToQueue(entity, ability));
             }
         }
 
@@ -91,14 +93,24 @@ public class CardEffectsHandler : NetworkBehaviour
         // TODO: Verify if there is a better solution to sync the animation and _turnManager continuation
     }
     
-    private IEnumerator BeginAbility(BattleZoneEntity entity, Ability ability){
+    private IEnumerator AddAbilityToQueue(BattleZoneEntity entity, Ability ability){
         // Wait for Owner (and other info) to be initialized
         // It isn't if entity ETBd as the last action before this trigger
         while(!entity.Owner) yield return null;
 
         _playerInterfaceManager.RpcLog($"'{entity.Title}': {ability.trigger} -> {ability.effect}", LogType.EffectTrigger);
         print($"'{entity.Title}': {ability.trigger} -> {ability.effect}");
-        StartCoroutine(BeginAbilityExecution(entity, ability));
+        _abilityQueue.Add(entity, ability);
+        // StartCoroutine(BeginAbilityExecution(entity, ability));
+    }
+
+    public IEnumerator StartResolvingQueue(){
+        foreach(var (entity, ability) in _abilityQueue){
+            StartCoroutine(BeginAbilityExecution(entity, ability));
+            while(!_continue) {
+                yield return new WaitForSeconds(effectWaitTime);
+            }
+        }
     }
 
     private IEnumerator BeginAbilityExecution(BattleZoneEntity entity, Ability ability){
@@ -108,15 +120,15 @@ public class CardEffectsHandler : NetworkBehaviour
         yield return new WaitForSeconds(effectWaitTime);
 
         while(!_continue) {
-            // print("Waiting for player input");
+            print("Waiting for player input");
             yield return new WaitForSeconds(effectWaitTime);
         }
         print("Player input received");
+        _effectTarget = null;
         _continue = false;
 
         ExecuteEffect(entity, ability);
-        
-        
+
         // if(entity.cardType == CardType.Technology) entity.Health -= 1;
 
         yield return new WaitForSeconds(effectWaitTime);
@@ -146,6 +158,11 @@ public class CardEffectsHandler : NetworkBehaviour
         }
     }
 
+    public void PlayerChoosesTargetEntity(BattleZoneEntity entity){
+        _effectTarget = entity;
+        _continue = true;
+    }
+
     #region Effects
     private void ExecuteEffect(BattleZoneEntity entity, Ability ability){
         var effect = ability.effect;
@@ -161,7 +178,7 @@ public class CardEffectsHandler : NetworkBehaviour
                 HandleMoneyGain(entity, ability);
                 break;
             case Effect.Damage:
-                HandleDamage(false, entity, ability);
+                HandleDamage(entity, ability);
                 break;
             case Effect.LifeGain:
                 HandleLifeGain(entity, ability);
@@ -186,8 +203,8 @@ public class CardEffectsHandler : NetworkBehaviour
         entity.Owner.Cash += ability.amount;
     }
 
-    private void HandleDamage(bool needsInput, BattleZoneEntity entity, Ability ability){       
-        // Without player input
+    private void HandleDamage(BattleZoneEntity entity, Ability ability){       
+        // Without target
         if(ability.target == EffectTarget.Opponent){
             if(!entity.Opponent){ // For single player
                 print("No opponent found");
@@ -199,6 +216,9 @@ public class CardEffectsHandler : NetworkBehaviour
         } else if (ability.target == EffectTarget.Self){
             entity.Health -= ability.amount;
         }
+
+        // With target
+        if(_effectTarget) _effectTarget.Health -= ability.amount;
     }
 
     private void HandleLifeGain(BattleZoneEntity entity, Ability ability){

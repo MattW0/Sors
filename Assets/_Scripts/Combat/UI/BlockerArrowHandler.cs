@@ -64,7 +64,7 @@ public class BlockerArrowHandler : NetworkBehaviour, IPointerClickHandler
         if (!creature.IsAttacking) return;
 
         var clicker = PlayerManager.GetLocalPlayer();
-        if (!clicker.PlayerIsChoosingBlockers) return;
+        if (!clicker.PlayerIsChoosingTarget) return;
         
         clicker.PlayerChoosesAttackerToBlock(creature);
     }

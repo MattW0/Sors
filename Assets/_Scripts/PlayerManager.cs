@@ -15,11 +15,9 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Header("Entities")]
-    private GameManager _gameManager;
     private TurnManager _turnManager;
     private CombatManager _combatManager;
-    private BoardManager _boardManager;
-    private HandInteractionPanel _cardCollectionPanel;
+    private CardEffectsHandler _cardEffectsHandler;
     private DropZoneManager _dropZone;
     private CardMover _cardMover;
     private Hand _handManager;
@@ -33,7 +31,7 @@ public class PlayerManager : NetworkBehaviour
     public List<GameObject> trashSelection = new();
     public Dictionary<GameObject, CardInfo> moneyCards = new();
 
-    public bool PlayerIsChoosingBlockers { get; private set; }
+    public bool PlayerIsChoosingTarget { get; private set; }
     private List<CreatureEntity> _blockers = new();
     private PlayerUI _playerUI;
     private PlayerUI _opponentUI;
@@ -99,9 +97,6 @@ public class PlayerManager : NetworkBehaviour
 
     public override void OnStartClient(){
         base.OnStartClient();
-
-        if (!isServer) return;
-        _gameManager = GameManager.Instance;
     }
 
     [ClientRpc]
@@ -116,8 +111,7 @@ public class PlayerManager : NetworkBehaviour
         if (!isServer) return;
         _turnManager = TurnManager.Instance;
         _combatManager = CombatManager.Instance;
-        _boardManager = BoardManager.Instance;
-        _cardCollectionPanel = HandInteractionPanel.Instance;
+        _cardEffectsHandler = CardEffectsHandler.Instance;
     }
     
     [Server] // GameManager calls this on player object
@@ -350,14 +344,14 @@ public class PlayerManager : NetworkBehaviour
 
     public void PlayerChoosesBlocker(CreatureEntity blocker)
     {
-        PlayerIsChoosingBlockers = true;
+        PlayerIsChoosingTarget = true;
         _blockers.Add(blocker);
     }
 
     public void PlayerRemovesBlocker(CreatureEntity blocker)
     {
         _blockers.Remove(blocker);
-        if (_blockers.Count == 0) PlayerIsChoosingBlockers = false;
+        if (_blockers.Count == 0) PlayerIsChoosingTarget = false;
     }
 
     public void PlayerChoosesAttackerToBlock(CreatureEntity target)
@@ -366,7 +360,7 @@ public class PlayerManager : NetworkBehaviour
         else CmdPlayerChoosesAttackerToBlock(target, _blockers);
         
         _blockers.Clear();
-        PlayerIsChoosingBlockers = false;
+        PlayerIsChoosingTarget = false;
     }
 
     [Command]
@@ -376,6 +370,31 @@ public class PlayerManager : NetworkBehaviour
     }
 
     #endregion
+
+    #region Effect Interactions
+
+    [TargetRpc]
+    public void TargetPlayerStartChooseTarget(){
+        // TODO: Need to expand this ?
+        // Allows player to click entity and define target in targetArrowHandler (double fail save)
+        // possibly must use for multiple targets
+        PlayerIsChoosingTarget = true;
+    }
+
+    public void PlayerChoosesEntityTarget(BattleZoneEntity target){
+        if (isServer) _cardEffectsHandler.PlayerChoosesTargetEntity(target);
+        else CmdPlayerChoosesAttackerToBlock(target);
+        
+        PlayerIsChoosingTarget = false;
+    }
+
+    [Command]
+    private void CmdPlayerChoosesAttackerToBlock(BattleZoneEntity target){
+        _cardEffectsHandler.PlayerChoosesTargetEntity(target);
+    }
+
+    #endregion
+
 
     #region UI
     private void SetPlayerName(string name){

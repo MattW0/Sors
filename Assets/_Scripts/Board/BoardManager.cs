@@ -48,6 +48,9 @@ public class BoardManager : NetworkBehaviour
     #region Effects
 
     public void FindTargets(BattleZoneEntity entity, EffectTarget target){
+
+        // TODO : Check if it makes sense to continue effects handler from here
+        // Also need to add other possible targets (player, ...)
         if (! target.Equals(EffectTarget.Entity)){
             _cardEffectsHandler.Continue = true;
             return;
