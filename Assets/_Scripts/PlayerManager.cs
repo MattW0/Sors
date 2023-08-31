@@ -364,8 +364,7 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Command]
-    private void CmdPlayerChoosesAttackerToBlock(CreatureEntity target, List<CreatureEntity> blockers)
-    {
+    private void CmdPlayerChoosesAttackerToBlock(CreatureEntity target, List<CreatureEntity> blockers){
         _combatManager.PlayerChoosesAttackerToBlock(target, blockers);
     }
 
@@ -383,13 +382,13 @@ public class PlayerManager : NetworkBehaviour
 
     public void PlayerChoosesEntityTarget(BattleZoneEntity target){
         if (isServer) _cardEffectsHandler.PlayerChoosesTargetEntity(target);
-        else CmdPlayerChoosesAttackerToBlock(target);
+        else CmdPlayerChoosesTargetEntity(target);
         
         PlayerIsChoosingTarget = false;
     }
 
     [Command]
-    private void CmdPlayerChoosesAttackerToBlock(BattleZoneEntity target){
+    private void CmdPlayerChoosesTargetEntity(BattleZoneEntity target){
         _cardEffectsHandler.PlayerChoosesTargetEntity(target);
     }
 
@@ -509,15 +508,6 @@ public class PlayerManager : NetworkBehaviour
     private void RpcUISetRecruitValue(int value){
         if(isOwned) _playerUI.SetRecruits(value);
         else _opponentUI.SetRecruits(value);
-    }
-    
-    [ClientRpc] // ugh ds gieng sicher besser...
-    public void RpcDestroyArrows()
-    {
-        if (!isOwned) return;
-        
-        var arrows = FindObjectsOfType<ArrowRenderer>();
-        foreach(var arrow in arrows) Destroy(arrow.gameObject);
     }
     
     #endregion UI

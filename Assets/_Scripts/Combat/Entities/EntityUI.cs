@@ -1,14 +1,15 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections.Generic;
-using System.Linq;
+using UnityEngine.EventSystems;
 
-public class EntityUI : MonoBehaviour
+public class EntityUI : MonoBehaviour, IPointerClickHandler
 {
+    private CardZoomView _cardZoomView;
     [SerializeField] private Image effectHighlight;
 
     [Header("Entity Stats")]
+    private CardInfo _cardInfo;
     [SerializeField] private TMP_Text title;
     [SerializeField] private TMP_Text health;
     [SerializeField] private TMP_Text attack;
@@ -18,9 +19,10 @@ public class EntityUI : MonoBehaviour
     [SerializeField] private TMP_Text keywords;
     [SerializeField] private TMP_Text description;
 
-
     public void SetEntityUI(CardInfo cardInfo)
     {
+        _cardInfo = cardInfo;
+
         // Set card stats
         title.text = cardInfo.title;
         health.text = cardInfo.health.ToString();
@@ -32,6 +34,13 @@ public class EntityUI : MonoBehaviour
         } else if (cardInfo.type == CardType.Technology){
             points.text = cardInfo.points.ToString();
         }
+    }
+
+    public void OnPointerClick(PointerEventData eventData) {
+        // Right click to zoom only
+        if (eventData.button != PointerEventData.InputButton.Right) return;
+        
+        _cardZoomView.ZoomCard(_cardInfo);
     }
 
     public void SetHealth(int newValue) => health.text = newValue.ToString();

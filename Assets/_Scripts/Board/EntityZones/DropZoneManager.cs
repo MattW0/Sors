@@ -14,7 +14,6 @@ public class DropZoneManager : NetworkBehaviour
     [SerializeField] private EntityZones entityZones;
     [SerializeField] private MoneyZone playerMoneyZone;
     [SerializeField] private MoneyZone opponentMoneyZone;
-    public static event Action OnCombatEnded;
 
     private void Awake(){
         if (!Instance) Instance = this;
@@ -54,16 +53,16 @@ public class DropZoneManager : NetworkBehaviour
     #endregion
 
     [Server]
-    public void ShowEntities(PlayerManager owner, EffectTarget target){
+    public void ShowTargets(PlayerManager owner, EffectTarget target){
         var entities = entityZones.GetAllEntities();
-        print("Showing targets, owner: " + owner.PlayerName + ", target: " + target);
+        print("Showing targets for player: " + owner.PlayerName + ", target: " + target);
         print("targets count: " + entities.Count);
 
-        TargetMakeTargetable(owner.connectionToClient, entities);
+        TargetMakeEntitiesTargetable(owner.connectionToClient, entities);
     }
 
     [TargetRpc]
-    private void TargetMakeTargetable(NetworkConnection conn, List<BattleZoneEntity> entities){
+    private void TargetMakeEntitiesTargetable(NetworkConnection conn, List<BattleZoneEntity> entities){
         foreach (var entity in entities) {
             entity.Targetable = true;
         }
@@ -193,7 +192,11 @@ public class DropZoneManager : NetworkBehaviour
     public void CombatCleanUp()
     {
         _combatState = CombatState.CleanUp;
-        OnCombatEnded?.Invoke();
+        var creatures = entityZones.GetAllCreatures();
+        foreach (var creature in creatures){
+
+            creature.RpcResetAfterCombat();
+        }
     }
     #endregion
 
@@ -226,6 +229,14 @@ public class DropZoneManager : NetworkBehaviour
         }
         else if (_combatState == CombatState.Blockers) {
             PlayerFinishedChoosingBlockers(player);
+        }
+    }
+
+    [Server]
+    public void DestroyTargetArrows(){
+        var entities = entityZones.GetAllEntities();
+        foreach (var entity in entities){
+            entity.RpcDestroyArrow();
         }
     }
 

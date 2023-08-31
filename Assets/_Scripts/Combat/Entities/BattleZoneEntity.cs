@@ -16,7 +16,7 @@ public class BattleZoneEntity : NetworkBehaviour
         get => _targetable;
         set {
             _targetable = value;
-            _entityUI.EffectHighlight(value, Color.black);
+            _entityUI.EffectHighlight(value, Color.blue);
         }
     }
 
@@ -98,6 +98,23 @@ public class BattleZoneEntity : NetworkBehaviour
     [TargetRpc]
     public void TargetSpawnTargetArrow(NetworkConnection target){
         _targetArrowHandler.SpawnArrow();
+    }
+
+    [ClientRpc]
+    public void RpcTargetDeclared(BattleZoneEntity target){
+        if(!isOwned) return;
+        _targetArrowHandler.HandleFoundTarget(target);
+    }
+
+    [ClientRpc]
+    public void RpcShowOpponentTarget(BattleZoneEntity target){
+        if(isOwned) return;
+        _targetArrowHandler.HandleOpponentFoundTarget(target);
+    }
+
+    [ClientRpc]
+    public void RpcDestroyArrow(){
+        _targetArrowHandler.DestroyArrow();
     }
 
     private void Die() => _boardManager.EntityDies(this);

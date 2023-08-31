@@ -7,36 +7,34 @@ public class BlockerArrowHandler : NetworkBehaviour, IPointerClickHandler
 {
     [SerializeField] private CreatureEntity creature;
     [SerializeField] private GameObject arrowPrefab;
+    private GameObject _arrowObject;
     private ArrowRenderer _arrow;
     private CombatState _currentState;
     private bool _hasTarget;
     private Vector3 _offset = new Vector3(960f, 540f, 0f);
 
-    private void Awake()
-    {
+    private void Awake(){
         CombatManager.OnCombatStateChanged += RpcCombatStateChanged;
     }
 
     [ClientRpc]
-    private void RpcCombatStateChanged(CombatState newState)
-    {
+    private void RpcCombatStateChanged(CombatState newState){
         _currentState = newState;
         if(_currentState == CombatState.CleanUp) {
             _hasTarget = false;
         }
     }
     
-    private ArrowRenderer SpawnArrow()
-    {
-        var obj = Instantiate(arrowPrefab);
-        var arrow = obj.GetComponent<ArrowRenderer>();
-        arrow.SetOrigin(creature.transform.position);
+    private void SpawnArrow(){
+        _arrowObject = Instantiate(arrowPrefab);
+        _arrow = _arrowObject.GetComponent<ArrowRenderer>();
 
-        return arrow;
+        var origin = creature.transform.position;
+        origin.y = 0.5f;
+        _arrow.SetOrigin(origin);
     }
 
-    public void OnPointerClick(PointerEventData eventData)
-    {
+    public void OnPointerClick(PointerEventData eventData){
         // return if not in Blockers Phase
         if (_currentState != CombatState.Blockers) return;
 
@@ -49,7 +47,7 @@ public class BlockerArrowHandler : NetworkBehaviour, IPointerClickHandler
         if (!creature.CanAct || creature.IsAttacking || _hasTarget) return;
         
         if (!_arrow) {
-            _arrow = SpawnArrow();
+            SpawnArrow();
             creature.GetOwner().PlayerChoosesBlocker(creature);
             return;
         }
@@ -59,8 +57,7 @@ public class BlockerArrowHandler : NetworkBehaviour, IPointerClickHandler
         _arrow = null;
     }
 
-    private void HandleClickedOpponentCreature()
-    {
+    private void HandleClickedOpponentCreature(){
         if (!creature.IsAttacking) return;
 
         var clicker = PlayerManager.GetLocalPlayer();
@@ -69,36 +66,27 @@ public class BlockerArrowHandler : NetworkBehaviour, IPointerClickHandler
         clicker.PlayerChoosesAttackerToBlock(creature);
     }
 
-    public void HandleFoundEnemyTarget(CreatureEntity target)
-    {
+    public void HandleFoundEnemyTarget(CreatureEntity target){
         _hasTarget = true;
         _arrow.SetTarget(target.transform.position);
     }
     
-    public void ShowOpponentBlocker(GameObject blocker)
-    {
-        var arrow = SpawnArrow();
-        arrow.SetTarget(blocker.transform.position);
+    public void ShowOpponentBlocker(GameObject blocker){
+        SpawnArrow();
+        _arrow.SetTarget(blocker.transform.position);
     }
 
     private void FixedUpdate(){
         if (!_arrow || _hasTarget) return;
-        var input = new Vector3(Input.mousePosition.x, 0.5f, Input.mousePosition.y);
+        _arrow.SetTarget();
+    }
 
-        // Input range X: [0, 1920], Y: 0, Z: [0, 1080]
-        // Arrow renderer range X: [-9.7, 9.7], Y: 0.5, Z: [-5.5, 5.5]
+    public void DestroyArrow(){
+        if (!_arrowObject) return;
 
-        // X: [0, 1920] -> X: [-9.7, 9.7]
-        input.x = (input.x / 1920f) * 19.4f - 9.7f;
-
-        // Z: [0, 1080] -> Z: [-5.5, 5.5]
-        input.z = (input.z / 1080f) * 11f - 5.5f;
-
-        // clamp
-        input.x = Mathf.Clamp(input.x, -9.7f, 9.7f);
-        input.z = Mathf.Clamp(input.z, -5.5f, 5.5f);
-
-        _arrow.SetTarget(input);
+        Destroy(_arrowObject);
+        _arrowObject = null;
+        _arrow = null;
     }
 
     private void OnDestroy()

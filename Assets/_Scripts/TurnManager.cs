@@ -346,23 +346,26 @@ public class TurnManager : NetworkBehaviour
         StartCoroutine(PlayCardsIntermission());
     }
 
-    private IEnumerator WaitForAbilityQueueResolution(){
-        while(!_cardEffectsHandler.Continue) yield return new WaitForSeconds(0.5f);
-
-        if(_playAnotherCard) StartCoroutine(PlayCardsIntermission());
-        else EndPlayCards();
-    }
-
     private IEnumerator PlayCardsIntermission(){
         yield return new WaitForSeconds(2*_cardEffectsHandler.effectWaitTime);
         StartCoroutine(_cardEffectsHandler.StartResolvingQueue());
-        // _cardCollectionPanel.RpcSoftResetPanel();
-        // PlayCard();
+
+        while(_cardEffectsHandler.QueueResolving) yield return new WaitForSeconds(0.5f);
+
+        _boardManager.BoardCleanUp(false);
+        
+        var endPlayCards = ! _playAnotherCard;
+        _playAnotherCard = false;
+        
+        if(endPlayCards) EndPlayCards();
+        else {
+            _cardCollectionPanel.RpcSoftResetPanel();
+            PlayCard();
+        } 
+        
     }
 
-    private void EndPlayCards()
-    {
-        _playAnotherCard = false;
+    private void EndPlayCards(){
         _cardCollectionPanel.RpcResetPanel();
         _boardManager.ShowHolders(false);
         PlayersStatsResetAndDiscardMoney(false);
@@ -511,7 +514,7 @@ public class TurnManager : NetworkBehaviour
     private IEnumerator CleanUpIntermission(){
         OnPhaseChanged?.Invoke(TurnState.CleanUp);
         _readyPlayers.Clear();
-        _boardManager.BoardCleanUp();
+        _boardManager.BoardCleanUp(true);
         PlayersStatsResetAndDiscardMoney(endOfTurn: true);
 
         yield return new WaitForSeconds(1f);

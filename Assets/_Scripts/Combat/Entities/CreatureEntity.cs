@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -8,7 +7,7 @@ public class CreatureEntity : NetworkBehaviour, IPointerClickHandler
 {
     [SerializeField] private BattleZoneEntity _bze;
     [SerializeField] private CreatureEntityUI _creatureUI;
-    [SerializeField] private BlockerArrowHandler _arrowHandler;
+    [SerializeField] private BlockerArrowHandler _blockerArrowHandler;
 
     private List<Keywords> _keywordAbilities;
     public void SetKeywords(List<Keywords> keywords) => _keywordAbilities = keywords;
@@ -31,8 +30,6 @@ public class CreatureEntity : NetworkBehaviour, IPointerClickHandler
     }
 
     private void Start(){
-        DropZoneManager.OnCombatEnded += RpcResetAfterCombat;
-
         if (isOwned) _creatureUI.UntapCreature(false);
         else _creatureUI.UntapOpponentCreature();
     }
@@ -56,6 +53,12 @@ public class CreatureEntity : NetworkBehaviour, IPointerClickHandler
     }
 
     public void OnPointerClick(PointerEventData eventData){
+        
+        // Right click -> card zoom (handled in BattleZoneEntity)
+        if (eventData.button == PointerEventData.InputButton.Right) {
+            return;
+        }
+
         if (!isOwned || !CanAct) return;
 
         // only in Attackers since blockerArrowHandler handles Blockers phase
@@ -74,14 +77,14 @@ public class CreatureEntity : NetworkBehaviour, IPointerClickHandler
     [ClientRpc]
     public void RpcBlockerDeclared(CreatureEntity attacker){
         if (!isOwned) return;
-        _arrowHandler.HandleFoundEnemyTarget(attacker);
+        _blockerArrowHandler.HandleFoundEnemyTarget(attacker);
     }
     
     [ClientRpc]
     public void RpcShowOpponentsBlockers(List<CreatureEntity> blockers){
         if (!isOwned) return;
         foreach (var blocker in blockers){
-            _arrowHandler.ShowOpponentBlocker(blocker.gameObject);
+            _blockerArrowHandler.ShowOpponentBlocker(blocker.gameObject);
         }
     }
 
@@ -97,17 +100,6 @@ public class CreatureEntity : NetworkBehaviour, IPointerClickHandler
     [ClientRpc]
     public void RpcSetCombatHighlight() => _creatureUI.CombatHighlight();
     public void SetHighlight(bool active) => _creatureUI.Highlight(active);
-    
-    [ClientRpc]
-    public void RpcResetAfterCombat(){
-        CanAct = false;
-        if(IsAttacking){
-            RetreatAttacker();
-            IsAttacking = false;
-        }
-
-        _creatureUI.ResetHighlight();
-    }
 
     [ClientRpc]
     public void RpcRetreatAttacker() => RetreatAttacker();
@@ -117,13 +109,21 @@ public class CreatureEntity : NetworkBehaviour, IPointerClickHandler
         else _creatureUI.UntapOpponentCreature();
     }
 
+    [ClientRpc]
+    public void RpcResetAfterCombat(){
+        CanAct = false;
+        if(IsAttacking){
+            RetreatAttacker();
+            IsAttacking = false;
+        }
+
+        _blockerArrowHandler.DestroyArrow();
+        _creatureUI.ResetHighlight();
+    }
+
     public int GetHealth() => _bze.Health;
     public int GetAttack() => _bze.Attack;
     public string GetCardTitle() => _bze.Title;
     public PlayerManager GetOwner() => _bze.Owner;
     public PlayerManager GetOpponent() => _bze.Opponent;
-
-    private void OnDestroy(){
-        DropZoneManager.OnCombatEnded -= RpcResetAfterCombat;
-    }
 }

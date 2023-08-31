@@ -49,17 +49,18 @@ public class BoardManager : NetworkBehaviour
 
     public void FindTargets(BattleZoneEntity entity, EffectTarget target){
 
+        print(entity.Title + " - looking for target: " + target);
+        var owner = entity.Owner;
+
         // TODO : Check if it makes sense to continue effects handler from here
         // Also need to add other possible targets (player, ...)
-        if (! target.Equals(EffectTarget.Entity)){
-            _cardEffectsHandler.Continue = true;
+        if (target.Equals(EffectTarget.Entity)){
+            // _cardEffectsHandler.Continue = true;
+            _dropZone.ShowTargets(owner, target);
             return;
         }
 
-        print("Entity " + entity.Title + " Target: " + target);
 
-        var owner = entity.Owner;
-        _dropZone.ShowEntities(owner, target);
         
     }
 
@@ -102,16 +103,27 @@ public class BoardManager : NetworkBehaviour
     public void EntityDies(BattleZoneEntity entity)
     {
         _deadEntities.Add(entity);
-        // entity.OnDeath -= EntityDies;
     }
 
-    public void CombatCleanUp()
-    {
-        DestroyArrows();
-        ClearDeadEntities();
+    public void CombatCleanUp(){
 
+        ClearDeadEntities();
         _boardAttackers.Clear();
+
+        // Reset entities and destroy blocker arrows
         _dropZone.CombatCleanUp();
+    }
+    #endregion
+
+    public void BoardCleanUp(bool endOfTurn){
+        
+        ClearDeadEntities();
+        _dropZone.DestroyTargetArrows();
+
+        if(endOfTurn){
+            _dropZone.DevelopmentsLooseHealth();
+            _phasePanel.RpcClearPlayerChoiceHighlights();
+        }
     }
 
     public void ClearDeadEntities(){
@@ -136,17 +148,6 @@ public class BoardManager : NetworkBehaviour
         _deadEntities.Clear();
     }
 
-    // public void PlayerSkipsCombatPhase(PlayerManager player) => OnSkipCombatPhase?.Invoke(player);
-
-    #endregion
-
-    public void BoardCleanUp(){
-        // _phasePanel.RpcStartBoardCleanUp();
-        _dropZone.DevelopmentsLooseHealth();
-        _phasePanel.RpcClearPlayerChoiceHighlights();
-        ClearDeadEntities();
-    }
-
     #region UI
     public void ShowHolders(bool active){
 
@@ -160,12 +161,6 @@ public class BoardManager : NetworkBehaviour
 
     public void DisableReadyButton(PlayerManager player){
         _phasePanel.TargetDisableCombatButtons(player.connectionToClient);
-    }
-
-    private void DestroyArrows(){
-        foreach (var player in _gameManager.players.Keys){
-            player.RpcDestroyArrows();
-        }
     }
 
     public void DiscardMoney() => _dropZone.RpcDiscardMoney();

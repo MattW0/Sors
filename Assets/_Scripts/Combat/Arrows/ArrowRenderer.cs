@@ -21,14 +21,24 @@ public class ArrowRenderer : MonoBehaviour
     readonly List<MeshRenderer> renderers = new List<MeshRenderer>();
 
     public void SetOrigin(Vector3 origin) => start = origin;
-    public void SetTarget(Vector3 target) => end = target;
+    public void SetTarget(){
+        var input = new Vector3(Input.mousePosition.x, 0.5f, Input.mousePosition.y);
 
-    public void SetPositions(Vector3 start0, Vector3 end0){
-        print("Setting position: " + start0 + end0);
-        
-        start = start0;
-        end = end0;
+        // Input range X: [0, 1920], Y: 0, Z: [0, 1080]
+        // Arrow renderer range X: [-9.7, 9.7], Y: 0.5, Z: [-5.5, 5.5]
+        // X: [0, 1920] -> X: [-9.7, 9.7]
+        input.x = (input.x / 1920f) * 19.4f - 9.7f;
+        // Z: [0, 1080] -> Z: [-5.5, 5.5]
+        input.z = (input.z / 1080f) * 11f - 5.5f;
+
+        // clamp to screen size
+        input.x = Mathf.Clamp(input.x, -9.7f, 9.7f);
+        input.z = Mathf.Clamp(input.z, -5.5f, 5.5f);
+
+        end = input;
     }
+
+    public void SetTarget(Vector3 target) => end = target;
 
     private void Update(){
         if (stopUpdating) return;

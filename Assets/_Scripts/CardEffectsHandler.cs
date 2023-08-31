@@ -11,16 +11,13 @@ public class CardEffectsHandler : NetworkBehaviour
     private TurnManager _turnManager;
     private PlayerInterfaceManager _playerInterfaceManager;
     private Dictionary<BattleZoneEntity, Ability> _abilityQueue = new();
-    private BattleZoneEntity _effectTarget;
-    public float effectWaitTime = 0.5f;
+    public bool QueueResolving { get; private set; }
+    private bool _abilityResolving = false;
     private bool _continue = false;
-    public bool Continue { 
-        get => _continue; 
-        set {
-            _continue = value;
-            // if(value) _turnManager.NextTurnState(_currentPhase);
-        }
-    }
+    private BattleZoneEntity _abilitySource;
+    // TODO: Make this a list for multiple targets
+    private BattleZoneEntity _abilityTarget;
+    public float effectWaitTime = 0.5f;
 
     // Helper fields
     private Phase _currentPhase;
@@ -62,12 +59,8 @@ public class CardEffectsHandler : NetworkBehaviour
         _presentAbilities.Add(entity, activeAbilities);
     }
 
-    public void EntityDies(BattleZoneEntity entity){
-        _presentAbilities.Remove(entity);
-    }
-
     public void CheckPhaseTriggers(Phase phase){
-        // We only search relations if the current phase triggers at least one effect
+        // We only search for abilities if the current phase triggers at least one effect
         _currentPhase = phase;
         if (!_phaseTriggers.Contains(phase)){
             _turnManager.NextTurnState(_currentPhase);
@@ -101,73 +94,103 @@ public class CardEffectsHandler : NetworkBehaviour
         _playerInterfaceManager.RpcLog($"'{entity.Title}': {ability.trigger} -> {ability.effect}", LogType.EffectTrigger);
         print($"'{entity.Title}': {ability.trigger} -> {ability.effect}");
         _abilityQueue.Add(entity, ability);
-        // StartCoroutine(BeginAbilityExecution(entity, ability));
     }
 
     public IEnumerator StartResolvingQueue(){
+
+        QueueResolving = true;
+        print(" >>> Start resolving ability queue <<< ");
         foreach(var (entity, ability) in _abilityQueue){
-            StartCoroutine(BeginAbilityExecution(entity, ability));
-            while(!_continue) {
+            _abilityResolving = true;
+            
+            // Waits for player input (with _continue) and when done sets _abilityResolving = true
+            StartCoroutine(ResolveAbility(entity, ability));
+            while(_abilityResolving) {
                 yield return new WaitForSeconds(effectWaitTime);
             }
+
+            _abilitySource = null;
+            _abilityTarget = null;
         }
+
+        print(" --- Ability queue resolved --- ");
+        QueueResolving = false;
+        _abilityQueue.Clear();
     }
 
-    private IEnumerator BeginAbilityExecution(BattleZoneEntity entity, Ability ability){
-
+    private IEnumerator ResolveAbility(BattleZoneEntity entity, Ability ability){
+        
+        print($"Resolving ability : " + ability.ToString());
+        
         entity.RpcEffectHighlight(true);
-        CheckForPlayerInput(entity, ability);
-        yield return new WaitForSeconds(effectWaitTime);
 
-        while(!_continue) {
-            print("Waiting for player input");
+        _continue = CheckForPlayerInput(entity, ability);
+        while(true) {
+            if (_continue) break;
             yield return new WaitForSeconds(effectWaitTime);
         }
-        print("Player input received");
-        _effectTarget = null;
         _continue = false;
+        print("- passed player input");
 
-        ExecuteEffect(entity, ability);
+        StartCoroutine(ExecuteEffect(entity, ability));
+        while(!_continue) {
+            yield return new WaitForSeconds(effectWaitTime);
+        }
+        _continue = false;
+        print("- passed ability execution");
 
-        // if(entity.cardType == CardType.Technology) entity.Health -= 1;
 
-        yield return new WaitForSeconds(effectWaitTime);
-        entity.RpcEffectHighlight(false);
+        _abilityResolving = false;
     }
 
-    private void CheckForPlayerInput(BattleZoneEntity entity, Ability ability){
-        
-        print($"Ability: {ability.effect} - {ability.target} - {ability.amount} - {ability.trigger}");
-        print("Continue: " + _continue);
+    private bool CheckForPlayerInput(BattleZoneEntity entity, Ability ability){
+
+        if(ability.target == EffectTarget.None){
+            return true;
+        }
+
         // Only need input for damage and lifegain currently
         if(!(ability.effect.Equals(Effect.Damage) || ability.effect.Equals(Effect.LifeGain))){
-            _continue = true;
-            return;
+            return true;
         }
 
+        // Some targets are pre-determined
+        if(ability.target == EffectTarget.Self
+           || ability.target == EffectTarget.Player
+           || ability.target == EffectTarget.Opponent)
+        {
+            return true;
+        }
+
+        print($"NEED PLAYER INPUT: " + ability.ToString());
+        
+        // Else we need input from player and set _continue to true after receiving it
+        _abilitySource = entity;
         _turnManager.PlayerStartSelectTarget(entity, ability);
-        if (ability.target == EffectTarget.AnyPlayer){
-
-        } else if (ability.target == EffectTarget.Entity){
-        } else if (ability.target == EffectTarget.Technology){
-
-        } else if (ability.target == EffectTarget.Creature){
-
-        } else if (ability.target == EffectTarget.Any){
-
-        }
+        
+        return false;
     }
 
-    public void PlayerChoosesTargetEntity(BattleZoneEntity entity){
-        _effectTarget = entity;
+    public void PlayerChoosesTargetEntity(BattleZoneEntity target){
+        _abilityTarget = target;
+        _abilitySource.RpcTargetDeclared(_abilityTarget);
+
+        // reverse logic (from target to source) for client
+        // TODO: This does not work
+        _abilityTarget.RpcShowOpponentTarget(_abilitySource);
+
         _continue = true;
+        // continue in ResolveAbility (Step 2)
+    }
+
+    public void EntityDies(BattleZoneEntity entity){
+        _presentAbilities.Remove(entity);
     }
 
     #region Effects
-    private void ExecuteEffect(BattleZoneEntity entity, Ability ability){
-        var effect = ability.effect;
+    private IEnumerator ExecuteEffect(BattleZoneEntity entity, Ability ability){
 
-        switch (effect){
+        switch (ability.effect){
             case Effect.CardDraw:
                 HandleCardDraw(entity, ability);
                 break;
@@ -184,6 +207,13 @@ public class CardEffectsHandler : NetworkBehaviour
                 HandleLifeGain(entity, ability);
                 break;
         }
+
+        entity.RpcEffectHighlight(false);
+
+        _continue = true;
+
+        yield return new WaitForSeconds(effectWaitTime);
+        yield return null;
     }
 
     private void HandleCardDraw(BattleZoneEntity entity, Ability ability){
@@ -218,7 +248,7 @@ public class CardEffectsHandler : NetworkBehaviour
         }
 
         // With target
-        if(_effectTarget) _effectTarget.Health -= ability.amount;
+        if(_abilityTarget) _abilityTarget.Health -= ability.amount;
     }
 
     private void HandleLifeGain(BattleZoneEntity entity, Ability ability){
