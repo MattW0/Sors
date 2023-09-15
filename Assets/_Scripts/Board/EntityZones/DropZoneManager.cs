@@ -14,6 +14,8 @@ public class DropZoneManager : NetworkBehaviour
     [SerializeField] private EntityZones entityZones;
     [SerializeField] private MoneyZone playerMoneyZone;
     [SerializeField] private MoneyZone opponentMoneyZone;
+    public static event Action OnDestroyBlockerArrows;
+    public static event Action OnDestroyTargetArrows;
 
     private void Awake(){
         if (!Instance) Instance = this;
@@ -182,21 +184,26 @@ public class DropZoneManager : NetworkBehaviour
     }
 
     [Server]
-    public void PlayerFinishedChoosingBlockers(PlayerManager player, bool skip = false)
-    {
+    public void PlayerFinishedChoosingBlockers(PlayerManager player, bool skip = false){
         _boardManager.DisableReadyButton(player);
         _boardManager.BlockersDeclared(player, new List<CreatureEntity>());
     }
 
     [Server]
-    public void CombatCleanUp()
-    {
+    public void CombatCleanUp(){
         _combatState = CombatState.CleanUp;
         var creatures = entityZones.GetAllCreatures();
         foreach (var creature in creatures){
 
             creature.RpcResetAfterCombat();
         }
+
+        RpcDestroyBlockerArrows();
+    }
+
+    [ClientRpc]
+    private void RpcDestroyBlockerArrows(){
+        OnDestroyBlockerArrows?.Invoke();
     }
     #endregion
 
@@ -234,10 +241,16 @@ public class DropZoneManager : NetworkBehaviour
 
     [Server]
     public void DestroyTargetArrows(){
+
         var entities = entityZones.GetAllEntities();
-        foreach (var entity in entities){
-            entity.RpcDestroyArrow();
-        }
+        foreach (var entity in entities) entity.RpcResetAfterTarget();
+
+        RpcDestroyTargetArrows();
+    }
+
+    [ClientRpc]
+    private void RpcDestroyTargetArrows(){
+        OnDestroyTargetArrows?.Invoke();
     }
 
     [ClientRpc]

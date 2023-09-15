@@ -77,7 +77,7 @@ public class CreatureEntity : NetworkBehaviour, IPointerClickHandler
     [ClientRpc]
     public void RpcBlockerDeclared(CreatureEntity attacker){
         if (!isOwned) return;
-        _blockerArrowHandler.HandleFoundEnemyTarget(attacker);
+        _blockerArrowHandler.HandleBlockAttacker(attacker);
     }
     
     [ClientRpc]
@@ -117,7 +117,7 @@ public class CreatureEntity : NetworkBehaviour, IPointerClickHandler
             IsAttacking = false;
         }
 
-        _blockerArrowHandler.DestroyArrow();
+        _blockerArrowHandler.RemoveArrow();
         _creatureUI.ResetHighlight();
     }
 

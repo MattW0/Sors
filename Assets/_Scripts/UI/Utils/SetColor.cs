@@ -15,6 +15,7 @@ public class SetColor : MonoBehaviour
         {
             ColorType.Creature => SorsColors.creature,
             ColorType.Technology => SorsColors.technology,
+            ColorType.Trash => SorsColors.trash,
             ColorType.Cash => SorsColors.cash,
             ColorType.Cost => SorsColors.costValue,
             ColorType.Attack => SorsColors.attackValue,

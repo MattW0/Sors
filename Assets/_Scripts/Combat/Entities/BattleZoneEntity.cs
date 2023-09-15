@@ -108,13 +108,13 @@ public class BattleZoneEntity : NetworkBehaviour
 
     [ClientRpc]
     public void RpcShowOpponentTarget(BattleZoneEntity target){
-        if(isOwned) return;
+        if(!isOwned) return;
         _targetArrowHandler.HandleOpponentFoundTarget(target);
     }
 
     [ClientRpc]
-    public void RpcDestroyArrow(){
-        _targetArrowHandler.DestroyArrow();
+    public void RpcResetAfterTarget(){
+        _targetArrowHandler.RemoveArrow();
     }
 
     private void Die() => _boardManager.EntityDies(this);

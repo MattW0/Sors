@@ -99,7 +99,7 @@ public class CardEffectsHandler : NetworkBehaviour
     public IEnumerator StartResolvingQueue(){
 
         QueueResolving = true;
-        print(" >>> Start resolving ability queue <<< ");
+        // print(" >>> Start resolving ability queue <<< ");
         foreach(var (entity, ability) in _abilityQueue){
             _abilityResolving = true;
             
@@ -113,7 +113,7 @@ public class CardEffectsHandler : NetworkBehaviour
             _abilityTarget = null;
         }
 
-        print(" --- Ability queue resolved --- ");
+        // print(" --- Ability queue resolved --- ");
         QueueResolving = false;
         _abilityQueue.Clear();
     }
@@ -130,14 +130,14 @@ public class CardEffectsHandler : NetworkBehaviour
             yield return new WaitForSeconds(effectWaitTime);
         }
         _continue = false;
-        print("- passed player input");
+        // print("- passed player input");
 
         StartCoroutine(ExecuteEffect(entity, ability));
         while(!_continue) {
             yield return new WaitForSeconds(effectWaitTime);
         }
         _continue = false;
-        print("- passed ability execution");
+        // print("- passed ability execution");
 
 
         _abilityResolving = false;

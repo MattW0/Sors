@@ -38,8 +38,8 @@ public class TargetArrowHandler : MonoBehaviour, IPointerClickHandler
     }
 
     public void HandleOpponentFoundTarget(BattleZoneEntity target){
-
         SpawnArrow();
+        _hasTarget = true;
         _arrow.SetTarget(target.transform.position);
 
         // TODO: Expand this for multiple targets -> need to rebuild _arrow and _arrowObject to lists
@@ -52,13 +52,9 @@ public class TargetArrowHandler : MonoBehaviour, IPointerClickHandler
         _arrow.SetTarget();
     }
 
-    public void DestroyArrow(){
-
-        // TODO: Does not work on client
-
+    public void RemoveArrow(){
         if (!_arrowObject) return;
 
-        Destroy(_arrowObject);
         _arrowObject = null;
         _arrow = null;
     }

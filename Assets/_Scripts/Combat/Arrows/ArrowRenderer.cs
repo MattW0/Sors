@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class ArrowRenderer : MonoBehaviour
 {
+    [SerializeField] ArrowType arrowType;
     public bool stopUpdating;
     public float height = 0.5f;
     public float segmentLength = 0.5f;
@@ -19,6 +20,11 @@ public class ArrowRenderer : MonoBehaviour
 
     readonly List<Transform> segments = new List<Transform>();
     readonly List<MeshRenderer> renderers = new List<MeshRenderer>();
+
+    private void Awake(){
+        if (arrowType == ArrowType.Blocker) DropZoneManager.OnDestroyBlockerArrows += DestroyArrow;
+        else if (arrowType == ArrowType.Blocker) DropZoneManager.OnDestroyTargetArrows += DestroyArrow;
+    }
 
     public void SetOrigin(Vector3 origin) => start = origin;
     public void SetTarget(){
@@ -117,4 +123,18 @@ public class ArrowRenderer : MonoBehaviour
     {
         return Mathf.Clamp01(Mathf.Clamp01(distance0 / distanceMax) + Mathf.Clamp01(distance1 / distanceMax) - 1f);
     }
+
+    private void DestroyArrow(){
+        Destroy(gameObject);
+    }
+
+    private void OnDestroy(){
+        DropZoneManager.OnDestroyBlockerArrows -= DestroyArrow;
+        DropZoneManager.OnDestroyTargetArrows -= DestroyArrow;
+    }
 }
+
+public enum ArrowType{
+    Target,
+    Blocker
+} 

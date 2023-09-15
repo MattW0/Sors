@@ -66,13 +66,14 @@ public class BlockerArrowHandler : NetworkBehaviour, IPointerClickHandler
         clicker.PlayerChoosesAttackerToBlock(creature);
     }
 
-    public void HandleFoundEnemyTarget(CreatureEntity target){
+    public void HandleBlockAttacker(CreatureEntity attacker){
         _hasTarget = true;
-        _arrow.SetTarget(target.transform.position);
+        _arrow.SetTarget(attacker.transform.position);
     }
     
     public void ShowOpponentBlocker(GameObject blocker){
         SpawnArrow();
+        _hasTarget = true;
         _arrow.SetTarget(blocker.transform.position);
     }
 
@@ -81,10 +82,10 @@ public class BlockerArrowHandler : NetworkBehaviour, IPointerClickHandler
         _arrow.SetTarget();
     }
 
-    public void DestroyArrow(){
+    public void RemoveArrow(){
         if (!_arrowObject) return;
 
-        Destroy(_arrowObject);
+        _hasTarget = false;
         _arrowObject = null;
         _arrow = null;
     }
