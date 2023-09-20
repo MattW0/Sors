@@ -11,8 +11,8 @@ public class BoardManager : NetworkBehaviour
 {
     public static BoardManager Instance { get; private set; }
     private GameManager _gameManager;
-    [SerializeField] private CardEffectsHandler _cardEffectsHandler;
     private DropZoneManager _dropZone;
+    [SerializeField] private CardEffectsHandler _cardEffectsHandler;
     [SerializeField] private PhasePanel _phasePanel;
 
     // Entities, corresponding card object
@@ -24,31 +24,31 @@ public class BoardManager : NetworkBehaviour
     public static event Action<PlayerManager> OnAttackersDeclared;
     public static event Action<PlayerManager> OnBlockersDeclared;
 
-    private void Awake() {
+    private void Awake()
+    {
         if (!Instance) Instance = this;
 
         _gameManager = GameManager.Instance;
         _dropZone = DropZoneManager.Instance;
     }
 
-    public void AddEntity(PlayerManager owner, PlayerManager opponent, GameObject card, BattleZoneEntity entity) {
-        
+    public void AddEntity(PlayerManager owner, PlayerManager opponent, GameObject card, BattleZoneEntity entity) 
+    {
         // print("Adding entity, owner: " + owner.name + ", opponent: " + opponent.name + ", card: " + card.name + ", entity: " + entity.name);
         var cardInfo = card.GetComponent<CardStats>().cardInfo;
+        
         // To keep track which card object corresponds to which entity
         _entitiesObjectsCache.Add(entity, card);
 
         entity.RpcInitializeEntity(owner, opponent, cardInfo);
         _dropZone.EntityEntersDropZone(owner, entity);
         _cardEffectsHandler.CardIsPlayed(owner, entity, cardInfo);
-
-        // entity.OnDeath += EntityDies;
     }
 
     #region Effects
 
-    public void FindTargets(BattleZoneEntity entity, EffectTarget target){
-
+    public void FindTargets(BattleZoneEntity entity, EffectTarget target)
+    {
         print(entity.Title + " - looking for target: " + target);
         var owner = entity.Owner;
 
@@ -59,9 +59,6 @@ public class BoardManager : NetworkBehaviour
             _dropZone.ShowTargets(owner, target);
             return;
         }
-
-
-        
     }
 
     #endregion
@@ -72,7 +69,8 @@ public class BoardManager : NetworkBehaviour
         StartCoroutine(CombatTransitionAnimation(state));
     }
 
-    private IEnumerator CombatTransitionAnimation(CombatState state){
+    private IEnumerator CombatTransitionAnimation(CombatState state)
+    {
         _phasePanel.RpcStartCombatPhase(state);
         yield return new WaitForSeconds(1f);
         if (state == CombatState.Attackers) DeclareAttackers();
@@ -81,12 +79,14 @@ public class BoardManager : NetworkBehaviour
 
     private void DeclareAttackers() => _dropZone.StartDeclareAttackers(_gameManager.players.Keys.ToList());
 
-    public void AttackersDeclared(PlayerManager player, List<CreatureEntity> playerAttackers) {
+    public void AttackersDeclared(PlayerManager player, List<CreatureEntity> playerAttackers)
+    {
         foreach (var a in playerAttackers) _boardAttackers.Add(a);
         OnAttackersDeclared?.Invoke(player);
     }
 
-    public void ShowOpponentAttackers() {
+    public void ShowOpponentAttackers() 
+    {
         // Share attacker state accross clients
         foreach (var creature in _boardAttackers){
             creature.IsAttacking = true;
@@ -95,18 +95,18 @@ public class BoardManager : NetworkBehaviour
     }
 
     private void DeclareBlockers() => _dropZone.StartDeclareBlockers(_gameManager.players.Keys.ToList());
-
-    public void BlockersDeclared(PlayerManager player, List<CreatureEntity> playerBlockers) {
-        OnBlockersDeclared?.Invoke(player);
-    }
+    public void BlockersDeclared(PlayerManager player) => OnBlockersDeclared?.Invoke(player);
     
     public void EntityDies(BattleZoneEntity entity)
     {
+        // Catch exception where entity was already dead and received more damage
+        if (_deadEntities.Contains(entity)) return;
+
         _deadEntities.Add(entity);
     }
 
-    public void CombatCleanUp(){
-
+    public void CombatCleanUp()
+    {
         ClearDeadEntities();
         _boardAttackers.Clear();
 
@@ -115,18 +115,18 @@ public class BoardManager : NetworkBehaviour
     }
     #endregion
 
-    public void BoardCleanUp(bool endOfTurn){
-        
+    public void BoardCleanUp(bool endOfTurn)
+    {    
         ClearDeadEntities();
         _dropZone.DestroyTargetArrows();
 
-        if(endOfTurn){
-            _dropZone.DevelopmentsLooseHealth();
-            _phasePanel.RpcClearPlayerChoiceHighlights();
-        }
+        if(! endOfTurn) return;
+        _dropZone.DevelopmentsLooseHealth();
+        _phasePanel.RpcClearPlayerChoiceHighlights();
     }
 
-    public void ClearDeadEntities(){
+    public void ClearDeadEntities()
+    {
         foreach (var dead in _deadEntities)
         {
             _dropZone.EntityLeavesPlayZone(dead);
@@ -149,20 +149,17 @@ public class BoardManager : NetworkBehaviour
     }
 
     #region UI
-    public void ShowHolders(bool active){
-
-        if(!active) { 
-            _dropZone.RpcResetHolders();
-        } else {
+    public void ShowHolders(bool active)
+    {
+        if(active) { 
             var turnState = TurnManager.GetTurnState();
             _dropZone.RpcHighlightCardHolders(turnState);
+        } else {
+            _dropZone.RpcResetHolders();
         }
     }
 
-    public void DisableReadyButton(PlayerManager player){
-        _phasePanel.TargetDisableCombatButtons(player.connectionToClient);
-    }
-
+    public void DisableReadyButton(PlayerManager player) => _phasePanel.TargetDisableCombatButtons(player.connectionToClient);
     public void DiscardMoney() => _dropZone.RpcDiscardMoney();
     #endregion
 }

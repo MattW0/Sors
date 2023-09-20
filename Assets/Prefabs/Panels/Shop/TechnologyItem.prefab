@@ -318,8 +318,7 @@ MonoBehaviour:
     attack: 0
     points: 0
     moneyValue: 0
-    triggers: 
-    effects: 
+    abilities: []
     keywordAbilities: 
   _ui: {fileID: 3168988823132459645}
 --- !u!114 &3168988823132459645
@@ -769,6 +768,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 368003340051480582, guid: 62c180920cc5443409f095641b973619, type: 3}
+      propertyPath: colorType
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 1229193564878145168, guid: 62c180920cc5443409f095641b973619, type: 3}
       propertyPath: m_Name
       value: Defense
@@ -807,15 +810,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3097073243007140860, guid: 62c180920cc5443409f095641b973619, type: 3}
       propertyPath: m_Color.b
-      value: 1
+      value: 0.29
       objectReference: {fileID: 0}
     - target: {fileID: 3097073243007140860, guid: 62c180920cc5443409f095641b973619, type: 3}
       propertyPath: m_Color.g
-      value: 0.073209524
+      value: 0.77
       objectReference: {fileID: 0}
     - target: {fileID: 3097073243007140860, guid: 62c180920cc5443409f095641b973619, type: 3}
       propertyPath: m_Color.r
-      value: 0
+      value: 0.37
       objectReference: {fileID: 0}
     - target: {fileID: 3695929683779947232, guid: 62c180920cc5443409f095641b973619, type: 3}
       propertyPath: m_Sprite
@@ -988,15 +991,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3097073243007140860, guid: 62c180920cc5443409f095641b973619, type: 3}
       propertyPath: m_Color.b
-      value: 0.1764706
+      value: 0.29
       objectReference: {fileID: 0}
     - target: {fileID: 3097073243007140860, guid: 62c180920cc5443409f095641b973619, type: 3}
       propertyPath: m_Color.g
-      value: 0.9568628
+      value: 0.77
       objectReference: {fileID: 0}
     - target: {fileID: 3097073243007140860, guid: 62c180920cc5443409f095641b973619, type: 3}
       propertyPath: m_Color.r
-      value: 0.043137256
+      value: 0.37
       objectReference: {fileID: 0}
     - target: {fileID: 3695929683779947232, guid: 62c180920cc5443409f095641b973619, type: 3}
       propertyPath: m_Sprite
@@ -1127,6 +1130,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 368003340051480582, guid: 62c180920cc5443409f095641b973619, type: 3}
+      propertyPath: colorType
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 1229193564878145168, guid: 62c180920cc5443409f095641b973619, type: 3}
       propertyPath: m_Name
       value: Cost
@@ -1162,6 +1169,18 @@ PrefabInstance:
     - target: {fileID: 2460933046109693042, guid: 62c180920cc5443409f095641b973619, type: 3}
       propertyPath: m_fontSizeBase
       value: 26
+      objectReference: {fileID: 0}
+    - target: {fileID: 3097073243007140860, guid: 62c180920cc5443409f095641b973619, type: 3}
+      propertyPath: m_Color.b
+      value: 0.29
+      objectReference: {fileID: 0}
+    - target: {fileID: 3097073243007140860, guid: 62c180920cc5443409f095641b973619, type: 3}
+      propertyPath: m_Color.g
+      value: 0.77
+      objectReference: {fileID: 0}
+    - target: {fileID: 3097073243007140860, guid: 62c180920cc5443409f095641b973619, type: 3}
+      propertyPath: m_Color.r
+      value: 0.37
       objectReference: {fileID: 0}
     - target: {fileID: 7629235569541532352, guid: 62c180920cc5443409f095641b973619, type: 3}
       propertyPath: m_Pivot.x

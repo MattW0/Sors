@@ -95,12 +95,11 @@ public class PlayerManager : NetworkBehaviour
 
     #region GameSetup
 
-    public override void OnStartClient(){
-        base.OnStartClient();
-    }
+    public override void OnStartClient() => base.OnStartClient();
 
     [ClientRpc]
-    public void RpcInitPlayer(){
+    public void RpcInitPlayer()
+    {
         _handManager = Hand.Instance;
         _cardMover = CardMover.Instance;
         _dropZone = DropZoneManager.Instance;
@@ -140,12 +139,11 @@ public class PlayerManager : NetworkBehaviour
     #region Cards
 
     [ClientRpc]
-    public void RpcCardPilesChanged(){
-        OnCardPileChanged?.Invoke();
-    }
+    public void RpcCardPilesChanged() => OnCardPileChanged?.Invoke();
         
     [Server]
-    public void DrawCards(int amount){
+    public void DrawCards(int amount)
+    {
         while (amount > deck.Count + discard.Count){
             amount--;
         }
@@ -163,7 +161,8 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Server]
-    private void ShuffleDiscardIntoDeck(){
+    private void ShuffleDiscardIntoDeck()
+    {
         var temp = new List<CardInfo>();
         foreach (var card in discard){
             temp.Add(card);
@@ -180,18 +179,18 @@ public class PlayerManager : NetworkBehaviour
         deck.Shuffle();
     }
 
-    public void PlayCard(GameObject card) {
+    public void PlayCard(GameObject card)
+    {
         if (isServer) RpcMoveCard(card, CardLocation.Hand, CardLocation.PlayZone);
         else CmdMoveCard(card, CardLocation.Hand, CardLocation.PlayZone);
     }
 
     [Command]
-    private void CmdMoveCard(GameObject card, CardLocation from, CardLocation to){
-        RpcMoveCard(card, from, to);
-    }
+    private void CmdMoveCard(GameObject card, CardLocation from, CardLocation to) => RpcMoveCard(card, from, to);
 
     [ClientRpc]
-    public void RpcMoveCard(GameObject card, CardLocation from, CardLocation to){
+    public void RpcMoveCard(GameObject card, CardLocation from, CardLocation to)
+    {
         _cardMover.MoveTo(card, isOwned, from, to);
 
         if (!isOwned) return;
@@ -200,7 +199,8 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcSpawnCard(GameObject card, CardLocation destination){
+    public void RpcSpawnCard(GameObject card, CardLocation destination)
+    {
         card.SetActive(false);
         if(!_spawnedCards.ContainsKey(destination))
             _spawnedCards.Add(destination, new());
@@ -208,14 +208,16 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcResolveCardSpawn(bool animate){
+    public void RpcResolveCardSpawn(bool animate)
+    {
         var waitTime = animate ? 0.5f : 0f;
         StartCoroutine(_cardMover.ResolveSpawn(_spawnedCards, isOwned, waitTime));
         _spawnedCards.Clear();
     }
 
     [Command]
-    public void CmdPlayMoneyCard(GameObject card, CardInfo cardInfo){
+    public void CmdPlayMoneyCard(GameObject card, CardInfo cardInfo)
+    {
         Cash += cardInfo.moneyValue;
         moneyCards.Add(card, cardInfo);
 
@@ -225,32 +227,40 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Command]
-    public void CmdUndoPlayMoney(){
-        if (moneyCards.Count == 0) return;
-        
-        // Don't allow undo already spent money
-        var totalMoneyBack = 0;
-        var cardsToUndo = new Dictionary<GameObject, CardInfo>();
-        foreach(var (card, info) in moneyCards){
-            if (totalMoneyBack + info.moneyValue > Cash) continue;
-            
-            totalMoneyBack += info.moneyValue;
-            cardsToUndo.Add(card, info);
-        }
-
-        // Return to hand
-        foreach(var (card, info) in cardsToUndo){
-            moneyCards.Remove(card);
-            Cash -= info.moneyValue;
-            hand.Add(info);
-            RpcUndoPlayMoney(card);
-        }
-
-        _handManager.TargetHighlightMoney(connectionToClient);
+    public void CmdUndoPlayMoney()
+    {
+        if (moneyCards.Count == 0 || Cash <= 0) return;
+        ReturnMoneyToHand(true);
     }
 
     [Server]
-    public void DiscardMoneyCards(){
+    public void ReturnMoneyToHand(bool isUndo)
+    {
+        // Don't allow to return already spent money
+        var totalMoneyBack = 0;
+        var cardsToReturn = new Dictionary<GameObject, CardInfo>();
+        foreach(var (card, info) in moneyCards){
+            if (totalMoneyBack + info.moneyValue > Cash) continue;
+            
+            cardsToReturn.Add(card, info);
+            totalMoneyBack += info.moneyValue;
+        }
+
+        // Return to hand
+        foreach(var (card, info) in cardsToReturn){
+            moneyCards.Remove(card);
+            Cash -= info.moneyValue;
+            hand.Add(info);
+            RpcReturnMoneyCardToHand(card);
+        }
+
+        if(isUndo) _handManager.TargetHighlightMoney(connectionToClient);
+        else DiscardMoneyCards();
+    }
+
+    [Server]
+    private void DiscardMoneyCards()
+    {
         if (moneyCards.Count == 0) return;
         
         foreach (var card in moneyCards.Keys) {
@@ -264,36 +274,38 @@ public class PlayerManager : NetworkBehaviour
 
 
     [ClientRpc]
-    public void RpcTrashCard(GameObject card){
-        _cardMover.Trash(card, isOwned);
-    }
+    public void RpcTrashCard(GameObject card) => _cardMover.Trash(card, isOwned);
 
     #endregion Cards
 
     #region TurnActions
 
     [Command] 
-    public void CmdPhaseSelection(List<Phase> phases){
+    public void CmdPhaseSelection(List<Phase> phases)
+    {
         // Saving local player choice
         chosenPhases = phases;
         _turnManager.PlayerSelectedPhases(this, phases.ToArray());
     }
 
     [ClientRpc]
-    public void RpcShowOpponentChoices(Phase[] phases){
+    public void RpcShowOpponentChoices(Phase[] phases)
+    {
         if (isLocalPlayer) return;
         _phaseVisualsUI.ShowOpponentChoices(phases);
     }
 
     [Command]
-    public void CmdDiscardSelection(List<GameObject> cardsToDiscard){
+    public void CmdDiscardSelection(List<GameObject> cardsToDiscard)
+    {
         _discardSelection.Clear();
         _discardSelection = cardsToDiscard;
         _turnManager.PlayerSelectedDiscardCards(this);
     }
     
     [Server]
-    public void DiscardSelection(){
+    public void DiscardSelection()
+    {
         // Server calls each player object to discard their selection _discardSelection
         foreach(var card in _discardSelection){
             var cardInfo = card.GetComponent<CardStats>().cardInfo;
@@ -305,15 +317,14 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Command]
-    public void CmdSelectKingdomTile(CardInfo card, int cost){
-        _turnManager.PlayerSelectedKingdomTile(this, card, cost);
-    }
+    public void CmdSelectKingdomTile(CardInfo card, int cost) => _turnManager.PlayerSelectedKingdomTile(this, card, cost);
     
     [Command]
     public void CmdSkipKingdomBuy() => _turnManager.PlayerIsReady(this);
 
     [Command]
-    public void CmdPlayCard(GameObject card){
+    public void CmdPlayCard(GameObject card)
+    {
         _turnManager.PlayerPlaysCard(this, card);
         RemoveHandCard(card.GetComponent<CardStats>().cardInfo);
         PlayCard(card);
@@ -323,14 +334,16 @@ public class PlayerManager : NetworkBehaviour
     public void CmdSkipCardPlay() => _turnManager.PlayerSkipsCardPlay(this);
 
     [Command]
-    public void CmdPrevailSelection(List<PrevailOption> options){
+    public void CmdPrevailSelection(List<PrevailOption> options)
+    {
         // Saving local player choice
         chosenPrevailOptions = options;
         _turnManager.PlayerSelectedPrevailOptions(this, options);
     }
 
     [Command]
-    public void CmdTrashSelection(List<GameObject> cardsToTrash){
+    public void CmdTrashSelection(List<GameObject> cardsToTrash)
+    {
         trashSelection = cardsToTrash;
         _turnManager.PlayerSelectedTrashCards(this, cardsToTrash);
     }
@@ -364,7 +377,8 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Command]
-    private void CmdPlayerChoosesAttackerToBlock(CreatureEntity target, List<CreatureEntity> blockers){
+    private void CmdPlayerChoosesAttackerToBlock(CreatureEntity target, List<CreatureEntity> blockers)
+    {
         _combatManager.PlayerChoosesAttackerToBlock(target, blockers);
     }
 
@@ -373,14 +387,16 @@ public class PlayerManager : NetworkBehaviour
     #region Effect Interactions
 
     [TargetRpc]
-    public void TargetPlayerStartChooseTarget(){
+    public void TargetPlayerStartChooseTarget()
+    {
         // TODO: Need to expand this ?
         // Allows player to click entity and define target in targetArrowHandler (double fail save)
         // possibly must use for multiple targets
         PlayerIsChoosingTarget = true;
     }
 
-    public void PlayerChoosesEntityTarget(BattleZoneEntity target){
+    public void PlayerChoosesEntityTarget(BattleZoneEntity target)
+    {
         if (isServer) _cardEffectsHandler.PlayerChoosesTargetEntity(target);
         else CmdPlayerChoosesTargetEntity(target);
         
@@ -388,58 +404,64 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Command]
-    private void CmdPlayerChoosesTargetEntity(BattleZoneEntity target){
-        _cardEffectsHandler.PlayerChoosesTargetEntity(target);
-    }
+    private void CmdPlayerChoosesTargetEntity(BattleZoneEntity target) => _cardEffectsHandler.PlayerChoosesTargetEntity(target);
 
     #endregion
 
 
     #region UI
-    private void SetPlayerName(string name){
+    private void SetPlayerName(string name)
+    {
         playerName = name;
         RpcUISetPlayerName(name);
     }
 
     [ClientRpc]
-    public void RpcUISetPlayerName(string name){
+    public void RpcUISetPlayerName(string name)
+    {
         playerName = name;
         if(isOwned) _playerUI.SetName(name);
         else _opponentUI.SetName(name);
     }
     
     [Server]
-    private void SetHealthValue(int value){
+    private void SetHealthValue(int value)
+    {
         _health = value;
         RpcUISetHealthValue(value);
     }
 
     [ClientRpc]
-    private void RpcUISetHealthValue(int value){
+    private void RpcUISetHealthValue(int value)
+    {
         if(isOwned) _playerUI.SetHealth(value);
         else _opponentUI.SetHealth(value);
     }
     
     [Server]
-    private void SetScoreValue(int value){
+    private void SetScoreValue(int value)
+    {
         _score = value;
         RpcUISetScoreValue(value);
     }
 
     [ClientRpc]
-    private void RpcUISetScoreValue(int value){
+    private void RpcUISetScoreValue(int value)
+    {
         if(isOwned) _playerUI.SetScore(value);
         else _opponentUI.SetScore(value);
     }
 
     [Server]
-    private void SetMoneyValue(int value){
+    private void SetMoneyValue(int value)
+    {
         _cash = value;
         RpcUISetMoneyValue(value);
     }
 
     [ClientRpc]
-    private void RpcUISetMoneyValue(int value){
+    private void RpcUISetMoneyValue(int value)
+    {
         OnCashChanged?.Invoke(this, value);
         
         if(isOwned) _playerUI.SetCash(value);
@@ -447,7 +469,8 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Server]
-    private void SetInventValue(int value){
+    private void SetInventValue(int value)
+    {
         _invents = value;
         if(isServer) RpcUISetInventValue(value);
         else CmdUISetInventValue(value);
@@ -457,13 +480,15 @@ public class PlayerManager : NetworkBehaviour
     private void CmdUISetInventValue(int value) => RpcUISetInventValue(value);
 
     [ClientRpc]
-    private void RpcUISetInventValue(int value){
+    private void RpcUISetInventValue(int value)
+    {
         if(isOwned) _playerUI.SetInvents(value);
         else _opponentUI.SetInvents(value);
     }
 
     [Server]
-    private void SetDevelopValue(int value){
+    private void SetDevelopValue(int value)
+    {
         _develops = value;
         if (isServer) RpcUISetDevelopValue(value);
         else CmdUISetDevelopValue(value);
@@ -473,13 +498,15 @@ public class PlayerManager : NetworkBehaviour
     private void CmdUISetDevelopValue(int value) => RpcUISetDevelopValue(value);
 
     [ClientRpc]
-    private void RpcUISetDevelopValue(int value){
+    private void RpcUISetDevelopValue(int value)
+    {
         if(isOwned) _playerUI.SetDevelops(value);
         else _opponentUI.SetDevelops(value);
     }
     
     [Server]
-    private void SetDeployValue(int value){
+    private void SetDeployValue(int value)
+    {
         _deploys = value;
         if (isServer) RpcSetDeployValue(value);
         else CmdSetDeployValue(value);
@@ -489,13 +516,15 @@ public class PlayerManager : NetworkBehaviour
     private void CmdSetDeployValue(int value) => RpcSetDeployValue(value);
 
     [ClientRpc]
-    private void RpcSetDeployValue(int value){
+    private void RpcSetDeployValue(int value)
+    {
         if(isOwned) _playerUI.SetDeploys(value);
         else _opponentUI.SetDeploys(value);
     }
 
     [Server]
-    private void SetRecruitValue(int value){
+    private void SetRecruitValue(int value)
+    {
         _recruits = value;
         if (isServer) RpcUISetRecruitValue(value);
         else CmdUISetRecruitValue(value);
@@ -505,7 +534,8 @@ public class PlayerManager : NetworkBehaviour
     private void CmdUISetRecruitValue(int value) => RpcUISetRecruitValue(value);
 
     [ClientRpc]
-    private void RpcUISetRecruitValue(int value){
+    private void RpcUISetRecruitValue(int value)
+    {
         if(isOwned) _playerUI.SetRecruits(value);
         else _opponentUI.SetRecruits(value);
     }
@@ -521,29 +551,34 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void RpcPlayMoney(GameObject card){
+    private void RpcPlayMoney(GameObject card)
+    {
         _cardMover.MoveTo(card, isOwned, CardLocation.Hand, CardLocation.MoneyZone);
         if (isOwned) _handManager.UpdateHandsCardList(card, false);
     }
 
     [ClientRpc]
-    private void RpcUndoPlayMoney(GameObject card){
+    private void RpcReturnMoneyCardToHand(GameObject card)
+    {
         _cardMover.MoveTo(card, isOwned, CardLocation.MoneyZone, CardLocation.Hand);
         if (isOwned) _handManager.UpdateHandsCardList(card, true);
     }
 
     [ClientRpc]
-    private void RpcDiscardMoneyCard(GameObject card){
+    private void RpcDiscardMoneyCard(GameObject card)
+    {
         _cardMover.MoveTo(card, isOwned, CardLocation.MoneyZone, CardLocation.Discard);
     }
 
     [Server]
-    private void RemoveHandCard(CardInfo cardInfo){
+    private void RemoveHandCard(CardInfo cardInfo)
+    {
         var cardToRemove = hand.FirstOrDefault(c => c.Equals(cardInfo));
         hand.Remove(cardToRemove);
     }
 
-    public void PlayerPressedCombatButton() {
+    public void PlayerPressedCombatButton()
+    {
         if (isServer) PlayerPressedCombatButton(this);
         else CmdPlayerPressedCombatButton(this);
     }
@@ -568,9 +603,7 @@ public class PlayerManager : NetworkBehaviour
     // }
 
     [Server]
-    public void ForceEndTurn(){
-        _turnManager.ForceEndTurn();
-    }
+    public void ForceEndTurn() => _turnManager.ForceEndTurn();
 
     #endregion
 }

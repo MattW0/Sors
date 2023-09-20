@@ -55,7 +55,8 @@ public class DropZoneManager : NetworkBehaviour
     #endregion
 
     [Server]
-    public void ShowTargets(PlayerManager owner, EffectTarget target){
+    public void ShowTargets(PlayerManager owner, EffectTarget target)
+    {
         var entities = entityZones.GetAllEntities();
         print("Showing targets for player: " + owner.PlayerName + ", target: " + target);
         print("targets count: " + entities.Count);
@@ -64,7 +65,8 @@ public class DropZoneManager : NetworkBehaviour
     }
 
     [TargetRpc]
-    private void TargetMakeEntitiesTargetable(NetworkConnection conn, List<BattleZoneEntity> entities){
+    private void TargetMakeEntitiesTargetable(NetworkConnection conn, List<BattleZoneEntity> entities)
+    {
         foreach (var entity in entities) {
             entity.Targetable = true;
         }
@@ -98,9 +100,7 @@ public class DropZoneManager : NetworkBehaviour
     }
 
     [Command(requiresAuthority = false)]
-    public void CmdPlayerSkipsAttackers(PlayerManager player){
-        PlayerFinishedChoosingAttackers(player, true);
-    }
+    public void CmdPlayerSkipsAttackers(PlayerManager player) => PlayerFinishedChoosingAttackers(player, true);
 
     [Server]
     private void PlayerFinishedChoosingAttackers(PlayerManager player, bool skip = false)
@@ -173,24 +173,25 @@ public class DropZoneManager : NetworkBehaviour
         }
     }
 
-    private void PlayerSkipsBlockers(){
+    private void PlayerSkipsBlockers()
+    {
         if(isServer) PlayerFinishedChoosingBlockers(_player, true);
         else CmdPlayerSkipsBlockers(_player);
     }
 
     [Command(requiresAuthority = false)]
-    private void CmdPlayerSkipsBlockers(PlayerManager player){
-        PlayerFinishedChoosingBlockers(player, true);
-    }
+    private void CmdPlayerSkipsBlockers(PlayerManager player) => PlayerFinishedChoosingBlockers(player, true);
 
     [Server]
-    public void PlayerFinishedChoosingBlockers(PlayerManager player, bool skip = false){
+    public void PlayerFinishedChoosingBlockers(PlayerManager player, bool skip = false)
+    {
         _boardManager.DisableReadyButton(player);
-        _boardManager.BlockersDeclared(player, new List<CreatureEntity>());
+        _boardManager.BlockersDeclared(player);
     }
 
     [Server]
-    public void CombatCleanUp(){
+    public void CombatCleanUp()
+    {
         _combatState = CombatState.CleanUp;
         var creatures = entityZones.GetAllCreatures();
         foreach (var creature in creatures){
@@ -202,15 +203,14 @@ public class DropZoneManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void RpcDestroyBlockerArrows(){
-        OnDestroyBlockerArrows?.Invoke();
-    }
+    private void RpcDestroyBlockerArrows() => OnDestroyBlockerArrows?.Invoke();
     #endregion
 
     // TODO: Check if it makes sense to loose health after triggering or at the end of the turn
     // How to handle developments without trigger ? 
     [Server]
-    public void DevelopmentsLooseHealth(){
+    public void DevelopmentsLooseHealth()
+    {
         var developments = entityZones.GetAllDevelopments();
 
         foreach(var development in developments){
@@ -240,8 +240,8 @@ public class DropZoneManager : NetworkBehaviour
     }
 
     [Server]
-    public void DestroyTargetArrows(){
-
+    public void DestroyTargetArrows()
+    {
         var entities = entityZones.GetAllEntities();
         foreach (var entity in entities) entity.RpcResetAfterTarget();
 
@@ -249,12 +249,11 @@ public class DropZoneManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void RpcDestroyTargetArrows(){
-        OnDestroyTargetArrows?.Invoke();
-    }
+    private void RpcDestroyTargetArrows() => OnDestroyTargetArrows?.Invoke();
 
     [ClientRpc]
     public void RpcHighlightCardHolders(TurnState state) => entityZones.HighlightCardHolders(state);
+    
     [ClientRpc]
     public void RpcResetHolders() => entityZones.ResetHolders();
 

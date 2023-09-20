@@ -14,7 +14,6 @@ public class MoneyZone : MonoBehaviour
     }
 
     public void DiscardMoney(){
-        print("Discarding money, myZone: " + "myZone");
         var cards = GetCards();
         foreach (var card in cards) {
             _cardMover.MoveTo(card, myZone, CardLocation.MoneyZone, CardLocation.Discard);

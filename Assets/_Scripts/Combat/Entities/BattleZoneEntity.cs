@@ -5,12 +5,16 @@ using UnityEngine;
 
 public class BattleZoneEntity : NetworkBehaviour
 {
+    private BoardManager _boardManager;
+
     public PlayerManager Owner { get; private set; }
     public PlayerManager Opponent { get; private set; }
     public string Title { get; private set; }
     [SerializeField] private CreatureEntity _creatureEntity;
     [SerializeField] private DevelopmentEntity _developmentEntity;
     [SerializeField] private TargetArrowHandler _targetArrowHandler;
+    [SerializeField] private EntityUI _entityUI;
+
     private bool _targetable;
     public bool Targetable {
         get => _targetable;
@@ -57,12 +61,9 @@ public class BattleZoneEntity : NetworkBehaviour
         }
     }
 
-    private BoardManager _boardManager;
-    // public event Action<PlayerManager, BattleZoneEntity> OnDeath;
-    [SerializeField] private EntityUI _entityUI;
-
     [ClientRpc]
-    public void RpcInitializeEntity(PlayerManager owner, PlayerManager opponent, CardInfo cardInfo){        
+    public void RpcInitializeEntity(PlayerManager owner, PlayerManager opponent, CardInfo cardInfo)
+    {        
         _cardInfo = cardInfo;
         Owner = owner;
         Opponent = opponent;
@@ -96,26 +97,12 @@ public class BattleZoneEntity : NetworkBehaviour
     public void RpcEffectHighlight(bool value) => _entityUI.EffectHighlight(value, Color.white);
 
     [TargetRpc]
-    public void TargetSpawnTargetArrow(NetworkConnection target){
-        _targetArrowHandler.SpawnArrow();
-    }
+    public void TargetSpawnTargetArrow(NetworkConnection target) => _targetArrowHandler.SpawnArrow();
 
     [ClientRpc]
-    public void RpcTargetDeclared(BattleZoneEntity target){
-        if(!isOwned) return;
-        _targetArrowHandler.HandleFoundTarget(target);
-    }
+    public void RpcDeclaredTarget(BattleZoneEntity target) => _targetArrowHandler.HandleFoundTarget(target);
 
     [ClientRpc]
-    public void RpcShowOpponentTarget(BattleZoneEntity target){
-        if(!isOwned) return;
-        _targetArrowHandler.HandleOpponentFoundTarget(target);
-    }
-
-    [ClientRpc]
-    public void RpcResetAfterTarget(){
-        _targetArrowHandler.RemoveArrow();
-    }
-
+    public void RpcResetAfterTarget() => _targetArrowHandler.RemoveArrow();
     private void Die() => _boardManager.EntityDies(this);
 }

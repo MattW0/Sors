@@ -6,6 +6,7 @@ using System.Collections;
 public class KingdomTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
     private Kingdom _kingdom;
+    private CardZoomView _cardZoomView;
     public CardInfo cardInfo;
     [SerializeField] private KingdomTileUI _ui;
     private int _cost;
@@ -45,6 +46,7 @@ public class KingdomTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
 
     private void Awake(){
         _kingdom = Kingdom.Instance;
+        _cardZoomView = CardZoomView.Instance;
     }
 
     public void SetTile(CardInfo card){
@@ -80,6 +82,13 @@ public class KingdomTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
     }
 
     public void OnPointerClick(PointerEventData eventData){
+
+        // Right click to preview card only
+        if (eventData.button == PointerEventData.InputButton.Right) {
+            _cardZoomView.ZoomCard(cardInfo);
+            return;
+        }
+
         if (!_isInteractable) return;
 
         // Reset highlight and preview in kingdom if 2nd click on selected tile

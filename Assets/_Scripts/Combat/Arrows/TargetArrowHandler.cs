@@ -32,27 +32,22 @@ public class TargetArrowHandler : MonoBehaviour, IPointerClickHandler
         player.PlayerChoosesEntityTarget(entity);
     }
 
-    public void HandleFoundTarget(BattleZoneEntity target){
+    public void HandleFoundTarget(BattleZoneEntity target)
+    {
+        if(!_arrow) SpawnArrow();
+
         _hasTarget = true;
         _arrow.SetTarget(target.transform.position);
     }
 
-    public void HandleOpponentFoundTarget(BattleZoneEntity target){
-        SpawnArrow();
-        _hasTarget = true;
-        _arrow.SetTarget(target.transform.position);
-
-        // TODO: Expand this for multiple targets -> need to rebuild _arrow and _arrowObject to lists
-        // foreach(var target in targets){
-        // }
-    }
-
-    private void FixedUpdate(){
+    private void FixedUpdate()
+    {
         if (!_arrow || _hasTarget) return;
         _arrow.SetTarget();
     }
 
-    public void RemoveArrow(){
+    public void RemoveArrow()
+    {
         if (!_arrowObject) return;
 
         _arrowObject = null;

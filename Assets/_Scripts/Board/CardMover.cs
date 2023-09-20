@@ -41,6 +41,8 @@ public class CardMover : MonoBehaviour
             cardUI.CardFrontUp();
         } else if (to == CardLocation.Hand && hasAuthority){
             cardUI.CardFrontUp();
+        } else if (to == CardLocation.Hand && !hasAuthority){
+            cardUI.CardBackUp();
         } else if (to == CardLocation.Deck) {
             cardUI.CardBackUp();
         }

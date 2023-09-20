@@ -32,7 +32,6 @@ public class TurnManager : NetworkBehaviour
     private int _nbPlayers;
     private Dictionary<PlayerManager, int> _playerHealth = new();
     public int GetHealth(PlayerManager player) => _playerHealth[player];
-    private bool _playAnotherCard = false;
 
     [Header("Helper Fields")]
     private Dictionary<PlayerManager, List<CardInfo>> _selectedKingdomCards = new();
@@ -134,7 +133,8 @@ public class TurnManager : NetworkBehaviour
     }
     
     #region PhaseSelection
-    private void PhaseSelection() {
+    private void PhaseSelection()
+    {
         _gameManager.turnNb++;
         _playerInterfaceManager.RpcLog($" ------------ Turn {_gameManager.turnNb} ------------ ", LogType.TurnChange);
         OnPhaseChanged?.Invoke(TurnState.PhaseSelection);
@@ -146,8 +146,8 @@ public class TurnManager : NetworkBehaviour
         _phasePanel.RpcBeginPhaseSelection(_gameManager.turnNb);
     }
 
-    public void PlayerSelectedPhases(PlayerManager player, Phase[] phases) {
-        
+    public void PlayerSelectedPhases(PlayerManager player, Phase[] phases)
+    {
         _playerPhaseChoices[player] = phases;
 
         foreach (var phase in phases) {
@@ -159,7 +159,8 @@ public class TurnManager : NetworkBehaviour
         PlayerIsReady(player);
     }
 
-    private void FinishPhaseSelection() {
+    private void FinishPhaseSelection()
+    {
         // Combat each round
         phasesToPlay.Add(Phase.Combat);
         phasesToPlay.Sort();
@@ -181,8 +182,8 @@ public class TurnManager : NetworkBehaviour
         UpdateTurnState(TurnState.NextPhase);
     }
 
-    private void NextPhase(){
-
+    private void NextPhase()
+    {
         if (phasesToPlay.Count == 0) {
             UpdateTurnState(TurnState.CleanUp);
             return;
@@ -194,7 +195,8 @@ public class TurnManager : NetworkBehaviour
         _cardEffectsHandler.CheckPhaseTriggers(nextPhase);
     }
 
-    public void NextTurnState(Phase nextPhase){
+    public void NextTurnState(Phase nextPhase)
+    {
         Enum.TryParse(nextPhase.ToString(), out TurnState nextTurnState);
         _playerInterfaceManager.RpcLog($"Turn changed to {nextTurnState}", LogType.Phase);
         
@@ -304,16 +306,19 @@ public class TurnManager : NetworkBehaviour
     
     #region PlayCardPhase (Develop, Deploy)
 
-    private void PlayCard(){
-
+    private void PlayCard()
+    {
         _boardManager.ShowHolders(true);
         foreach(var cardsList in _selectedHandCards.Values) cardsList.Clear();
 
         _handManager.RpcHighlightMoney(true);
         ShowCardCollection();
+
+
     }
 
-    public void PlayerPlaysCard(PlayerManager player, GameObject card) {
+    public void PlayerPlaysCard(PlayerManager player, GameObject card)
+    {
         if(turnState == TurnState.Develop) player.Develops--;
         else if(turnState == TurnState.Deploy) player.Deploys--;
         player.Cash -= card.GetComponent<CardStats>().cardInfo.cost;
@@ -322,50 +327,67 @@ public class TurnManager : NetworkBehaviour
         PlayerIsReady(player);
     }
 
-    public void PlayerSkipsCardPlay(PlayerManager player) {
+    public void PlayerSkipsCardPlay(PlayerManager player)
+    {
         if(turnState == TurnState.Develop) player.Develops--;
         else if(turnState == TurnState.Deploy) player.Deploys--;
         PlayerIsReady(player);
     }
 
-    private void PlayEntities(){
+    private void PlayEntities()
+    {
         foreach(var (player, cards) in _selectedHandCards) {
             // print("Player " + player.PlayerName + " plays " + cards.Count + " cards");
             foreach(var card in cards) {
                 var cardInfo = card.GetComponent<CardStats>().cardInfo;
                 _gameManager.SpawnFieldEntity(player, card, cardInfo.type);
             }
-
-            if(turnState == TurnState.Develop) {
-                if(player.Develops > 0) _playAnotherCard = true;
-            } else if(turnState == TurnState.Deploy) {
-                if(player.Deploys > 0) _playAnotherCard = true;
-            }
         }
 
         StartCoroutine(PlayCardsIntermission());
     }
 
-    private IEnumerator PlayCardsIntermission(){
-        yield return new WaitForSeconds(2*_cardEffectsHandler.effectWaitTime);
+    private IEnumerator PlayCardsIntermission()
+    {
+        yield return new WaitForSeconds(_cardEffectsHandler.effectWaitTime);
+
         StartCoroutine(_cardEffectsHandler.StartResolvingQueue());
 
+        // Waiting for CEH to set QueueResolving to false
         while(_cardEffectsHandler.QueueResolving) yield return new WaitForSeconds(0.5f);
 
         _boardManager.BoardCleanUp(false);
         
-        var endPlayCards = ! _playAnotherCard;
-        _playAnotherCard = false;
-        
-        if(endPlayCards) EndPlayCards();
-        else {
-            _cardCollectionPanel.RpcSoftResetPanel();
-            PlayCard();
-        } 
-        
+        CheckPlayAnotherCard();
     }
 
-    private void EndPlayCards(){
+    private void CheckPlayAnotherCard()
+    {
+        // Reset
+        var playAnotherCard = false;
+        _readyPlayers.Clear();
+
+        // Check if plays are still possible and if not, add player to _readyPlayers
+        foreach(var player in _gameManager.players.Keys){
+            if(turnState == TurnState.Develop) {
+                if(player.Develops > 0) playAnotherCard = true;
+                else _readyPlayers.Add(player);
+            } else if(turnState == TurnState.Deploy) {
+                if(player.Deploys > 0) playAnotherCard = true;
+                else _readyPlayers.Add(player);
+            }
+        }
+
+        if (playAnotherCard){
+            _cardCollectionPanel.RpcSoftResetPanel();
+            PlayCard();
+        } else {
+            FinishPlayCard();
+        }
+    }
+
+    private void FinishPlayCard()
+    {
         _cardCollectionPanel.RpcResetPanel();
         _boardManager.ShowHolders(false);
         PlayersStatsResetAndDiscardMoney(false);
@@ -376,12 +398,11 @@ public class TurnManager : NetworkBehaviour
     #endregion
 
     private void Combat() => combatManager.UpdateCombatState(CombatState.Attackers);
-    public void CombatCleanUp(){
-        UpdateTurnState(TurnState.NextPhase);
-    } 
+    public void CombatCleanUp() => UpdateTurnState(TurnState.NextPhase);
 
     #region Prevail
-    private void Prevail(){
+    private void Prevail()
+    {
         foreach(var player in _gameManager.players.Keys){
             // Starts phase on clients individually with 2nd argument = true for the bonus
             _prevailPanel.TargetBeginPrevailPhase(player.connectionToClient, player.chosenPhases.Contains(Phase.Prevail));
@@ -538,8 +559,8 @@ public class TurnManager : NetworkBehaviour
     
     #region HelperFunctions
 
-    private void ShowCardCollection(){
-
+    private void ShowCardCollection()
+    {
         foreach(var player in _gameManager.players.Keys){
             List<CardInfo> cards = player.hand;
             if (turnState == TurnState.Discard || turnState == TurnState.Trash) cards = player.hand;
@@ -548,9 +569,15 @@ public class TurnManager : NetworkBehaviour
 
             var cardObjects = GameManager.CardInfosToGameObjects(cards);
             _cardCollectionPanel.TargetShowCardCollection(player.connectionToClient, turnState, cardObjects, cards);
+
+            // Reevaluating money in play to highlight playable cards after reset
+            if(turnState == TurnState.Develop || turnState == TurnState.Deploy)
+                _cardCollectionPanel.TargetCheckPlayability(player.connectionToClient, player.Cash);
         }
     }
-    public void PlayerIsReady(PlayerManager player){
+
+    public void PlayerIsReady(PlayerManager player)
+    {
         if(!_readyPlayers.Contains(player)) _readyPlayers.Add(player);
         if (_readyPlayers.Count < _nbPlayers) return;
         
@@ -580,10 +607,7 @@ public class TurnManager : NetworkBehaviour
         }
     }
 
-    public void PlayerHealthChanged(PlayerManager player, int amount)
-    {
-        _playerHealth[player] -= amount;
-    }
+    public void PlayerHealthChanged(PlayerManager player, int amount) => _playerHealth[player] -= amount;
     
     private void PlayerCashChanged(PlayerManager player, int newAmount)
     {
@@ -599,12 +623,13 @@ public class TurnManager : NetworkBehaviour
     
     private void PlayersStatsResetAndDiscardMoney(bool endOfTurn = false)
     {
-        _playerInterfaceManager.RpcLog("... Discarding money ...", LogType.Standard);
+        // _playerInterfaceManager.RpcLog("... Discarding money ...", LogType.Standard);
         _handManager.RpcHighlightMoney(false);
 
         foreach (var player in _gameManager.players.Keys)
         {
-            player.DiscardMoneyCards();
+            // Returns unused money then discards the remaining cards
+            player.ReturnMoneyToHand(false);
             player.Cash = 0;
 
             if (!endOfTurn) continue;

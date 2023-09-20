@@ -23,7 +23,7 @@ public class ArrowRenderer : MonoBehaviour
 
     private void Awake(){
         if (arrowType == ArrowType.Blocker) DropZoneManager.OnDestroyBlockerArrows += DestroyArrow;
-        else if (arrowType == ArrowType.Blocker) DropZoneManager.OnDestroyTargetArrows += DestroyArrow;
+        else if (arrowType == ArrowType.Target) DropZoneManager.OnDestroyTargetArrows += DestroyArrow;
     }
 
     public void SetOrigin(Vector3 origin) => start = origin;

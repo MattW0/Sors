@@ -173,14 +173,10 @@ public class CardEffectsHandler : NetworkBehaviour
 
     public void PlayerChoosesTargetEntity(BattleZoneEntity target){
         _abilityTarget = target;
-        _abilitySource.RpcTargetDeclared(_abilityTarget);
+        _abilitySource.RpcDeclaredTarget(_abilityTarget);
 
-        // reverse logic (from target to source) for client
-        // TODO: This does not work
-        _abilityTarget.RpcShowOpponentTarget(_abilitySource);
-
-        _continue = true;
         // continue in ResolveAbility (Step 2)
+        _continue = true;
     }
 
     public void EntityDies(BattleZoneEntity entity){
@@ -210,9 +206,9 @@ public class CardEffectsHandler : NetworkBehaviour
 
         entity.RpcEffectHighlight(false);
 
+        yield return new WaitForSeconds(3*effectWaitTime);
         _continue = true;
 
-        yield return new WaitForSeconds(effectWaitTime);
         yield return null;
     }
 

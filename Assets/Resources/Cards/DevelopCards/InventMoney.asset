@@ -20,8 +20,11 @@ MonoBehaviour:
   attack: 0
   points: 0
   moneyValue: 0
-  triggers: 05000000
-  effects: 08000000
+  abilities:
+  - trigger: 13
+    effect: 3
+    target: 0
+    amount: 3
   keywordAbilities: 
   relationsTexts: []
   description: At the beginning of 'Invent', you gain 3 money to spend.

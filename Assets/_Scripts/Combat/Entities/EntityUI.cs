@@ -19,8 +19,11 @@ public class EntityUI : MonoBehaviour, IPointerClickHandler
     [SerializeField] private TMP_Text keywords;
     [SerializeField] private TMP_Text description;
 
-    public void SetEntityUI(CardInfo cardInfo)
-    {
+    private void Start(){
+        _cardZoomView = CardZoomView.Instance;
+    }
+
+    public void SetEntityUI(CardInfo cardInfo){
         _cardInfo = cardInfo;
 
         // Set card stats

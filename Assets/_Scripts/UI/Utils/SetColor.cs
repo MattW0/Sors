@@ -8,7 +8,7 @@ public class SetColor : MonoBehaviour
     [SerializeField] private Image image;
     [Range(0, 1), SerializeField] private float alpha = 1f;
     
-#if UNITY_EDITOR
+// #if UNITY_EDITOR
     void Start()
     {
         var color = colorType switch
@@ -29,5 +29,5 @@ public class SetColor : MonoBehaviour
         if (alpha < 1f) color.a = alpha;
         image.color = color;
     }
-#endif
+// #endif
 }

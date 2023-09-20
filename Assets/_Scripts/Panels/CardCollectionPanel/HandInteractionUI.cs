@@ -20,6 +20,7 @@ public class HandInteractionUI : MonoBehaviour
     [SerializeField] private GameObject _waitingText;
     [SerializeField] private GameObject _buttons;
     [SerializeField] private GameObject _skipButton;
+    [SerializeField] private Button _closeButton;
     [SerializeField] private Button _confirmButton;
     [SerializeField] private TMP_Text _collectionTitle;
     [SerializeField] private TMP_Text _displayText;
@@ -63,6 +64,7 @@ public class HandInteractionUI : MonoBehaviour
             case TurnState.Discard:
                 _displayText.text = $"Discard 0/{_nbCardsToDiscard} cards";
                 _fullViewImage.enabled = true;
+                _closeButton.interactable = false;
                 break;
             case TurnState.Trash:
                 _displayText.text = $"Trash up to {_nbCardsToTrashMax} cards";
@@ -106,6 +108,7 @@ public class HandInteractionUI : MonoBehaviour
 
         _buttons.SetActive(false);
         _waitingText.SetActive(true);
+        _closeButton.interactable = true;
     }
 
     public void OnSkipButtonPressed() => SkipInteraction(_state);
