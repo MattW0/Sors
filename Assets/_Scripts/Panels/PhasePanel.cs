@@ -148,6 +148,7 @@ public class PhasePanel : NetworkBehaviour
             TurnState.Recruit => "Buy creatures",
             TurnState.Deploy => "Play creatures",
             TurnState.Prevail => "Choose prevail options",
+            TurnState.CardIntoHand => "Put a card in your hand",
             TurnState.Trash => "Trash cards",
             _ => ""
         };

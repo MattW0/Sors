@@ -23,6 +23,7 @@ public class SetColor : MonoBehaviour
             ColorType.Points => SorsColors.pointsValue,
             ColorType.MoneyValue => SorsColors.moneyValue,
             ColorType.Neutral => SorsColors.neutral_dark,
+            ColorType.PrevailOption => SorsColors.prevailColor,
             _ => Color.white
         };
 

@@ -20,8 +20,11 @@ MonoBehaviour:
   attack: 0
   points: 0
   moneyValue: 0
-  triggers: 08000000
-  effects: 08000000
+  abilities:
+  - trigger: 6
+    effect: 10
+    target: 0
+    amount: 3
   keywordAbilities: 
   relationsTexts: []
   description: At the beginning of 'Recruit', you gain 3 money to spend.

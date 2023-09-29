@@ -22,6 +22,7 @@ public static class SorsColors
     public static Color healthValue = new Color(0.2f, 0.44f, 0.92f);
     public static Color pointsValue = new Color(0.37f, 0.77f, 0.29f);
     public static Color moneyValue = Color.grey;
+    public static Color prevailColor = new Color(0.7f, 0.9f, 0.5f);
 
     // -- Entities --
     public static Color creatureHighlight = Color.green;
@@ -60,7 +61,8 @@ public static class SorsColors
 }
 
 
-public enum ColorType{
+public enum ColorType : byte
+{
     Creature,
     Technology,
     Cash,
@@ -70,5 +72,6 @@ public enum ColorType{
     Points,
     MoneyValue,
     Neutral,
-    Trash
+    Trash,
+    PrevailOption
 }

@@ -14,14 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hash: Damage
   type: 2
-  cost: 5
+  cost: 4
   title: Damage
-  health: 3
+  health: 4
   attack: 0
   points: 0
   moneyValue: 0
-  triggers: 07000000
-  effects: 09000000
+  abilities:
+  - trigger: 5
+    effect: 5
+    target: 3
+    amount: 1
   keywordAbilities: 
   relationsTexts: []
   description: At the beginning of combat, target opponent looses 1 life.

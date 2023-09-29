@@ -9,55 +9,63 @@ using System;
 public class PrevailPanel : NetworkBehaviour
 {
     public static PrevailPanel Instance { get; private set; }
-    private TurnManager _turnManager;
     private List<PrevailOption> _selectedOptions = new();
     private int _nbOptionsToChose;  // Set once from game manager setting
+    private int _nbBonusOptions;
     private int _nbOptionsThisTurn;
     public int _totalSelected;
     [SerializeField] private GameObject maxView;
     [SerializeField] private TMP_Text instructions;
     [SerializeField] private Button confirm;
-    public static event Action OnPrevailEnded;
+    public static event Action OnPrevailSelectionEnded;
 
-    private void Awake() {
+    private void Awake()
+    {
         if (!Instance) Instance = this;
     }
 
     [ClientRpc]
-    public void RpcPreparePrevailPanel(int nbOptionsToChose){
-        _turnManager = TurnManager.Instance;
-
+    public void RpcPreparePrevailPanel(int nbOptionsToChose, int nbBonusOptions)
+    {
         _nbOptionsToChose = nbOptionsToChose;
-        _nbOptionsThisTurn = nbOptionsToChose;
+        _nbBonusOptions = nbBonusOptions;
         instructions.text = "Choose up to " + _nbOptionsThisTurn.ToString();
 
         maxView.SetActive(false);
     }
 
     [TargetRpc]
-    public void TargetBeginPrevailPhase(NetworkConnection conn, bool bonus){
+    public void TargetBeginPrevailPhase(NetworkConnection conn, bool bonus)
+    {
         maxView.SetActive(true);
         confirm.interactable = true;
 
-        if(!bonus) return;
-        _nbOptionsThisTurn++;
+        _nbOptionsThisTurn = _nbOptionsToChose;
+        if(bonus) _nbOptionsThisTurn += _nbBonusOptions;
+
         instructions.text = "Choose up to " + _nbOptionsThisTurn.ToString();
     }
 
-    public bool Increment(PrevailOption option){
+    public bool Increment(PrevailOption option)
+    {
         if (_totalSelected >= _nbOptionsThisTurn) return false;
 
-        _selectedOptions.Add(option);
         _totalSelected++;
+        _selectedOptions.Add(option);
         return true;
     }
 
-    public void Decrement(PrevailOption option){
+    public bool Decrement(PrevailOption option)
+    {
+        if (_totalSelected <= 0) return false;
+
         _totalSelected--;
         _selectedOptions.Remove(option);
+        return true;
     }
 
-    public void OnClickConfirm(){
+    public void OnClickConfirm()
+    {
         confirm.interactable = false;
 
         var player = PlayerManager.GetLocalPlayer();
@@ -65,22 +73,22 @@ public class PrevailPanel : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcOptionsSelected(){
+    public void RpcOptionsSelected()
+    {
         _totalSelected = 0;
-        _nbOptionsThisTurn = _nbOptionsToChose;
         
-        OnPrevailEnded?.Invoke();
+        OnPrevailSelectionEnded?.Invoke();
         maxView.SetActive(false);
     }
 
     [ClientRpc]
-    public void RpcReset(){
-        _selectedOptions.Clear();
-    }
+    public void RpcReset() => _selectedOptions.Clear();
 }
 
-public enum PrevailOption{
-    Trash,
-    Score,
-    TopDeck
+public enum PrevailOption : byte
+{
+    None = 0,
+    CardSelection = 1,
+    Trash = 2,
+    Score = 3,
 }

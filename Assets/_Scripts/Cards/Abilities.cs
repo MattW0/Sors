@@ -63,53 +63,56 @@ public struct Ability
 
 public enum Trigger
 {
-    None,
+    None = 0,
+    // At the beginning of [PHASE]
+    Beginning_Turn = 1,
+    Beginning_Draw = 2,
+    Beginning_Invent = 3,
+    Beginning_Develop = 4,
+    Beginning_Combat = 5,
+    Beginning_Recruit = 6,
+    Beginning_Deploy = 7,
+    Beginning_Prevail = 8,
+    Beginning_CleanUp = 9,
+    // Beginning_when_you_gain_the_initiative
+    
     // When triggers
-    When_enters_the_battlefield,
-    When_dies,
-    When_attacks,
-    When_blocks,
-    When_gets_blocked,
-    When_takes_damage,
-    When_deals_damage,
-    When_deals_combat_damage,
-    When_deals_damage_to_a_player,
-    When_becomes_a_target,
+    When_enters_the_battlefield = 20,
+    When_dies = 21,
+    When_attacks = 22,
+    When_blocks = 23,
+    When_gets_blocked = 24,
+    When_takes_damage = 25,
+    When_deals_damage = 26,
+    When_deals_combat_damage = 27,
+    When_deals_damage_to_a_player = 28,
+    When_becomes_a_target = 29,
 
     // Whenever triggers (reflexive) ?
 
-    // At the beginning of [PHASE]
-    Beginning_Turn,
-    Beginning_Draw,
-    Beginning_Invent,
-    Beginning_Develop,
-    Beginning_Combat,
-    Beginning_Recruit,
-    Beginning_Deploy,
-    Beginning_Prevail,
-    // Beginning_when_you_gain_the_initiative
 }
 
 public enum Effect
 {
-    None,
-    CardDraw,
-    PriceReduction,
-    MoneyGain,
-    LifeGain,
-    Damage,
-    Removal
+    None = 0,
+    CardDraw = 1,
+    Damage = 5,
+    LifeGain = 6,
+    Destroy = 7,
+    MoneyGain = 10,
+    PriceReduction = 11,
 }
 
-public enum EffectTarget{
-    None,
-    Player,
-    Opponent,
-    AnyPlayer,
-    Any,
-    Self,
-    Entity,
-    Creature,
-    Technology,
-    Card,
+public enum EffectTarget
+{
+    None = 0,
+    Any = 1,
+    Player = 2,
+    Opponent = 3,
+    AnyPlayer = 4,
+    Self = 7,
+    Entity = 8,
+    Creature = 9,
+    Technology = 10,
+    Card = 20,
 }

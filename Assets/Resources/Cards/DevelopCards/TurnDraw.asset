@@ -16,12 +16,15 @@ MonoBehaviour:
   type: 2
   cost: 2
   title: TurnDraw
-  health: 2
+  health: 3
   attack: 0
   points: 0
   moneyValue: 0
-  triggers: 03000000
-  effects: 00000000
+  abilities:
+  - trigger: 1
+    effect: 1
+    target: 0
+    amount: 1
   keywordAbilities: 
   relationsTexts: []
   description: At the beginning of the turn, draw 1 card.

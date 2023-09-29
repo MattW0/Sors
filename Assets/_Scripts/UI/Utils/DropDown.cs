@@ -33,7 +33,8 @@ public class DropDown : MonoBehaviour
     }
 }
 
-public enum GameOption{
+public enum GameOption : byte
+{
     NumberPlayers,
     NumberPhases,
     NetworkAddress,

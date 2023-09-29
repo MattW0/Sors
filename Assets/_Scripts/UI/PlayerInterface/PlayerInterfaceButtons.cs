@@ -53,7 +53,7 @@ public class PlayerInterfaceButtons : MonoBehaviour
     }
 }
 
-public enum UndoReason
+public enum UndoReason : byte
 {
     PlayMoney,
     Attack,

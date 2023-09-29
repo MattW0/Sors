@@ -27,8 +27,7 @@ public class PlayerManager : NetworkBehaviour
     public List<Phase> chosenPhases = new();
     public List<PrevailOption> chosenPrevailOptions = new();
     private Dictionary<CardLocation, List<GameObject>> _spawnedCards = new();
-    private List<GameObject> _discardSelection = new();
-    public List<GameObject> trashSelection = new();
+    private List<GameObject> _selectedCards = new();
     public Dictionary<GameObject, CardInfo> moneyCards = new();
 
     public bool PlayerIsChoosingTarget { get; private set; }
@@ -298,16 +297,16 @@ public class PlayerManager : NetworkBehaviour
     [Command]
     public void CmdDiscardSelection(List<GameObject> cardsToDiscard)
     {
-        _discardSelection.Clear();
-        _discardSelection = cardsToDiscard;
+        _selectedCards.Clear();
+        _selectedCards = cardsToDiscard;
         _turnManager.PlayerSelectedDiscardCards(this);
     }
     
     [Server]
     public void DiscardSelection()
     {
-        // Server calls each player object to discard their selection _discardSelection
-        foreach(var card in _discardSelection){
+        // Server calls each player object to discard their selection _selectedCards
+        foreach(var card in _selectedCards){
             var cardInfo = card.GetComponent<CardStats>().cardInfo;
 
             RemoveHandCard(cardInfo);
@@ -342,14 +341,15 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Command]
-    public void CmdTrashSelection(List<GameObject> cardsToTrash)
+    public void CmdPrevailCardsSelection(List<GameObject> cards)
     {
-        trashSelection = cardsToTrash;
-        _turnManager.PlayerSelectedTrashCards(this, cardsToTrash);
+        _selectedCards.Clear();
+        _selectedCards = cards;
+        _turnManager.PlayerSelectedPrevailCards(this, cards);
     }
 
     [Command]
-    public void CmdSkipTrash() => _turnManager.PlayerSkipsTrash(this);
+    public void CmdPlayerSkipsPrevailOption() => _turnManager.PlayerSkipsPrevailOption(this);
 
     #endregion TurnActions
 
@@ -569,6 +569,13 @@ public class PlayerManager : NetworkBehaviour
     {
         _cardMover.MoveTo(card, isOwned, CardLocation.MoneyZone, CardLocation.Discard);
     }
+
+    // [Server]
+    // private void FromDiscardToHand(CardInfo cardInfo)
+    // {
+    //     var cardToRemove = hand.FirstOrDefault(c => c.Equals(cardInfo));
+    //     hand.Remove(cardToRemove);
+    // }
 
     [Server]
     private void RemoveHandCard(CardInfo cardInfo)

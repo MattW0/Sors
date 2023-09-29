@@ -20,8 +20,11 @@ MonoBehaviour:
   attack: 0
   points: 0
   moneyValue: 0
-  triggers: 01000000
-  effects: 02000000
+  abilities:
+  - trigger: 20
+    effect: 1
+    target: 0
+    amount: 3
   keywordAbilities: 
   relationsTexts: []
   description: When 'EtbDraw' is played, draw 3 cards.

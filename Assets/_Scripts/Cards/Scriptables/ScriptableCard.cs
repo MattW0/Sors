@@ -48,7 +48,8 @@ public class ScriptableCard : ScriptableObject
 }
 
 // May need these in the future to trigger during the game
-public enum Keywords{
+public enum Keywords
+{
     Deathtouch,
     Defender,
     Attacker,
@@ -65,21 +66,4 @@ public enum Keywords{
     Shroud,
     Trample,
     Vigilance,
-}
-
-public enum SpecialAbilities{
-    // With X -> X needs to be differently distributed probably:
-    gain_X_life,
-    mill_X,
-    scry_X,
-
-    // With X and special
-    Put_X_Marker_marker_on_target_creature,
-    create_X_treasure_token,
-    create_X_creature_token,
-
-    // With target
-    deal_X_damage_to_target_creature,
-    destroy_target_creature,
-    exile_target_creature,
 }

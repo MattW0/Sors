@@ -99,7 +99,8 @@ public class CardMover : MonoBehaviour
     }
 }
 
-public enum CardLocation{
+public enum CardLocation : byte
+{
     Spawned,
     Trash,
     Deck,

@@ -16,12 +16,15 @@ MonoBehaviour:
   type: 2
   cost: 1
   title: LifeGain
-  health: 1
+  health: 3
   attack: 0
   points: 0
   moneyValue: 0
-  triggers: 07000000
-  effects: 0a000000
+  abilities:
+  - trigger: 5
+    effect: 6
+    target: 0
+    amount: 1
   keywordAbilities: 
   relationsTexts: []
   description: At the beginning of 'Combat', gain 1 life.

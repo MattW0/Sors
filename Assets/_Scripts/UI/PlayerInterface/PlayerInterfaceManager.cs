@@ -45,7 +45,8 @@ public class PlayerInterfaceManager : NetworkBehaviour
     }
 }
 
-public enum LogType{
+public enum LogType : byte
+{
     Standard,
     EffectTrigger,
     TurnChange,

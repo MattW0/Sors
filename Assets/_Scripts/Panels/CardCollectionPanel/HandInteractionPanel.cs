@@ -29,22 +29,15 @@ public class HandInteractionPanel : NetworkBehaviour
 
     [TargetRpc]
     public void TargetShowCardCollection(NetworkConnection target, TurnState turnState, 
-                                         List<GameObject> cardObjects, List<CardInfo> handCards)
+                                         List<GameObject> cardObjects, List<CardInfo> cardInfos)
     {
         _ui.InteractionBegin(turnState);
 
         // caching hand cards gameobjects
-        for(var i=0; i<handCards.Count; i++){
-            var cardInfo = handCards[i];
-            _cache.Add(cardInfo, cardObjects[i]);
-        }
+        for(var i=0; i<cardInfos.Count; i++) _cache.Add(cardInfos[i], cardObjects[i]);
         
-        var detailCards = _cardSpawner.SpawnDetailCardObjects(handCards, turnState);
+        var detailCards = _cardSpawner.SpawnDetailCardObjects(cardInfos, turnState);
         _detailCards.AddRange(detailCards);
-    }
-
-    private void SpawnMoneyDetailCard(CardInfo cardInfo){
-
     }
 
     #region States
@@ -54,10 +47,11 @@ public class HandInteractionPanel : NetworkBehaviour
     }
 
     [TargetRpc]
-    public void TargetBeginTrash(NetworkConnection conn, int nbCardsToTrash){
-        foreach(var card in _detailCards) card.SetCardState(TurnState.Trash);
+    public void TargetBeginPrevailSelection(NetworkConnection conn, TurnState turnState, int nbCardsToTrash){
+        foreach(var card in _detailCards) card.SetCardState(turnState);
 
-        _ui.BeginTrash(nbCardsToTrash);
+        if (turnState == TurnState.CardIntoHand) _ui.BeginCardIntoHand(nbCardsToTrash);
+        else if (turnState == TurnState.Trash) _ui.BeginTrash(nbCardsToTrash);
     }
 
     [TargetRpc]
@@ -75,9 +69,9 @@ public class HandInteractionPanel : NetworkBehaviour
         _player.CmdDiscardSelection(cards);
     }
 
-    public void ConfirmTrash(){
+    public void ConfirmPrevailCardSelection(){
         var cards = _selectedCards.Select(card => _cache[card]).ToList();
-        _player.CmdTrashSelection(cards);
+        _player.CmdPrevailCardsSelection(cards);
     }
 
     

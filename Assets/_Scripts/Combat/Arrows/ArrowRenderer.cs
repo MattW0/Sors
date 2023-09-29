@@ -134,7 +134,8 @@ public class ArrowRenderer : MonoBehaviour
     }
 }
 
-public enum ArrowType{
+public enum ArrowType : byte
+{
     Target,
     Blocker
 } 

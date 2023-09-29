@@ -74,7 +74,7 @@ public struct CardInfo : IEquatable<CardInfo>
     }
 }
 
-public enum CardType
+public enum CardType : byte
 {
     Creature,
     Money,

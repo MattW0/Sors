@@ -256,7 +256,8 @@ public class CombatManager : NetworkBehaviour
     }
 }
 
-public enum CombatState{
+public enum CombatState : byte
+{
     Idle,
     Attackers,
     Blockers,

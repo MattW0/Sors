@@ -29,7 +29,7 @@ public class HandInteractionUI : MonoBehaviour
     private TurnState _state;
     private int _nbCardsToDiscard;
     private int _nbCardsToPlay = 1;
-    private int _nbCardsToTrashMax;
+    private int _nbCardsToSelectMax;
     
     public void PrepareCardCollectionPanelUi(int nbCardsToDiscard){
         _localPlayer = PlayerManager.GetLocalPlayer();
@@ -45,8 +45,15 @@ public class HandInteractionUI : MonoBehaviour
         _displayText.text = "";
     }
 
+    public void BeginCardIntoHand(int nbCardsToSelect){
+        _nbCardsToSelectMax = nbCardsToSelect;
+
+        if (_nbCardsToSelectMax == 0) SkipInteraction(TurnState.CardIntoHand);
+        else InteractionBegin(TurnState.CardIntoHand);
+    }
+
     public void BeginTrash(int nbCardsToTrash){
-        _nbCardsToTrashMax = nbCardsToTrash;
+        _nbCardsToSelectMax = nbCardsToTrash;
 
         if (nbCardsToTrash == 0) SkipInteraction(TurnState.Trash);
         else InteractionBegin(TurnState.Trash);
@@ -59,15 +66,24 @@ public class HandInteractionUI : MonoBehaviour
         _state = state;
         switch (_state){
             case TurnState.Develop or TurnState.Deploy:
+                _collectionTitle.text = "Hand";
                 PlayCardInteraction();
                 break;
             case TurnState.Discard:
+                _collectionTitle.text = "Hand";
                 _displayText.text = $"Discard 0/{_nbCardsToDiscard} cards";
                 _fullViewImage.enabled = true;
                 _closeButton.interactable = false;
                 break;
+            case TurnState.CardIntoHand:
+                _collectionTitle.text = "Discard";
+                _displayText.text = $"Put up to {_nbCardsToSelectMax} card(s) into your hand";
+                _confirmButton.interactable = true;
+                _fullViewImage.enabled = true;
+                break;
             case TurnState.Trash:
-                _displayText.text = $"Trash up to {_nbCardsToTrashMax} cards";
+                _collectionTitle.text = "Hand";
+                _displayText.text = $"Trash up to {_nbCardsToSelectMax} card(s)";
                 _confirmButton.interactable = true;
                 _fullViewImage.enabled = true;
                 break;
@@ -102,7 +118,8 @@ public class HandInteractionUI : MonoBehaviour
     public void OnConfirmButtonPressed(){
 
         if (_state == TurnState.Discard) _handInteractionPanel.ConfirmDiscard();
-        else if (_state == TurnState.Trash) _handInteractionPanel.ConfirmTrash();
+        else if (_state == TurnState.CardIntoHand || _state == TurnState.Trash) 
+            _handInteractionPanel.ConfirmPrevailCardSelection();
         else if (_state == TurnState.Develop || _state == TurnState.Deploy) 
             _handInteractionPanel.ConfirmPlay();
 
@@ -118,7 +135,8 @@ public class HandInteractionUI : MonoBehaviour
 
         if(_state == TurnState.Develop || _state == TurnState.Deploy) 
             _localPlayer.CmdSkipCardPlay();
-        else if(state == TurnState.Trash) _localPlayer.CmdSkipTrash();
+        else if(state == TurnState.CardIntoHand || state == TurnState.Trash) 
+            _localPlayer.CmdPlayerSkipsPrevailOption();
     }
 
     public void UpdateInteractionElements(int nbSelected){

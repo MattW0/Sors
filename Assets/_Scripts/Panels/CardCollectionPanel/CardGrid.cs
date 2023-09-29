@@ -66,7 +66,8 @@ public class CardGrid : MonoBehaviour
     }
 }
 
-public enum CardGridType{
+public enum CardGridType : byte
+{
     All,
     Money,
     Creature,

@@ -39,7 +39,10 @@ public class DetailCard : MonoBehaviour, IPointerClickHandler
     public void SetCardState(TurnState state){
         _ui.SetCardState(state);
 
-        if(state == TurnState.Discard || state == TurnState.Trash) isChoosable = true;
+        if(state == TurnState.Discard
+            || state == TurnState.CardIntoHand
+            || state == TurnState.Trash) 
+                isChoosable = true;
     }
 
     public void OnPointerClick(PointerEventData eventData){

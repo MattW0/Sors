@@ -40,7 +40,7 @@ public class GameManager : NetworkBehaviour {
     [Header("Turn specifics")]
     public int nbPhasesToChose;
     [SerializeField] public int fixCardDraw = 2;
-    [SerializeField] public int nbCardDraw = 2;
+    [SerializeField] public int phaseCardDraw = 2;
     [SerializeField] public int nbDiscard = 1;
     public int turnCash = 0;
     public int turnInvents = 1; 
@@ -53,7 +53,7 @@ public class GameManager : NetworkBehaviour {
     public int extraDraw = 2;
     public int kingdomPriceReduction = 1;
     public int developPriceReduction = 1;
-    public int prevailExtraOptions = 1;
+    public int prevailExtraOptions = 2;
     public int deployBonusDeploys = 1;
 
 
