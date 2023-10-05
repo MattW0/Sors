@@ -11,11 +11,11 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
     private Phase _phase;
     [SerializeField] private string _phaseTitle;
     [SerializeField] private GameObject _mesh;
-    [SerializeField] private TMP_Text _phaseTitleUI;
-    [SerializeField] private TMP_Text _phaseTitleMesh;
     [SerializeField] private Image _icon;
     [SerializeField] private Graphic outline;
     [SerializeField] private Image playerChoice;
+    [SerializeField] private Image opponentChoice;
+
 
     private bool _selectable;
     private bool _isSelected;
@@ -32,40 +32,38 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
 
         if(_phaseTitle != "") {
             _phase = Phase.Combat;
-            _phaseTitleUI.text = _phaseTitle;
-            _phaseTitleMesh.text = _phaseTitle;
             outline.CrossFadeAlpha(0f, 1f, false);
-        } else {
+            _mesh.SetActive(false);
+        } else if (_phaseTitle == "Selection"){
+            // nothing to do right now
+        } else { // All selectable phases
             _phase = (Phase) System.Enum.Parse(typeof(Phase), gameObject.name);
-            _phaseTitleUI.text = _phase.ToString();
-            _phaseTitleMesh.text = _phase.ToString();
 
             PhasePanel.OnPhaseSelectionStarted += StartSelection;
             PhasePanel.OnPhaseSelectionConfirmed += Reset;
+            PhasePanelUI.OnPhaseSelectionConfirmed += ShowOpponentSelection;
         }
 
         outline.color = SorsColors.phaseHighlight;
-        _mesh.SetActive(false);
     }
 
     public void StartSelection(){
         _selectable = true;
         IsSelected = false;
+        opponentChoice.enabled = false;
         outline.CrossFadeAlpha(0.5f, 1f, false);
     }
 
     public void StartCombatPhase(){
-        _icon.color = SorsColors.phaseHighlight;
+        // _icon.color = SorsColors.phaseHighlight;
         _mesh.SetActive(true);
         _selectable = true;
     }
 
     public void Reset(){
         _selectable = false;
-        // IsSelected = false;
-
         outline.CrossFadeAlpha(0f, 1f, false);
-        _mesh.SetActive(false);
+        if(_mesh) _mesh.SetActive(false);
     }
 
     public void OnPointerClick(PointerEventData data){
@@ -82,17 +80,24 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
     public void OnPointerEnter(PointerEventData eventData)
     {
         if (!_selectable) return;
-        _mesh.SetActive(true);
+
+        playerChoice.enabled = true;
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         if (!_selectable || _phaseTitle != "") return;
-        _mesh.SetActive(false);
+
+        if(!_isSelected) playerChoice.enabled = false;
+    }
+
+    private void ShowOpponentSelection(Phase phase){
+        if(phase == _phase) opponentChoice.enabled = true;
     }
 
     private void OnDestroy(){
         PhasePanel.OnPhaseSelectionStarted -= StartSelection;
         PhasePanel.OnPhaseSelectionConfirmed -= Reset;
+        PhasePanelUI.OnPhaseSelectionConfirmed -= ShowOpponentSelection;
     }
 }

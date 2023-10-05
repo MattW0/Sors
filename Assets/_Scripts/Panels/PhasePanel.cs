@@ -59,7 +59,10 @@ public class PhasePanel : NetworkBehaviour
             _selectedPhases.Add(phase);
         }
         
-        confirmPhaseSelection.SetActive(_selectedPhases.Count == _nbPhasesToChose);
+        if (_selectedPhases.Count == _nbPhasesToChose){
+            // confirmPhaseSelection.SetActive(true);
+            ConfirmButtonPressed();
+        }
     }
 
     public void ConfirmButtonPressed(){
@@ -156,10 +159,6 @@ public class PhasePanel : NetworkBehaviour
         actionDescriptionText.text = text;
     }
 
-    [ClientRpc]
-    public void RpcClearPlayerChoiceHighlights(){
-        _phasePanelUI.ClearPlayerChoiceHighlights();
-    }
     private void OnDestroy() {
         TurnManager.OnPhaseChanged -= RpcUpdatePhaseHighlight;
         CombatManager.OnCombatStateChanged -= RpcUpdateCombatHighlight;

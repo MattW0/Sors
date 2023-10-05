@@ -4,8 +4,8 @@ using UnityEngine;
 public static class SorsColors
 {
     // -- Players --
-    public static Color playerOne = new Color(0f, 0.5f, 0.01f);
-    public static Color playerTwo = new Color(0f, 0.08f, 0.54f);
+    public static Color player = new Color(0f, 0.5f, 0.01f);
+    public static Color opponent = new Color(0f, 0.08f, 0.54f);
 
     // -- UI --
     public static Color neutral_dark = new Color(0.05f, 0.05f, 0.05f);
@@ -73,5 +73,7 @@ public enum ColorType : byte
     MoneyValue,
     Neutral,
     Trash,
-    PrevailOption
+    PrevailOption,
+    Player,
+    Opponent,
 }

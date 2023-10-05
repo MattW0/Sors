@@ -122,7 +122,6 @@ public class BoardManager : NetworkBehaviour
 
         if(! endOfTurn) return;
         _dropZone.DevelopmentsLooseHealth();
-        _phasePanel.RpcClearPlayerChoiceHighlights();
     }
 
     public void ClearDeadEntities()

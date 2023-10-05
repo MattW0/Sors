@@ -20,9 +20,9 @@ public class PhasePanelUI : MonoBehaviour
     private float[] progressBarCheckpoints = {0.05f, 0.15f, 0.27f, 0.345f, 0.465f, 0.54f, 0.655f, 0.735f, 0.85f, 1f};
 
     [SerializeField] private List<Image> phaseHighlights;
-    [SerializeField] private List<Image> playerChoiceHighlights;
     private Image _oldHighlight;
     private Image _newHighlight;
+    public static event Action<Phase> OnPhaseSelectionConfirmed;
 
     private void Awake(){
         if (!Instance) Instance = this;
@@ -36,26 +36,13 @@ public class PhasePanelUI : MonoBehaviour
         // Reset cleanup highlight and start at phase selection (index 0)
         _oldHighlight = phaseHighlights[^1];
         UpdatePhaseHighlight(0);
-        
-        int i = 0;
-        foreach (var img in playerChoiceHighlights) {
-            if(!img) continue;
-
-            if (i%2 == 0) img.color = SorsColors.playerOne;
-            else img.color = SorsColors.playerTwo;
-
-            img.enabled = false;
-            i++;
-        }
     }
 
     public void ShowOpponentChoices(Phase[] phases){
         foreach(var phase in phases){
-            var index = (int) phase;
-            index *= _nbPlayers;
-            index += 1;
-            playerChoiceHighlights[index].enabled = true;
+            OnPhaseSelectionConfirmed?.Invoke(phase);
         }
+
     }
 
     public void UpdatePhaseHighlight(int newHighlightIndex){
@@ -70,12 +57,6 @@ public class PhasePanelUI : MonoBehaviour
         _newHighlight = phaseHighlights[newHighlightIndex];
         HighlightTransition(_oldHighlight, _newHighlight);
         _oldHighlight = _newHighlight;
-    }
-
-    public void ClearPlayerChoiceHighlights(){
-        foreach(var img in playerChoiceHighlights){
-            if (img) img.enabled = false;
-        }
     }
     
     private void HighlightTransition(Graphic oldImg, Graphic newImg, bool phaseSelection=false){
