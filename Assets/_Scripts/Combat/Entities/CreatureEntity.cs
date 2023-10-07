@@ -17,6 +17,19 @@ public class CreatureEntity : NetworkBehaviour, IPointerClickHandler
     [SerializeField] private CombatState _combatState;
     [SerializeField] private bool _canAct;
     public bool CanAct { get => _canAct; private set => _canAct = value; }
+
+    private bool _isTargeting;
+    public bool IsTargeting
+    {
+        get => _isTargeting;
+        set
+        {
+            _isTargeting = value;
+            if(_isTargeting) _bze.SpawnTargetArrow();
+            else if(!IsAttacking) _bze.RemoveArrow();
+        } 
+    }
+
     [SerializeField] private bool _isAttacking;
     public bool IsAttacking
     {
@@ -24,7 +37,7 @@ public class CreatureEntity : NetworkBehaviour, IPointerClickHandler
         set
         {
             _isAttacking = value;
-            if(_isAttacking) _creatureUI.TapCreature();
+            if(_isAttacking) _bze.SpawnTargetArrow();
             else _creatureUI.UntapCreature(highlight: true);
         } 
     }
@@ -63,7 +76,7 @@ public class CreatureEntity : NetworkBehaviour, IPointerClickHandler
 
         // only in Attackers since blockerArrowHandler handles Blockers phase
         if (_combatState != CombatState.Attackers) return;
-        IsAttacking = !IsAttacking;
+        IsTargeting = !_isTargeting;
     }
 
     public void LocalPlayerIsReady(){

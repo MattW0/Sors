@@ -426,7 +426,6 @@ public class TurnManager : NetworkBehaviour
         }
 
         _prevailOptionsToPlay.Sort();
-        print(_prevailOptionsToPlay);
         NextPrevailOption();
     }
 

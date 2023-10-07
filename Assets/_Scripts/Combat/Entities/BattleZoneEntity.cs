@@ -96,13 +96,16 @@ public class BattleZoneEntity : NetworkBehaviour
     [ClientRpc]
     public void RpcEffectHighlight(bool value) => _entityUI.EffectHighlight(value, Color.white);
 
+    public void SpawnTargetArrow() => _targetArrowHandler.SpawnArrow();
     [TargetRpc]
     public void TargetSpawnTargetArrow(NetworkConnection target) => _targetArrowHandler.SpawnArrow();
 
     [ClientRpc]
     public void RpcDeclaredTarget(BattleZoneEntity target) => _targetArrowHandler.HandleFoundTarget(target);
 
+    public void RemoveArrow() => _targetArrowHandler.RemoveArrow(true);
+
     [ClientRpc]
-    public void RpcResetAfterTarget() => _targetArrowHandler.RemoveArrow();
+    public void RpcResetAfterTarget() => _targetArrowHandler.RemoveArrow(false);
     private void Die() => _boardManager.EntityDies(this);
 }

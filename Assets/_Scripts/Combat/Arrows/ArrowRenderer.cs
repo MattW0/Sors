@@ -124,7 +124,7 @@ public class ArrowRenderer : MonoBehaviour
         return Mathf.Clamp01(Mathf.Clamp01(distance0 / distanceMax) + Mathf.Clamp01(distance1 / distanceMax) - 1f);
     }
 
-    private void DestroyArrow(){
+    public void DestroyArrow(){
         Destroy(gameObject);
     }
 

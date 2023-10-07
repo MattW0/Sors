@@ -9,14 +9,13 @@ public class SorsNetworkManager : NetworkManager
     private NetworkManager _manager;
     private string _playerNameBuffer;
     private string[] _networkAddresses = new string[2] {"localhost", "192.168.1.170"};
-    private GameOptions _gameOptions = new GameOptions(2, 2, false, false, "192.168.1.170");
-    public static event Action<int, int, bool, bool> OnAllPlayersReady;
+    public static GameOptions gameOptions = new GameOptions(2, 2, false, false, "192.168.1.170", "");
+    public static event Action<GameOptions> OnAllPlayersReady;
 
     public override void Awake(){
         base.Awake();
         _manager = GetComponent<NetworkManager>();
-
-        InputField.OnInputFieldChanged += SetNetworkAddress;
+        InputField.OnNetworkAdressUpdate += UpdateNetworkAddress;
     }
 
     public override void OnStartServer(){
@@ -31,7 +30,7 @@ public class SorsNetworkManager : NetworkManager
     }
 
     private IEnumerator WaitingForPlayers(){
-        while (NetworkServer.connections.Count < GameOptions.NumberPlayers){
+        while (NetworkServer.connections.Count < gameOptions.NumberPlayers){
             Debug.Log("Waiting for players...");
             yield return new WaitForSeconds(1);
         }
@@ -41,10 +40,8 @@ public class SorsNetworkManager : NetworkManager
 
     private IEnumerator StartGame(){
         yield return new WaitForSeconds(0.5f);
-        OnAllPlayersReady?.Invoke(GameOptions.NumberPlayers, 
-                                  GameOptions.NumberPhases,
-                                  GameOptions.FullHand,
-                                  GameOptions.CardSpawnAnimations);
+
+        OnAllPlayersReady?.Invoke(gameOptions);
         yield return null;
     }
 
@@ -87,33 +84,22 @@ public class SorsNetworkManager : NetworkManager
     }
 
     #region Host Options
-    public static void SetNumberPlayers(int numberPlayers) => GameOptions.NumberPlayers = numberPlayers + 1;
-    public static void SetNumberPhases(int numberPhases) => GameOptions.NumberPhases = numberPhases + 1;
-    public static void SetFullHand(bool drawAll) => GameOptions.FullHand = drawAll;
-    public static void SetSpawnimations(bool b) => GameOptions.CardSpawnAnimations = b;
-    public void SetNetworkAddress(string networkAddress) => _manager.networkAddress = networkAddress;
+    public static void SetNumberPlayers(int numberPlayers) => gameOptions.NumberPlayers = numberPlayers + 1;
+    public static void SetNumberPhases(int numberPhases) => gameOptions.NumberPhases = numberPhases + 1;
+    public static void SetFullHand(bool drawAll) => gameOptions.FullHand = drawAll;
+    public static void SetSpawnimations(bool b) => gameOptions.CardSpawnAnimations = b;
+    public static void SetStateFile(string stateFile) => gameOptions.StateFile = stateFile;
+    private void UpdateNetworkAddress(string networkAddress){
+        _manager.networkAddress = networkAddress;
+        gameOptions.NetworkAddress = networkAddress;
+    }
+
     #endregion
 
     public override void OnDestroy() {
         base.OnDestroy();
-        InputField.OnInputFieldChanged -= SetNetworkAddress;
+        InputField.OnNetworkAdressUpdate -= UpdateNetworkAddress;
     }
 }
-
-public struct GameOptions{
-
-    public static int NumberPlayers { get; set;}
-    public static int NumberPhases { get; set;}
-    public static bool FullHand { get; set;}
-    public static bool CardSpawnAnimations { get; set;}
-    public static string NetworkAddress { get; set;}
-    public GameOptions(int numPlayers, int numPhases, bool fullHand, bool spawnimations, string address){
-        NumberPlayers = numPlayers;
-        NumberPhases = numPhases;
-        FullHand = fullHand;
-        CardSpawnAnimations = spawnimations;
-        NetworkAddress = address;
-    }
-} 
 
 

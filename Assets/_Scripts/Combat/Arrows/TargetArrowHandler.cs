@@ -46,10 +46,11 @@ public class TargetArrowHandler : MonoBehaviour, IPointerClickHandler
         _arrow.SetTarget();
     }
 
-    public void RemoveArrow()
+    public void RemoveArrow(bool destroyArrowObject)
     {
         if (!_arrowObject) return;
 
+        if(destroyArrowObject) _arrow.DestroyArrow();
         _arrowObject = null;
         _arrow = null;
     }

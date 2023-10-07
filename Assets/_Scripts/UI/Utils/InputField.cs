@@ -6,20 +6,24 @@ public class InputField : MonoBehaviour
 {
     [SerializeField] private TMP_InputField inputField;
     [SerializeField] private TMP_Text selection;
-    public static event Action<string> OnInputFieldChanged;
+    [SerializeField] private GameOption option;
+    public static event Action<string> OnNetworkAdressUpdate; 
     
-    private void Start(){
+    private void Start()
+    {
         inputField.text = "";
-        inputField.onEndEdit.AddListener(delegate { UpdateTextBox(inputField); });
+        inputField.onEndEdit.AddListener(delegate { UpdateTextBox(); });
     }
  
-    public void UpdateTextBox(TMP_InputField textbox)
+    public void UpdateTextBox()
     {
-        if (textbox.text.Length < 1) return;
+        // if (inputField.text.Length < 1) return;
         
-        var text = textbox.text.ToString();
-        textbox.text = text;
+        var text = inputField.text.ToString();
+        inputField.text = text;
         selection.text = text;
-        OnInputFieldChanged?.Invoke(text);
+
+        if(option == GameOption.NetworkAddress) OnNetworkAdressUpdate?.Invoke(text);
+        else if(option == GameOption.StateFile) SorsNetworkManager.SetStateFile(text);
     }
 }

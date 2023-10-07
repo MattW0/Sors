@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Unity.Collections;
 using Mirror;
 using Random = UnityEngine.Random;
 
@@ -94,32 +95,6 @@ public class GameManager : NetworkBehaviour {
         SorsNetworkManager.OnAllPlayersReady += GameSetup;
     }
 
-    public void GameSetup(int nbPlayers, int nbPhases, bool fullHand, bool spawnimations){
-
-        print("Game starting with options:");
-        print("Players: " + nbPlayers);
-        print("Phases: " + nbPhases);
-        print("Full hand: " + fullHand);
-        print("Spawnimations: " + spawnimations);
-
-        singlePlayer = nbPlayers == 1;
-        nbPhasesToChose = nbPhases;
-        initialHandSize = fullHand ? initialDeckSize : initialHandSize;
-        cardSpawnAnimations = spawnimations;
-
-        _turnManager = TurnManager.Instance;
-        _boardManager = BoardManager.Instance;
-        _kingdom = Kingdom.Instance;
-        _endScreen = EndScreen.Instance;
-        
-        KingdomSetup();
-        PlayerSetup();
-
-        if(cardSpawnAnimations) StartCoroutine(PreGameWaitRoutine());
-    }
-
-    #region Setup
-
     private void LoadCards(){
         startCreatures = Resources.LoadAll<ScriptableCard>("Cards/StartCards/Creatures/");
         startDevelopments = Resources.LoadAll<ScriptableCard>("Cards/StartCards/Developments/");
@@ -129,10 +104,43 @@ public class GameManager : NetworkBehaviour {
         developCardsDb = Resources.LoadAll<ScriptableCard>("Cards/DevelopCards/");
         moneyCardsDb = Resources.LoadAll<ScriptableCard>("Cards/MoneyCards/");
 
-        print(" ---------- Available cards: ---------- ");
-        print("Creature cards: " + creatureCardsDb.Length);
-        print("Money cards: " + moneyCardsDb.Length);
-        print("Develop cards: " + developCardsDb.Length);
+        var msg = " --- Available cards: --- \n" +
+                  $"Creature cards: {creatureCardsDb.Length}\n" +
+                  $"Money cards: {moneyCardsDb.Length}\n" +
+                  $"Develop cards: {developCardsDb.Length}";
+        print(msg);
+    }
+
+    public void GameSetup(GameOptions options){
+
+        _turnManager = TurnManager.Instance;
+        _boardManager = BoardManager.Instance;
+        _kingdom = Kingdom.Instance;
+        _endScreen = EndScreen.Instance;
+
+        print(" --- Game starting --- \n" + options.ToString());
+        singlePlayer = options.NumberPlayers == 1;
+        nbPhasesToChose = options.NumberPhases;
+        initialHandSize = options.FullHand ? initialDeckSize : initialHandSize;
+        cardSpawnAnimations = options.CardSpawnAnimations;
+
+        if(! string.IsNullOrWhiteSpace(options.StateFile)) LoadGameState(options.StateFile);
+
+        KingdomSetup();
+        PlayerSetup();
+
+        if(cardSpawnAnimations) StartCoroutine(PreGameWaitRoutine());
+    }
+
+    #region Setup
+    private void LoadGameState(string fileName){
+        var stateFile = Resources.Load<TextAsset>("GameStates/" + fileName);
+        var state = stateFile.GetData<GameState>();
+
+        // TODO: How to load json and convert string data ?
+        // foreach (var key in stateFile){
+        //     print(key);
+        // }
     }
     
     private void KingdomSetup(){
