@@ -1,5 +1,6 @@
 {
-    "player" :{
+    "playerStates": [
+    {
         "entities": {
             "creatures": [
                 "CreatureCards/EmotionalDamage"
@@ -9,7 +10,7 @@
             ]
         }
     },
-    "opponent" :{
+    {
         "entities": {
             "creatures": [
                 "CreatureCards/DiniMueter",
@@ -20,4 +21,5 @@
             ]
         }
     }
+    ]
 }

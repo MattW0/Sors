@@ -11,6 +11,7 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
     private Phase _phase;
     [SerializeField] private string _phaseTitle;
     [SerializeField] private GameObject _mesh;
+    [SerializeField] private GameObject _tooltip;
     [SerializeField] private Image _icon;
     [SerializeField] private Graphic outline;
     [SerializeField] private Image playerChoice;
@@ -64,6 +65,7 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
         _selectable = false;
         outline.CrossFadeAlpha(0f, 1f, false);
         if(_mesh) _mesh.SetActive(false);
+        if(_tooltip) _tooltip.SetActive(false);
     }
 
     public void OnPointerClick(PointerEventData data){
@@ -79,14 +81,17 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (!_selectable) return;
+        if (!_selectable || _phaseTitle != "") return;
 
+        _tooltip.SetActive(true);
         playerChoice.enabled = true;
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         if (!_selectable || _phaseTitle != "") return;
+
+        _tooltip.SetActive(false);
 
         if(!_isSelected) playerChoice.enabled = false;
     }

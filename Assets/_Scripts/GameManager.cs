@@ -6,6 +6,7 @@ using UnityEngine;
 using Unity.Collections;
 using Mirror;
 using Random = UnityEngine.Random;
+using GameState;
 
 public class GameManager : NetworkBehaviour {
     
@@ -87,15 +88,14 @@ public class GameManager : NetworkBehaviour {
     {
         if (Instance == null) Instance = this;
 
-        LoadCards();
-
-        _moneySprites = Resources.LoadAll<Sprite>("Sprites/Money/");
-
         TurnManager.OnPlayerDies += PlayerDies;
         SorsNetworkManager.OnAllPlayersReady += GameSetup;
+        
+        LoadCards();
     }
 
     private void LoadCards(){
+        _moneySprites = Resources.LoadAll<Sprite>("Sprites/Money/");
         startCreatures = Resources.LoadAll<ScriptableCard>("Cards/StartCards/Creatures/");
         startDevelopments = Resources.LoadAll<ScriptableCard>("Cards/StartCards/Developments/");
 
@@ -134,9 +134,12 @@ public class GameManager : NetworkBehaviour {
 
     #region Setup
     private void LoadGameState(string fileName){
+        
+        print($"Loading game state from file: {fileName}");
         var stateFile = Resources.Load<TextAsset>("GameStates/" + fileName);
-        var state = stateFile.GetData<GameState>();
-
+        var state = JsonUtility.FromJson<GameState.GameState>(stateFile.text);
+        
+        print(state.playerStates);
         // TODO: How to load json and convert string data ?
         // foreach (var key in stateFile){
         //     print(key);
