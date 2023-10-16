@@ -9,7 +9,7 @@ public class SorsNetworkManager : NetworkManager
     private NetworkManager _manager;
     private string _playerNameBuffer;
     private string[] _networkAddresses = new string[2] {"localhost", "192.168.1.170"};
-    public static GameOptions gameOptions = new GameOptions(2, 2, false, false, "192.168.1.170", "");
+    public static GameOptions gameOptions = new GameOptions(2, 2, false, false, "192.168.1.170", "t");
     public static event Action<GameOptions> OnAllPlayersReady;
 
     public override void Awake(){
@@ -31,7 +31,7 @@ public class SorsNetworkManager : NetworkManager
 
     private IEnumerator WaitingForPlayers(){
         while (NetworkServer.connections.Count < gameOptions.NumberPlayers){
-            Debug.Log("Waiting for players...");
+            print("Waiting for players...");
             yield return new WaitForSeconds(1);
         }
         

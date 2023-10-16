@@ -30,7 +30,7 @@ public class GameManager : NetworkBehaviour {
 
     [Header("Game start settings")]
     private int _nbMoneyTiles;
-    private int _nbDevelopTiles;
+    private int _nbTechnologyTiles;
     private int _nbCreatureTiles;
     [SerializeField] private int initialDeckSize = 10;
     [SerializeField] private int initialCreatures = 3;
@@ -124,7 +124,11 @@ public class GameManager : NetworkBehaviour {
         initialHandSize = options.FullHand ? initialDeckSize : initialHandSize;
         cardSpawnAnimations = options.CardSpawnAnimations;
 
-        if(! string.IsNullOrWhiteSpace(options.StateFile)) LoadGameState(options.StateFile);
+        // Start game from state -> skip normal setup and start from there
+        if(! string.IsNullOrWhiteSpace(options.StateFile)) {
+            LoadGameState(options.StateFile);
+            return;
+        }
 
         KingdomSetup();
         PlayerSetup();
@@ -134,16 +138,59 @@ public class GameManager : NetworkBehaviour {
 
     #region Setup
     private void LoadGameState(string fileName){
-        
+
         print($"Loading game state from file: {fileName}");
+        
         var stateFile = Resources.Load<TextAsset>("GameStates/" + fileName);
         var state = JsonUtility.FromJson<GameState.GameState>(stateFile.text);
-        
-        print(state.playerStates);
-        // TODO: How to load json and convert string data ?
-        // foreach (var key in stateFile){
-        //     print(key);
-        // }
+
+        KingdomSetup();
+        PlayerSetupFromFile(state.players);
+    }
+
+    private void PlayerSetupFromFile(Player[] playerData)
+    {
+        Player host = new Player();
+        Player client = new Player();
+
+        foreach (var p in playerData){
+            if (p.isHost) host = p;
+            else client = p;
+        }
+
+        var playerManagers = FindObjectsOfType<PlayerManager>();
+        foreach (var player in playerManagers)
+        {
+            var playerNetworkId = player.GetComponent<NetworkIdentity>();
+            players.Add(player, playerNetworkId);
+            player.RpcInitPlayer();
+
+            // To update string in network
+            Player p = new Player();
+            if(player.isLocalPlayer) p = host;
+            else p = client;
+
+            player.PlayerName = p.playerName;
+            SpawnCardsFromFile(player, p.cards);
+        }
+
+        OnGameStart?.Invoke(players.Count);
+    }
+
+    private void SpawnCardsFromFile(PlayerManager p, Cards cards)
+    {
+        print($"Spawning cards for player {p.PlayerName}");
+
+        // TODO: Continue with deck and discard
+        foreach(var c in cards.handCards){
+
+            print($"loading card {c}");
+            // TODO: Change this to a generic card spawn function to resolve for every destination
+            var scriptableCard = Resources.Load<ScriptableCard>(c);
+            var cardObject = Instantiate(moneyCardPrefab);
+            var cardInfo = SpawnAndCacheCard(p, cardObject, scriptableCard);
+            MoveSpawnedCard(p, cardObject, cardInfo, CardLocation.Discard);
+        }
     }
     
     private void KingdomSetup(){
@@ -154,14 +201,14 @@ public class GameManager : NetworkBehaviour {
         for (var i = 0; i < _nbMoneyTiles; i++) moneyCards[i] = new CardInfo(moneyCardsDb[i]);
         _kingdom.RpcSetMoneyTiles(moneyCards);
 
-        var developCards = new CardInfo[_nbDevelopTiles];
-        for (var i = 0; i < _nbDevelopTiles; i++) developCards[i] = GetNewDevelopmentFromDb();
-        _kingdom.RpcSetDevelopmentTiles(developCards);
+        var technologies = new CardInfo[_nbTechnologyTiles];
+        for (var i = 0; i < _nbTechnologyTiles; i++) technologies[i] = GetNewDevelopmentFromDb();
+        _kingdom.RpcSetDevelopmentTiles(technologies);
 
-        // Recruits: Creatures
-        var recruitCards = new CardInfo[_nbCreatureTiles];
-        for (var i = 0; i < _nbCreatureTiles; i++) recruitCards[i] = GetNewCreatureFromDb();
-        _kingdom.RpcSetRecruitTiles(recruitCards);
+        // Recruit Creatures
+        var creatures = new CardInfo[_nbCreatureTiles];
+        for (var i = 0; i < _nbCreatureTiles; i++) creatures[i] = GetNewCreatureFromDb();
+        _kingdom.RpcSetRecruitTiles(creatures);
     }
 
     private CardInfo GetNewDevelopmentFromDb(){
@@ -357,11 +404,11 @@ public class GameManager : NetworkBehaviour {
 
     #endregion
 
-    public void SetNumberOfKingdomTiles(int money, int development, int creature)
+    public void SetNumberOfKingdomTiles(int moneyTiles, int technologies, int creatures)
     {
-        _nbMoneyTiles = money;
-        _nbDevelopTiles = development;
-        _nbCreatureTiles = creature;
+        _nbMoneyTiles = moneyTiles;
+        _nbTechnologyTiles = technologies;
+        _nbCreatureTiles = creatures;
     }
 
     private IEnumerator PreGameWaitRoutine(){

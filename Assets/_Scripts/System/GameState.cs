@@ -6,18 +6,31 @@ namespace GameState
 {
 public class GameState
 {
-    public PlayerState[] playerStates;
+    public Player[] players;
 }
 
-public class PlayerState
+[System.Serializable]
+public class Player
 {
+    public string playerName;
+    public bool isHost;
     public Entities[] entities;
+    public Cards cards;
 }
 
+[System.Serializable]
 public class Entities
 {
-    public Dictionary<string, List<string>> creatures;
-    public Dictionary<string, List<string>> technologies;
+    public List<string> creatures;
+    public List<string> technologies;
+}
+
+[System.Serializable]
+public class Cards : Dictionary<string, List<string>>
+{
+    public List<string> handCards;
+    public List<string> deckCards;
+    public List<string> discardCards;
 }
 
 }

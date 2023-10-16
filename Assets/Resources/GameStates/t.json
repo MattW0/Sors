@@ -1,25 +1,74 @@
 {
-    "playerStates": [
-    {
-        "entities": {
+    "market": [
+
+    ],
+    "players": [{
+        "playerName": "Host",
+        "isHost": true,
+        "entities": [
+        {
             "creatures": [
                 "CreatureCards/EmotionalDamage"
-            ],
+            ]
+        },
+        {
             "technologies": [
-
+                "DevelopCards/CreatureReduction",
+                "DevelopCards/CreatureReduction"
+            ]
+        }
+        ],
+        "cards": {
+            "handCards": [
+                "Cards/MoneyCards/3_Electron",
+                "Cards/MoneyCards/3_Electron",
+                "Cards/MoneyCards/3_Electron",
+                "Cards/MoneyCards/3_Electron",
+                "Cards/MoneyCards/3_Electron"
+            ],
+            "deckCards": [
+                "Cards/MoneyCards/3_Electron",
+                "Cards/MoneyCards/3_Electron"
+            ],
+            "discardCards": [
+                "MoneyCards/3_Electron"
             ]
         }
     },
     {
-        "entities": {
-            "creatures": [
-                "CreatureCards/DiniMueter",
-                "CreatureCards/EmotionalDamage"
+        "playerName": "test",
+        "isHost": false,
+        "entities": [
+            {
+                "creatures": [
+                    "CreatureCards/DiniMueter",
+                    "CreatureCards/EmotionalDamage"
+                ]
+            },
+            {
+                "technologies": [
+                    "DevelopCards/LifeGain"
+                ]
+            }
+        ],
+        "cards": {
+            "handCards": [
+                "Cards/MoneyCards/1_Paper Money",
+                "Cards/MoneyCards/1_Paper Money",
+                "Cards/MoneyCards/1_Paper Money",
+                "Cards/MoneyCards/1_Paper Money",
+                "Cards/MoneyCards/1_Paper Money"
             ],
-            "technologies": [
-
+            "deckCards": [
+                "Cards/MoneyCards/1_Paper Money",
+                "Cards/MoneyCards/1_Paper Money"
+            ],
+            "discardCards": [
+                "Cards/MoneyCards/1_Paper Money",
+                "Cards/MoneyCards/1_Paper Money",
+                "Cards/MoneyCards/1_Paper Money",
+                "Cards/MoneyCards/1_Paper Money"
             ]
         }
-    }
-    ]
+    }]
 }
