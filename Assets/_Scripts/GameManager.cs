@@ -34,7 +34,7 @@ public class GameManager : NetworkBehaviour {
     private int _nbCreatureTiles;
     [SerializeField] private int initialDeckSize = 10;
     [SerializeField] private int initialCreatures = 3;
-    [SerializeField] private int initialDevelopments = 2;
+    [SerializeField] private int initialTechnologies = 2;
     [SerializeField] private int initialHandSize = 6;
     public int startHealth = 10;
     public int startScore = 0;
@@ -61,20 +61,20 @@ public class GameManager : NetworkBehaviour {
 
     [Header("Available cards")]
     public ScriptableCard[] startCreatures;
-    public ScriptableCard[] startDevelopments;
+    public ScriptableCard[] startTechnologies;
     public ScriptableCard[] creatureCardsDb;
     public ScriptableCard[] moneyCardsDb;
-    public ScriptableCard[] developCardsDb;
+    public ScriptableCard[] technologyCardsDb;
     private List<int> _availableCreatureIds = new();
-    private List<int> _availableDevelopmentIds = new();
+    private List<int> _availableTechnologyIds = new();
     private Sprite[] _moneySprites;
     
     [Header("Prefabs")]
     [SerializeField] private GameObject creatureCardPrefab;
     [SerializeField] private GameObject moneyCardPrefab;
-    [SerializeField] private GameObject developCardPrefab;
+    [SerializeField] private GameObject technologyCardPrefab;
     [SerializeField] private GameObject creatureEntityPrefab;
-    [SerializeField] private GameObject developmentEntityPrefab;
+    [SerializeField] private GameObject technologyEntityPrefab;
 
     // Caching all gameObjects of cards in game
     private static Dictionary<string, GameObject> Cache { get; set; } = new();
@@ -96,18 +96,18 @@ public class GameManager : NetworkBehaviour {
 
     private void LoadCards(){
         _moneySprites = Resources.LoadAll<Sprite>("Sprites/Money/");
-        startCreatures = Resources.LoadAll<ScriptableCard>("Cards/StartCards/Creatures/");
-        startDevelopments = Resources.LoadAll<ScriptableCard>("Cards/StartCards/Developments/");
+        startCreatures = Resources.LoadAll<ScriptableCard>("Cards/_StartCards/Creatures/");
+        startTechnologies = Resources.LoadAll<ScriptableCard>("Cards/_StartCards/Technologies/");
 
         // Databases of generated cards
         creatureCardsDb = Resources.LoadAll<ScriptableCard>("Cards/CreatureCards/");
-        developCardsDb = Resources.LoadAll<ScriptableCard>("Cards/DevelopCards/");
+        technologyCardsDb = Resources.LoadAll<ScriptableCard>("Cards/TechnologyCards/");
         moneyCardsDb = Resources.LoadAll<ScriptableCard>("Cards/MoneyCards/");
 
         var msg = " --- Available cards: --- \n" +
                   $"Creature cards: {creatureCardsDb.Length}\n" +
                   $"Money cards: {moneyCardsDb.Length}\n" +
-                  $"Develop cards: {developCardsDb.Length}";
+                  $"Develop cards: {technologyCardsDb.Length}";
         print(msg);
     }
 
@@ -165,13 +165,15 @@ public class GameManager : NetworkBehaviour {
             players.Add(player, playerNetworkId);
             player.RpcInitPlayer();
 
-            // To update string in network
+            // p has player info and game state 
             Player p = new Player();
             if(player.isLocalPlayer) p = host;
             else p = client;
 
+            // To update string in network
             player.PlayerName = p.playerName;
             SpawnCardsFromFile(player, p.cards);
+            SpawnEntitiesFromFile(player, p.entities);
         }
 
         OnGameStart?.Invoke(players.Count);
@@ -179,62 +181,59 @@ public class GameManager : NetworkBehaviour {
 
     private void SpawnCardsFromFile(PlayerManager p, Cards cards)
     {
-        print($"Spawning cards for player {p.PlayerName}");
-
-        // TODO: Continue with deck and discard
         foreach(var c in cards.handCards){
-
-            print($"loading card {c}");
-            // TODO: Change this to a generic card spawn function to resolve for every destination
             var scriptableCard = Resources.Load<ScriptableCard>(c);
-            var cardObject = Instantiate(moneyCardPrefab);
-            var cardInfo = SpawnAndCacheCard(p, cardObject, scriptableCard);
-            MoveSpawnedCard(p, cardObject, cardInfo, CardLocation.Discard);
+            SpawnCardAndMoveTo(p, scriptableCard, CardLocation.Hand);
         }
+
+        foreach(var c in cards.deckCards){
+            var scriptableCard = Resources.Load<ScriptableCard>(c);
+            SpawnCardAndMoveTo(p, scriptableCard, CardLocation.Deck);
+        }
+
+        foreach(var c in cards.discardCards){
+            var scriptableCard = Resources.Load<ScriptableCard>(c);
+            SpawnCardAndMoveTo(p, scriptableCard, CardLocation.Discard);
+        }
+    }
+
+    private void SpawnEntitiesFromFile(PlayerManager p, Entities entities)
+    {
+        foreach(var e in entities.creatures){
+            var scriptableCard = Resources.Load<ScriptableCard>(e);
+            var cardObject = SpawnCardAndMoveTo(p, scriptableCard, CardLocation.PlayZone);
+            StartCoroutine(WaitForCardInit(p, cardObject, scriptableCard.type));
+        }
+
+        foreach(var e in entities.technologies){
+            var scriptableCard = Resources.Load<ScriptableCard>(e);
+            var cardObject = SpawnCardAndMoveTo(p, scriptableCard, CardLocation.PlayZone);
+            StartCoroutine(WaitForCardInit(p, cardObject, scriptableCard.type));
+        }
+    }
+
+    private IEnumerator WaitForCardInit(PlayerManager p, GameObject card, CardType type){
+        yield return new WaitForSeconds(0.1f);
+        SpawnFieldEntity(p, card, type, false);
+        yield return null;
     }
     
     private void KingdomSetup(){
         _kingdom.RpcSetPlayer();
         
-        // Developments: right now only money
+        // Money: right now only paper money
         var moneyCards = new CardInfo[_nbMoneyTiles];
         for (var i = 0; i < _nbMoneyTiles; i++) moneyCards[i] = new CardInfo(moneyCardsDb[i]);
         _kingdom.RpcSetMoneyTiles(moneyCards);
 
         var technologies = new CardInfo[_nbTechnologyTiles];
-        for (var i = 0; i < _nbTechnologyTiles; i++) technologies[i] = GetNewDevelopmentFromDb();
-        _kingdom.RpcSetDevelopmentTiles(technologies);
+        for (var i = 0; i < _nbTechnologyTiles; i++) technologies[i] = GetNewTechnologyFromDb();
+        _kingdom.RpcSetTechnologyTiles(technologies);
 
         // Recruit Creatures
         var creatures = new CardInfo[_nbCreatureTiles];
         for (var i = 0; i < _nbCreatureTiles; i++) creatures[i] = GetNewCreatureFromDb();
         _kingdom.RpcSetRecruitTiles(creatures);
-    }
-
-    private CardInfo GetNewDevelopmentFromDb(){
-        if(_availableDevelopmentIds.Count == 0) {
-            // Random order of ids -> pop first element for random card
-            _availableDevelopmentIds = Enumerable.Range(0, developCardsDb.Length)
-                                        .OrderBy(x => Random.value)
-                                        .ToList();
-        }
-
-        var id = _availableDevelopmentIds[0];
-        _availableDevelopmentIds.RemoveAt(0);
-        return new CardInfo(developCardsDb[id]);
-    }
-
-    private CardInfo GetNewCreatureFromDb(){
-        if(_availableCreatureIds.Count == 0) {
-            // Random order of ids -> pop first element for random card
-            _availableCreatureIds = Enumerable.Range(0, creatureCardsDb.Length)
-                                        .OrderBy(x => Random.value)
-                                        .ToList();
-        }
-
-        var id = _availableCreatureIds[0];
-        _availableCreatureIds.RemoveAt(0);
-        return new CardInfo(creatureCardsDb[id]);
     }
 
     private void PlayerSetup(){
@@ -272,59 +271,64 @@ public class GameManager : NetworkBehaviour {
         if(!cardSpawnAnimations) OnGameStart?.Invoke(players.Count);
     }
 
+    private void SpawnPlayerDeck(PlayerManager playerManager)
+    {
+        // Only paper money currently
+        for (var i = 0; i < initialDeckSize - initialCreatures - initialTechnologies; i++){
+            var scriptableCard = moneyCardsDb[0];
+            SpawnCardAndMoveTo(playerManager, scriptableCard, CardLocation.Deck);
+        }
+
+        for (var i = 0; i < initialCreatures; i++){
+            var scriptableCard = startCreatures[i]; // 
+            SpawnCardAndMoveTo(playerManager, scriptableCard, CardLocation.Deck);
+        }
+
+        for (var i = 0; i < initialTechnologies; i++){
+            var scriptableCard = startTechnologies[i];
+            SpawnCardAndMoveTo(playerManager, scriptableCard, CardLocation.Deck);
+        }
+    }
+
     #endregion
 
     #region Spawning
-    
-    private void SpawnPlayerDeck(PlayerManager playerManager){
-        // Money
-        for (var i = 0; i < initialDeckSize - initialCreatures - initialDevelopments; i++){
-            var scriptableCard = moneyCardsDb[0]; // Only paper money right now
-            var cardObject = Instantiate(moneyCardPrefab) as GameObject;
-            var cardInfo = SpawnAndCacheCard(playerManager, cardObject, scriptableCard);
-            MoveSpawnedCard(playerManager, cardObject, cardInfo, CardLocation.Deck);
-        }
+    private GameObject SpawnCardAndMoveTo(PlayerManager player, ScriptableCard card, CardLocation destination){
+        
+        // Card object prefab depending on type
+        var cardObject = card.type switch
+        {
+            CardType.Money => Instantiate(moneyCardPrefab) as GameObject,
+            CardType.Creature => Instantiate(creatureCardPrefab) as GameObject,
+            CardType.Technology => Instantiate(technologyCardPrefab) as GameObject,
+            CardType.None => null,
+            _ => null
+        };
 
-        // Creatures
-        for (var i = 0; i < initialCreatures; i++){
-            var scriptableCard = startCreatures[i]; // Special creatures 'Peasant', 'Worker'
-            var cardObject = Instantiate(creatureCardPrefab) as GameObject;
-            var cardInfo = SpawnAndCacheCard(playerManager, cardObject, scriptableCard);
-            MoveSpawnedCard(playerManager, cardObject, cardInfo, CardLocation.Deck);
-        }
+        // Assign client authority and put in cache
+        var cardInfo = SpawnAndCacheCard(player, cardObject, card);
 
-        // Creatures
-        for (var i = 0; i < initialDevelopments; i++){
-            var scriptableCard = startDevelopments[i]; // Start Developments: 'A', 'B'
-            var cardObject = Instantiate(developCardPrefab) as GameObject;
-            var cardInfo = SpawnAndCacheCard(playerManager, cardObject, scriptableCard);
-            MoveSpawnedCard(playerManager, cardObject, cardInfo, CardLocation.Deck);
-        }
+        // Add card to player collection list and move 
+        MoveSpawnedCard(player, cardObject, cardInfo, destination);
+
+        return cardObject;
     }
 
-    public void SpawnMoney(PlayerManager player, CardInfo card){
+    public void PlayerGainMoney(PlayerManager player, CardInfo card){
         // using hash as index for currency scriptable objects
         var scriptableCard = Resources.Load<ScriptableCard>("Cards/MoneyCards/" + card.hash + "_" + card.title);
-        var cardObject = Instantiate(moneyCardPrefab);
-        var cardInfo = SpawnAndCacheCard(player, cardObject, scriptableCard);
-        MoveSpawnedCard(player, cardObject, cardInfo, CardLocation.Discard);
+        SpawnCardAndMoveTo(player, scriptableCard, CardLocation.Discard);
     }
 
-    public void SpawnDevelopment(PlayerManager player, CardInfo card){
+    public void PlayerGainTechnology(PlayerManager player, CardInfo card){
         // using hash as index for currency scriptable objects
-        var scriptableCard = Resources.Load<ScriptableCard>("Cards/DevelopCards/" + card.title);
-        var cardObject = Instantiate(developCardPrefab);
-        var cardInfo = SpawnAndCacheCard(player, cardObject, scriptableCard);
-        MoveSpawnedCard(player, cardObject, cardInfo, CardLocation.Discard);
+        var scriptableCard = Resources.Load<ScriptableCard>("Cards/TechnologyCards/" + card.title);
+        SpawnCardAndMoveTo(player, scriptableCard, CardLocation.Discard);
     }
 
-    public void SpawnCreature(PlayerManager player, CardInfo card){
-        _kingdom.RpcReplaceRecruitTile(card.title, GetNewCreatureFromDb());
-
+    public void PlayerGainCreature(PlayerManager player, CardInfo card){
         var scriptableCard = Resources.Load<ScriptableCard>("Cards/CreatureCards/" + card.title);
-        var cardObject = Instantiate(creatureCardPrefab);
-        var cardInfo = SpawnAndCacheCard(player, cardObject, scriptableCard);
-        MoveSpawnedCard(player, cardObject, cardInfo, CardLocation.Discard);
+        SpawnCardAndMoveTo(player, scriptableCard, CardLocation.Discard);        
     }
     
     private CardInfo SpawnAndCacheCard(PlayerManager owner, GameObject cardObject, ScriptableCard scriptableCard){
@@ -354,6 +358,9 @@ public class GameManager : NetworkBehaviour {
             case CardLocation.Hand:
                 owner.hand.Add(cardInfo);
                 break;
+            case CardLocation.PlayZone:
+                // When loading game state
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(destination), destination, null);
         }
@@ -362,18 +369,23 @@ public class GameManager : NetworkBehaviour {
         else owner.RpcMoveCard(cardObject, CardLocation.Spawned, destination);
     }
 
-    public void SpawnFieldEntity(PlayerManager owner, GameObject card, CardType type)
+    public void SpawnFieldEntity(PlayerManager owner, GameObject card, CardType type, bool isPlayed = true)
     {
-        GameObject entityObject;
-        if(type == CardType.Creature) entityObject = Instantiate(creatureEntityPrefab);
-        else entityObject = Instantiate(developmentEntityPrefab);
+        // Entity object prefab depending on type
+        GameObject entityObject = type switch
+        {
+            CardType.Creature => Instantiate(creatureEntityPrefab) as GameObject,
+            CardType.Technology => Instantiate(technologyEntityPrefab) as GameObject,
+            _ => null
+        };
         
         NetworkServer.Spawn(entityObject, connectionToClient);
         entityObject.GetComponent<NetworkIdentity>().AssignClientAuthority(players[owner].connectionToClient);
 
         var entity = entityObject.GetComponent<BattleZoneEntity>();
         var opponent = GetOpponent(owner);
-        _boardManager.AddEntity(owner, opponent, card, entity);
+
+        _boardManager.AddEntity(owner, opponent, card, entity, isPlayed);
     }
     #endregion
 
@@ -404,6 +416,35 @@ public class GameManager : NetworkBehaviour {
 
     #endregion
 
+    #region Utils
+    private CardInfo GetNewTechnologyFromDb()
+    {
+        if(_availableTechnologyIds.Count == 0){
+            // Random order of ids -> pop first element for random card
+            _availableTechnologyIds = Enumerable.Range(0, technologyCardsDb.Length)
+                                        .OrderBy(x => Random.value)
+                                        .ToList();
+        }
+
+        var id = _availableTechnologyIds[0];
+        _availableTechnologyIds.RemoveAt(0);
+        return new CardInfo(technologyCardsDb[id]);
+    }
+
+    public CardInfo GetNewCreatureFromDb()
+    {
+        if(_availableCreatureIds.Count == 0){
+            // Random order of ids -> pop first element for random card
+            _availableCreatureIds = Enumerable.Range(0, creatureCardsDb.Length)
+                                        .OrderBy(x => Random.value)
+                                        .ToList();
+        }
+
+        var id = _availableCreatureIds[0];
+        _availableCreatureIds.RemoveAt(0);
+        return new CardInfo(creatureCardsDb[id]);
+    }
+
     public void SetNumberOfKingdomTiles(int moneyTiles, int technologies, int creatures)
     {
         _nbMoneyTiles = moneyTiles;
@@ -424,6 +465,7 @@ public class GameManager : NetworkBehaviour {
     {
         return players.Keys.FirstOrDefault(p => p != player);
     }
+    #endregion
 
     private void OnDestroy()
     {

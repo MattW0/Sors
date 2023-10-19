@@ -63,7 +63,7 @@ public class BattleZoneEntity : NetworkBehaviour
 
     [ClientRpc]
     public void RpcInitializeEntity(PlayerManager owner, PlayerManager opponent, CardInfo cardInfo)
-    {        
+    {
         _cardInfo = cardInfo;
         Owner = owner;
         Opponent = opponent;

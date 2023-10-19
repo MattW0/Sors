@@ -7394,7 +7394,7 @@ MonoBehaviour:
   turnNb: 0
   initialDeckSize: 10
   initialCreatures: 3
-  initialDevelopments: 2
+  initialTechnologies: 2
   initialHandSize: 4
   startHealth: 10
   startScore: 0
@@ -7414,15 +7414,15 @@ MonoBehaviour:
   prevailExtraOptions: 2
   deployBonusDeploys: 1
   startCreatures: []
-  startDevelopments: []
+  startTechnologies: []
   creatureCardsDb: []
   moneyCardsDb: []
-  developCardsDb: []
+  technologyCardsDb: []
   creatureCardPrefab: {fileID: 7967854417800556825, guid: 0a0214f9f73b5e64e9cf9f30766b3fb8, type: 3}
   moneyCardPrefab: {fileID: 8134903570611113416, guid: 2d148f57d14cfc345bb5294be07cb84f, type: 3}
-  developCardPrefab: {fileID: 8134903570611113416, guid: e39a127a12f944a4fbdd084781610437, type: 3}
+  technologyCardPrefab: {fileID: 8134903570611113416, guid: e39a127a12f944a4fbdd084781610437, type: 3}
   creatureEntityPrefab: {fileID: 2744354461364302012, guid: 4d905f235dee829458e853069ff4c21c, type: 3}
-  developmentEntityPrefab: {fileID: 2744354461364302012, guid: e5bd2d1689e60234497277d9c9e9213a, type: 3}
+  technologyEntityPrefab: {fileID: 2744354461364302012, guid: e5bd2d1689e60234497277d9c9e9213a, type: 3}
 --- !u!114 &806438203
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -22186,6 +22186,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Invent
       objectReference: {fileID: 0}
+    - target: {fileID: 864114742451860089, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
+      propertyPath: m_Layer
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 864114742451860089, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1649771190437801638, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_text
       value: +1 Invent, +3 cash.
@@ -22193,6 +22201,10 @@ PrefabInstance:
     - target: {fileID: 1715703789836488561, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_text
       value: Invent
+      objectReference: {fileID: 0}
+    - target: {fileID: 1911030335666400175, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
+      propertyPath: m_Layer
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 2031511396819864486, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_Pivot.x
@@ -22358,6 +22370,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5211830695085277639, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
+      propertyPath: m_Layer
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 5595660816452249132, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -22382,6 +22398,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6698824748503373539, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
+      propertyPath: m_Layer
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 7660859373306158911, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -22405,10 +22425,18 @@ PrefabInstance:
     - target: {fileID: 7660859373306158911, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7716964400968829026, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
+      propertyPath: m_Layer
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 7892607716301520720, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_text
       value: +1 Invent
+      objectReference: {fileID: 0}
+    - target: {fileID: 8285960995410979958, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
+      propertyPath: m_Layer
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 8561790675743861653, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_Sprite

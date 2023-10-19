@@ -14,12 +14,12 @@ public class Player
 {
     public string playerName;
     public bool isHost;
-    public Entities[] entities;
+    public Entities entities;
     public Cards cards;
 }
 
 [System.Serializable]
-public class Entities
+public class Entities : Dictionary<string, List<string>>
 {
     public List<string> creatures;
     public List<string> technologies;

@@ -5,25 +5,22 @@
     "players": [{
         "playerName": "Host",
         "isHost": true,
-        "entities": [
-        {
+        "entities": {
             "creatures": [
-                "CreatureCards/EmotionalDamage"
+                "Cards/CreatureCards/EmotionalDamage",
+                "Cards/_StartCards/Creatures/DmgCreature"
+            ],
+            "technologies": [
+                "Cards/TechnologyCards/Damage",
+                "Cards/TechnologyCards/EtbDraw"
             ]
         },
-        {
-            "technologies": [
-                "DevelopCards/CreatureReduction",
-                "DevelopCards/CreatureReduction"
-            ]
-        }
-        ],
         "cards": {
             "handCards": [
                 "Cards/MoneyCards/3_Electron",
-                "Cards/MoneyCards/3_Electron",
-                "Cards/MoneyCards/3_Electron",
-                "Cards/MoneyCards/3_Electron",
+                "Cards/MoneyCards/1_Paper Money",
+                "Cards/CreatureCards/EmotionalDamage",
+                "Cards/TechnologyCards/Damage",
                 "Cards/MoneyCards/3_Electron"
             ],
             "deckCards": [
@@ -31,26 +28,23 @@
                 "Cards/MoneyCards/3_Electron"
             ],
             "discardCards": [
-                "MoneyCards/3_Electron"
+                "Cards/MoneyCards/1_Paper Money",
+                "Cards/MoneyCards/3_Electron"
             ]
         }
     },
     {
         "playerName": "test",
         "isHost": false,
-        "entities": [
-            {
-                "creatures": [
-                    "CreatureCards/DiniMueter",
-                    "CreatureCards/EmotionalDamage"
-                ]
-            },
-            {
-                "technologies": [
-                    "DevelopCards/LifeGain"
-                ]
-            }
-        ],
+        "entities": {
+            "creatures": [
+                "Cards/CreatureCards/DiniMueter",
+                "Cards/CreatureCards/EmotionalDamage"
+            ],
+            "technologies": [
+                "Cards/TechnologyCards/LifeGain"
+            ]
+        },
         "cards": {
             "handCards": [
                 "Cards/MoneyCards/1_Paper Money",

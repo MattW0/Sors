@@ -243,6 +243,7 @@ GameObject:
   - component: {fileID: 509640836925341243}
   - component: {fileID: 8061831137090610720}
   - component: {fileID: 2017199274275927290}
+  - component: {fileID: 4307449096254147615}
   m_Layer: 5
   m_Name: Tooltip
   m_TagString: Untagged
@@ -313,6 +314,27 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!223 &4307449096254147615
+Canvas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 864114742451860089}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_RenderMode: 2
+  m_Camera: {fileID: 0}
+  m_PlaneDistance: 100
+  m_PixelPerfect: 0
+  m_ReceivesEvents: 1
+  m_OverrideSorting: 1
+  m_OverridePixelPerfect: 0
+  m_SortingBucketNormalizedSize: 0
+  m_AdditionalShaderChannelsFlag: 25
+  m_SortingLayerID: -1788881337
+  m_SortingOrder: 0
+  m_TargetDisplay: 0
 --- !u!1 &1911030335666400175
 GameObject:
   m_ObjectHideFlags: 0

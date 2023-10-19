@@ -32,9 +32,9 @@ public class BoardManager : NetworkBehaviour
         _dropZone = DropZoneManager.Instance;
     }
 
-    public void AddEntity(PlayerManager owner, PlayerManager opponent, GameObject card, BattleZoneEntity entity) 
+    public void AddEntity(PlayerManager owner, PlayerManager opponent, 
+                          GameObject card, BattleZoneEntity entity, bool isPlayed = true) 
     {
-        // print("Adding entity, owner: " + owner.name + ", opponent: " + opponent.name + ", card: " + card.name + ", entity: " + entity.name);
         var cardInfo = card.GetComponent<CardStats>().cardInfo;
         
         // To keep track which card object corresponds to which entity
@@ -42,7 +42,9 @@ public class BoardManager : NetworkBehaviour
 
         entity.RpcInitializeEntity(owner, opponent, cardInfo);
         _dropZone.EntityEntersDropZone(owner, entity);
-        _cardEffectsHandler.CardIsPlayed(owner, entity, cardInfo);
+
+        // Can be loaded from json at the beginning
+        if(isPlayed) _cardEffectsHandler.CardIsPlayed(owner, entity, cardInfo);
     }
 
     #region Effects

@@ -48,7 +48,7 @@ public class Kingdom : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcSetDevelopmentTiles(CardInfo[] technologyTilesInfo){
+    public void RpcSetTechnologyTiles(CardInfo[] technologyTilesInfo){
         for (var i = 0; i < technologyTilesInfo.Length; i++) 
             technologyTiles[i].SetTile(technologyTilesInfo[i]);
     }
