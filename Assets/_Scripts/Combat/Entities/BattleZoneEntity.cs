@@ -11,12 +11,12 @@ public class BattleZoneEntity : NetworkBehaviour
     public PlayerManager Opponent { get; private set; }
     public string Title { get; private set; }
     [SerializeField] private CreatureEntity _creatureEntity;
-    [SerializeField] private DevelopmentEntity _developmentEntity;
+    [SerializeField] private TechnologyEntity _developmentEntity;
     [SerializeField] private TargetArrowHandler _targetArrowHandler;
     [SerializeField] private EntityUI _entityUI;
 
     private bool _targetable;
-    public bool Targetable {
+    public bool IsTargetable {
         get => _targetable;
         set {
             _targetable = value;

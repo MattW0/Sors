@@ -29,7 +29,7 @@ public class DropZoneManager : NetworkBehaviour
     {
         // print("Entering dropzone, owner: " + owner.name + ", card: " + entity.name);
         if(entity.cardType == CardType.Technology) {
-            var development = entity.GetComponent<DevelopmentEntity>();
+            var development = entity.GetComponent<TechnologyEntity>();
             entityZones.AddDevelopment(development, owner.isLocalPlayer);
         } else if(entity.cardType == CardType.Creature) {
             var creature = entity.GetComponent<CreatureEntity>();
@@ -44,7 +44,7 @@ public class DropZoneManager : NetworkBehaviour
     public void EntityLeavesPlayZone(BattleZoneEntity entity)
     {
         if(entity.cardType == CardType.Technology) {
-            var development = entity.GetComponent<DevelopmentEntity>();
+            var development = entity.GetComponent<TechnologyEntity>();
             entityZones.RemoveDevelopment(development, entity.Owner.isLocalPlayer);
         } else if(entity.cardType == CardType.Creature) {
             var creature = entity.GetComponent<CreatureEntity>();
@@ -68,7 +68,7 @@ public class DropZoneManager : NetworkBehaviour
     private void TargetMakeEntitiesTargetable(NetworkConnection conn, List<BattleZoneEntity> entities)
     {
         foreach (var entity in entities) {
-            entity.Targetable = true;
+            entity.IsTargetable = true;
         }
     }
 

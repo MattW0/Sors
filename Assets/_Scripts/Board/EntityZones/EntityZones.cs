@@ -8,8 +8,8 @@ public class EntityZones : NetworkBehaviour
     private const int MAX_ENTITIES = 6;
     [SerializeField] private List<CreatureEntity> _hostCreatures = new();
     [SerializeField] private List<CreatureEntity> _clientCreatures = new();
-    [SerializeField] private List<DevelopmentEntity> _hostDevelopments = new();
-    [SerializeField] private List<DevelopmentEntity> _clientDevelopments = new();
+    [SerializeField] private List<TechnologyEntity> _hostDevelopments = new();
+    [SerializeField] private List<TechnologyEntity> _clientDevelopments = new();
 
     #region Entity Holders
     [SerializeField] private GameObject playerCreatureZone;
@@ -28,7 +28,7 @@ public class EntityZones : NetworkBehaviour
     }
 
     [Server]
-    public void AddDevelopment(DevelopmentEntity development, bool isHost){
+    public void AddDevelopment(TechnologyEntity development, bool isHost){
         if(isHost) _hostDevelopments.Add(development);
         else _clientDevelopments.Add(development);
 
@@ -36,7 +36,7 @@ public class EntityZones : NetworkBehaviour
     }
 
     [Server]
-    public void RemoveDevelopment(DevelopmentEntity development, bool isHost){
+    public void RemoveDevelopment(TechnologyEntity development, bool isHost){
         if(isHost) _hostDevelopments.Remove(development);
         else _clientDevelopments.Remove(development);
     }
@@ -60,8 +60,8 @@ public class EntityZones : NetworkBehaviour
         else return _clientCreatures;
     }
 
-    public List<DevelopmentEntity> GetAllDevelopments(){
-        var developments = new List<DevelopmentEntity>();
+    public List<TechnologyEntity> GetAllDevelopments(){
+        var developments = new List<TechnologyEntity>();
         developments.AddRange(_hostDevelopments);
         developments.AddRange(_clientDevelopments);
 

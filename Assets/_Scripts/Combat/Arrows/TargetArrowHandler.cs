@@ -24,7 +24,7 @@ public class TargetArrowHandler : MonoBehaviour, IPointerClickHandler
     public void OnPointerClick(PointerEventData eventData)
     {
         // return if entity is not targetable 
-        if (!entity.Targetable) return;
+        if (!entity.IsTargetable) return;
 
         var player = PlayerManager.GetLocalPlayer();
         if(!player.PlayerIsChoosingTarget) return;

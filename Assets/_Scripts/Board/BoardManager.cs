@@ -67,9 +67,7 @@ public class BoardManager : NetworkBehaviour
 
     #region Combat
 
-    public void StartCombatPhase(CombatState state){
-        StartCoroutine(CombatTransitionAnimation(state));
-    }
+    public void StartCombatPhase(CombatState state) => StartCoroutine(CombatTransitionAnimation(state));
 
     private IEnumerator CombatTransitionAnimation(CombatState state)
     {

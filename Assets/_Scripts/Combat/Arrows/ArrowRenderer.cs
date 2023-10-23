@@ -137,5 +137,6 @@ public class ArrowRenderer : MonoBehaviour
 public enum ArrowType : byte
 {
     Target,
+    Attacker,
     Blocker
 } 
