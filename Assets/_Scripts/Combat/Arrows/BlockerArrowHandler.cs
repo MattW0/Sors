@@ -3,95 +3,47 @@ using UnityEngine;
 using Mirror;
 using UnityEngine.EventSystems;
 
-public class BlockerArrowHandler : NetworkBehaviour, IPointerClickHandler
+public class BlockerArrowHandler : ArrowHandler, IPointerClickHandler
 {
-    [SerializeField] private CreatureEntity creature;
-    [SerializeField] private GameObject arrowPrefab;
-    private GameObject _arrowObject;
-    private ArrowRenderer _arrow;
-    private CombatState _currentState;
-    private bool _hasTarget;
-    private Vector3 _offset = new Vector3(960f, 540f, 0f);
-
-    private void Awake(){
-        CombatManager.OnCombatStateChanged += RpcCombatStateChanged;
-    }
-
-    [ClientRpc]
-    private void RpcCombatStateChanged(CombatState newState){
-        _currentState = newState;
-        if(_currentState == CombatState.CleanUp) {
-            _hasTarget = false;
-        }
-    }
-    
-    private void SpawnArrow(){
-        _arrowObject = Instantiate(arrowPrefab);
-        _arrow = _arrowObject.GetComponent<ArrowRenderer>();
-
-        var origin = creature.transform.position;
-        origin.y = 0.5f;
-        _arrow.SetOrigin(origin);
-    }
+    [SerializeField] private CreatureEntity _creature;
 
     public void OnPointerClick(PointerEventData eventData){
         // return if not in Blockers Phase
-        if (_currentState != CombatState.Blockers) return;
+        if (CurrentCombatState != CombatState.Blockers) return;
 
-        if (creature.isOwned) HandleClickedMyCreature();
+        if (_creature.isOwned) HandleClickedMyCreature();
         else HandleClickedOpponentCreature();
     }
     
     private void HandleClickedMyCreature(){
         
-        if (!creature.CanAct || creature.IsAttacking || _hasTarget) return;
+        if (!_creature.CanAct || _creature.IsAttacking || HasTarget) return;
         
-        if (!_arrow) {
+        if (!HasOrigin) {
             SpawnArrow();
-            creature.GetOwner().PlayerChoosesBlocker(creature);
+            _creature.Owner.PlayerChoosesBlocker(_creature);
             return;
         }
         
-        creature.GetOwner().PlayerRemovesBlocker(creature);
-        Destroy(_arrow.gameObject);
-        _arrow = null;
+        _creature.Owner.PlayerRemovesBlocker(_creature);
+        RemoveArrow(true);
     }
 
     private void HandleClickedOpponentCreature(){
-        if (!creature.IsAttacking) return;
+        if (!_creature.IsAttacking) return;
 
         var clicker = PlayerManager.GetLocalPlayer();
         if (!clicker.PlayerIsChoosingTarget) return;
         
-        clicker.PlayerChoosesAttackerToBlock(creature);
+        clicker.PlayerChoosesAttackerToBlock(_creature);
     }
 
     public void HandleBlockAttacker(CreatureEntity attacker){
-        _hasTarget = true;
-        _arrow.SetTarget(attacker.transform.position);
+        FoundTarget(attacker.transform.position);
     }
     
     public void ShowOpponentBlocker(GameObject blocker){
         SpawnArrow();
-        _hasTarget = true;
-        _arrow.SetTarget(blocker.transform.position);
-    }
-
-    private void FixedUpdate(){
-        if (!_arrow || _hasTarget) return;
-        _arrow.SetTarget();
-    }
-
-    public void RemoveArrow(){
-        if (!_arrowObject) return;
-
-        _hasTarget = false;
-        _arrowObject = null;
-        _arrow = null;
-    }
-
-    private void OnDestroy()
-    {
-        CombatManager.OnCombatStateChanged -= RpcCombatStateChanged;
+        FoundTarget(blocker.transform.position);
     }
 }

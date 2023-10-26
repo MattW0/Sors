@@ -34,7 +34,6 @@ public class DropZoneManager : NetworkBehaviour
         } else if(entity.cardType == CardType.Creature) {
             var creature = entity.GetComponent<CreatureEntity>();
             entityZones.AddCreature(creature, owner.isLocalPlayer);
-            creature.RpcRetreatAttacker();
         }
 
         entityZones.RpcMoveEntityToHolder(entity);
@@ -95,7 +94,7 @@ public class DropZoneManager : NetworkBehaviour
         }
         // Else we enable entities to be tapped and wait for player to declare attackers and press ready btn
         foreach (var creature in creatures) {
-            creature.CheckIfCanAct(CombatState.Attackers);
+            creature.CheckIfCanAct();
         }
     }
 
@@ -169,7 +168,7 @@ public class DropZoneManager : NetworkBehaviour
 
         // Else we enable entities to be tapped and wait for player to declare attackers and press ready btn
         foreach (var creature in creatures) {
-            creature.CheckIfCanAct(CombatState.Blockers);
+            creature.CheckIfCanAct();
         }
     }
 

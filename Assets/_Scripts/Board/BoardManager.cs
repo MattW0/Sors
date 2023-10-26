@@ -32,19 +32,40 @@ public class BoardManager : NetworkBehaviour
         _dropZone = DropZoneManager.Instance;
     }
 
-    public void AddEntity(PlayerManager owner, PlayerManager opponent, 
+    public IEnumerator AddEntity(PlayerManager owner, PlayerManager opponent, 
                           GameObject card, BattleZoneEntity entity, bool isPlayed = true) 
     {
+        // Initialize
         var cardInfo = card.GetComponent<CardStats>().cardInfo;
-        
-        // To keep track which card object corresponds to which entity
-        _entitiesObjectsCache.Add(entity, card);
-
         entity.RpcInitializeEntity(owner, opponent, cardInfo);
-        _dropZone.EntityEntersDropZone(owner, entity);
 
+        // Need to await RPC for initialization
+        while (!entity.Owner) yield return new WaitForSeconds(0.1f);
+        
+        // TODO: Add animations for ETB here
+        yield return new WaitForSeconds(0.1f);
+        
+
+        _dropZone.EntityEntersDropZone(owner, entity);
         // Can be loaded from json at the beginning
         if(isPlayed) _cardEffectsHandler.CardIsPlayed(owner, entity, cardInfo);
+
+        // To keep track which card object corresponds to which entity
+        _entitiesObjectsCache.Add(entity, card);
+        // StartCoroutine(EntityEntersDropzone(owner, cardInfo, entity, isPlayed));
+
+        yield return null;
+    }
+
+    private IEnumerator EntityEntersDropzone(PlayerManager owner, CardInfo cardInfo, 
+                                             BattleZoneEntity entity, bool isPlayed){
+        
+        
+        
+        yield return null;
+    }
+
+    private void EntityEntersDropZone(){
     }
 
     #region Effects

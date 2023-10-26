@@ -7,14 +7,26 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -7950572562108057018, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
+      propertyPath: entity
+      value: 
+      objectReference: {fileID: 1646373708232032781}
     - target: {fileID: 23084215047643341, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
       propertyPath: m_Name
-      value: DevelopmentEntity
+      value: TechnologyEntity
       objectReference: {fileID: 0}
     - target: {fileID: 43426150844274239, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 325497050516565303, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
+      propertyPath: entity
+      value: 
+      objectReference: {fileID: 1646373708232032781}
+    - target: {fileID: 325497050516565303, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
+      propertyPath: _entity
+      value: 
+      objectReference: {fileID: 1646373708232032781}
     - target: {fileID: 1195688591216859507, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -183,6 +195,10 @@ PrefabInstance:
       propertyPath: m_Color.r
       value: 0.37
       objectReference: {fileID: 0}
+    - target: {fileID: 6163234686391447415, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6725785406550700901, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
       propertyPath: m_IsActive
       value: 1
@@ -264,5 +280,37 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 78b440e28e7c5e14cab10cfc5f1a1032, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0.1
+  _entityUI: {fileID: 5284543431838378506}
+  _cardInfo:
+    goID: 
+    hash: 
+    type: 0
+    title: 
+    description: 
+    cost: 0
+    health: 0
+    attack: 0
+    points: 0
+    moneyValue: 0
+    abilities: []
+    keywordAbilities: 
+  cardType: 0
+  _health: 0
+  _attack: 0
+  _points: 0
+--- !u!114 &5284543431838378506 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8003351115639585403, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
+  m_PrefabInstance: {fileID: 2758425286859411569}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2744354461364302012}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aba4e48fc24ff7d42b4a1cab8679fa1f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

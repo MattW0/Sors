@@ -89,11 +89,15 @@ public class CardEffectsHandler : NetworkBehaviour
     private IEnumerator AddAbilityToQueue(BattleZoneEntity entity, Ability ability){
         // Wait for Owner (and other info) to be initialized
         // It isn't if entity ETBd as the last action before this trigger
+        
+        // TODO: New wait in boardManager -> check if able to remove
         while(!entity.Owner) yield return null;
 
         _playerInterfaceManager.RpcLog($"'{entity.Title}': {ability.trigger} -> {ability.effect}", LogType.EffectTrigger);
         print($"'{entity.Title}': {ability.trigger} -> {ability.effect}");
         _abilityQueue.Add(entity, ability);
+
+        yield return null;
     }
 
     public IEnumerator StartResolvingQueue(){

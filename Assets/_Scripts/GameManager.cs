@@ -385,7 +385,7 @@ public class GameManager : NetworkBehaviour {
         var entity = entityObject.GetComponent<BattleZoneEntity>();
         var opponent = GetOpponent(owner);
 
-        _boardManager.AddEntity(owner, opponent, card, entity, isPlayed);
+        StartCoroutine(_boardManager.AddEntity(owner, opponent, card, entity, isPlayed));
     }
     #endregion
 

@@ -3,33 +3,15 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using Mirror;
 
-public class CreatureEntity : NetworkBehaviour, IPointerClickHandler
+public class CreatureEntity : BattleZoneEntity //, IPointerClickHandler
 {
-    [SerializeField] private BattleZoneEntity _bze;
     [SerializeField] private CreatureEntityUI _creatureUI;
-    [SerializeField] private BlockerArrowHandler _blockerArrowHandler;
-
     private List<Keywords> _keywordAbilities;
     public void SetKeywords(List<Keywords> keywords) => _keywordAbilities = keywords;
     public List<Keywords> GetKeywords() => _keywordAbilities;
+    
 
-    [Header("State")]
-    [SerializeField] private CombatState _combatState;
-    [SerializeField] private bool _canAct;
-    public bool CanAct { get => _canAct; private set => _canAct = value; }
-
-    private bool _isTargeting;
-    public bool IsTargeting
-    {
-        get => _isTargeting;
-        set
-        {
-            _isTargeting = value;
-            if(_isTargeting) _bze.SpawnTargetArrow();
-            else if(!IsAttacking) _bze.RemoveArrow();
-        } 
-    }
-
+    public bool CanAct { get; private set; }
     [SerializeField] private bool _isAttacking;
     public bool IsAttacking
     {
@@ -37,19 +19,13 @@ public class CreatureEntity : NetworkBehaviour, IPointerClickHandler
         set
         {
             _isAttacking = value;
-            if(_isAttacking) _bze.SpawnTargetArrow();
-            else _creatureUI.UntapCreature(highlight: true);
+            if(_isAttacking) SpawnAttackerArrow();
+            else RemoveAttackerArrow();
         } 
     }
 
-    private void Start(){
-        if (isOwned) _creatureUI.UntapCreature(false);
-        else _creatureUI.UntapOpponentCreature();
-    }
-
-    public void CheckIfCanAct(CombatState newState){
+    public void CheckIfCanAct(){
         if (!isOwned) return;
-        _combatState = newState;
 
         if (IsAttacking) return;
         CanAct = true;
@@ -65,20 +41,6 @@ public class CreatureEntity : NetworkBehaviour, IPointerClickHandler
         _creatureUI.TapOpponentCreature();
     }
 
-    public void OnPointerClick(PointerEventData eventData){
-        
-        // Right click -> card zoom (handled in BattleZoneEntity)
-        if (eventData.button == PointerEventData.InputButton.Right) {
-            return;
-        }
-
-        if (!isOwned || !CanAct) return;
-
-        // only in Attackers since blockerArrowHandler handles Blockers phase
-        if (_combatState != CombatState.Attackers) return;
-        IsTargeting = !_isTargeting;
-    }
-
     public void LocalPlayerIsReady(){
         // to show ui change when local player presses ready button
         CanAct = false;
@@ -88,55 +50,14 @@ public class CreatureEntity : NetworkBehaviour, IPointerClickHandler
     }
 
     [ClientRpc]
-    public void RpcBlockerDeclared(CreatureEntity attacker){
-        if (!isOwned) return;
-        _blockerArrowHandler.HandleBlockAttacker(attacker);
-    }
-    
-    [ClientRpc]
-    public void RpcShowOpponentsBlockers(List<CreatureEntity> blockers){
-        if (!isOwned) return;
-        foreach (var blocker in blockers){
-            _blockerArrowHandler.ShowOpponentBlocker(blocker.gameObject);
-        }
-    }
-
-    [Server]
-    public void TakesDamage(int value, bool deathtouch){
-        if (deathtouch){ 
-            _bze.Health = 0;
-            return;
-        }
-        _bze.Health -= value;
-    }
-
-    [ClientRpc]
     public void RpcSetCombatHighlight() => _creatureUI.CombatHighlight();
     public void SetHighlight(bool active) => _creatureUI.Highlight(active);
 
     [ClientRpc]
-    public void RpcRetreatAttacker() => RetreatAttacker();
-
-    private void RetreatAttacker(){
-        if (isOwned) _creatureUI.UntapCreature(highlight: false);
-        else _creatureUI.UntapOpponentCreature();
-    }
-
-    [ClientRpc]
     public void RpcResetAfterCombat(){
         CanAct = false;
-        if(IsAttacking){
-            RetreatAttacker();
-            IsAttacking = false;
-        }
+        IsAttacking = false;
 
-        _blockerArrowHandler.RemoveArrow();
         _creatureUI.ResetHighlight();
     }
-
-    public int GetHealth() => _bze.Health;
-    public int GetAttack() => _bze.Attack;
-    public string GetCardTitle() => _bze.Title;
-    public PlayerManager GetOwner() => _bze.Owner;
-    public PlayerManager GetOpponent() => _bze.Opponent;
 }

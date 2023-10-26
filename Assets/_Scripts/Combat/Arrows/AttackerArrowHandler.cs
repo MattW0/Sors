@@ -3,33 +3,25 @@ using UnityEngine;
 using Mirror;
 using UnityEngine.EventSystems;
 
-public class AttackerArrowHandler : MonoBehaviour, IPointerClickHandler
+public class AttackerArrowHandler : ArrowHandler, IPointerClickHandler
 {
-    [SerializeField] private CreatureEntity creature;
-    private CombatState _currentState;
-    private bool _hasTarget;
-
-    private void Awake()
-    {
-    }
-
-    
-    
-    
+    [SerializeField] private BattleZoneEntity entity;
 
     public void OnPointerClick(PointerEventData eventData)
     {
+        print($"On pointer click in state {CurrentCombatState}, is Owned: {entity.isOwned}");
         // return if not in Attackers Phase
-        if (_currentState != CombatState.Attackers) return;
+        if (CurrentCombatState != CombatState.Attackers) return;
 
-        if (creature.isOwned) HandleClickedMyEntity();
+        if (entity.isOwned) HandleClickedMyEntity();
         else HandleClickedOpponentTechnology();
     }
     
     private void HandleClickedMyEntity()
     {
-        if (!creature.CanAct || _hasTarget) return;
-        
+        print("Click on my creature");
+        if (!entity.Creature.CanAct || HasTarget) return;
+        entity.Creature.IsAttacking = !entity.Creature.IsAttacking;
     }
 
     private void HandleClickedOpponentTechnology()
@@ -39,7 +31,8 @@ public class AttackerArrowHandler : MonoBehaviour, IPointerClickHandler
         var clicker = PlayerManager.GetLocalPlayer();
         if (!clicker.PlayerIsChoosingTarget) return;
         
-        clicker.PlayerChoosesAttackerToBlock(creature);
+        // TODO: Continue with attacking logic
+        // clicker.PlayerChoosesAttackerToBlock(entity.Creature);
     }
 
     private void OnDestroy()

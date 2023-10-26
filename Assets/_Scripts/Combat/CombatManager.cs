@@ -145,9 +145,9 @@ public class CombatManager : NetworkBehaviour
             int totalBlockerHealth = 0;
             foreach (var blocker in _attackersBlockers[attacker]){
                 blocker.RpcSetCombatHighlight();
-                _playerInterfaceManager.RpcLog($"Clashing creatures: {attacker.GetCardTitle()} vs {blocker.GetCardTitle()}", LogType.CombatClash);
+                _playerInterfaceManager.RpcLog($"Clashing creatures: {attacker.Title} vs {blocker.Title}", LogType.CombatClash);
                 
-                totalBlockerHealth += blocker.GetHealth();
+                totalBlockerHealth += blocker.Health;
                 CombatClash(attacker, blocker);
 
                 yield return new WaitForSeconds(combatDamageWaitTime);
@@ -169,12 +169,12 @@ public class CombatManager : NetworkBehaviour
 
         foreach (var attacker in _unblockedAttackers){
             attacker.RpcSetCombatHighlight();
-            _playerInterfaceManager.RpcLog($"{attacker.GetCardTitle()} deals {attacker.GetAttack()} damage", LogType.CombatDamage);
+            _playerInterfaceManager.RpcLog($"{attacker.Title} deals {attacker.Attack} damage", LogType.CombatDamage);
 
             // player takes damage from unblocked creatures
-            var targetPlayer = attacker.GetOpponent();
-            targetPlayer.Health -= attacker.GetAttack();
-            _turnManager.PlayerHealthChanged(targetPlayer, attacker.GetAttack());
+            var targetPlayer = attacker.Opponent;
+            targetPlayer.Health -= attacker.Attack;
+            _turnManager.PlayerHealthChanged(targetPlayer, attacker.Attack);
             yield return new WaitForSeconds(combatDamageWaitTime);
         }
         
@@ -191,8 +191,8 @@ public class CombatManager : NetworkBehaviour
         var attackerKw = attacker.GetKeywords();
         var blockerKw = blocker.GetKeywords();
 
-        blocker.TakesDamage(attacker.GetAttack(), attackerKw.Contains(Keywords.Deathtouch));
-        attacker.TakesDamage(blocker.GetAttack(), blockerKw.Contains(Keywords.Deathtouch));
+        blocker.TakesDamage(attacker.Attack, attackerKw.Contains(Keywords.Deathtouch));
+        attacker.TakesDamage(blocker.Attack, blockerKw.Contains(Keywords.Deathtouch));
     }
 
     private bool CheckFirststrike(CreatureEntity attacker, CreatureEntity blocker){
@@ -208,19 +208,19 @@ public class CombatManager : NetworkBehaviour
 
         // Attacker has first strike
         if (attackerKw.Contains(Keywords.First_Strike))
-            // && (attacker.GetAttack() >= blocker.GetHealth() || attackerKw.Contains(Keywords.Deathtouch)))
+            // && (attacker.Attack >= blocker.Health || attackerKw.Contains(Keywords.Deathtouch)))
         {
-            blocker.TakesDamage(attacker.GetAttack(), attackerKw.Contains(Keywords.Deathtouch));
-            if(blocker.GetHealth() > 0) attacker.TakesDamage(blocker.GetAttack(), blockerKw.Contains(Keywords.Deathtouch));
+            blocker.TakesDamage(attacker.Attack, attackerKw.Contains(Keywords.Deathtouch));
+            if(blocker.Health > 0) attacker.TakesDamage(blocker.Attack, blockerKw.Contains(Keywords.Deathtouch));
             return true;
         }
         
 
         if (blockerKw.Contains(Keywords.First_Strike))
-            // && (blocker.GetAttack() >= attacker.GetHealth() || blockerKw.Contains(Keywords.Deathtouch)))
+            // && (blocker.Attack >= attacker.Health || blockerKw.Contains(Keywords.Deathtouch)))
         {
-            attacker.TakesDamage(blocker.GetAttack(), blockerKw.Contains(Keywords.Deathtouch));
-            if(attacker.GetHealth() > 0) blocker.TakesDamage(attacker.GetAttack(), attackerKw.Contains(Keywords.Deathtouch));
+            attacker.TakesDamage(blocker.Attack, blockerKw.Contains(Keywords.Deathtouch));
+            if(attacker.Health > 0) blocker.TakesDamage(attacker.Attack, attackerKw.Contains(Keywords.Deathtouch));
             return true;
         }
 
@@ -230,12 +230,12 @@ public class CombatManager : NetworkBehaviour
     private void CheckTrample(CreatureEntity attacker, int totalBlockerHealth ){
 
         var attackerKw = attacker.GetKeywords();
-        if (attacker.GetHealth() <= 0 || !attackerKw.Contains(Keywords.Trample)) 
+        if (attacker.Health <= 0 || !attackerKw.Contains(Keywords.Trample)) 
             return;
 
-        var targetPlayer = attacker.GetOpponent();
-        targetPlayer.Health -= attacker.GetAttack() - totalBlockerHealth;
-        _turnManager.PlayerHealthChanged(targetPlayer, attacker.GetAttack() - totalBlockerHealth);
+        var targetPlayer = attacker.Opponent;
+        targetPlayer.Health -= attacker.Attack - totalBlockerHealth;
+        _turnManager.PlayerHealthChanged(targetPlayer, attacker.Attack - totalBlockerHealth);
     }
     #endregion
 
