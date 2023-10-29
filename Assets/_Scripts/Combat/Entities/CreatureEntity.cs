@@ -13,16 +13,7 @@ public class CreatureEntity : BattleZoneEntity //, IPointerClickHandler
 
     public bool CanAct { get; private set; }
     [SerializeField] private bool _isAttacking;
-    public bool IsAttacking
-    {
-        get => _isAttacking;
-        set
-        {
-            _isAttacking = value;
-            if(_isAttacking) SpawnAttackerArrow();
-            else RemoveAttackerArrow();
-        } 
-    }
+    public bool IsAttacking { get; set; }
 
     public void CheckIfCanAct(){
         if (!isOwned) return;
@@ -32,21 +23,13 @@ public class CreatureEntity : BattleZoneEntity //, IPointerClickHandler
         _creatureUI.Highlight(true);
     }
 
-    [ClientRpc]
-    public void RpcOpponentCreatureIsAttacker(){
-        if (isOwned) return;
-
-        _isAttacking = true;
-        _creatureUI.ShowAsAttacker(true);
-        _creatureUI.TapOpponentCreature();
-    }
-
     public void LocalPlayerIsReady(){
         // to show ui change when local player presses ready button
         CanAct = false;
 
         if (IsAttacking) _creatureUI.ShowAsAttacker(true);
-        else _creatureUI.Highlight(false);
+        
+        _creatureUI.Highlight(false);
     }
 
     [ClientRpc]

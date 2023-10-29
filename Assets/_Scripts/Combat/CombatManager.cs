@@ -14,6 +14,7 @@ public class CombatManager : NetworkBehaviour
     [SerializeField] private float combatDamageWaitTime = 0.8f;
     public static event Action<CombatState> OnCombatStateChanged;
 
+    private Dictionary<BattleZoneEntity, List<CreatureEntity>> _targetsAttackers = new ();
     private Dictionary<CreatureEntity, List<CreatureEntity>> _attackersBlockers = new ();
     private List<CreatureEntity> _unblockedAttackers = new();
     
@@ -70,26 +71,63 @@ public class CombatManager : NetworkBehaviour
     }
 
     private void StartCombat(){
-        
+        // TODO: Make only player and technologies targetable
+    }
+
+    [Server]
+    public void PlayerChoosesTargetToAttack(BattleZoneEntity target, List<CreatureEntity> attackers)
+    {
+        print($"{attackers.Count} creatures attacking {target.Title}");
+
+        if (_targetsAttackers.Keys.Contains(target)) 
+            _targetsAttackers[target].AddRange(attackers);
+        else 
+            _targetsAttackers.Add(target, attackers);
+
+        foreach(var (t, a) in _targetsAttackers){
+            print("---------");
+            print($"Target : {t.Title}, attackers : {a.Count}");
+            foreach(var at in a) print(at.Title);
+        }
+
+        // For later tracking which entity blocks which attackers
+        foreach (var attacker in attackers){
+            attacker.IsAttacking = true;
+            attacker.RpcAttackTargetDeclared(target);
+            _attackersBlockers.Add(attacker, new List<CreatureEntity>());
+        }
     }
 
     private void PlayerDeclaredAttackers(PlayerManager player)
     {
+        // print($"Player {player.PlayerName} declared attackers");
         _readyPlayers.Add(player);
         if (_readyPlayers.Count != _gameManager.players.Count) return;
         
-        // tracking which entity blocks which attackers
-        foreach (var attacker in _boardManager.GetBoardAttackers()){
-            _attackersBlockers.Add(attacker, new List<CreatureEntity>());
+        print("------ ALL PLAYERS ATTACKED -------");
+        foreach(var (t, a) in _targetsAttackers){
+            print($"Target : {t.Title}, Owner : {t.Owner.PlayerName}, attackers : {a.Count}");
+            foreach(var at in a) print(at.Title);
         }
-        
-        _boardManager.ShowOpponentAttackers();
+
+        ShowAllAttackers();
         _readyPlayers.Clear();
+    }
+
+    private void ShowAllAttackers()
+    {
+        print("Show all attackers");
+        foreach (var (target, attackers) in _targetsAttackers)
+        {
+            print($"{target.Title} attacked by {attackers.Count} creatures");
+            target.RpcShowOpponentAttackers(attackers);
+        }
         UpdateCombatState(CombatState.Blockers);
     }
 
     public void PlayerChoosesAttackerToBlock(CreatureEntity attacker, List<CreatureEntity> blockers)
     {
+        // Only shows local blockers
         _attackersBlockers[attacker].AddRange(blockers);
         foreach (var blocker in blockers)
         {
@@ -103,24 +141,21 @@ public class CombatManager : NetworkBehaviour
         if (_readyPlayers.Count != _gameManager.players.Count) return;
         
         ShowAllBlockers();
-        UpdateCombatState(CombatState.Damage);
     }
 
     private void ShowAllBlockers()
     {
-        _unblockedAttackers.AddRange(_boardManager.GetBoardAttackers());
+        // _unblockedAttackers.AddRange(_boardManager.GetBoardAttackers());
 
-        foreach (var entry in _attackersBlockers)
-        {
-            var attacker = entry.Key;
-            var blockers = entry.Value;
-            
+        foreach (var (attacker, blockers) in _attackersBlockers)
+        {            
             // there are no blockers -> keep in list
             if (blockers.Count == 0) continue;
             _unblockedAttackers.Remove(attacker);
             
-            attacker.RpcShowOpponentsBlockers(blockers);
+            attacker.RpcShowOpponentBlockers(blockers);
         }
+        UpdateCombatState(CombatState.Damage);
     }
 
     #region Damage
@@ -135,8 +170,9 @@ public class CombatManager : NetworkBehaviour
         StartCoroutine(DealDamage());
     }
     
-    private IEnumerator DealDamage(){        
-        foreach (var attacker in _boardManager.GetBoardAttackers()){
+    private IEnumerator DealDamage(){
+        foreach(var (target, attackers) in _targetsAttackers){
+            foreach (var attacker in attackers){
             if(_attackersBlockers[attacker].Count == 0) continue;
 
             attacker.RpcSetCombatHighlight();
@@ -155,12 +191,16 @@ public class CombatManager : NetworkBehaviour
 
             CheckTrample(attacker, totalBlockerHealth);
             yield return new WaitForSeconds(combatDamageWaitTime);
+            }   
         }
+        
         StartCoroutine(PlayerDamage());
     }
 
     private IEnumerator PlayerDamage()
     {
+        // TODO: Redesign with targets
+
         // Skip if in single-player (for debugging)
         if (_gameManager.singlePlayer) {
             UpdateCombatState(CombatState.CleanUp);

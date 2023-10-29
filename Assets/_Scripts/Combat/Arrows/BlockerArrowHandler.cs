@@ -38,11 +38,7 @@ public class BlockerArrowHandler : ArrowHandler, IPointerClickHandler
         clicker.PlayerChoosesAttackerToBlock(_creature);
     }
 
-    public void HandleBlockAttacker(CreatureEntity attacker){
-        FoundTarget(attacker.transform.position);
-    }
-    
-    public void ShowOpponentBlocker(GameObject blocker){
+    public void ShowOpponentBlocker(CreatureEntity blocker){
         SpawnArrow();
         FoundTarget(blocker.transform.position);
     }

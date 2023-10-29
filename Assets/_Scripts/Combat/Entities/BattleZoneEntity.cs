@@ -119,16 +119,10 @@ public class BattleZoneEntity : NetworkBehaviour
     public void RpcEffectHighlight(bool value) => _entityUI.EffectHighlight(value, Color.white);
 
     public void SpawnTargetArrow() => _targetArrowHandler.SpawnArrow();
-    public void SpawnAttackerArrow() => _attackerArrowHandler.SpawnArrow();
-
     [TargetRpc]
     public void TargetSpawnTargetArrow(NetworkConnection target) => _targetArrowHandler.SpawnArrow();
-
     [ClientRpc]
     public void RpcDeclaredTarget(BattleZoneEntity target) => _targetArrowHandler.HandleFoundTarget(target);
-
-    public void RemoveAttackerArrow() => _attackerArrowHandler.RemoveArrow(true);
-
     [ClientRpc]
     public void RpcResetAfterTarget() => _targetArrowHandler.RemoveArrow(false);
         
@@ -142,16 +136,33 @@ public class BattleZoneEntity : NetworkBehaviour
     }
 
     [ClientRpc]
+    public void RpcAttackTargetDeclared(BattleZoneEntity target){
+        if (!isOwned) return;
+        _attackerArrowHandler.FoundTarget(target.transform.position);
+    }
+
+    [ClientRpc]
+    public void RpcShowOpponentAttackers(List<CreatureEntity> attackers){
+        if (!isOwned) return;
+
+        print($"Showing opponent attackers on entity {Title}");
+        foreach (var attacker in attackers){
+            print($"Getting attacked by {attacker.Title}");
+            _attackerArrowHandler.ShowOpponentAttacker(attacker);
+        }
+    }
+
+    [ClientRpc]
     public void RpcBlockerDeclared(CreatureEntity attacker){
         if (!isOwned) return;
-        _blockerArrowHandler.HandleBlockAttacker(attacker);
+        _blockerArrowHandler.FoundTarget(attacker.transform.position);
     }
     
     [ClientRpc]
-    public void RpcShowOpponentsBlockers(List<CreatureEntity> blockers){
+    public void RpcShowOpponentBlockers(List<CreatureEntity> blockers){
         if (!isOwned) return;
         foreach (var blocker in blockers){
-            _blockerArrowHandler.ShowOpponentBlocker(blocker.gameObject);
+            _blockerArrowHandler.ShowOpponentBlocker(blocker);
         }
     }
 

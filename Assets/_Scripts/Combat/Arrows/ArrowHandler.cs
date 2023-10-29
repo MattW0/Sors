@@ -44,7 +44,8 @@ public class ArrowHandler : MonoBehaviour
 
         HasOrigin = false;
         HasTarget = false;
-        _arrowRenderer = null;
+        
         if(destroyArrowObject) _arrowRenderer.DestroyArrow();
+        _arrowRenderer = null;
     }
 }

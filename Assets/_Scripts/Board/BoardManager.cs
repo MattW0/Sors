@@ -18,8 +18,6 @@ public class BoardManager : NetworkBehaviour
     // Entities, corresponding card object
     private Dictionary<BattleZoneEntity, GameObject> _entitiesObjectsCache = new();
     private List<BattleZoneEntity> _deadEntities = new();
-    private List<CreatureEntity> _boardAttackers = new();
-    public List<CreatureEntity> GetBoardAttackers() => _boardAttackers;
 
     public static event Action<PlayerManager> OnAttackersDeclared;
     public static event Action<PlayerManager> OnBlockersDeclared;
@@ -102,19 +100,9 @@ public class BoardManager : NetworkBehaviour
 
     public void AttackersDeclared(PlayerManager player, List<CreatureEntity> playerAttackers)
     {
-        foreach (var a in playerAttackers) _boardAttackers.Add(a);
         OnAttackersDeclared?.Invoke(player);
     }
-
-    public void ShowOpponentAttackers() 
-    {
-        // Share attacker state accross clients
-        foreach (var creature in _boardAttackers){
-            creature.IsAttacking = true;
-            creature.RpcOpponentCreatureIsAttacker();
-        }
-    }
-
+    
     private void DeclareBlockers() => _dropZone.StartDeclareBlockers(_gameManager.players.Keys.ToList());
     public void BlockersDeclared(PlayerManager player) => OnBlockersDeclared?.Invoke(player);
     
@@ -129,7 +117,6 @@ public class BoardManager : NetworkBehaviour
     public void CombatCleanUp()
     {
         ClearDeadEntities();
-        _boardAttackers.Clear();
 
         // Reset entities and destroy blocker arrows
         _dropZone.CombatCleanUp();
@@ -141,8 +128,10 @@ public class BoardManager : NetworkBehaviour
         ClearDeadEntities();
         _dropZone.DestroyTargetArrows();
 
-        if(! endOfTurn) return;
-        _dropZone.DevelopmentsLooseHealth();
+        if(endOfTurn){
+            _dropZone.DevelopmentsLooseHealth();
+            ClearDeadEntities();
+        }
     }
 
     public void ClearDeadEntities()
@@ -154,7 +143,6 @@ public class BoardManager : NetworkBehaviour
 
             if(dead.cardType == CardType.Creature){
                 var creature = dead.GetComponent<CreatureEntity>();
-                _boardAttackers.Remove(creature);
             }
 
             // Move the card object to discard pile
