@@ -16,7 +16,6 @@ public class CombatManager : NetworkBehaviour
 
     private Dictionary<BattleZoneEntity, List<CreatureEntity>> _targetsAttackers = new ();
     private Dictionary<CreatureEntity, List<CreatureEntity>> _attackersBlockers = new ();
-    private List<CreatureEntity> _unblockedAttackers = new();
     
     private GameManager _gameManager;
     private TurnManager _turnManager;
@@ -72,66 +71,64 @@ public class CombatManager : NetworkBehaviour
 
     private void StartCombat(){
         // TODO: Make only player and technologies targetable
+        
     }
 
     [Server]
     public void PlayerChoosesTargetToAttack(BattleZoneEntity target, List<CreatureEntity> attackers)
     {
-        print($"{attackers.Count} creatures attacking {target.Title}");
-
         if (_targetsAttackers.Keys.Contains(target)) 
             _targetsAttackers[target].AddRange(attackers);
         else 
             _targetsAttackers.Add(target, attackers);
 
-        foreach(var (t, a) in _targetsAttackers){
-            print("---------");
-            print($"Target : {t.Title}, attackers : {a.Count}");
-            foreach(var at in a) print(at.Title);
-        }
+        var attackingPlayerConn = attackers[0].Owner.connectionToClient;
 
         // For later tracking which entity blocks which attackers
         foreach (var attacker in attackers){
-            attacker.IsAttacking = true;
-            attacker.RpcAttackTargetDeclared(target);
             _attackersBlockers.Add(attacker, new List<CreatureEntity>());
+
+            // Locally shows attackers (freezes arrows to target)
+            attacker.TargetDeclaredAttack(attackingPlayerConn, target);
         }
     }
 
+    [Server]
     private void PlayerDeclaredAttackers(PlayerManager player)
     {
         // print($"Player {player.PlayerName} declared attackers");
         _readyPlayers.Add(player);
         if (_readyPlayers.Count != _gameManager.players.Count) return;
-        
-        print("------ ALL PLAYERS ATTACKED -------");
-        foreach(var (t, a) in _targetsAttackers){
-            print($"Target : {t.Title}, Owner : {t.Owner.PlayerName}, attackers : {a.Count}");
-            foreach(var at in a) print(at.Title);
-        }
-
-        ShowAllAttackers();
         _readyPlayers.Clear();
-    }
 
-    private void ShowAllAttackers()
-    {
-        print("Show all attackers");
-        foreach (var (target, attackers) in _targetsAttackers)
+        _playerInterfaceManager.RpcLog(" --- Attackers Declared ---", LogType.Standard);
+        foreach(var (target, attackers) in _targetsAttackers)
         {
-            print($"{target.Title} attacked by {attackers.Count} creatures");
-            target.RpcShowOpponentAttackers(attackers);
+            foreach(var a in attackers){
+                a.RpcDeclaredAttack(target);
+                _playerInterfaceManager.RpcLog($"  - {a.Title} attacks {target.Title}", LogType.Standard);
+            }
         }
+
         UpdateCombatState(CombatState.Blockers);
     }
 
     public void PlayerChoosesAttackerToBlock(CreatureEntity attacker, List<CreatureEntity> blockers)
     {
-        // Only shows local blockers
-        _attackersBlockers[attacker].AddRange(blockers);
+        if (_attackersBlockers.Keys.Contains(attacker)) 
+            _attackersBlockers[attacker].AddRange(blockers);
+        else 
+            _attackersBlockers.Add(attacker, blockers);
+
+        var blockingPlayerConn = blockers[0].Owner.connectionToClient;
+        
         foreach (var blocker in blockers)
         {
-            blocker.RpcBlockerDeclared(attacker);
+            // TODO: Add UI stuff like this? 
+            // blocker.IsBlocking = true;
+
+            // Only shows local blockers
+            blocker.TargetDeclaredBlock(blockingPlayerConn, attacker);
         }
     }
 
@@ -139,21 +136,15 @@ public class CombatManager : NetworkBehaviour
     {
         _readyPlayers.Add(player);
         if (_readyPlayers.Count != _gameManager.players.Count) return;
-        
-        ShowAllBlockers();
-    }
+        _readyPlayers.Clear();
 
-    private void ShowAllBlockers()
-    {
-        // _unblockedAttackers.AddRange(_boardManager.GetBoardAttackers());
-
+        _playerInterfaceManager.RpcLog(" --- Blockers Declared ---", LogType.Standard);
         foreach (var (attacker, blockers) in _attackersBlockers)
-        {            
-            // there are no blockers -> keep in list
-            if (blockers.Count == 0) continue;
-            _unblockedAttackers.Remove(attacker);
-            
-            attacker.RpcShowOpponentBlockers(blockers);
+        {
+            foreach (var b in blockers) {
+                b.RpcDeclaredBlock(attacker);
+                _playerInterfaceManager.RpcLog($"  - {b.Title} blocks {attacker.Title}", LogType.Standard);
+            }
         }
         UpdateCombatState(CombatState.Damage);
     }
@@ -171,6 +162,9 @@ public class CombatManager : NetworkBehaviour
     }
     
     private IEnumerator DealDamage(){
+        
+        var playerAttackers = new List<CreatureEntity>();
+        
         foreach(var (target, attackers) in _targetsAttackers){
             foreach (var attacker in attackers){
             if(_attackersBlockers[attacker].Count == 0) continue;
@@ -194,10 +188,10 @@ public class CombatManager : NetworkBehaviour
             }   
         }
         
-        StartCoroutine(PlayerDamage());
+        StartCoroutine(PlayerDamage(playerAttackers));
     }
 
-    private IEnumerator PlayerDamage()
+    private IEnumerator PlayerDamage(List<CreatureEntity> playerAttackers)
     {
         // TODO: Redesign with targets
 
@@ -207,7 +201,7 @@ public class CombatManager : NetworkBehaviour
             yield break;
         }
 
-        foreach (var attacker in _unblockedAttackers){
+        foreach (var attacker in playerAttackers){
             attacker.RpcSetCombatHighlight();
             _playerInterfaceManager.RpcLog($"{attacker.Title} deals {attacker.Attack} damage", LogType.CombatDamage);
 
@@ -282,7 +276,6 @@ public class CombatManager : NetworkBehaviour
     public void ResolveCombat(bool forced){
         _readyPlayers.Clear();
         _attackersBlockers.Clear();
-        _unblockedAttackers.Clear();
         _boardManager.CombatCleanUp();
         
         UpdateCombatState(CombatState.Idle);

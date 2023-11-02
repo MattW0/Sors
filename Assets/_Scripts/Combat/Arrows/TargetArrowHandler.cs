@@ -17,11 +17,4 @@ public class TargetArrowHandler : ArrowHandler, IPointerClickHandler
         
         player.PlayerChoosesEntityTarget(_entity);
     }
-
-    public void HandleFoundTarget(BattleZoneEntity target)
-    {
-        if(!HasOrigin) SpawnArrow();
-
-        FoundTarget(target.transform.position);
-    }
 }

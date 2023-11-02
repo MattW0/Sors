@@ -14,7 +14,6 @@ public class AttackerArrowHandler : ArrowHandler, IPointerClickHandler
     }
     public void OnPointerClick(PointerEventData eventData)
     {
-        // print($"On pointer click in state {CurrentCombatState}, is Owned: {entity.isOwned}");
         // return if not in Attackers Phase
         if (CurrentCombatState != CombatState.Attackers) return;
 
@@ -42,19 +41,12 @@ public class AttackerArrowHandler : ArrowHandler, IPointerClickHandler
 
     private void HandleClickedOpponentTechnology()
     {
-        // if (!entity.IsTargetable) return;
+        if (!entity.IsTargetable) return;
 
         var clicker = PlayerManager.GetLocalPlayer();
-        if (!clicker.PlayerIsChoosingTarget) return;
+        if (!clicker.PlayerIsChoosingAttack) return;
 
-        // TODO: Continue with attacking logic
         clicker.PlayerChoosesTargetToAttack(entity);
-    }
-
-    public void ShowOpponentAttacker(CreatureEntity attacker)
-    {
-        SpawnArrow();
-        FoundTarget(attacker.transform.position);
     }
 
     private void OnDestroy()

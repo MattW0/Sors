@@ -32,6 +32,9 @@ public class PlayerManager : NetworkBehaviour
     public Dictionary<GameObject, CardInfo> moneyCards = new();
 
     public bool PlayerIsChoosingTarget { get; private set; }
+    public bool PlayerIsChoosingAttack { get; private set; }
+    public bool PlayerIsChoosingBlock { get; private set; }
+
     private List<CreatureEntity> _attackers = new();
     private List<CreatureEntity> _blockers = new();
     private PlayerUI _playerUI;
@@ -373,26 +376,23 @@ public class PlayerManager : NetworkBehaviour
 
     public void PlayerChoosesAttacker(CreatureEntity attacker)
     {
-        PlayerIsChoosingTarget = true;
+        PlayerIsChoosingAttack = true;
         _attackers.Add(attacker);
     }
 
     public void PlayerRemovesAttacker(CreatureEntity attacker)
     {
         _attackers.Remove(attacker);
-        if (_attackers.Count == 0) PlayerIsChoosingTarget = false;
+        if (_attackers.Count == 0) PlayerIsChoosingAttack = false;
     }
 
     public void PlayerChoosesTargetToAttack(BattleZoneEntity target)
     {
-        print($"Attacking {target.Title} with {_attackers.Count}, isServer : {isServer}");
-
-        // Target entity can be technology or player
-        if (isServer) _combatManager.PlayerChoosesTargetToAttack(target, _attackers);
-        else CmdPlayerChoosesTargetToAttack(target, _attackers);
+        print($"Attacking {target.Title} with {_attackers.Count}");
+        CmdPlayerChoosesTargetToAttack(target, _attackers);
 
         _attackers.Clear();
-        PlayerIsChoosingTarget = false;
+        PlayerIsChoosingAttack = false;
     }
 
     [Command]
@@ -403,23 +403,23 @@ public class PlayerManager : NetworkBehaviour
 
     public void PlayerChoosesBlocker(CreatureEntity blocker)
     {
-        PlayerIsChoosingTarget = true;
+        PlayerIsChoosingBlock = true;
         _blockers.Add(blocker);
     }
 
     public void PlayerRemovesBlocker(CreatureEntity blocker)
     {
         _blockers.Remove(blocker);
-        if (_blockers.Count == 0) PlayerIsChoosingTarget = false;
+        if (_blockers.Count == 0) PlayerIsChoosingBlock = false;
     }
 
     public void PlayerChoosesAttackerToBlock(CreatureEntity attacker)
     {
-        if (isServer) _combatManager.PlayerChoosesAttackerToBlock(attacker, _blockers);
-        else CmdPlayerChoosesAttackerToBlock(attacker, _blockers);
+        print($"Blocking {attacker.Title} with {_blockers.Count}");
+        CmdPlayerChoosesAttackerToBlock(attacker, _blockers);
 
         _blockers.Clear();
-        PlayerIsChoosingTarget = false;
+        PlayerIsChoosingBlock = false;
     }
 
     [Command]

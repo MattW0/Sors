@@ -55,17 +55,6 @@ public class BoardManager : NetworkBehaviour
         yield return null;
     }
 
-    private IEnumerator EntityEntersDropzone(PlayerManager owner, CardInfo cardInfo, 
-                                             BattleZoneEntity entity, bool isPlayed){
-        
-        
-        
-        yield return null;
-    }
-
-    private void EntityEntersDropZone(){
-    }
-
     #region Effects
 
     public void FindTargets(BattleZoneEntity entity, EffectTarget target)
@@ -77,7 +66,7 @@ public class BoardManager : NetworkBehaviour
         // Also need to add other possible targets (player, ...)
         if (target.Equals(EffectTarget.Entity)){
             // _cardEffectsHandler.Continue = true;
-            _dropZone.ShowTargets(owner, target);
+            _dropZone.ShowAbilityTargets(owner, target);
             return;
         }
     }

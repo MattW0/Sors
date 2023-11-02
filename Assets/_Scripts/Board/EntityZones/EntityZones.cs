@@ -8,8 +8,8 @@ public class EntityZones : NetworkBehaviour
     private const int MAX_ENTITIES = 6;
     [SerializeField] private List<CreatureEntity> _hostCreatures = new();
     [SerializeField] private List<CreatureEntity> _clientCreatures = new();
-    [SerializeField] private List<TechnologyEntity> _hostDevelopments = new();
-    [SerializeField] private List<TechnologyEntity> _clientDevelopments = new();
+    [SerializeField] private List<BattleZoneEntity> _hostDevelopments = new();
+    [SerializeField] private List<BattleZoneEntity> _clientDevelopments = new();
 
     #region Entity Holders
     [SerializeField] private GameObject playerCreatureZone;
@@ -60,8 +60,14 @@ public class EntityZones : NetworkBehaviour
         else return _clientCreatures;
     }
 
-    public List<TechnologyEntity> GetAllDevelopments(){
-        var developments = new List<TechnologyEntity>();
+    [Server]
+    public List<BattleZoneEntity> GetTechnologies(bool isHost){
+        if(isHost) return _hostDevelopments;
+        else return _clientDevelopments;
+    }
+
+    public List<BattleZoneEntity> GetAllDevelopments(){
+        var developments = new List<BattleZoneEntity>();
         developments.AddRange(_hostDevelopments);
         developments.AddRange(_clientDevelopments);
 

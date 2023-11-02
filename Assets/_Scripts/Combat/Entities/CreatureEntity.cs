@@ -10,31 +10,42 @@ public class CreatureEntity : BattleZoneEntity //, IPointerClickHandler
     public void SetKeywords(List<Keywords> keywords) => _keywordAbilities = keywords;
     public List<Keywords> GetKeywords() => _keywordAbilities;
     
-
-    public bool CanAct { get; private set; }
+    private bool _canAct;
+    public bool CanAct 
+    {
+        get => _canAct;
+        private set {
+            _canAct = value;
+            _creatureUI.CanAct(true);
+        }
+    }
     [SerializeField] private bool _isAttacking;
-    public bool IsAttacking { get; set; }
+    public bool IsAttacking 
+    { 
+        get => _isAttacking; 
+        set {
+            _isAttacking = value;
+            AttackerDeclared();
+        }
+    }
+    public bool IsBlocking { get; set; }
 
     public void CheckIfCanAct(){
         if (!isOwned) return;
 
         if (IsAttacking) return;
         CanAct = true;
-        _creatureUI.Highlight(true);
     }
 
-    public void LocalPlayerIsReady(){
+    public void AttackerDeclared(){
         // to show ui change when local player presses ready button
         CanAct = false;
-
         if (IsAttacking) _creatureUI.ShowAsAttacker(true);
-        
-        _creatureUI.Highlight(false);
+        else _creatureUI.ResetHighlight();
     }
 
     [ClientRpc]
     public void RpcSetCombatHighlight() => _creatureUI.CombatHighlight();
-    public void SetHighlight(bool active) => _creatureUI.Highlight(active);
 
     [ClientRpc]
     public void RpcResetAfterCombat(){

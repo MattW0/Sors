@@ -22,8 +22,7 @@ public class ArrowRenderer : MonoBehaviour
     readonly List<MeshRenderer> renderers = new List<MeshRenderer>();
 
     private void Awake(){
-        if (arrowType == ArrowType.Blocker) DropZoneManager.OnDestroyBlockerArrows += DestroyArrow;
-        else if (arrowType == ArrowType.Target) DropZoneManager.OnDestroyTargetArrows += DestroyArrow;
+        DropZoneManager.OnDestroyArrows += DestroyArrow;
     }
 
     public void SetOrigin(Vector3 origin) => start = origin;
@@ -129,8 +128,7 @@ public class ArrowRenderer : MonoBehaviour
     }
 
     private void OnDestroy(){
-        DropZoneManager.OnDestroyBlockerArrows -= DestroyArrow;
-        DropZoneManager.OnDestroyTargetArrows -= DestroyArrow;
+        DropZoneManager.OnDestroyArrows -= DestroyArrow;
     }
 }
 

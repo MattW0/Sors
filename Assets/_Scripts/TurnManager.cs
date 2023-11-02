@@ -21,7 +21,7 @@ public class TurnManager : NetworkBehaviour
     private CardEffectsHandler _cardEffectsHandler;
     [SerializeField] private CombatManager combatManager;
 
-    [field: Header("Game state")] 
+    [field: Header("Game state")]
     [SerializeField] private TurnState turnState;
     public static TurnState GetTurnState() => Instance.turnState;
     public List<Phase> phasesToPlay;
@@ -36,21 +36,24 @@ public class TurnManager : NetworkBehaviour
     [Header("Helper Fields")]
     private Dictionary<PlayerManager, List<CardInfo>> _selectedKingdomCards = new();
     private Dictionary<PlayerManager, List<GameObject>> _selectedCards = new();
-    
+
     // Events
     public static event Action<TurnState> OnPhaseChanged;
     public static event Action<PlayerManager> OnPlayerDies;
 
-    private void Awake() {
+    private void Awake()
+    {
         if (Instance == null) Instance = this;
-        
+
         GameManager.OnGameStart += Prepare;
     }
 
-    private void UpdateTurnState(TurnState newState){
+    private void UpdateTurnState(TurnState newState)
+    {
         turnState = newState;
 
-        switch(turnState){
+        switch (turnState)
+        {
             // --- Preparation and transition ---
             case TurnState.PhaseSelection:
                 PhaseSelection();
@@ -90,7 +93,7 @@ public class TurnManager : NetworkBehaviour
             case TurnState.Idle:
                 _playerInterfaceManager.RpcLog("Game finished", LogType.Standard);
                 break;
-                
+
             default:
                 print("<color=red>Invalid turn state</color>");
                 throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
@@ -99,14 +102,15 @@ public class TurnManager : NetworkBehaviour
         _phasePanel.RpcChangeActionDescriptionText(turnState);
     }
 
-    private void Prepare(int nbPlayers) {
+    private void Prepare(int nbPlayers)
+    {
         _gameManager = GameManager.Instance;
         _handManager = Hand.Instance;
         _boardManager = BoardManager.Instance;
         _cardEffectsHandler = CardEffectsHandler.Instance;
         _kingdom = Kingdom.Instance;
         _playerInterfaceManager = PlayerInterfaceManager.Instance;
-        
+
         // Panels with setup (GameManager handles kingdom setup)
         _cardCollectionPanel = HandInteractionPanel.Instance;
         _cardCollectionPanel.RpcPrepareCardCollectionPanel(_gameManager.nbDiscard);
@@ -131,7 +135,7 @@ public class TurnManager : NetworkBehaviour
 
         UpdateTurnState(TurnState.PhaseSelection);
     }
-    
+
     #region PhaseSelection
     private void PhaseSelection()
     {
@@ -150,8 +154,10 @@ public class TurnManager : NetworkBehaviour
     {
         _playerPhaseChoices[player] = phases;
 
-        foreach (var phase in phases) {
-            if(!phasesToPlay.Contains(phase)){
+        foreach (var phase in phases)
+        {
+            if (!phasesToPlay.Contains(phase))
+            {
                 phasesToPlay.Add(phase);
             }
         }
@@ -166,17 +172,19 @@ public class TurnManager : NetworkBehaviour
         phasesToPlay.Sort();
         _playerInterfaceManager.RpcLog($"Phases to play: {string.Join(", ", phasesToPlay)}", LogType.Phase);
 
-        foreach (var (player, phases) in _playerPhaseChoices) {
-            foreach (var phase in phases){
+        foreach (var (player, phases) in _playerPhaseChoices)
+        {
+            foreach (var phase in phases)
+            {
                 // Player turn stats
                 if (phase == Phase.Invent) player.Invents++;
                 else if (phase == Phase.Develop) player.Develops++;
                 else if (phase == Phase.Deploy) player.Deploys++;
-                else if(phase == Phase.Recruit) player.Recruits++;
+                else if (phase == Phase.Recruit) player.Recruits++;
             }
 
             // Show opponent choices in PhaseVisuals
-            if(_gameManager.players.Count > 1) player.RpcShowOpponentChoices(phases);
+            if (_gameManager.players.Count > 1) player.RpcShowOpponentChoices(phases);
         }
 
         UpdateTurnState(TurnState.NextPhase);
@@ -184,7 +192,8 @@ public class TurnManager : NetworkBehaviour
 
     private void NextPhase()
     {
-        if (phasesToPlay.Count == 0) {
+        if (phasesToPlay.Count == 0)
+        {
             UpdateTurnState(TurnState.CleanUp);
             return;
         }
@@ -199,7 +208,7 @@ public class TurnManager : NetworkBehaviour
     {
         Enum.TryParse(nextPhase.ToString(), out TurnState nextTurnState);
         _playerInterfaceManager.RpcLog($"Turn changed to {nextTurnState}", LogType.Phase);
-        
+
         OnPhaseChanged?.Invoke(nextTurnState);
         UpdateTurnState(nextTurnState);
     }
@@ -207,9 +216,11 @@ public class TurnManager : NetworkBehaviour
     #endregion
 
     #region Drawing
-    
-    private void Draw() {
-        foreach (var player in _gameManager.players.Keys) {
+
+    private void Draw()
+    {
+        foreach (var player in _gameManager.players.Keys)
+        {
             var nbCardDraw = _gameManager.phaseCardDraw;
             if (player.chosenPhases.Contains(Phase.Draw)) nbCardDraw += _gameManager.extraDraw;
 
@@ -219,24 +230,28 @@ public class TurnManager : NetworkBehaviour
         UpdateTurnState(TurnState.Discard);
     }
 
-    private void Discard(){
+    private void Discard()
+    {
         ShowCardCollection();
     }
     public void PlayerSelectedDiscardCards(PlayerManager player) => PlayerIsReady(player);
 
-    private void FinishDiscard() {
-        foreach (var player in _gameManager.players.Keys) {
+    private void FinishDiscard()
+    {
+        foreach (var player in _gameManager.players.Keys)
+        {
             player.DiscardSelection();
         }
 
         _cardCollectionPanel.RpcResetPanel();
         UpdateTurnState(TurnState.NextPhase);
     }
-    
+
     #endregion
 
     #region KingdomPase (Invent, Recruit)
-    private void KingdomPhase(){
+    private void KingdomPhase()
+    {
 
         // convert current turnState (TurnState enum) to Phase enum
         var phase = Phase.Recruit;
@@ -246,23 +261,27 @@ public class TurnManager : NetworkBehaviour
         _handManager.RpcHighlightMoney(true);
         _kingdom.RpcBeginPhase(phase);
 
-        foreach (var player in _gameManager.players.Keys) {
-            if (player.chosenPhases.Contains(phase)){
+        foreach (var player in _gameManager.players.Keys)
+        {
+            if (player.chosenPhases.Contains(phase))
+            {
                 _kingdom.TargetKingdomBonus(player.connectionToClient, _gameManager.kingdomPriceReduction);
                 _kingdom.TargetCheckPriceKingdomTile(player.connectionToClient, player.Cash);
             }
         }
     }
 
-    public void PlayerGetsKingdomBonus(PlayerManager player, CardType type, int amount) {
+    public void PlayerGetsKingdomBonus(PlayerManager player, CardType type, int amount)
+    {
         // Public because EffectHandler can call this
         _kingdom.TargetKingdomPriceReduction(player.connectionToClient, type, amount);
     }
 
-    public void PlayerSelectedKingdomTile(PlayerManager player, CardInfo card, int cardCost){
+    public void PlayerSelectedKingdomTile(PlayerManager player, CardInfo card, int cardCost)
+    {
 
-        if(turnState == TurnState.Invent) player.Invents--;
-        else if(turnState == TurnState.Recruit) player.Recruits--;
+        if (turnState == TurnState.Invent) player.Invents--;
+        else if (turnState == TurnState.Recruit) player.Recruits--;
 
         player.Cash -= cardCost;
 
@@ -270,7 +289,7 @@ public class TurnManager : NetworkBehaviour
             _selectedKingdomCards[player].Add(card);
         else
             _selectedKingdomCards.Add(player, new List<CardInfo> { card });
-        
+
         int actionsLeft = 0;
         if (turnState == TurnState.Invent) actionsLeft = player.Invents;
         else if (turnState == TurnState.Recruit) actionsLeft = player.Recruits;
@@ -283,24 +302,28 @@ public class TurnManager : NetworkBehaviour
 
     private void KingdomSpawnAndReset()
     {
-        foreach (var (owner, cards) in _selectedKingdomCards) {
-            foreach (var cardInfo in cards) {
-                if(cardInfo.type == CardType.Creature) {
+        foreach (var (owner, cards) in _selectedKingdomCards)
+        {
+            foreach (var cardInfo in cards)
+            {
+                if (cardInfo.type == CardType.Creature)
+                {
                     _gameManager.PlayerGainCreature(owner, cardInfo);
-                    
+
                     var nextTile = _gameManager.GetNewCreatureFromDb();
                     _kingdom.RpcReplaceRecruitTile(cardInfo.title, nextTile);
                 }
-                else if(cardInfo.type == CardType.Technology) _gameManager.PlayerGainTechnology(owner, cardInfo);
-                else if(cardInfo.type == CardType.Money) _gameManager.PlayerGainMoney(owner, cardInfo);
+                else if (cardInfo.type == CardType.Technology) _gameManager.PlayerGainTechnology(owner, cardInfo);
+                else if (cardInfo.type == CardType.Money) _gameManager.PlayerGainMoney(owner, cardInfo);
                 _playerInterfaceManager.RpcLog($"{owner.PlayerName} buys '{cardInfo.title}", LogType.CreatureBuy);
             }
         }
-        
-        foreach(var player in _gameManager.players.Keys){
+
+        foreach (var player in _gameManager.players.Keys)
+        {
             player.RpcResolveCardSpawn(_gameManager.cardSpawnAnimations);
         }
-        
+
         PlayersStatsResetAndDiscardMoney(false);
         _kingdom.RpcEndKingdomPhase();
 
@@ -308,13 +331,13 @@ public class TurnManager : NetworkBehaviour
     }
 
     #endregion
-    
+
     #region PlayCardPhase (Develop, Deploy)
 
     private void PlayCard()
     {
         _boardManager.ShowHolders(true);
-        foreach(var cardsList in _selectedCards.Values) cardsList.Clear();
+        foreach (var cardsList in _selectedCards.Values) cardsList.Clear();
 
         _handManager.RpcHighlightMoney(true);
         ShowCardCollection();
@@ -322,8 +345,8 @@ public class TurnManager : NetworkBehaviour
 
     public void PlayerPlaysCard(PlayerManager player, GameObject card)
     {
-        if(turnState == TurnState.Develop) player.Develops--;
-        else if(turnState == TurnState.Deploy) player.Deploys--;
+        if (turnState == TurnState.Develop) player.Develops--;
+        else if (turnState == TurnState.Deploy) player.Deploys--;
         player.Cash -= card.GetComponent<CardStats>().cardInfo.cost;
 
         _selectedCards[player].Add(card);
@@ -332,16 +355,18 @@ public class TurnManager : NetworkBehaviour
 
     public void PlayerSkipsCardPlay(PlayerManager player)
     {
-        if(turnState == TurnState.Develop) player.Develops--;
-        else if(turnState == TurnState.Deploy) player.Deploys--;
+        if (turnState == TurnState.Develop) player.Develops--;
+        else if (turnState == TurnState.Deploy) player.Deploys--;
         PlayerIsReady(player);
     }
 
     private void PlayEntities()
     {
-        foreach(var (player, cards) in _selectedCards) {
+        foreach (var (player, cards) in _selectedCards)
+        {
             // print("Player " + player.PlayerName + " plays " + cards.Count + " cards");
-            foreach(var card in cards) {
+            foreach (var card in cards)
+            {
                 var cardInfo = card.GetComponent<CardStats>().cardInfo;
                 _gameManager.SpawnFieldEntity(player, card, cardInfo.type);
             }
@@ -357,10 +382,10 @@ public class TurnManager : NetworkBehaviour
         StartCoroutine(_cardEffectsHandler.StartResolvingQueue());
 
         // Waiting for CEH to set QueueResolving to false
-        while(_cardEffectsHandler.QueueResolving) yield return new WaitForSeconds(0.5f);
+        while (_cardEffectsHandler.QueueResolving) yield return new WaitForSeconds(0.5f);
 
         _boardManager.BoardCleanUp(false);
-        
+
         CheckPlayAnotherCard();
     }
 
@@ -371,20 +396,27 @@ public class TurnManager : NetworkBehaviour
         _readyPlayers.Clear();
 
         // Check if plays are still possible and if not, add player to _readyPlayers
-        foreach(var player in _gameManager.players.Keys){
-            if(turnState == TurnState.Develop) {
-                if(player.Develops > 0) playAnotherCard = true;
+        foreach (var player in _gameManager.players.Keys)
+        {
+            if (turnState == TurnState.Develop)
+            {
+                if (player.Develops > 0) playAnotherCard = true;
                 else _readyPlayers.Add(player);
-            } else if(turnState == TurnState.Deploy) {
-                if(player.Deploys > 0) playAnotherCard = true;
+            }
+            else if (turnState == TurnState.Deploy)
+            {
+                if (player.Deploys > 0) playAnotherCard = true;
                 else _readyPlayers.Add(player);
             }
         }
 
-        if (playAnotherCard){
+        if (playAnotherCard)
+        {
             _cardCollectionPanel.RpcSoftResetPanel();
             PlayCard();
-        } else {
+        }
+        else
+        {
             FinishPlayCard();
         }
     }
@@ -394,7 +426,7 @@ public class TurnManager : NetworkBehaviour
         _cardCollectionPanel.RpcResetPanel();
         _boardManager.ShowHolders(false);
         PlayersStatsResetAndDiscardMoney(false);
-        
+
         UpdateTurnState(TurnState.NextPhase);
     }
 
@@ -406,7 +438,8 @@ public class TurnManager : NetworkBehaviour
     #region Prevail
     private void Prevail()
     {
-        foreach(var player in _gameManager.players.Keys){
+        foreach (var player in _gameManager.players.Keys)
+        {
             // Starts phase on clients individually with 2nd argument = true for the bonus
             _prevailPanel.TargetBeginPrevailPhase(player.connectionToClient, player.chosenPhases.Contains(Phase.Prevail));
         }
@@ -423,8 +456,10 @@ public class TurnManager : NetworkBehaviour
         _prevailPanel.RpcOptionsSelected();
 
         // Tracking which options will be played
-        foreach (var optionLists in _playerPrevailOptions.Values){
-            foreach (var option in optionLists){
+        foreach (var optionLists in _playerPrevailOptions.Values)
+        {
+            foreach (var option in optionLists)
+            {
                 if (_prevailOptionsToPlay.Contains(option)) continue;
                 _prevailOptionsToPlay.Add(option);
             }
@@ -437,10 +472,11 @@ public class TurnManager : NetworkBehaviour
     private void NextPrevailOption()
     {
         print($"NextPrevailOption - {_prevailOptionsToPlay.Count} remaining");
-        if(_prevailOptionsToPlay.Count != 0) print(_prevailOptionsToPlay[0]);
+        if (_prevailOptionsToPlay.Count != 0) print(_prevailOptionsToPlay[0]);
 
         // All options have been played
-        if (_prevailOptionsToPlay.Count == 0){
+        if (_prevailOptionsToPlay.Count == 0)
+        {
             PrevailCleanUp();
             return;
         }
@@ -448,7 +484,8 @@ public class TurnManager : NetworkBehaviour
         var nextOption = _prevailOptionsToPlay[0];
         _prevailOptionsToPlay.RemoveAt(0);
 
-        switch(nextOption){
+        switch (nextOption)
+        {
             case PrevailOption.CardSelection:
                 turnState = TurnState.CardIntoHand;
                 StartPrevailInteraction(PrevailOption.CardSelection);
@@ -468,10 +505,11 @@ public class TurnManager : NetworkBehaviour
 
     private void StartPrevailInteraction(PrevailOption currentPrevailOption)
     {
-        foreach(var cardsList in _selectedCards.Values) cardsList.Clear();
+        foreach (var cardsList in _selectedCards.Values) cardsList.Clear();
 
         ShowCardCollection();
-        foreach (var (player, options) in _playerPrevailOptions){
+        foreach (var (player, options) in _playerPrevailOptions)
+        {
             var nbPicks = options.Count(option => option == currentPrevailOption);
             _cardCollectionPanel.TargetBeginPrevailSelection(player.connectionToClient, turnState, nbPicks);
         }
@@ -487,8 +525,10 @@ public class TurnManager : NetworkBehaviour
 
     private void FinishPrevailCardIntoHand()
     {
-        foreach (var (player, cards) in _selectedCards){
-            foreach (var card in cards){
+        foreach (var (player, cards) in _selectedCards)
+        {
+            foreach (var card in cards)
+            {
                 var stats = card.GetComponent<CardStats>();
                 player.discard.Remove(stats.cardInfo);
                 player.hand.Add(stats.cardInfo);
@@ -505,8 +545,10 @@ public class TurnManager : NetworkBehaviour
     private void FinishPrevailTrash()
     {
         var tempList = new List<GameObject>();
-        foreach (var (player, cards) in _selectedCards){
-            foreach (var card in cards){
+        foreach (var (player, cards) in _selectedCards)
+        {
+            foreach (var card in cards)
+            {
                 var stats = card.GetComponent<CardStats>();
                 player.hand.Remove(stats.cardInfo);
                 player.RpcTrashCard(card);
@@ -514,7 +556,8 @@ public class TurnManager : NetworkBehaviour
             }
         }
 
-        foreach(var obj in tempList){
+        foreach (var obj in tempList)
+        {
             // NetworkServer.Destroy(obj);
             obj.GetComponent<NetworkIdentity>().RemoveClientAuthority();
         }
@@ -525,7 +568,8 @@ public class TurnManager : NetworkBehaviour
         NextPrevailOption();
     }
 
-    private void PrevailCleanUp(){
+    private void PrevailCleanUp()
+    {
         _prevailPanel.RpcReset();
         UpdateTurnState(TurnState.NextPhase);
     }
@@ -533,7 +577,8 @@ public class TurnManager : NetworkBehaviour
 
     #region PlayerInputs
 
-    public void PlayerStartSelectTarget(BattleZoneEntity entity, Ability ability){
+    public void PlayerStartSelectTarget(BattleZoneEntity entity, Ability ability)
+    {
         var owner = entity.Owner;
         _boardManager.FindTargets(entity, ability.target);
         entity.TargetSpawnTargetArrow(owner.connectionToClient);
@@ -543,8 +588,10 @@ public class TurnManager : NetworkBehaviour
     #endregion
 
     #region EndPhase
-    private void CleanUp(){
-        if(GameEnds()){
+    private void CleanUp()
+    {
+        if (GameEnds())
+        {
             _gameManager.EndGame();
             UpdateTurnState(TurnState.Idle);
             return;
@@ -554,7 +601,8 @@ public class TurnManager : NetworkBehaviour
         StartCoroutine(CleanUpIntermission());
     }
 
-    private IEnumerator CleanUpIntermission(){
+    private IEnumerator CleanUpIntermission()
+    {
         OnPhaseChanged?.Invoke(TurnState.CleanUp);
         _boardManager.BoardCleanUp(true);
         PlayersStatsResetAndDiscardMoney(endOfTurn: true);
@@ -564,11 +612,13 @@ public class TurnManager : NetworkBehaviour
         UpdateTurnState(TurnState.PhaseSelection);
     }
 
-    private bool GameEnds(){
+    private bool GameEnds()
+    {
         var gameEnds = false;
-        foreach (var (player, health)  in _playerHealth){
+        foreach (var (player, health) in _playerHealth)
+        {
             if (health > 0) continue;
-            
+
             OnPlayerDies?.Invoke(player);
             gameEnds = true;
         }
@@ -577,15 +627,16 @@ public class TurnManager : NetworkBehaviour
     }
 
     #endregion
-    
+
     #region HelperFunctions
 
     private void ShowCardCollection()
     {
-        foreach(var player in _gameManager.players.Keys){
+        foreach (var player in _gameManager.players.Keys)
+        {
             List<CardInfo> cards = player.hand; // mostly will be the hand cards
-            // if (turnState == TurnState.Discard || turnState == TurnState.Trash) cards = player.hand;
-            
+                                                // if (turnState == TurnState.Discard || turnState == TurnState.Trash) cards = player.hand;
+
             // other / more specific options
             if (turnState == TurnState.CardIntoHand) cards = player.discard;
             else if (turnState == TurnState.Develop) cards = cards.Where(card => card.type == CardType.Technology).ToList();
@@ -595,18 +646,19 @@ public class TurnManager : NetworkBehaviour
             _cardCollectionPanel.TargetShowCardCollection(player.connectionToClient, turnState, cardObjects, cards);
 
             // Reevaluating money in play to highlight playable cards after reset
-            if(turnState == TurnState.Develop || turnState == TurnState.Deploy)
+            if (turnState == TurnState.Develop || turnState == TurnState.Deploy)
                 _cardCollectionPanel.TargetCheckPlayability(player.connectionToClient, player.Cash);
         }
     }
 
     public void PlayerIsReady(PlayerManager player)
     {
-        if(!_readyPlayers.Contains(player)) _readyPlayers.Add(player);
+        if (!_readyPlayers.Contains(player)) _readyPlayers.Add(player);
         if (_readyPlayers.Count < _nbPlayers) return;
         _readyPlayers.Clear();
 
-        switch (turnState) {
+        switch (turnState)
+        {
             case TurnState.PhaseSelection:
                 FinishPhaseSelection();
                 break;
@@ -615,8 +667,8 @@ public class TurnManager : NetworkBehaviour
                 break;
             case TurnState.Invent or TurnState.Recruit:
                 KingdomSpawnAndReset();
-                if(turnState == TurnState.Invent) player.Invents = 0;
-                else if(turnState == TurnState.Recruit) player.Recruits = 0;
+                if (turnState == TurnState.Invent) player.Invents = 0;
+                else if (turnState == TurnState.Recruit) player.Recruits = 0;
                 break;
             case TurnState.Develop or TurnState.Deploy:
                 PlayEntities();
@@ -636,10 +688,11 @@ public class TurnManager : NetworkBehaviour
     }
 
     public void PlayerHealthChanged(PlayerManager player, int amount) => _playerHealth[player] -= amount;
-    
+
     private void PlayerCashChanged(PlayerManager player, int newAmount)
     {
-        switch (turnState) {
+        switch (turnState)
+        {
             case TurnState.Invent or TurnState.Recruit:
                 _kingdom.TargetCheckPriceKingdomTile(player.connectionToClient, newAmount);
                 break;
@@ -648,7 +701,7 @@ public class TurnManager : NetworkBehaviour
                 break;
         }
     }
-    
+
     private void PlayersStatsResetAndDiscardMoney(bool endOfTurn = false)
     {
         // _playerInterfaceManager.RpcLog("... Discarding money ...", LogType.Standard);
@@ -671,7 +724,8 @@ public class TurnManager : NetworkBehaviour
         }
     }
 
-    public void ForceEndTurn(){ // experimental
+    public void ForceEndTurn()
+    { // experimental
         _handManager.RpcResetHighlight();
         _cardCollectionPanel.RpcResetPanel();
         _kingdom.RpcEndKingdomPhase();

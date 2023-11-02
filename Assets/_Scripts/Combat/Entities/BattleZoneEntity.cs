@@ -117,14 +117,6 @@ public class BattleZoneEntity : NetworkBehaviour
 
     [ClientRpc]
     public void RpcEffectHighlight(bool value) => _entityUI.EffectHighlight(value, Color.white);
-
-    public void SpawnTargetArrow() => _targetArrowHandler.SpawnArrow();
-    [TargetRpc]
-    public void TargetSpawnTargetArrow(NetworkConnection target) => _targetArrowHandler.SpawnArrow();
-    [ClientRpc]
-    public void RpcDeclaredTarget(BattleZoneEntity target) => _targetArrowHandler.HandleFoundTarget(target);
-    [ClientRpc]
-    public void RpcResetAfterTarget() => _targetArrowHandler.RemoveArrow(false);
         
     private void Die() => _boardManager.EntityDies(this);
 
@@ -135,39 +127,31 @@ public class BattleZoneEntity : NetworkBehaviour
         _blockerArrowHandler.CombatStateChanged(newState);
     }
 
-    [ClientRpc]
-    public void RpcAttackTargetDeclared(BattleZoneEntity target){
-        if (!isOwned) return;
-        _attackerArrowHandler.FoundTarget(target.transform.position);
-    }
-
-    [ClientRpc]
-    public void RpcShowOpponentAttackers(List<CreatureEntity> attackers){
-        if (!isOwned) return;
-
-        print($"Showing opponent attackers on entity {Title}");
-        foreach (var attacker in attackers){
-            print($"Getting attacked by {attacker.Title}");
-            _attackerArrowHandler.ShowOpponentAttacker(attacker);
-        }
-    }
-
-    [ClientRpc]
-    public void RpcBlockerDeclared(CreatureEntity attacker){
-        if (!isOwned) return;
-        _blockerArrowHandler.FoundTarget(attacker.transform.position);
-    }
-    
-    [ClientRpc]
-    public void RpcShowOpponentBlockers(List<CreatureEntity> blockers){
-        if (!isOwned) return;
-        foreach (var blocker in blockers){
-            _blockerArrowHandler.ShowOpponentBlocker(blocker);
-        }
-    }
-
     private void OnDestroy()
     {
         CombatManager.OnCombatStateChanged -= RpcCombatStateChanged;
     }
+    
+    #region UI Target Arrows
+    [TargetRpc]
+    public void TargetDeclaredAttack(NetworkConnection conn, BattleZoneEntity target) => _attackerArrowHandler.HandleFoundTarget(target);
+    [ClientRpc]
+    public void RpcDeclaredAttack(BattleZoneEntity target)  {
+        Creature.IsAttacking = true;
+        _attackerArrowHandler.HandleFoundTarget(target);
+    }
+
+    [TargetRpc]
+    public void TargetDeclaredBlock(NetworkConnection conn, BattleZoneEntity target) => _blockerArrowHandler.HandleFoundTarget(target);
+    [ClientRpc]
+    public void RpcDeclaredBlock(BattleZoneEntity target) => _blockerArrowHandler.HandleFoundTarget(target);
+    
+    [TargetRpc]
+    public void TargetSpawnTargetArrow(NetworkConnection target) => _targetArrowHandler.SpawnArrow();
+    [ClientRpc]
+    public void RpcDeclaredTarget(BattleZoneEntity target) => _targetArrowHandler.HandleFoundTarget(target);
+    [ClientRpc]
+    public void RpcResetAfterTarget() => _targetArrowHandler.RemoveArrow(false);
+    #endregion
+
 }

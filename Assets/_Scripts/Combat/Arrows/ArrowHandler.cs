@@ -14,6 +14,12 @@ public class ArrowHandler : MonoBehaviour
         CurrentCombatState = newState;
         if(newState == CombatState.CleanUp) RemoveArrow(true);
     }
+    
+    private void FixedUpdate()
+    {
+        if (!_arrowRenderer || HasTarget) return;
+        _arrowRenderer.SetTarget();
+    }
 
     public void SpawnArrow()
     {
@@ -27,15 +33,13 @@ public class ArrowHandler : MonoBehaviour
         HasOrigin = true;
     }
 
-    private void FixedUpdate()
-    {
-        if (!_arrowRenderer || HasTarget) return;
-        _arrowRenderer.SetTarget();
-    }
 
-    public void FoundTarget(Vector3 target){
+    public void HandleFoundTarget(BattleZoneEntity target)
+    {
+        if(!HasOrigin) SpawnArrow();
+
         HasTarget = true;
-        _arrowRenderer.SetTarget(target);
+        _arrowRenderer.SetTarget(target.transform.position);
     }
 
     public void RemoveArrow(bool destroyArrowObject)

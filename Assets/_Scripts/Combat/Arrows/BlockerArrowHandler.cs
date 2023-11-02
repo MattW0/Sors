@@ -7,39 +7,39 @@ public class BlockerArrowHandler : ArrowHandler, IPointerClickHandler
 {
     [SerializeField] private CreatureEntity _creature;
 
-    public void OnPointerClick(PointerEventData eventData){
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if(!_creature) return;
         // return if not in Blockers Phase
         if (CurrentCombatState != CombatState.Blockers) return;
 
         if (_creature.isOwned) HandleClickedMyCreature();
         else HandleClickedOpponentCreature();
     }
-    
-    private void HandleClickedMyCreature(){
-        
+
+    private void HandleClickedMyCreature()
+    {
         if (!_creature.CanAct || _creature.IsAttacking || HasTarget) return;
-        
-        if (!HasOrigin) {
+
+        if (!HasOrigin)
+        {
             SpawnArrow();
+            _creature.IsBlocking = true;
             _creature.Owner.PlayerChoosesBlocker(_creature);
-            return;
+        } else {
+            RemoveArrow(true);
+            _creature.IsBlocking = false;
+            _creature.Owner.PlayerRemovesBlocker(_creature);
         }
-        
-        _creature.Owner.PlayerRemovesBlocker(_creature);
-        RemoveArrow(true);
     }
 
-    private void HandleClickedOpponentCreature(){
+    private void HandleClickedOpponentCreature()
+    {
         if (!_creature.IsAttacking) return;
 
         var clicker = PlayerManager.GetLocalPlayer();
         if (!clicker.PlayerIsChoosingTarget) return;
-        
-        clicker.PlayerChoosesAttackerToBlock(_creature);
-    }
 
-    public void ShowOpponentBlocker(CreatureEntity blocker){
-        SpawnArrow();
-        FoundTarget(blocker.transform.position);
+        clicker.PlayerChoosesAttackerToBlock(_creature);
     }
 }
