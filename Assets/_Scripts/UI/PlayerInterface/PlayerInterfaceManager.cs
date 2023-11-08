@@ -25,6 +25,18 @@ public class PlayerInterfaceManager : NetworkBehaviour
     [ClientRpc]
     public void RpcLog(string message, LogType type){
         
+        var messageColor = GetColor(type);
+        _logger.Log($"<color={messageColor}>{message}</color>");
+    }
+
+    // public static void Log(string message, LogType type){
+    //     var messageColor = GetColor(type);
+    //     _logger.Log($"<color={messageColor}>{message}</color>");
+    // }
+
+
+    // static does not work
+    private string GetColor(LogType type){
         var messageColor = type switch{
             LogType.EffectTrigger => SorsColors.effectTrigger,
             LogType.TurnChange => SorsColors.turnChange,
@@ -37,8 +49,8 @@ public class PlayerInterfaceManager : NetworkBehaviour
             _ => SorsColors.standardLog
         };
 
-        _logger.Log($"<color={messageColor}>{message}</color>");
-    } 
+        return messageColor;
+    }
 
     private void OnDestroy(){
         GameManager.OnGameStart -= RpcPrepareUIs;

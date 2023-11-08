@@ -111,6 +111,8 @@ public class GameManager : NetworkBehaviour {
         print(msg);
     }
 
+    #region Setup
+    
     public void GameSetup(GameOptions options){
 
         _turnManager = TurnManager.Instance;
@@ -136,7 +138,82 @@ public class GameManager : NetworkBehaviour {
         if(cardSpawnAnimations) StartCoroutine(PreGameWaitRoutine());
     }
 
-    #region Setup
+    private void KingdomSetup(){
+        _kingdom.RpcSetPlayer();
+        
+        // Money: right now only paper money
+        var moneyCards = new CardInfo[_nbMoneyTiles];
+        for (var i = 0; i < _nbMoneyTiles; i++) moneyCards[i] = new CardInfo(moneyCardsDb[i]);
+        _kingdom.RpcSetMoneyTiles(moneyCards);
+
+        var technologies = new CardInfo[_nbTechnologyTiles];
+        for (var i = 0; i < _nbTechnologyTiles; i++) technologies[i] = GetNewTechnologyFromDb();
+        _kingdom.RpcSetTechnologyTiles(technologies);
+
+        // Recruit Creatures
+        var creatures = new CardInfo[_nbCreatureTiles];
+        for (var i = 0; i < _nbCreatureTiles; i++) creatures[i] = GetNewCreatureFromDb();
+        _kingdom.RpcSetRecruitTiles(creatures);
+    }
+
+    private void PlayerSetup(){
+        
+        var playerManagers = FindObjectsOfType<PlayerManager>();
+        foreach (var player in playerManagers)
+        {
+            var playerNetworkId = player.GetComponent<NetworkIdentity>();
+            players.Add(player, playerNetworkId);
+            player.RpcInitPlayer();
+
+            // Player stats
+            player.PlayerName = player.PlayerName; // To update info in network
+            player.Health = startHealth;
+            player.Score = startScore;
+            
+            // Turn stats
+            player.Cash = turnCash;
+            player.Invents = turnInvents;
+            player.Develops = turnDevelops;
+            player.Deploys = turnDeploys;
+            player.Recruits = turnRecruits;
+
+            // Cards
+            SpawnPlayerDeck(player);
+
+            if(!cardSpawnAnimations) {
+                player.deck.Shuffle();
+                player.DrawInitialHand(initialHandSize);
+            } else {
+                player.RpcResolveCardSpawn(cardSpawnAnimations);
+            }
+        }
+
+        if(!cardSpawnAnimations) OnGameStart?.Invoke(players.Count);
+    }
+
+    private void SpawnPlayerDeck(PlayerManager playerManager)
+    {
+        // Only paper money currently
+        for (var i = 0; i < initialDeckSize - initialCreatures - initialTechnologies; i++){
+            var scriptableCard = moneyCardsDb[0];
+            SpawnCardAndMoveTo(playerManager, scriptableCard, CardLocation.Deck);
+        }
+
+        for (var i = 0; i < initialCreatures; i++){
+            var scriptableCard = startCreatures[i]; // 
+            SpawnCardAndMoveTo(playerManager, scriptableCard, CardLocation.Deck);
+        }
+
+        for (var i = 0; i < initialTechnologies; i++){
+            var scriptableCard = startTechnologies[i];
+            SpawnCardAndMoveTo(playerManager, scriptableCard, CardLocation.Deck);
+        }
+    }
+
+    #endregion
+
+    #region Game State Loading
+
     private void LoadGameState(string fileName){
 
         print($"Loading game state from file: {fileName}");
@@ -216,78 +293,6 @@ public class GameManager : NetworkBehaviour {
         yield return new WaitForSeconds(0.1f);
         SpawnFieldEntity(p, card, type, false);
         yield return null;
-    }
-    
-    private void KingdomSetup(){
-        _kingdom.RpcSetPlayer();
-        
-        // Money: right now only paper money
-        var moneyCards = new CardInfo[_nbMoneyTiles];
-        for (var i = 0; i < _nbMoneyTiles; i++) moneyCards[i] = new CardInfo(moneyCardsDb[i]);
-        _kingdom.RpcSetMoneyTiles(moneyCards);
-
-        var technologies = new CardInfo[_nbTechnologyTiles];
-        for (var i = 0; i < _nbTechnologyTiles; i++) technologies[i] = GetNewTechnologyFromDb();
-        _kingdom.RpcSetTechnologyTiles(technologies);
-
-        // Recruit Creatures
-        var creatures = new CardInfo[_nbCreatureTiles];
-        for (var i = 0; i < _nbCreatureTiles; i++) creatures[i] = GetNewCreatureFromDb();
-        _kingdom.RpcSetRecruitTiles(creatures);
-    }
-
-    private void PlayerSetup(){
-        
-        var playerManagers = FindObjectsOfType<PlayerManager>();
-        foreach (var player in playerManagers)
-        {
-            var playerNetworkId = player.GetComponent<NetworkIdentity>();
-            players.Add(player, playerNetworkId);
-            player.RpcInitPlayer();
-
-            // Player stats
-            player.PlayerName = player.PlayerName; // To update info in network
-            player.Health = startHealth;
-            player.Score = startScore;
-            
-            // Turn stats
-            player.Cash = turnCash;
-            player.Invents = turnInvents;
-            player.Develops = turnDevelops;
-            player.Deploys = turnDeploys;
-            player.Recruits = turnRecruits;
-
-            // Cards
-            SpawnPlayerDeck(player);
-
-            if(!cardSpawnAnimations) {
-                player.deck.Shuffle();
-                player.DrawInitialHand(initialHandSize);
-            } else {
-                player.RpcResolveCardSpawn(cardSpawnAnimations);
-            }
-        }
-
-        if(!cardSpawnAnimations) OnGameStart?.Invoke(players.Count);
-    }
-
-    private void SpawnPlayerDeck(PlayerManager playerManager)
-    {
-        // Only paper money currently
-        for (var i = 0; i < initialDeckSize - initialCreatures - initialTechnologies; i++){
-            var scriptableCard = moneyCardsDb[0];
-            SpawnCardAndMoveTo(playerManager, scriptableCard, CardLocation.Deck);
-        }
-
-        for (var i = 0; i < initialCreatures; i++){
-            var scriptableCard = startCreatures[i]; // 
-            SpawnCardAndMoveTo(playerManager, scriptableCard, CardLocation.Deck);
-        }
-
-        for (var i = 0; i < initialTechnologies; i++){
-            var scriptableCard = startTechnologies[i];
-            SpawnCardAndMoveTo(playerManager, scriptableCard, CardLocation.Deck);
-        }
     }
 
     #endregion
@@ -461,7 +466,7 @@ public class GameManager : NetworkBehaviour {
         OnGameStart?.Invoke(players.Count);
     }
 
-    private PlayerManager GetOpponent(PlayerManager player)
+    public PlayerManager GetOpponent(PlayerManager player)
     {
         return players.Keys.FirstOrDefault(p => p != player);
     }

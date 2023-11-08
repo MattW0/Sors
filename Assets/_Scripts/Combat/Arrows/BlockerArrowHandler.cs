@@ -5,7 +5,12 @@ using UnityEngine.EventSystems;
 
 public class BlockerArrowHandler : ArrowHandler, IPointerClickHandler
 {
-    [SerializeField] private CreatureEntity _creature;
+    private CreatureEntity _creature;
+
+    private void Awake()
+    {
+        _creature = gameObject.GetComponent<CreatureEntity>();
+    }
 
     public void OnPointerClick(PointerEventData eventData)
     {
@@ -38,7 +43,7 @@ public class BlockerArrowHandler : ArrowHandler, IPointerClickHandler
         if (!_creature.IsAttacking) return;
 
         var clicker = PlayerManager.GetLocalPlayer();
-        if (!clicker.PlayerIsChoosingTarget) return;
+        if (!clicker.PlayerIsChoosingBlock) return;
 
         clicker.PlayerChoosesAttackerToBlock(_creature);
     }

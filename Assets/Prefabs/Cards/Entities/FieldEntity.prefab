@@ -14,7 +14,6 @@ GameObject:
   - component: {fileID: 8003351115639585403}
   - component: {fileID: 325497050516565303}
   - component: {fileID: -7950572562108057018}
-  - component: {fileID: 6163234686391447415}
   m_Layer: 7
   m_Name: FieldEntity
   m_TagString: Untagged
@@ -102,7 +101,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   arrowPrefab: {fileID: 1267180111628874, guid: abacdb436001d514cbcda7c82a80bce9, type: 3}
-  _entity: {fileID: 0}
 --- !u!114 &-7950572562108057018
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -116,21 +114,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   arrowPrefab: {fileID: 1267180111628874, guid: 1cc77e7cf3e5c9145a065724ab4bf272, type: 3}
-  entity: {fileID: 0}
---- !u!114 &6163234686391447415
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 23084215047643341}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aaea80a376733c843908dd2f2e72e4d6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  arrowPrefab: {fileID: 1267180111628874, guid: b24208c45ab77f34ca68000102dfa908, type: 3}
-  _creature: {fileID: 0}
 --- !u!1 &43426150844274239
 GameObject:
   m_ObjectHideFlags: 0

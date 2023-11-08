@@ -18,6 +18,7 @@ public class BoardManager : NetworkBehaviour
     // Entities, corresponding card object
     private Dictionary<BattleZoneEntity, GameObject> _entitiesObjectsCache = new();
     private List<BattleZoneEntity> _deadEntities = new();
+    private CombatState _combatState;
 
     public static event Action<PlayerManager> OnAttackersDeclared;
     public static event Action<PlayerManager> OnBlockersDeclared;
@@ -79,15 +80,22 @@ public class BoardManager : NetworkBehaviour
 
     private IEnumerator CombatTransitionAnimation(CombatState state)
     {
+        _combatState = state;
         _phasePanel.RpcStartCombatPhase(state);
         yield return new WaitForSeconds(1f);
         if (state == CombatState.Attackers) DeclareAttackers();
         else if (state == CombatState.Blockers) DeclareBlockers();
     }
 
-    private void DeclareAttackers() => _dropZone.StartDeclareAttackers(_gameManager.players.Keys.ToList());
+    private void DeclareAttackers() {
+        foreach (var player in _gameManager.players.Keys) 
+        {
+            var opponentEntity = _gameManager.GetOpponent(player).GetComponent<BattleZoneEntity>();
+            _dropZone.StartDeclareAttackers(player, opponentEntity);
+        }
+    }
 
-    public void AttackersDeclared(PlayerManager player, List<CreatureEntity> playerAttackers)
+    public void AttackersDeclared(PlayerManager player)
     {
         OnAttackersDeclared?.Invoke(player);
     }
@@ -146,6 +154,18 @@ public class BoardManager : NetworkBehaviour
     }
 
     #region UI
+
+    public void PlayerPressedReadyButton(PlayerManager player){
+        if (_combatState == CombatState.Attackers)
+        {
+            _dropZone.PlayerFinishedChoosingAttackers(player);
+        }
+        else if (_combatState == CombatState.Blockers)
+        {
+            _dropZone.PlayerFinishedChoosingBlockers(player);
+        }
+    }
+
     public void ShowHolders(bool active)
     {
         if(active) { 

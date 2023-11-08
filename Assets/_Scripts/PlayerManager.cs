@@ -19,7 +19,6 @@ public class PlayerManager : NetworkBehaviour
     private TurnManager _turnManager;
     private CombatManager _combatManager;
     private CardEffectsHandler _cardEffectsHandler;
-    private DropZoneManager _dropZone;
     private CardMover _cardMover;
     private Hand _handManager;
     private PhasePanelUI _phaseVisualsUI;
@@ -34,11 +33,11 @@ public class PlayerManager : NetworkBehaviour
     public bool PlayerIsChoosingTarget { get; private set; }
     public bool PlayerIsChoosingAttack { get; private set; }
     public bool PlayerIsChoosingBlock { get; private set; }
-
     private List<CreatureEntity> _attackers = new();
     private List<CreatureEntity> _blockers = new();
     private PlayerUI _playerUI;
     private PlayerUI _opponentUI;
+    private BattleZoneEntity _entity;
 
     public static event Action OnCardPileChanged;
     public static event Action<PlayerManager, int> OnCashChanged;
@@ -111,15 +110,30 @@ public class PlayerManager : NetworkBehaviour
     {
         _handManager = Hand.Instance;
         _cardMover = CardMover.Instance;
-        _dropZone = DropZoneManager.Instance;
         _phaseVisualsUI = PhasePanelUI.Instance;
-        _playerUI = GameObject.Find("PlayerInfo").GetComponent<PlayerUI>();
-        _opponentUI = GameObject.Find("OpponentInfo").GetComponent<PlayerUI>();
+
+        EntityAndUISetup();
 
         if (!isServer) return;
         _turnManager = TurnManager.Instance;
         _combatManager = CombatManager.Instance;
         _cardEffectsHandler = CardEffectsHandler.Instance;
+    }
+
+    private void EntityAndUISetup(){
+        _playerUI = GameObject.Find("PlayerInfo").GetComponent<PlayerUI>();
+        _opponentUI = GameObject.Find("OpponentInfo").GetComponent<PlayerUI>();
+        
+        _entity = GetComponent<BattleZoneEntity>();
+        if(isOwned) {
+            _playerUI.SetEntity(_entity);
+            gameObject.transform.position = new Vector3(-9f, 0f, -4.75f);
+            // gameObject.transform.localScale = Vector3.one;
+        } else {
+            _opponentUI.SetEntity(_entity);
+            gameObject.transform.position = new Vector3(-9f, 0f, 4.75f);
+            gameObject.transform.localScale = Vector3.one;
+        }
     }
 
     [Server] // GameManager calls this on player object
@@ -388,9 +402,7 @@ public class PlayerManager : NetworkBehaviour
 
     public void PlayerChoosesTargetToAttack(BattleZoneEntity target)
     {
-        print($"Attacking {target.Title} with {_attackers.Count}");
         CmdPlayerChoosesTargetToAttack(target, _attackers);
-
         _attackers.Clear();
         PlayerIsChoosingAttack = false;
     }
@@ -415,7 +427,6 @@ public class PlayerManager : NetworkBehaviour
 
     public void PlayerChoosesAttackerToBlock(CreatureEntity attacker)
     {
-        print($"Blocking {attacker.Title} with {_blockers.Count}");
         CmdPlayerChoosesAttackerToBlock(attacker, _blockers);
 
         _blockers.Clear();
@@ -456,6 +467,12 @@ public class PlayerManager : NetworkBehaviour
 
 
     #region UI
+
+    public void EntityTargetHighlight(bool targetable){
+        if(isOwned) _playerUI.TargetHighlight(targetable, true);
+        else _opponentUI.TargetHighlight(targetable, false);
+    }
+
     private void SetPlayerName(string name)
     {
         playerName = name;
@@ -633,7 +650,7 @@ public class PlayerManager : NetworkBehaviour
     private void CmdPlayerPressedCombatButton(PlayerManager player) => PlayerPressedCombatButton(player);
 
     [Server]
-    private void PlayerPressedCombatButton(PlayerManager player) => _dropZone.PlayerPressedReadyButton(player);
+    private void PlayerPressedCombatButton(PlayerManager player) => _combatManager.PlayerPressedReadyButton(player);
 
     // public void PlayerClickedCollectionViewButton() {
     //     if (isServer) PlayerClickedCollectionViewButton(this);

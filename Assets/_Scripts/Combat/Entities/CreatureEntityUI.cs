@@ -9,17 +9,19 @@ public class CreatureEntityUI : MonoBehaviour
     [Header("Entity UI")]
     [SerializeField] private Image highlight;
     [SerializeField] private Image attackerImage;
-    public void ShowAsAttacker(bool active){
-        attackerImage.color = active ? SorsColors.creatureAttacking : SorsColors.creatureIdle;
-    }
-    public void CombatHighlight(){
-        attackerImage.color = SorsColors.creatureClashing;
-        attackerImage.enabled = true;
-    }
+
+    private void Awake() => attackerImage.color = SorsColors.creatureIdle;
     public void CanAct(bool isTrue) => highlight.enabled = isTrue;
+    public void CreatureIdle() => attackerImage.color = SorsColors.creatureIdle;
+    public void ShowAsAttacker(){
+        // TODO: Why this no work ???
+        // print($"show as attacker, color : {SorsColors.creatureAttacking}");
+        attackerImage.color = SorsColors.creatureAttacking;
+    }
+    public void ShowAsBlocker() => attackerImage.color = SorsColors.creatureBlocking;
+    public void CombatHighlight() => attackerImage.color = SorsColors.creatureClashing;
     public void ResetHighlight(){
         attackerImage.color = SorsColors.creatureIdle;
-
         highlight.color = SorsColors.creatureHighlight;
         highlight.enabled = false;
     }
@@ -40,13 +42,13 @@ public class CreatureEntityUI : MonoBehaviour
 
     public void UntapCreature(bool highlight) {
         _transform.DOLocalMove(_untappedPosition, TappingDuration).OnComplete( () => {} );
-        ShowAsAttacker(false);
+        ResetHighlight();
     }
 
     public void TapOpponentCreature() => _transform.DOLocalMove(_untappedPosition, TappingDuration);
     public void UntapOpponentCreature(){
         _transform.DOLocalMove(_tappedPosition, TappingDuration);
-        ShowAsAttacker(false);
+        ResetHighlight();
     }
     #endregion
 }

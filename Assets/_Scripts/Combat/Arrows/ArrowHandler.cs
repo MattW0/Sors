@@ -4,9 +4,11 @@ using UnityEngine;
 
 public class ArrowHandler : MonoBehaviour
 {
+    // TODO: Check if it makes more sense to init localPlayer instead of checking
+    // on each click, who the clicker is (Attacker and Blocker Handlers)
+    // private PlayerManager _localPlayer;
     [SerializeField] private GameObject arrowPrefab;
     private ArrowRenderer _arrowRenderer;
-    
     public bool HasOrigin { get; private set; }
     public bool HasTarget { get; private set; }
     public CombatState CurrentCombatState { get; private set; }
@@ -34,12 +36,12 @@ public class ArrowHandler : MonoBehaviour
     }
 
 
-    public void HandleFoundTarget(BattleZoneEntity target)
+    public void HandleFoundTarget(Transform target)
     {
         if(!HasOrigin) SpawnArrow();
 
         HasTarget = true;
-        _arrowRenderer.SetTarget(target.transform.position);
+        _arrowRenderer.SetTarget(target.position);
     }
 
     public void RemoveArrow(bool destroyArrowObject)

@@ -12,9 +12,7 @@ public static class SorsColors
 
     // -- Play Board --
     public static Color creature = new Color(0.34f, 0f, 0f);
-    // public static Color technology = new Color(0f, 0f, 0.34f);
     public static Color technology = new Color(0.65f, 0.45f, 0.25f);
-    // public static Color cash = new Color(0.1f, 0.5f, 0.35f);
     public static Color trash = new Color(0.3f, 0.1f, 0.3f);
     public static Color cash = new Color(0.9f, 0.75f, 0.1f);
     public static Color costValue = new Color(1f, 0.9f, 0.3f);
@@ -25,10 +23,12 @@ public static class SorsColors
     public static Color prevailColor = new Color(0.7f, 0.9f, 0.5f);
 
     // -- Entities --
+    public static Color targetColor = Color.magenta;
     public static Color creatureHighlight = Color.green;
-    public static Color creatureAttacking = new Color(99, 52, 49);
+    public static Color creatureAttacking = new Color(100, 80, 50);
+    public static Color creatureBlocking = new Color(0, 101, 138);
     public static Color creatureClashing = new Color(150, 0, 0);
-    public static readonly Color creatureIdle = new Color( 0x50, 0x50, 0x50 );
+    public static Color creatureIdle = new Color(200, 200, 200);
 
     // -- Kingdom Tiles --
     public static Color tileSelectable = Color.green;

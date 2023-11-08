@@ -5,7 +5,12 @@ using UnityEngine.EventSystems;
 
 public class TargetArrowHandler : ArrowHandler, IPointerClickHandler
 {
-    [SerializeField] private BattleZoneEntity _entity;
+    private BattleZoneEntity _entity;
+
+    private void Awake()
+    {
+        _entity = gameObject.GetComponent<BattleZoneEntity>();
+    }
 
     public void OnPointerClick(PointerEventData eventData)
     {

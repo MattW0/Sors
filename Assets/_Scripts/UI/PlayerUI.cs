@@ -1,11 +1,12 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.EventSystems;
 
-public class PlayerUI : MonoBehaviour
+public class PlayerUI : MonoBehaviour, IPointerClickHandler
 {
+    private BattleZoneEntity _playerEntity;
+
     [Header("Player Stats")]
     [SerializeField] private TMP_Text playerName;
     [SerializeField] private TMP_Text playerHealth;
@@ -17,10 +18,29 @@ public class PlayerUI : MonoBehaviour
     [SerializeField] private TMP_Text turnDevelops;
     [SerializeField] private TMP_Text turnDeploys;
     [SerializeField] private TMP_Text turnRecruits;
+    [SerializeField] private Image highlight;
+    private bool _isTargetable;
 
-    [Header("UI")]
-    [SerializeField] private Image background;
+    public void SetEntity(BattleZoneEntity e) => _playerEntity = e;
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if(!_isTargetable) return;
 
+        var clicker = PlayerManager.GetLocalPlayer();
+        if (!(clicker.PlayerIsChoosingAttack || clicker.PlayerIsChoosingTarget)) return;
+
+        clicker.PlayerChoosesTargetToAttack(_playerEntity);
+    }
+
+    public void TargetHighlight(bool targetable, bool isPlayer){
+        _isTargetable = targetable;
+
+        if(targetable) highlight.color = SorsColors.targetColor;
+        else {
+            if(isPlayer) highlight.color = SorsColors.player;
+            else highlight.color = SorsColors.opponent;
+        }
+    }
     public void SetName(string name) => playerName.text = name;
     public void SetHealth(int value) => playerHealth.text = value.ToString();
     public void SetScore(int value) => playerScore.text = value.ToString();

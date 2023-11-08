@@ -14,9 +14,10 @@ public class CreatureEntity : BattleZoneEntity //, IPointerClickHandler
     public bool CanAct 
     {
         get => _canAct;
-        private set {
+        set {
             _canAct = value;
-            _creatureUI.CanAct(true);
+            if(value) _creatureUI.CanAct(true);
+            else _creatureUI.CanAct(false);
         }
     }
     [SerializeField] private bool _isAttacking;
@@ -25,10 +26,21 @@ public class CreatureEntity : BattleZoneEntity //, IPointerClickHandler
         get => _isAttacking; 
         set {
             _isAttacking = value;
-            AttackerDeclared();
+            if (value) _creatureUI.ShowAsAttacker();
+            else _creatureUI.CreatureIdle();
         }
     }
-    public bool IsBlocking { get; set; }
+
+    [SerializeField] private bool _isBlocking;
+    public bool IsBlocking 
+    { 
+        get => _isBlocking; 
+        set {
+            _isBlocking = value;
+            if (value) _creatureUI.ShowAsBlocker();
+            else _creatureUI.CreatureIdle();
+        }
+    }
 
     public void CheckIfCanAct(){
         if (!isOwned) return;
@@ -37,13 +49,8 @@ public class CreatureEntity : BattleZoneEntity //, IPointerClickHandler
         CanAct = true;
     }
 
-    public void AttackerDeclared(){
-        // to show ui change when local player presses ready button
-        CanAct = false;
-        if (IsAttacking) _creatureUI.ShowAsAttacker(true);
-        else _creatureUI.ResetHighlight();
-    }
 
+    // TODO: Move to BZE because technologies taking damage
     [ClientRpc]
     public void RpcSetCombatHighlight() => _creatureUI.CombatHighlight();
 

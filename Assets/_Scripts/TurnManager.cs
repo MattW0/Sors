@@ -687,6 +687,7 @@ public class TurnManager : NetworkBehaviour
         }
     }
 
+    // TODO: CHeck logic with game state loading. Move to gameManager?
     public void PlayerHealthChanged(PlayerManager player, int amount) => _playerHealth[player] -= amount;
 
     private void PlayerCashChanged(PlayerManager player, int newAmount)
