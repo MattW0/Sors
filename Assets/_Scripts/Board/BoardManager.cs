@@ -20,6 +20,7 @@ public class BoardManager : NetworkBehaviour
     private List<BattleZoneEntity> _deadEntities = new();
     private CombatState _combatState;
 
+    // Events
     public static event Action<PlayerManager> OnAttackersDeclared;
     public static event Action<PlayerManager> OnBlockersDeclared;
 
@@ -31,29 +32,17 @@ public class BoardManager : NetworkBehaviour
         _dropZone = DropZoneManager.Instance;
     }
 
-    public IEnumerator AddEntity(PlayerManager owner, PlayerManager opponent, 
+    public void AddEntity(PlayerManager owner, PlayerManager opponent,
                           GameObject card, BattleZoneEntity entity, bool isPlayed = true) 
     {
-        // Initialize
+        // Initialize and keep track which card object corresponds to which entity
         var cardInfo = card.GetComponent<CardStats>().cardInfo;
         entity.RpcInitializeEntity(owner, opponent, cardInfo);
-
-        // Need to await RPC for initialization
-        while (!entity.Owner) yield return new WaitForSeconds(0.1f);
-        
-        // TODO: Add animations for ETB here
-        yield return new WaitForSeconds(0.1f);
-        
-
-        _dropZone.EntityEntersDropZone(owner, entity);
+        _entitiesObjectsCache.Add(entity, card);
         // Can be loaded from json at the beginning
         if(isPlayed) _cardEffectsHandler.CardIsPlayed(owner, entity, cardInfo);
 
-        // To keep track which card object corresponds to which entity
-        _entitiesObjectsCache.Add(entity, card);
-        // StartCoroutine(EntityEntersDropzone(owner, cardInfo, entity, isPlayed));
-
-        yield return null;
+        StartCoroutine(_dropZone.EntitySpawns(owner, card, entity));
     }
 
     #region Effects

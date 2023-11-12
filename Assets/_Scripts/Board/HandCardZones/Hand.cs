@@ -20,14 +20,6 @@ public class Hand : NetworkBehaviour
         if (addingCard) _handCards.Add(stats);
         else _handCards.Remove(stats);
     }
-    
-    [ClientRpc]
-    public void RpcResetHighlight() {
-        foreach (var card in _handCards) {
-            // card.IsDiscardable = false;
-            // card.IsTrashable = false;
-        }
-    }
 
     [ClientRpc]
     public void RpcHighlightMoney(bool isInteractable) => HighlightMoney(isInteractable);
@@ -38,7 +30,6 @@ public class Hand : NetworkBehaviour
     public void HighlightMoney(bool b){
         foreach (var card in _handCards.Where(card => card.cardInfo.type == CardType.Money)) {
             card.IsInteractable = b;
-            card.SetHighlight();
         }
     }
 }

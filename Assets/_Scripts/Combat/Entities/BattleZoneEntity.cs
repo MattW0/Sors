@@ -123,7 +123,7 @@ public class BattleZoneEntity : NetworkBehaviour
     [ClientRpc]
     private void RpcSetPoints(int value)=> _entityUI.SetPoints(value);
     [ClientRpc]
-    public void RpcEffectHighlight(bool value) => _entityUI.EffectHighlight(value, Color.white);
+    public void RpcEffectHighlight(bool value) => _entityUI.EffectHighlight(value, Color.red);
 
     [ClientRpc]
     public void RpcCombatStateChanged(CombatState newState){

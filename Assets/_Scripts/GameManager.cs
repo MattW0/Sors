@@ -390,7 +390,8 @@ public class GameManager : NetworkBehaviour {
         var entity = entityObject.GetComponent<BattleZoneEntity>();
         var opponent = GetOpponent(owner);
 
-        StartCoroutine(_boardManager.AddEntity(owner, opponent, card, entity, isPlayed));
+        owner.RpcMoveCard(card, CardLocation.Hand, CardLocation.EntitySpawn);
+        _boardManager.AddEntity(owner, opponent, card, entity, isPlayed);
     }
     #endregion
 

@@ -29,6 +29,4 @@ public class CardStats : NetworkBehaviour
         cardInfo = card;
         _cardUI.SetCardUI(card);
     }
-
-    public void SetHighlight() => _cardUI.Highlight(IsInteractable, SorsColors.interactionHighlight);
 }

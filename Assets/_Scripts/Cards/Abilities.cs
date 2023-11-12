@@ -43,7 +43,7 @@ public struct Ability
         else if (target == EffectTarget.None)
             return "Ability: " + trigger.ToString() + " -> " + effect.ToString() + ", " + amount.ToString();
         else
-            return "Ability: " + trigger.ToString() + " -> " + effect.ToString() + " to " + amount.ToString() + ", " + target.ToString();
+            return "Ability: " + trigger.ToString() + " -> " + effect.ToString() + " to " + target.ToString() + ", " + amount.ToString();
     }
 
     public override bool Equals(object obj)

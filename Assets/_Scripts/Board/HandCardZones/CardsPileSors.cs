@@ -19,10 +19,10 @@ public class CardsPileSors : MonoBehaviour
 	readonly List<GameObject> cards = new List<GameObject>();
 	public List<GameObject> Cards => new List<GameObject>(cards);
 
-	public event Action<int> OnCountChanged;
+	// public event Action<int> OnCountChanged;
 	readonly List<GameObject> forceSetPosition = new List<GameObject>();
 
-	public void Add(GameObject card, bool moveAnimation = true) => Add(card, -1, moveAnimation);
+	public void Add(GameObject card, bool moveAnimation = false) => Add(card, -1, moveAnimation);
 
 	public void Add(GameObject card, int index, bool moveAnimation = true)
 	{
@@ -34,7 +34,7 @@ public class CardsPileSors : MonoBehaviour
 
 		if (!moveAnimation) forceSetPosition.Add(card);
 
-		OnCountChanged?.Invoke(cards.Count);
+		// OnCountChanged?.Invoke(cards.Count);
 
 		updatePosition = true;
 		// UpdateCardPositions();
@@ -47,7 +47,7 @@ public class CardsPileSors : MonoBehaviour
 		cards.Remove(card);
 		card.transform.DOKill();
 
-		OnCountChanged?.Invoke(cards.Count);
+		// OnCountChanged?.Invoke(cards.Count);
 
 		updatePosition = true;
 		// UpdateCardPositions();

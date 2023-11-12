@@ -46,6 +46,8 @@ public class CardUI : MonoBehaviour
             _health.text = cardInfo.health.ToString();
             _description.text = cardInfo.description;
         }
+
+        HighlightReset();
     }
 
     public void CardBackUp(){
@@ -64,7 +66,7 @@ public class CardUI : MonoBehaviour
         _highlight.enabled = active;
     }
     
-    public void HighlightReset(){
+    private void HighlightReset(){
         _highlight.color = SorsColors.standardHighlight;
         _highlight.enabled = false;
     }

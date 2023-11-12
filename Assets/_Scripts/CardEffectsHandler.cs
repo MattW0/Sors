@@ -43,7 +43,7 @@ public class CardEffectsHandler : NetworkBehaviour
 
             // Dont add the relation to the dict as it resolves immediately
             if (trigger == Trigger.When_enters_the_battlefield){
-                StartCoroutine(AddAbilityToQueue(entity, ability));
+                AddAbilityToQueue(entity, ability);
                 continue;
             }
             
@@ -59,11 +59,15 @@ public class CardEffectsHandler : NetworkBehaviour
         _presentAbilities.Add(entity, activeAbilities);
     }
 
-    public void CheckPhaseTriggers(Phase phase){
+    public void CheckPhaseTriggers(Phase phase)
+    {
+        // TurnManager waits for this to be false
+        QueueResolving = true;
+
         // We only search for abilities if the current phase triggers at least one effect
         _currentPhase = phase;
         if (!_phaseTriggers.Contains(phase)){
-            _turnManager.NextTurnState(_currentPhase);
+            QueueResolving = false;
             return;
         }
 
@@ -76,32 +80,23 @@ public class CardEffectsHandler : NetworkBehaviour
         var phaseTrigger = PhaseToTrigger(phase);
         foreach (var entity in _presentAbilities.Keys){
             foreach (var ability in _presentAbilities[entity]){
-                if (ability.trigger != phaseTrigger) 
-                    continue;
-                StartCoroutine(AddAbilityToQueue(entity, ability));
+                if (ability.trigger == phaseTrigger) AddAbilityToQueue(entity, ability);
             }
         }
 
         // Only have to call _turnManager.NextTurnState if the effect triggers at the beginning of a phase
         // TODO: Verify if there is a better solution to sync the animation and _turnManager continuation
+        StartCoroutine(StartResolvingQueue());
     }
     
-    private IEnumerator AddAbilityToQueue(BattleZoneEntity entity, Ability ability){
-        // Wait for Owner (and other info) to be initialized
-        // It isn't if entity ETBd as the last action before this trigger
-        
-        // TODO: New wait in boardManager -> check if able to remove
-        while(!entity.Owner) yield return null;
-
+    private void AddAbilityToQueue(BattleZoneEntity entity, Ability ability){
         _playerInterfaceManager.RpcLog($"'{entity.Title}': {ability.trigger} -> {ability.effect}", LogType.EffectTrigger);
         print($"'{entity.Title}': {ability.trigger} -> {ability.effect}");
         _abilityQueue.Add(entity, ability);
-
-        yield return null;
     }
 
-    public IEnumerator StartResolvingQueue(){
-
+    public IEnumerator StartResolvingQueue()
+    {
         QueueResolving = true;
         // print(" >>> Start resolving ability queue <<< ");
         foreach(var (entity, ability) in _abilityQueue){
@@ -110,7 +105,7 @@ public class CardEffectsHandler : NetworkBehaviour
             // Waits for player input (with _continue) and when done sets _abilityResolving = true
             StartCoroutine(ResolveAbility(entity, ability));
             while(_abilityResolving) {
-                yield return new WaitForSeconds(effectWaitTime);
+                yield return new WaitForSeconds(0.1f);
             }
 
             _abilitySource = null;
@@ -122,39 +117,31 @@ public class CardEffectsHandler : NetworkBehaviour
         _abilityQueue.Clear();
     }
 
-    private IEnumerator ResolveAbility(BattleZoneEntity entity, Ability ability){
-        
+    private IEnumerator ResolveAbility(BattleZoneEntity entity, Ability ability)
+    {
         print($"Resolving ability : " + ability.ToString());
         
         entity.RpcEffectHighlight(true);
+        yield return new WaitForSeconds(2*effectWaitTime);
 
-        _continue = CheckForPlayerInput(entity, ability);
-        while(true) {
-            if (_continue) break;
-            yield return new WaitForSeconds(effectWaitTime);
+        _continue = CanContinueWithoutPlayerInput(entity, ability);
+        while(!_continue) {
+            yield return new WaitForSeconds(0.1f);
         }
         _continue = false;
-        // print("- passed player input");
 
         StartCoroutine(ExecuteEffect(entity, ability));
         while(!_continue) {
-            yield return new WaitForSeconds(effectWaitTime);
+            yield return new WaitForSeconds(0.1f);
         }
         _continue = false;
-        // print("- passed ability execution");
-
-
         _abilityResolving = false;
     }
 
-    private bool CheckForPlayerInput(BattleZoneEntity entity, Ability ability){
-
+    private bool CanContinueWithoutPlayerInput(BattleZoneEntity entity, Ability ability)
+    {
+        // No target -> continue immediately
         if(ability.target == EffectTarget.None){
-            return true;
-        }
-
-        // Only need input for damage and lifegain currently
-        if(!(ability.effect.Equals(Effect.Damage) || ability.effect.Equals(Effect.LifeGain))){
             return true;
         }
 
@@ -166,9 +153,14 @@ public class CardEffectsHandler : NetworkBehaviour
             return true;
         }
 
-        print($"NEED PLAYER INPUT: " + ability.ToString());
-        
+        // Only need input for damage and lifegain currently
+        if(!(ability.effect.Equals(Effect.Damage) || ability.effect.Equals(Effect.LifeGain))){
+            return true;
+        }
+
+
         // Else we need input from player and set _continue to true after receiving it
+        print($"NEED PLAYER INPUT: " + ability.ToString());
         _abilitySource = entity;
         _turnManager.PlayerStartSelectTarget(entity, ability);
         
@@ -208,10 +200,9 @@ public class CardEffectsHandler : NetworkBehaviour
                 break;
         }
 
-        entity.RpcEffectHighlight(false);
-
-        yield return new WaitForSeconds(3*effectWaitTime);
+        yield return new WaitForSeconds(2*effectWaitTime);
         _continue = true;
+        entity.RpcEffectHighlight(false);
 
         yield return null;
     }

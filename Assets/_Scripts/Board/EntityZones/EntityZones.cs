@@ -1,7 +1,7 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
+using DG.Tweening;
 
 public class EntityZones : NetworkBehaviour
 {
@@ -12,6 +12,7 @@ public class EntityZones : NetworkBehaviour
     [SerializeField] private List<BattleZoneEntity> _clientDevelopments = new();
 
     #region Entity Holders
+    [SerializeField] private Transform _spawnedEntityTransform;
     [SerializeField] private GameObject playerCreatureZone;
     [SerializeField] private GameObject playerDevelopmentZone;
     [SerializeField] private GameObject opponentCreatureZone;
@@ -28,9 +29,20 @@ public class EntityZones : NetworkBehaviour
     }
 
     [Server]
-    public void AddDevelopment(TechnologyEntity development, bool isHost){
-        if(isHost) _hostDevelopments.Add(development);
-        else _clientDevelopments.Add(development);
+    public void AddEntity(BattleZoneEntity entity, bool isHost)
+    {
+        if (entity.cardType == CardType.Technology)
+        {
+            var development = entity.GetComponent<TechnologyEntity>();
+            if(isHost) _hostDevelopments.Add(development);
+            else _clientDevelopments.Add(development);
+        }
+        else if (entity.cardType == CardType.Creature)
+        {
+            var creature = entity.GetComponent<CreatureEntity>();
+            if(isHost) _hostCreatures.Add(creature);
+            else _clientCreatures.Add(creature);
+        }
 
         ResetHolders();
     }
@@ -42,13 +54,6 @@ public class EntityZones : NetworkBehaviour
     }
 
     [Server]
-    public void AddCreature(CreatureEntity creature, bool isHost){
-        if(isHost) _hostCreatures.Add(creature);
-        else _clientCreatures.Add(creature);
-
-        ResetHolders();
-    }
-
     public void RemoveCreature(CreatureEntity creature, bool isHost){
         if(isHost) _hostCreatures.Remove(creature);
         else _clientCreatures.Remove(creature);
@@ -98,15 +103,24 @@ public class EntityZones : NetworkBehaviour
     }
 
     [ClientRpc]
+    public void RpcMoveEntityToSpawned(BattleZoneEntity e) => e.transform.SetParent(_spawnedEntityTransform, false);
+
+    [ClientRpc]
     public void RpcMoveEntityToHolder(BattleZoneEntity entity)
     {
         var targetTransform = FindHolderTransform(entity);
         if(!targetTransform) {
+            // TODO: Should check this at beginning of playCard phase -> dont allow it there
             print("No free holders found! Aborting to play entity...");
             return;
         }
-        entity.transform.SetParent(targetTransform, false);
-        entity.transform.localPosition = Vector3.zero;
+
+        entity.transform.DOMove(targetTransform.position, 0.5f).OnComplete(() => {
+            entity.transform.SetParent(targetTransform, true);
+            // entity.transform.position = Vector3.zero;
+        });
+
+
     }
 
     #region Entity holders

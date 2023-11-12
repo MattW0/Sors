@@ -24,21 +24,22 @@ public class DropZoneManager : NetworkBehaviour
     #region Entities ETB and LTB
 
     [Server]
-    public void EntityEntersDropZone(PlayerManager owner, BattleZoneEntity entity)
+    public IEnumerator EntitySpawns(PlayerManager owner, GameObject card, BattleZoneEntity entity)
     {
-        // print("Entering dropzone, owner: " + owner.name + ", card: " + entity.name);
-        if (entity.cardType == CardType.Technology)
-        {
-            var development = entity.GetComponent<TechnologyEntity>();
-            entityZones.AddDevelopment(development, owner.isLocalPlayer);
-        }
-        else if (entity.cardType == CardType.Creature)
-        {
-            var creature = entity.GetComponent<CreatureEntity>();
-            entityZones.AddCreature(creature, owner.isLocalPlayer);
-        }
+        entityZones.RpcMoveEntityToSpawned(entity);
 
+        // Need to await RPC for initialization
+        while (!entity.Owner) yield return new WaitForSeconds(0.1f);
+
+        // Keep track of entity objects for combat interactions
+        entityZones.AddEntity(entity, owner.isLocalPlayer);
+
+        // Spawning animation
+        yield return new WaitForSeconds(0.5f);
         entityZones.RpcMoveEntityToHolder(entity);
+        owner.RpcMoveCard(card, CardLocation.EntitySpawn, CardLocation.PlayZone);
+
+        yield return null;
     }
 
     [Server]

@@ -21,23 +21,33 @@ public class CardMover : MonoBehaviour
     [SerializeField] private CardsPileSors opponentDiscardPile;
     [SerializeField] private CardsPileSors trash;
     [SerializeField] private CardsPileSors spawned;
+    [SerializeField] private CardsPileSors entitySpawn;
     
     private void Awake(){
         if(!Instance) Instance = this;
     }
 
-    public void Trash(GameObject card, bool b) => Instance.MoveTo(card, b, CardLocation.Hand, CardLocation.Trash);
+    public void Trash(GameObject card, bool b) => MoveTo(card, b, CardLocation.Hand, CardLocation.Trash);
 
     public void MoveTo(GameObject card, bool hasAuthority, CardLocation from, CardLocation to)
     {
-        var sourcePile = GetPile(from, hasAuthority);
-        if(sourcePile) sourcePile.Remove(card); // pile is null if card just spawned
+        FlipCard(card, hasAuthority, to);
 
-        var destinationPile = GetPile(to, hasAuthority);
-        destinationPile.Add(card);
+        // TODO: Treat money play mechanic differently?
+        // Bugness with clicks faster than move time ...
+        var destinationTransform = GetPile(to, hasAuthority).transform;
+        card.transform.DOMove(destinationTransform.position, 0.1f).OnComplete(() => {
+            card.transform.SetParent(destinationTransform, true);
+            AddToPile(card, hasAuthority, from, to);
+        });
+    }
 
+    private void FlipCard(GameObject card, bool hasAuthority, CardLocation to){
         var cardUI = card.GetComponent<CardUI>();
-        if(to == CardLocation.Discard || to == CardLocation.MoneyZone || to == CardLocation.Trash){
+        if(to == CardLocation.Discard 
+            || to == CardLocation.MoneyZone 
+            || to == CardLocation.Trash
+            || to == CardLocation.EntitySpawn){
             cardUI.CardFrontUp();
         } else if (to == CardLocation.Hand && hasAuthority){
             cardUI.CardFrontUp();
@@ -46,12 +56,21 @@ public class CardMover : MonoBehaviour
         } else if (to == CardLocation.Deck) {
             cardUI.CardBackUp();
         }
-        cardUI.HighlightReset();
+    }
+
+    private void AddToPile(GameObject card, bool hasAuthority, CardLocation from, CardLocation to)
+    {
+        var sourcePile = GetPile(from, hasAuthority);
+        if(sourcePile) sourcePile.Remove(card); // pile is null if card just spawned
+
+        var destinationPile = GetPile(to, hasAuthority);
+        destinationPile.Add(card);
     }
 
     private CardsPileSors GetPile(CardLocation location, bool hasAuthority){
         var pile = location switch{
             CardLocation.Spawned => null,
+            CardLocation.EntitySpawn => entitySpawn,
             CardLocation.Trash => trash,
             CardLocation.Deck => hasAuthority ? playerDeck : opponentDeck,
             CardLocation.Hand => hasAuthority ? playerHand : opponentHand,
@@ -80,10 +99,7 @@ public class CardMover : MonoBehaviour
 
         yield return new WaitForSeconds(0.7f);
 
-        var destinationTransform = GetPile(destination, hasAuthority).transform;
-        card.transform.DOMove(destinationTransform.position, 0.5f).OnComplete(() => {
-            MoveTo(card, hasAuthority, CardLocation.Spawned, destination);
-        });
+        MoveTo(card, hasAuthority, CardLocation.Spawned, destination);
 
         yield return null;
     }
@@ -102,6 +118,7 @@ public class CardMover : MonoBehaviour
 public enum CardLocation : byte
 {
     Spawned,
+    EntitySpawn,
     Trash,
     Deck,
     Hand,

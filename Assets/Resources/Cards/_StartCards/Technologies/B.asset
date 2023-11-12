@@ -20,8 +20,11 @@ MonoBehaviour:
   attack: 0
   points: 0
   moneyValue: 0
-  triggers: 07000000
-  effects: 00000000
+  abilities:
+  - trigger: 5
+    effect: 1
+    target: 0
+    amount: 1
   keywordAbilities: 
   relationsTexts: []
   description: At the beginning of combat, draw a card

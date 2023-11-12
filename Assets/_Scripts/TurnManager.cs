@@ -201,13 +201,18 @@ public class TurnManager : NetworkBehaviour
         _readyPlayers.Clear();
         var nextPhase = phasesToPlay[0];
         phasesToPlay.RemoveAt(0);
-        _cardEffectsHandler.CheckPhaseTriggers(nextPhase);
+
+        StartCoroutine(CheckNextPhaseTriggers(nextPhase));
     }
 
-    public void NextTurnState(Phase nextPhase)
+    public IEnumerator CheckNextPhaseTriggers(Phase nextPhase)
     {
+        // To update SM and Phase Panel
         Enum.TryParse(nextPhase.ToString(), out TurnState nextTurnState);
         _playerInterfaceManager.RpcLog($"Turn changed to {nextTurnState}", LogType.Phase);
+
+        _cardEffectsHandler.CheckPhaseTriggers(nextPhase);
+        while(_cardEffectsHandler.QueueResolving) yield return new WaitForSeconds(0.1f);
 
         OnPhaseChanged?.Invoke(nextTurnState);
         UpdateTurnState(nextTurnState);
@@ -362,6 +367,12 @@ public class TurnManager : NetworkBehaviour
 
     private void PlayEntities()
     {
+        StartCoroutine(PlayCardsIntermission());
+    }
+
+    private IEnumerator PlayCardsIntermission()
+    {
+
         foreach (var (player, cards) in _selectedCards)
         {
             // print("Player " + player.PlayerName + " plays " + cards.Count + " cards");
@@ -369,23 +380,15 @@ public class TurnManager : NetworkBehaviour
             {
                 var cardInfo = card.GetComponent<CardStats>().cardInfo;
                 _gameManager.SpawnFieldEntity(player, card, cardInfo.type);
+                yield return new WaitForSeconds(2 * _cardEffectsHandler.effectWaitTime);
             }
         }
 
-        StartCoroutine(PlayCardsIntermission());
-    }
-
-    private IEnumerator PlayCardsIntermission()
-    {
-        yield return new WaitForSeconds(_cardEffectsHandler.effectWaitTime);
-
-        StartCoroutine(_cardEffectsHandler.StartResolvingQueue());
-
         // Waiting for CEH to set QueueResolving to false
-        while (_cardEffectsHandler.QueueResolving) yield return new WaitForSeconds(0.5f);
+        StartCoroutine(_cardEffectsHandler.StartResolvingQueue());
+        while (_cardEffectsHandler.QueueResolving) yield return new WaitForSeconds(0.1f);
 
         _boardManager.BoardCleanUp(false);
-
         CheckPlayAnotherCard();
     }
 
@@ -537,7 +540,7 @@ public class TurnManager : NetworkBehaviour
         }
 
         _cardCollectionPanel.RpcResetPanel();
-        _handManager.RpcResetHighlight();
+        // _handManager.RpcResetHighlight();
 
         NextPrevailOption();
     }
@@ -549,9 +552,9 @@ public class TurnManager : NetworkBehaviour
         {
             foreach (var card in cards)
             {
-                var stats = card.GetComponent<CardStats>();
-                player.hand.Remove(stats.cardInfo);
-                player.RpcTrashCard(card);
+                var cardInfo = card.GetComponent<CardStats>().cardInfo;
+                player.hand.Remove(cardInfo);
+                player.RpcTrashCard(card, cardInfo);
                 tempList.Add(card);
             }
         }
@@ -563,7 +566,7 @@ public class TurnManager : NetworkBehaviour
         }
 
         _cardCollectionPanel.RpcResetPanel();
-        _handManager.RpcResetHighlight();
+        // _handManager.RpcResetHighlight();
 
         NextPrevailOption();
     }
@@ -727,7 +730,7 @@ public class TurnManager : NetworkBehaviour
 
     public void ForceEndTurn()
     { // experimental
-        _handManager.RpcResetHighlight();
+        _handManager.RpcHighlightMoney(false);
         _cardCollectionPanel.RpcResetPanel();
         _kingdom.RpcEndKingdomPhase();
         _boardManager.ShowHolders(false);

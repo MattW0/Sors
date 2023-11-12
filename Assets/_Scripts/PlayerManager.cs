@@ -207,11 +207,11 @@ public class PlayerManager : NetworkBehaviour
         deck.Shuffle();
     }
 
-    public void PlayCard(GameObject card)
-    {
-        if (isServer) RpcMoveCard(card, CardLocation.Hand, CardLocation.PlayZone);
-        else CmdMoveCard(card, CardLocation.Hand, CardLocation.PlayZone);
-    }
+    // public void PlayCard(GameObject card)
+    // {
+    //     if (isServer) RpcMoveCard(card, CardLocation.Hand, CardLocation.PlayZone);
+    //     else CmdMoveCard(card, CardLocation.Hand, CardLocation.PlayZone);
+    // }
 
     [Command]
     private void CmdMoveCard(GameObject card, CardLocation from, CardLocation to) => RpcMoveCard(card, from, to);
@@ -305,7 +305,10 @@ public class PlayerManager : NetworkBehaviour
 
 
     [ClientRpc]
-    public void RpcTrashCard(GameObject card) => _cardMover.Trash(card, isOwned);
+    public void RpcTrashCard(GameObject card, CardInfo cardInfo) {
+        _cardMover.Trash(card, isOwned);
+        RemoveHandCard(cardInfo);
+    }
 
     #endregion Cards
 
@@ -359,7 +362,7 @@ public class PlayerManager : NetworkBehaviour
     {
         _turnManager.PlayerPlaysCard(this, card);
         RemoveHandCard(card.GetComponent<CardStats>().cardInfo);
-        PlayCard(card);
+        // PlayCard(card);
     }
 
     [Command]
@@ -616,6 +619,7 @@ public class PlayerManager : NetworkBehaviour
     [ClientRpc]
     private void RpcPlayMoney(GameObject card)
     {
+        // TODO: Does this make sense like this ? Bugness
         _cardMover.MoveTo(card, isOwned, CardLocation.Hand, CardLocation.MoneyZone);
         if (isOwned) _handManager.UpdateHandsCardList(card, false);
     }
