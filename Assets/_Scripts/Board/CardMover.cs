@@ -31,14 +31,17 @@ public class CardMover : MonoBehaviour
 
     public void MoveTo(GameObject card, bool hasAuthority, CardLocation from, CardLocation to)
     {
+        RemoveFromPile(card, hasAuthority, from);
         FlipCard(card, hasAuthority, to);
 
         // TODO: Treat money play mechanic differently?
         // Bugness with clicks faster than move time ...
         var destinationTransform = GetPile(to, hasAuthority).transform;
-        card.transform.DOMove(destinationTransform.position, 0.1f).OnComplete(() => {
+        card.transform.DOScale(0.7f, 0.5f);
+        card.transform.DOMove(destinationTransform.position, 0.5f).OnComplete(() => {
             card.transform.SetParent(destinationTransform, true);
-            AddToPile(card, hasAuthority, from, to);
+            card.transform.localScale = Vector3.one;
+            AddToPile(card, hasAuthority, to);
         });
     }
 
@@ -58,11 +61,14 @@ public class CardMover : MonoBehaviour
         }
     }
 
-    private void AddToPile(GameObject card, bool hasAuthority, CardLocation from, CardLocation to)
+    private void RemoveFromPile(GameObject card, bool hasAuthority, CardLocation from)
     {
         var sourcePile = GetPile(from, hasAuthority);
         if(sourcePile) sourcePile.Remove(card); // pile is null if card just spawned
+    }
 
+    private void AddToPile(GameObject card, bool hasAuthority, CardLocation to)
+    {
         var destinationPile = GetPile(to, hasAuthority);
         destinationPile.Add(card);
     }

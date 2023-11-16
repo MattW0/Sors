@@ -84,7 +84,7 @@ public class DropZoneManager : NetworkBehaviour
 
         // Get opponent attackable targets
         var targets = entityZones.GetTechnologies(!player.isLocalPlayer);
-        targets.Add(opponent);
+        if(opponent) targets.Add(opponent);
 
         // Else we enable entities to be tapped and wait for player to declare attackers and press ready btn
         TargetDeclareAttackers(player.connectionToClient, creatures);

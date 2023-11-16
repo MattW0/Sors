@@ -159,14 +159,6 @@ PrefabInstance:
       propertyPath: _assetId
       value: 3583319562
       objectReference: {fileID: 0}
-    - target: {fileID: 3934348760645149788, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4168872778950860316, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -17.3
-      objectReference: {fileID: 0}
     - target: {fileID: 4481429765371893306, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -188,15 +180,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 3272610017555818009}
     - target: {fileID: 7025200807447420495, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 4c8b4d80242da924a93190535822d59d, type: 3}
+    - target: {fileID: 7025200807447420495, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
       propertyPath: m_Color.a
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7568832521848376845, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 19.9
-      objectReference: {fileID: 0}
-    - target: {fileID: 8100000750348994825, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
-      propertyPath: m_CullTransparentMesh
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8726007311086192731, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
@@ -276,6 +264,7 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   _entityUI: {fileID: 5284543431838378506}
+  cardType: 0
   _cardInfo:
     goID: 
     hash: 
@@ -289,7 +278,6 @@ MonoBehaviour:
     moneyValue: 0
     abilities: []
     keywordAbilities: 
-  cardType: 0
   _health: 0
   _attack: 0
   _points: 0

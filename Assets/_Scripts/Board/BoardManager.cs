@@ -65,19 +65,32 @@ public class BoardManager : NetworkBehaviour
 
     #region Combat
 
-    public void StartCombatPhase(CombatState state) => StartCoroutine(CombatTransitionAnimation(state));
-
-    private IEnumerator CombatTransitionAnimation(CombatState state)
+    public void StartCombatPhase(CombatState state)
     {
         _combatState = state;
         _phasePanel.RpcStartCombatPhase(state);
+
+        StartCoroutine(CombatTransitionAnimation(state));
+    }
+
+    private IEnumerator CombatTransitionAnimation(CombatState state)
+    {
         yield return new WaitForSeconds(1f);
+
         if (state == CombatState.Attackers) DeclareAttackers();
         else if (state == CombatState.Blockers) DeclareBlockers();
+        else if (state == CombatState.CleanUp) CombatCleanUp();
     }
 
     private void DeclareAttackers() {
-        foreach (var player in _gameManager.players.Keys) 
+
+        if (_gameManager.singlePlayer) 
+        {
+            _dropZone.StartDeclareAttackers(_gameManager.players.Keys.ToList()[0], null);
+            return;
+        }
+
+        foreach (var player in _gameManager.players.Keys)
         {
             var opponentEntity = _gameManager.GetOpponent(player).GetComponent<BattleZoneEntity>();
             _dropZone.StartDeclareAttackers(player, opponentEntity);
@@ -100,7 +113,7 @@ public class BoardManager : NetworkBehaviour
         _deadEntities.Add(entity);
     }
 
-    public void CombatCleanUp()
+    private void CombatCleanUp()
     {
         ClearDeadEntities();
 

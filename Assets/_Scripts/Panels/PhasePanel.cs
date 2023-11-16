@@ -24,12 +24,14 @@ public class PhasePanel : NetworkBehaviour
     private TurnScreenOverlay _turnScreenOverlay;
     public static event Action OnPhaseSelectionStarted;
     public static event Action OnPhaseSelectionConfirmed;
+    public static event Action OnCombatStart;
+    public static event Action OnCombatEnd;
     
     private void Awake() {
         if (!Instance) Instance = this;
 
         TurnManager.OnPhaseChanged += RpcUpdatePhaseHighlight;
-        CombatManager.OnCombatStateChanged += RpcUpdateCombatHighlight;
+        CombatManager.OnCombatStateChanged += RpcCombatStateChanged;
     }
 
     #region Prepare and Phase Selection
@@ -98,14 +100,18 @@ public class PhasePanel : NetworkBehaviour
     }
     
     [ClientRpc]
-    private void RpcUpdateCombatHighlight(CombatState newState) {
+    private void RpcCombatStateChanged(CombatState newState) 
+    {
+        if(newState == CombatState.Attackers) OnCombatStart?.Invoke();
+        else if (newState == CombatState.CleanUp) OnCombatEnd?.Invoke();
+
         var newHighlightIndex = newState switch
         {
             CombatState.Attackers => 4,
             CombatState.Blockers => 5,
             _ => -1
         };
-        
+
         _phasePanelUI.UpdatePhaseHighlight(newHighlightIndex);
     }
 
@@ -161,6 +167,6 @@ public class PhasePanel : NetworkBehaviour
 
     private void OnDestroy() {
         TurnManager.OnPhaseChanged -= RpcUpdatePhaseHighlight;
-        CombatManager.OnCombatStateChanged -= RpcUpdateCombatHighlight;
+        CombatManager.OnCombatStateChanged -= RpcCombatStateChanged;
     }
 }

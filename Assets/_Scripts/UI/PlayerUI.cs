@@ -6,6 +6,9 @@ using UnityEngine.EventSystems;
 public class PlayerUI : MonoBehaviour, IPointerClickHandler
 {
     private BattleZoneEntity _playerEntity;
+    private Vector3 _idlePosition;
+    [SerializeField] private Vector3 _combatPosition;
+
 
     [Header("Player Stats")]
     [SerializeField] private TMP_Text playerName;
@@ -21,7 +24,26 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
     [SerializeField] private Image highlight;
     private bool _isTargetable;
 
+    private void Awake()
+    {
+        _idlePosition = transform.position;
+
+        PhasePanel.OnCombatStart += StartCombat;
+        PhasePanel.OnCombatEnd += EndCombat;
+    }
+
     public void SetEntity(BattleZoneEntity e) => _playerEntity = e;
+
+    private void StartCombat()
+    {
+        transform.position += _combatPosition;
+    }
+
+    private void EndCombat()
+    {
+        transform.position -= _combatPosition;
+    }
+
     public void OnPointerClick(PointerEventData eventData)
     {
         if(!_isTargetable) return;
@@ -49,4 +71,9 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
     public void SetDevelops(int value) => turnDevelops.text = value.ToString();
     public void SetDeploys(int value) => turnDeploys.text = value.ToString();
     public void SetRecruits(int value) => turnRecruits.text = value.ToString();
+
+    private void OnDestroy(){
+        PhasePanel.OnCombatStart -= StartCombat;
+        PhasePanel.OnCombatEnd -= EndCombat;
+    }
 }

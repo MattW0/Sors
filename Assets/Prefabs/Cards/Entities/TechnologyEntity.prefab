@@ -19,6 +19,18 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 140034960745397291, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
+      propertyPath: m_Color.b
+      value: 0.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 140034960745397291, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
+      propertyPath: m_Color.g
+      value: 0.45
+      objectReference: {fileID: 0}
+    - target: {fileID: 140034960745397291, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
+      propertyPath: m_Color.r
+      value: 0.65
+      objectReference: {fileID: 0}
     - target: {fileID: 325497050516565303, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
       propertyPath: entity
       value: 
@@ -163,6 +175,10 @@ PrefabInstance:
       propertyPath: colorType
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 2602091923678060804, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3832082598974657053, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
       propertyPath: _assetId
       value: 81739632
@@ -198,6 +214,10 @@ PrefabInstance:
     - target: {fileID: 6163234686391447415, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
       propertyPath: m_Enabled
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6239496242024032114, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
+      propertyPath: m_Color.r
+      value: 0.34
       objectReference: {fileID: 0}
     - target: {fileID: 6725785406550700901, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
       propertyPath: m_IsActive
@@ -287,6 +307,7 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   _entityUI: {fileID: 5284543431838378506}
+  cardType: 0
   _cardInfo:
     goID: 
     hash: 
@@ -300,7 +321,6 @@ MonoBehaviour:
     moneyValue: 0
     abilities: []
     keywordAbilities: 
-  cardType: 0
   _health: 0
   _attack: 0
   _points: 0

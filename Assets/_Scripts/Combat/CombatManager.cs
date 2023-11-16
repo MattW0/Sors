@@ -54,6 +54,7 @@ public class CombatManager : NetworkBehaviour
                 break;
             case CombatState.CleanUp:
                 ResolveCombat(false);
+                _boardManager.StartCombatPhase(CombatState.CleanUp);
                 break;
             default:
                 print("<color=red>Invalid turn state</color>");
@@ -283,7 +284,6 @@ public class CombatManager : NetworkBehaviour
         _readyPlayers.Clear();
         _attackerTarget.Clear();
         _blockerAttacker.Clear();
-        _boardManager.CombatCleanUp();
         
         UpdateCombatState(CombatState.Idle);
         if(!forced) _turnManager.CombatCleanUp();

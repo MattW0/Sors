@@ -547,23 +547,25 @@ public class TurnManager : NetworkBehaviour
 
     private void FinishPrevailTrash()
     {
-        var tempList = new List<GameObject>();
+        // var tempList = new List<GameObject>();
         foreach (var (player, cards) in _selectedCards)
         {
             foreach (var card in cards)
             {
+                card.GetComponent<NetworkIdentity>().RemoveClientAuthority();
+
                 var cardInfo = card.GetComponent<CardStats>().cardInfo;
                 player.hand.Remove(cardInfo);
-                player.RpcTrashCard(card, cardInfo);
-                tempList.Add(card);
+                player.RpcMoveCard(card, CardLocation.Hand, CardLocation.Trash);
+                // tempList.Add(card);
             }
         }
 
-        foreach (var obj in tempList)
-        {
-            // NetworkServer.Destroy(obj);
-            obj.GetComponent<NetworkIdentity>().RemoveClientAuthority();
-        }
+        // foreach (var obj in tempList)
+        // {
+        //     // NetworkServer.Destroy(obj);
+        //     // obj.GetComponent<NetworkIdentity>().RemoveClientAuthority();
+        // }
 
         _cardCollectionPanel.RpcResetPanel();
         // _handManager.RpcResetHighlight();

@@ -8,6 +8,7 @@ using UnityEngine.UI;
 public class PhasePanelUI : MonoBehaviour
 {
     public static PhasePanelUI Instance { get; private set; }
+    [SerializeField] private Camera _cam;
 
     [Header("Player Settings")]
     private int _nbPlayers;
@@ -28,6 +29,8 @@ public class PhasePanelUI : MonoBehaviour
         if (!Instance) Instance = this;
         
         progressBarHighlight.color = SorsColors.phaseHighlight;
+        PhasePanel.OnCombatStart += StartCombat;
+        PhasePanel.OnCombatEnd += EndCombat;
     }
 
     public void PrepareUI(int nbPlayers){
@@ -37,6 +40,13 @@ public class PhasePanelUI : MonoBehaviour
         _oldHighlight = phaseHighlights[^1];
         UpdatePhaseHighlight(0);
     }
+    public void StartCombat(){
+        _cam.gameObject.transform.position = new Vector3(-0.55f, 8, 1.25f);
+    }
+
+    public void EndCombat(){
+        _cam.gameObject.transform.position = new Vector3(0, 10, 0);
+    }
 
     public void ShowOpponentChoices(Phase[] phases){
         foreach(var phase in phases){
@@ -45,6 +55,7 @@ public class PhasePanelUI : MonoBehaviour
 
     }
 
+    #region Phase Highlights
     public void UpdatePhaseHighlight(int newHighlightIndex){
         switch (newHighlightIndex) {
             case -1:  // No highlightable phase
@@ -66,10 +77,10 @@ public class PhasePanelUI : MonoBehaviour
         
         newImg.CrossFadeAlpha(1f, fadeDuration, false);
     }
+    #endregion
 
-    // private void PlayerChoiceTransition(Graphic img, bool active)
-    // {
-    //     if(active) img.CrossFadeAlpha(1f, fadeDuration, false);
-    //     else img.CrossFadeAlpha(playerChoiceInactiveAlpha, fadeDuration, false);
-    // }
+    private void OnDestroy(){
+        PhasePanel.OnCombatStart -= StartCombat;
+        PhasePanel.OnCombatEnd -= EndCombat;
+    }
 }

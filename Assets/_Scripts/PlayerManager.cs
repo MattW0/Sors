@@ -303,11 +303,11 @@ public class PlayerManager : NetworkBehaviour
         moneyCards.Clear();
     }
 
-
     [ClientRpc]
-    public void RpcTrashCard(GameObject card, CardInfo cardInfo) {
+    public void RpcTrashCard(GameObject card, CardInfo cardInfo)
+    {
         _cardMover.Trash(card, isOwned);
-        RemoveHandCard(cardInfo);
+        // RemoveHandCard(cardInfo);
     }
 
     #endregion Cards
