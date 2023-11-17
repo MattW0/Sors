@@ -42,19 +42,17 @@ public class CombatManager : NetworkBehaviour
                 break;
             case CombatState.Attackers:
                 _playerInterfaceManager.RpcLog(" --- Starting Combat --- ", LogType.Combat);
-                _boardManager.StartCombatPhase(CombatState.Attackers);
                 break;
             case CombatState.Blockers:
                 _playerInterfaceManager.RpcLog("   - Attackers declared", LogType.Combat);
-                _boardManager.StartCombatPhase(CombatState.Blockers);
                 break;
             case CombatState.Damage:
                 _playerInterfaceManager.RpcLog("   - Blockers declared", LogType.Combat);
                 ResolveDamage();
                 break;
             case CombatState.CleanUp:
+                _playerInterfaceManager.RpcLog(" --- Combat ends --- ", LogType.Combat);
                 ResolveCombat(false);
-                _boardManager.StartCombatPhase(CombatState.CleanUp);
                 break;
             default:
                 print("<color=red>Invalid turn state</color>");
@@ -136,7 +134,8 @@ public class CombatManager : NetworkBehaviour
     }
 
     #region Damage
-    private void ResolveDamage(){
+    private void ResolveDamage()
+    {
         // Skip damage logic if there are no attackers 
         if (_blockerAttacker.Keys.Count == 0){
             UpdateCombatState(CombatState.CleanUp);
@@ -146,8 +145,8 @@ public class CombatManager : NetworkBehaviour
         StartCoroutine(Blocks());
     }
 
-    private IEnumerator Blocks(){
-
+    private IEnumerator Blocks()
+    {
         print($"Blocked creatures : {_blockerAttacker.Count}");
         print($"Unlocked creatures pre blocks : {_attackerTarget.Count}");
 
@@ -174,8 +173,8 @@ public class CombatManager : NetworkBehaviour
         StartCoroutine(Unblocked());
     }
 
-    private IEnumerator Unblocked(){
-
+    private IEnumerator Unblocked()
+    {
         print($"Unblocked creatures after blocks : {_attackerTarget.Count}");
 
         var playerAttackers = new List<CreatureEntity>();
@@ -197,7 +196,6 @@ public class CombatManager : NetworkBehaviour
 
         print($"Creatures attacking player(s) : {playerAttackers.Count}");
         StartCoroutine(PlayerDamage(playerAttackers));
-        yield return null;
     }
 
     private IEnumerator PlayerDamage(List<CreatureEntity> playerAttackers)
@@ -223,7 +221,7 @@ public class CombatManager : NetworkBehaviour
     }   
     #endregion
 
-    #region CombatLogic
+    #region Combat Logic
     private void CombatClash(CreatureEntity attacker, BattleZoneEntity blocker){
 
         var firstStrike = CheckFirststrike(attacker, blocker);
@@ -280,13 +278,14 @@ public class CombatManager : NetworkBehaviour
     }
     #endregion
 
-    public void ResolveCombat(bool forced){
+    public void ResolveCombat(bool forced)
+    {
         _readyPlayers.Clear();
         _attackerTarget.Clear();
         _blockerAttacker.Clear();
         
         UpdateCombatState(CombatState.Idle);
-        if(!forced) _turnManager.CombatCleanUp();
+        if(!forced) _turnManager.FinishCombat();
     }
 
     public void PlayerPressedReadyButton(PlayerManager player) => _boardManager.PlayerPressedReadyButton(player);

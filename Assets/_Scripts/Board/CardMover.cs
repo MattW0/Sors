@@ -38,7 +38,7 @@ public class CardMover : MonoBehaviour
         // Bugness with clicks faster than move time ...
         var destinationTransform = GetPile(to, hasAuthority).transform;
         card.transform.DOScale(0.7f, 0.5f);
-        card.transform.DOMove(destinationTransform.position, 0.5f).OnComplete(() => {
+        card.transform.DOMove(destinationTransform.position, 0.5f).SetEase(Ease.InOutCubic).OnComplete(() => {
             card.transform.SetParent(destinationTransform, true);
             card.transform.localScale = Vector3.one;
             AddToPile(card, hasAuthority, to);

@@ -21,6 +21,8 @@ public class BoardManager : NetworkBehaviour
     private CombatState _combatState;
 
     // Events
+    public static event Action OnCombatStart;
+    public static event Action OnCombatEnd;
     public static event Action<PlayerManager> OnAttackersDeclared;
     public static event Action<PlayerManager> OnBlockersDeclared;
 
@@ -28,6 +30,11 @@ public class BoardManager : NetworkBehaviour
     {
         if (!Instance) Instance = this;
 
+        CombatManager.OnCombatStateChanged += StartCombatPhase;
+    }
+
+    private void Start()
+    {
         _gameManager = GameManager.Instance;
         _dropZone = DropZoneManager.Instance;
     }
@@ -77,10 +84,20 @@ public class BoardManager : NetworkBehaviour
     {
         yield return new WaitForSeconds(1f);
 
-        if (state == CombatState.Attackers) DeclareAttackers();
-        else if (state == CombatState.Blockers) DeclareBlockers();
+        if (state == CombatState.Attackers) {
+            DeclareAttackers();
+            RpcStartAttackers();
+        } else if (state == CombatState.Blockers) {
+            DeclareBlockers();
+            RpcStartBlockers();
+        }
         else if (state == CombatState.CleanUp) CombatCleanUp();
     }
+
+    [ClientRpc]
+    private void RpcStartAttackers() => OnCombatStart?.Invoke();
+    [ClientRpc]
+    private void RpcStartBlockers() => OnCombatEnd?.Invoke();
 
     private void DeclareAttackers() {
 
@@ -156,7 +173,6 @@ public class BoardManager : NetworkBehaviour
     }
 
     #region UI
-
     public void PlayerPressedReadyButton(PlayerManager player){
         if (_combatState == CombatState.Attackers)
         {
@@ -181,4 +197,9 @@ public class BoardManager : NetworkBehaviour
     public void DisableReadyButton(PlayerManager player) => _phasePanel.TargetDisableCombatButtons(player.connectionToClient);
     public void DiscardMoney() => _dropZone.RpcDiscardMoney();
     #endregion
+    private void OnDestroy()
+    {
+        CombatManager.OnCombatStateChanged -= StartCombatPhase;
+    }
+
 }

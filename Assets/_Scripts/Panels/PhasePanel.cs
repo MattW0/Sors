@@ -24,8 +24,6 @@ public class PhasePanel : NetworkBehaviour
     private TurnScreenOverlay _turnScreenOverlay;
     public static event Action OnPhaseSelectionStarted;
     public static event Action OnPhaseSelectionConfirmed;
-    public static event Action OnCombatStart;
-    public static event Action OnCombatEnd;
     
     private void Awake() {
         if (!Instance) Instance = this;
@@ -102,9 +100,6 @@ public class PhasePanel : NetworkBehaviour
     [ClientRpc]
     private void RpcCombatStateChanged(CombatState newState) 
     {
-        if(newState == CombatState.Attackers) OnCombatStart?.Invoke();
-        else if (newState == CombatState.CleanUp) OnCombatEnd?.Invoke();
-
         var newHighlightIndex = newState switch
         {
             CombatState.Attackers => 4,

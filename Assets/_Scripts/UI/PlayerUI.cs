@@ -28,8 +28,8 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
     {
         _idlePosition = transform.position;
 
-        PhasePanel.OnCombatStart += StartCombat;
-        PhasePanel.OnCombatEnd += EndCombat;
+        BoardManager.OnCombatStart += StartCombat;
+        BoardManager.OnCombatEnd += EndCombat;
     }
 
     public void SetEntity(BattleZoneEntity e) => _playerEntity = e;
@@ -73,7 +73,7 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
     public void SetRecruits(int value) => turnRecruits.text = value.ToString();
 
     private void OnDestroy(){
-        PhasePanel.OnCombatStart -= StartCombat;
-        PhasePanel.OnCombatEnd -= EndCombat;
+        BoardManager.OnCombatStart -= StartCombat;
+        BoardManager.OnCombatEnd -= EndCombat;
     }
 }

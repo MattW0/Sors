@@ -14,8 +14,8 @@ public class HandInteractionUI : MonoBehaviour
     [Header("UI")]
     [SerializeField] private static GameObject _view;
     [SerializeField] private Transform _playerHand;
-    private Vector3 _handPositionStandard = new Vector3(70f, 50f, 0f);
-    private Vector3 _handPositionPlayCards = new Vector3(-220f, 50f, 0f);
+    private Vector3 _handPositionStandard = Vector3.zero;
+    private Vector3 _handPositionPlayCards = new Vector3(-180, 0, 0);
     [SerializeField] private Image _fullViewImage;
     [SerializeField] private GameObject _waitingText;
     [SerializeField] private GameObject _buttons;

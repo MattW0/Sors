@@ -436,7 +436,7 @@ public class TurnManager : NetworkBehaviour
     #endregion
 
     private void Combat() => combatManager.UpdateCombatState(CombatState.Attackers);
-    public void CombatCleanUp() => UpdateTurnState(TurnState.NextPhase);
+    public void FinishCombat() => UpdateTurnState(TurnState.NextPhase);
 
     #region Prevail
     private void Prevail()
