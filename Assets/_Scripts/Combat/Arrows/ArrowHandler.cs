@@ -12,6 +12,7 @@ public class ArrowHandler : MonoBehaviour
     public bool HasOrigin { get; private set; }
     public bool HasTarget { get; private set; }
     public CombatState CurrentCombatState { get; private set; }
+    
     public void CombatStateChanged(CombatState newState){
         CurrentCombatState = newState;
         if(newState == CombatState.CleanUp) RemoveArrow(true);
@@ -34,7 +35,6 @@ public class ArrowHandler : MonoBehaviour
 
         HasOrigin = true;
     }
-
 
     public void HandleFoundTarget(Transform target)
     {

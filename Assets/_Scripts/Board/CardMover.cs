@@ -27,17 +27,13 @@ public class CardMover : MonoBehaviour
         if(!Instance) Instance = this;
     }
 
-    public void Trash(GameObject card, bool b) => MoveTo(card, b, CardLocation.Hand, CardLocation.Trash);
-
     public void MoveTo(GameObject card, bool hasAuthority, CardLocation from, CardLocation to)
     {
         RemoveFromPile(card, hasAuthority, from);
         FlipCard(card, hasAuthority, to);
 
-        // TODO: Treat money play mechanic differently?
-        // Bugness with clicks faster than move time ...
         var destinationTransform = GetPile(to, hasAuthority).transform;
-        card.transform.DOScale(0.7f, 0.5f);
+        // card.transform.DOScale(0.7f, 0.5f);
         card.transform.DOMove(destinationTransform.position, 0.5f).SetEase(Ease.InOutCubic).OnComplete(() => {
             card.transform.SetParent(destinationTransform, true);
             card.transform.localScale = Vector3.one;
@@ -116,7 +112,6 @@ public class CardMover : MonoBehaviour
                 StartCoroutine(SpawnCard(card, hasAuthority, dest));
                 yield return new WaitForSeconds(waitTime);
             }
-            // yield return new WaitForSeconds(1f);
         }
     }
 }

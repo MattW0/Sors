@@ -367,22 +367,29 @@ public class TurnManager : NetworkBehaviour
 
     private void PlayEntities()
     {
+        Dictionary<GameObject, BattleZoneEntity> entities = new();
+        foreach (var (player, cards) in _selectedCards)
+        {
+            foreach (var card in cards) entities.Add(card, _gameManager.SpawnFieldEntity(player, card));
+        }
+
+        // Keeps track of card <-> entity relation
+        _boardManager.PlayEntities(entities);
+
+        // Skip waiting for entity ability checks
+        if (entities.Count == 0){
+            _boardManager.BoardCleanUp(false);
+            CheckPlayAnotherCard();
+            return;
+        } 
+        
         StartCoroutine(PlayCardsIntermission());
     }
 
     private IEnumerator PlayCardsIntermission()
     {
-
-        foreach (var (player, cards) in _selectedCards)
-        {
-            // print("Player " + player.PlayerName + " plays " + cards.Count + " cards");
-            foreach (var card in cards)
-            {
-                var cardInfo = card.GetComponent<CardStats>().cardInfo;
-                _gameManager.SpawnFieldEntity(player, card, cardInfo.type);
-                yield return new WaitForSeconds(2 * _cardEffectsHandler.effectWaitTime);
-            }
-        }
+        // Waiting for Entities abilities (ETB) being tracked 
+        yield return new WaitForSeconds(0.5f);
 
         // Waiting for CEH to set QueueResolving to false
         StartCoroutine(_cardEffectsHandler.StartResolvingQueue());

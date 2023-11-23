@@ -14,6 +14,9 @@ public class BlockerArrowHandler : ArrowHandler, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
+        // Right click to preview card only (handled in entityUI)
+        if (eventData.button == PointerEventData.InputButton.Right) return;
+
         if(!_creature) return;
         // return if not in Blockers Phase
         if (CurrentCombatState != CombatState.Blockers) return;

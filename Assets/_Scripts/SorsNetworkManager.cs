@@ -34,15 +34,13 @@ public class SorsNetworkManager : NetworkManager
             print("Waiting for players...");
             yield return new WaitForSeconds(1);
         }
-        
-        StartCoroutine(StartGame());
+
+        yield return new WaitForSeconds(0.5f);        
+        StartGame();
     }
 
-    private IEnumerator StartGame(){
-        yield return new WaitForSeconds(0.5f);
-
+    private void StartGame(){
         OnAllPlayersReady?.Invoke(gameOptions);
-        yield return null;
     }
 
     public override void OnClientConnect()

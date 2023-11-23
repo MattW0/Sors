@@ -103,7 +103,13 @@ public class EntityZones : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcMoveEntityToSpawned(BattleZoneEntity e) => e.transform.SetParent(_spawnedEntityTransform, false);
+    public void RpcMoveEntityToSpawned(BattleZoneEntity e){
+        e.transform.DOMove(_spawnedEntityTransform.position, 0.5f).SetEase(Ease.InOutCubic).OnComplete(() => {
+            e.transform.SetParent(_spawnedEntityTransform, false);
+            e.transform.position = Vector3.zero;
+            // e.transform.localScale = Vector3.one;
+        });
+    }
 
     [ClientRpc]
     public void RpcMoveEntityToHolder(BattleZoneEntity entity)
@@ -119,8 +125,6 @@ public class EntityZones : NetworkBehaviour
             entity.transform.SetParent(targetTransform, true);
             // entity.transform.position = Vector3.zero;
         });
-
-
     }
 
     #region Entity holders

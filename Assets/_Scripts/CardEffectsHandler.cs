@@ -33,11 +33,13 @@ public class CardEffectsHandler : NetworkBehaviour
         _playerInterfaceManager = PlayerInterfaceManager.Instance;
     }
 
-    public void CardIsPlayed(PlayerManager owner, BattleZoneEntity entity, CardInfo cardInfo){
-        if (cardInfo.abilities.Count == 0) return;
+    public void CardIsPlayed(BattleZoneEntity entity){
+
+        List<Ability> abilities = entity.CardInfo.abilities;
+        if (abilities == null || abilities.Count == 0) return;
 
         var activeAbilities = new List<Ability>();
-        foreach (var ability in cardInfo.abilities){
+        foreach (var ability in abilities){
             // Triggers and effects have the same index and a 1-1 relation
             var trigger = ability.trigger;
 

@@ -39,17 +39,17 @@ public class BoardManager : NetworkBehaviour
         _dropZone = DropZoneManager.Instance;
     }
 
-    public void AddEntity(PlayerManager owner, PlayerManager opponent,
-                          GameObject card, BattleZoneEntity entity, bool isPlayed = true) 
+    public void PlayEntities(Dictionary<GameObject, BattleZoneEntity> entities, bool fromFile = false) 
     {
-        // Initialize and keep track which card object corresponds to which entity
-        var cardInfo = card.GetComponent<CardStats>().cardInfo;
-        entity.RpcInitializeEntity(owner, opponent, cardInfo);
-        _entitiesObjectsCache.Add(entity, card);
-        // Can be loaded from json at the beginning
-        if(isPlayed) _cardEffectsHandler.CardIsPlayed(owner, entity, cardInfo);
+        foreach(var (card, entity) in entities){
+            // Initialize and keep track which card object corresponds to which entity
+            _entitiesObjectsCache.Add(entity, card);
+            
+            // Check for ETB and if phase start trigger gets added to phases being tracked
+            if(!fromFile) _cardEffectsHandler.CardIsPlayed(entity);
+        }
 
-        StartCoroutine(_dropZone.EntitySpawns(owner, card, entity));
+        StartCoroutine(_dropZone.EntitiesEnterDropZone(entities));
     }
 
     #region Effects
@@ -127,6 +127,7 @@ public class BoardManager : NetworkBehaviour
         // Catch exception where entity was already dead and received more damage
         if (_deadEntities.Contains(entity)) return;
 
+        print($"{entity.Title} dies");
         _deadEntities.Add(entity);
     }
 
@@ -152,6 +153,7 @@ public class BoardManager : NetworkBehaviour
 
     public void ClearDeadEntities()
     {
+        print("_deadEntities : " + _deadEntities.Count);
         foreach (var dead in _deadEntities)
         {
             _dropZone.EntityLeavesPlayZone(dead);

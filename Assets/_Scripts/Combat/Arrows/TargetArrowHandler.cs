@@ -14,6 +14,9 @@ public class TargetArrowHandler : ArrowHandler, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
+        // Right click to preview card only (handled in entityUI)
+        if (eventData.button == PointerEventData.InputButton.Right) return;
+
         // return if entity is not targetable 
         if (!_entity.IsTargetable) return;
 

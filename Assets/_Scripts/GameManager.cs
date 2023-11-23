@@ -58,7 +58,6 @@ public class GameManager : NetworkBehaviour {
     public int prevailExtraOptions = 2;
     public int deployBonusDeploys = 1;
 
-
     [Header("Available cards")]
     public ScriptableCard[] startCreatures;
     public ScriptableCard[] startTechnologies;
@@ -75,6 +74,9 @@ public class GameManager : NetworkBehaviour {
     [SerializeField] private GameObject technologyCardPrefab;
     [SerializeField] private GameObject creatureEntityPrefab;
     [SerializeField] private GameObject technologyEntityPrefab;
+
+    [Header("Helpers")]
+    [SerializeField] private Transform _entitySpawnTransform;
 
     // Caching all gameObjects of cards in game
     private static Dictionary<string, GameObject> Cache { get; set; } = new();
@@ -250,7 +252,7 @@ public class GameManager : NetworkBehaviour {
             // To update string in network
             player.PlayerName = p.playerName;
             SpawnCardsFromFile(player, p.cards);
-            SpawnEntitiesFromFile(player, p.entities);
+            StartCoroutine(SpawnEntitiesFromFile(player, p.entities));
         }
 
         OnGameStart?.Invoke(players.Count);
@@ -274,25 +276,33 @@ public class GameManager : NetworkBehaviour {
         }
     }
 
-    private void SpawnEntitiesFromFile(PlayerManager p, Entities entities)
+    private IEnumerator SpawnEntitiesFromFile(PlayerManager p, Entities entities)
     {
+        var entitiesDict = new Dictionary<GameObject, BattleZoneEntity>();
+
         foreach(var e in entities.creatures){
             var scriptableCard = Resources.Load<ScriptableCard>(e);
             var cardObject = SpawnCardAndMoveTo(p, scriptableCard, CardLocation.PlayZone);
-            StartCoroutine(WaitForCardInit(p, cardObject, scriptableCard.type));
+            
+            // Wait for card initialization
+            yield return new WaitForSeconds(0.1f);
+            var entity = SpawnFieldEntity(p, cardObject);
+
+            entitiesDict.Add(cardObject, entity);
         }
 
         foreach(var e in entities.technologies){
             var scriptableCard = Resources.Load<ScriptableCard>(e);
             var cardObject = SpawnCardAndMoveTo(p, scriptableCard, CardLocation.PlayZone);
-            StartCoroutine(WaitForCardInit(p, cardObject, scriptableCard.type));
-        }
-    }
+            
+            // Wait for card initialization
+            yield return new WaitForSeconds(0.1f);
+            var entity = SpawnFieldEntity(p, cardObject);
 
-    private IEnumerator WaitForCardInit(PlayerManager p, GameObject card, CardType type){
-        yield return new WaitForSeconds(0.1f);
-        SpawnFieldEntity(p, card, type, false);
-        yield return null;
+            entitiesDict.Add(cardObject, entity);
+        }
+
+        _boardManager.PlayEntities(entitiesDict, fromFile: true);
     }
 
     #endregion
@@ -374,24 +384,30 @@ public class GameManager : NetworkBehaviour {
         else owner.RpcMoveCard(cardObject, CardLocation.Spawned, destination);
     }
 
-    public void SpawnFieldEntity(PlayerManager owner, GameObject card, CardType type, bool isPlayed = true)
+    public BattleZoneEntity SpawnFieldEntity(PlayerManager owner, GameObject card)
     {
-        // Entity object prefab depending on type
-        GameObject entityObject = type switch
+        var cardInfo = card.GetComponent<CardStats>().cardInfo;
+
+        // Entity prefab depending on type
+        GameObject entityObject = cardInfo.type switch
         {
-            CardType.Creature => Instantiate(creatureEntityPrefab) as GameObject,
-            CardType.Technology => Instantiate(technologyEntityPrefab) as GameObject,
+            CardType.Creature => Instantiate(creatureEntityPrefab, _entitySpawnTransform) as GameObject,
+            CardType.Technology => Instantiate(technologyEntityPrefab, _entitySpawnTransform) as GameObject,
             _ => null
         };
+
+        entityObject.transform.localPosition = Vector3.zero;
+        // entityObject.transform.localRotation = Vector3.zero;
         
+        // Assign authority
         NetworkServer.Spawn(entityObject, connectionToClient);
         entityObject.GetComponent<NetworkIdentity>().AssignClientAuthority(players[owner].connectionToClient);
-
         var entity = entityObject.GetComponent<BattleZoneEntity>();
-        var opponent = GetOpponent(owner);
 
-        owner.RpcMoveCard(card, CardLocation.Hand, CardLocation.EntitySpawn);
-        _boardManager.AddEntity(owner, opponent, card, entity, isPlayed);
+        // Intitialize entity on clients
+        entity.RpcInitializeEntity(owner, GetOpponent(owner), cardInfo);
+        
+        return entity;
     }
     #endregion
 

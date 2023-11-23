@@ -17,6 +17,9 @@ public class Hand : NetworkBehaviour
 
     public void UpdateHandsCardList(GameObject card, bool addingCard){
         var stats = card.GetComponent<CardStats>();
+        
+        // print($"Updating hand cards list : {stats.cardInfo.title} , added : {addingCard}");
+        
         if (addingCard) _handCards.Add(stats);
         else _handCards.Remove(stats);
     }

@@ -24,22 +24,25 @@ public class DropZoneManager : NetworkBehaviour
     #region Entities ETB and LTB
 
     [Server]
-    public IEnumerator EntitySpawns(PlayerManager owner, GameObject card, BattleZoneEntity entity)
-    {
-        entityZones.RpcMoveEntityToSpawned(entity);
+    public IEnumerator EntitiesEnterDropZone(Dictionary<GameObject, BattleZoneEntity> entities)
+    {   
+        foreach (var (card, entity) in entities){
+            // Need to await RPC for initialization
+            while (!entity.Owner) yield return new WaitForSeconds(0.1f);
+            var owner = entity.Owner;
 
-        // Need to await RPC for initialization
-        while (!entity.Owner) yield return new WaitForSeconds(0.1f);
+            // To show which card spawns an entity 
+            owner.RpcMoveCard(card, CardLocation.Hand, CardLocation.EntitySpawn);
+            entityZones.RpcMoveEntityToSpawned(entity);
 
-        // Keep track of entity objects for combat interactions
-        entityZones.AddEntity(entity, owner.isLocalPlayer);
+            // Keep track of entity objects for combat interactions
+            entityZones.AddEntity(entity, owner.isLocalPlayer);
 
-        // Spawning animation
-        yield return new WaitForSeconds(0.5f);
-        entityZones.RpcMoveEntityToHolder(entity);
-        owner.RpcMoveCard(card, CardLocation.EntitySpawn, CardLocation.PlayZone);
-
-        yield return null;
+            // Spawning animation
+            yield return new WaitForSeconds(1);
+            entityZones.RpcMoveEntityToHolder(entity);
+            owner.RpcMoveCard(card, CardLocation.EntitySpawn, CardLocation.PlayZone);
+        }
     }
 
     [Server]

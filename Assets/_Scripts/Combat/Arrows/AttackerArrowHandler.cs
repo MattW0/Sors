@@ -12,6 +12,9 @@ public class AttackerArrowHandler : ArrowHandler, IPointerClickHandler
     }
     public void OnPointerClick(PointerEventData eventData)
     {
+        // Right click to preview card only (handled in entityUI)
+        if (eventData.button == PointerEventData.InputButton.Right) return;
+
         // return if not in Attackers Phase
         if (CurrentCombatState != CombatState.Attackers) return;
 

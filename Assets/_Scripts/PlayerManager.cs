@@ -168,10 +168,7 @@ public class PlayerManager : NetworkBehaviour
     [Server]
     public void DrawCards(int amount)
     {
-        while (amount > deck.Count + discard.Count)
-        {
-            amount--;
-        }
+        amount = Math.Min(amount, discard.Count + deck.Count);
 
         for (var i = 0; i < amount; i++)
         {
@@ -199,22 +196,20 @@ public class PlayerManager : NetworkBehaviour
             RpcMoveCard(cachedCard, CardLocation.Discard, CardLocation.Deck);
         }
 
-        foreach (var card in temp)
-        {
-            discard.Remove(card);
-        }
+        foreach (var card in temp) discard.Remove(card);
 
         deck.Shuffle();
     }
 
-    // public void PlayCard(GameObject card)
-    // {
-    //     if (isServer) RpcMoveCard(card, CardLocation.Hand, CardLocation.PlayZone);
-    //     else CmdMoveCard(card, CardLocation.Hand, CardLocation.PlayZone);
-    // }
+    [Command]
+    public void CmdPlayCard(GameObject card)
+    {
+        _turnManager.PlayerPlaysCard(this, card);
+        RemoveHandCard(card.GetComponent<CardStats>().cardInfo);
+    }
 
     [Command]
-    private void CmdMoveCard(GameObject card, CardLocation from, CardLocation to) => RpcMoveCard(card, from, to);
+    public void CmdSkipCardPlay() => _turnManager.PlayerSkipsCardPlay(this);
 
     [ClientRpc]
     public void RpcMoveCard(GameObject card, CardLocation from, CardLocation to)
@@ -264,6 +259,8 @@ public class PlayerManager : NetworkBehaviour
     [Server]
     public void ReturnMoneyToHand(bool isUndo)
     {
+        print($"ReturnMoneyToHand : {moneyCards.Count} cards");
+
         // Don't allow to return already spent money
         var totalMoneyBack = 0;
         var cardsToReturn = new Dictionary<GameObject, CardInfo>();
@@ -275,6 +272,7 @@ public class PlayerManager : NetworkBehaviour
             totalMoneyBack += info.moneyValue;
         }
 
+        print($"CardsToReturn : {cardsToReturn.Count} cards");
         // Return to hand
         foreach (var (card, info) in cardsToReturn)
         {
@@ -301,13 +299,6 @@ public class PlayerManager : NetworkBehaviour
         }
 
         moneyCards.Clear();
-    }
-
-    [ClientRpc]
-    public void RpcTrashCard(GameObject card, CardInfo cardInfo)
-    {
-        _cardMover.Trash(card, isOwned);
-        // RemoveHandCard(cardInfo);
     }
 
     #endregion Cards
@@ -356,17 +347,6 @@ public class PlayerManager : NetworkBehaviour
 
     [Command]
     public void CmdSkipKingdomBuy() => _turnManager.PlayerIsReady(this);
-
-    [Command]
-    public void CmdPlayCard(GameObject card)
-    {
-        _turnManager.PlayerPlaysCard(this, card);
-        RemoveHandCard(card.GetComponent<CardStats>().cardInfo);
-        // PlayCard(card);
-    }
-
-    [Command]
-    public void CmdSkipCardPlay() => _turnManager.PlayerSkipsCardPlay(this);
 
     [Command]
     public void CmdPrevailSelection(List<PrevailOption> options)
@@ -640,7 +620,11 @@ public class PlayerManager : NetworkBehaviour
     [Server]
     private void RemoveHandCard(CardInfo cardInfo)
     {
+        print($"Removing hand card : {cardInfo.title}");
+
         var cardToRemove = hand.FirstOrDefault(c => c.Equals(cardInfo));
+
+        print($"Card to remove : {cardToRemove.title}");
         hand.Remove(cardToRemove);
     }
 

@@ -13,7 +13,7 @@ public class BattleZoneEntity : NetworkBehaviour
 
     [Header("Stats")]
     public CardType cardType;
-    [SerializeField] private CardInfo _cardInfo;
+    public CardInfo CardInfo { get; private set; }
     [SerializeField] private int _health;
     public int Health
     {
@@ -88,7 +88,7 @@ public class BattleZoneEntity : NetworkBehaviour
     [ClientRpc]
     public void RpcInitializeEntity(PlayerManager owner, PlayerManager opponent, CardInfo cardInfo)
     {
-        _cardInfo = cardInfo;
+        CardInfo = cardInfo;
         Owner = owner;
         Opponent = opponent;
 
