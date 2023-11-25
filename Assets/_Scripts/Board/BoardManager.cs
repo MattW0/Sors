@@ -153,7 +153,7 @@ public class BoardManager : NetworkBehaviour
 
     public void ClearDeadEntities()
     {
-        print("_deadEntities : " + _deadEntities.Count);
+        // print("_deadEntities : " + _deadEntities.Count);
         foreach (var dead in _deadEntities)
         {
             _dropZone.EntityLeavesPlayZone(dead);

@@ -139,15 +139,14 @@ public class TurnManager : NetworkBehaviour
     #region PhaseSelection
     private void PhaseSelection()
     {
-        _gameManager.turnNb++;
-        _playerInterfaceManager.RpcLog($" ------------ Turn {_gameManager.turnNb} ------------ ", LogType.TurnChange);
+        _gameManager.turnNumber++;
+        _playerInterfaceManager.RpcLog($" ------------ Turn {_gameManager.turnNumber} ------------ ", LogType.TurnChange);
         OnPhaseChanged?.Invoke(TurnState.PhaseSelection);
 
         // Fix draw per turn
-        foreach (var player in _gameManager.players.Keys)
-            player.DrawCards(_gameManager.fixCardDraw);
+        foreach (var player in _gameManager.players.Keys) player.DrawCards(_gameManager.fixCardDraw);
 
-        _phasePanel.RpcBeginPhaseSelection(_gameManager.turnNb);
+        _phasePanel.RpcBeginPhaseSelection(_gameManager.turnNumber);
     }
 
     public void PlayerSelectedPhases(PlayerManager player, Phase[] phases)
@@ -257,7 +256,6 @@ public class TurnManager : NetworkBehaviour
     #region KingdomPase (Invent, Recruit)
     private void KingdomPhase()
     {
-
         // convert current turnState (TurnState enum) to Phase enum
         var phase = Phase.Recruit;
         if (turnState == TurnState.Invent) phase = Phase.Invent;

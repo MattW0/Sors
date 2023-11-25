@@ -1,10 +1,9 @@
 using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 using System;
-using CardDecoder;
 using Mirror;
 using System.Linq;
-using Unity.VisualScripting;
 
 public class PlayerManager : NetworkBehaviour
 {
@@ -168,8 +167,15 @@ public class PlayerManager : NetworkBehaviour
     [Server]
     public void DrawCards(int amount)
     {
+        print($"Drawing cards, nb in discard : {discard.Count}");
+        print($"Drawing cards, nb in deck : {deck.Count}");
+
         amount = Math.Min(amount, discard.Count + deck.Count);
 
+        StartCoroutine(Drawing(amount));
+    }
+
+    private IEnumerator Drawing(int amount){
         for (var i = 0; i < amount; i++)
         {
             if (deck.Count == 0) ShuffleDiscardIntoDeck();
@@ -180,7 +186,12 @@ public class PlayerManager : NetworkBehaviour
 
             var cardObject = GameManager.GetCardObject(cardInfo.goID);
             RpcMoveCard(cardObject, CardLocation.Deck, CardLocation.Hand);
+            print($"Drawing card : {cardInfo.title}");
+
+            yield return new WaitForSeconds(1f);
         }
+
+        yield return null;
     }
 
     [Server]
@@ -189,6 +200,7 @@ public class PlayerManager : NetworkBehaviour
         var temp = new List<CardInfo>();
         foreach (var card in discard)
         {
+            print($"Shuffle in {card.title}");
             temp.Add(card);
             deck.Add(card);
 
@@ -225,8 +237,7 @@ public class PlayerManager : NetworkBehaviour
     public void RpcSpawnCard(GameObject card, CardLocation destination)
     {
         card.SetActive(false);
-        if (!_spawnedCards.ContainsKey(destination))
-            _spawnedCards.Add(destination, new());
+        if (!_spawnedCards.ContainsKey(destination)) _spawnedCards.Add(destination, new());
         _spawnedCards[destination].Add(card);
     }
 
@@ -624,7 +635,7 @@ public class PlayerManager : NetworkBehaviour
 
         var cardToRemove = hand.FirstOrDefault(c => c.Equals(cardInfo));
 
-        print($"Card to remove : {cardToRemove.title}");
+        // print($"Card to remove : {cardToRemove.title}");
         hand.Remove(cardToRemove);
     }
 

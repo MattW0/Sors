@@ -39,7 +39,7 @@ public class DropZoneManager : NetworkBehaviour
             entityZones.AddEntity(entity, owner.isLocalPlayer);
 
             // Spawning animation
-            yield return new WaitForSeconds(1);
+            yield return new WaitForSeconds(1f);
             entityZones.RpcMoveEntityToHolder(entity);
             owner.RpcMoveCard(card, CardLocation.EntitySpawn, CardLocation.PlayZone);
         }

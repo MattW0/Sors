@@ -24,7 +24,7 @@ public class GameManager : NetworkBehaviour {
     public static event Action<int> OnGameStart;
 
     [Header("Game state")]
-    [SyncVar] public int turnNb;
+    [SyncVar] public int turnNumber;
     public Dictionary<PlayerManager, NetworkIdentity> players = new();
     private List<PlayerManager> _loosingPlayers = new();
 
@@ -136,8 +136,6 @@ public class GameManager : NetworkBehaviour {
 
         KingdomSetup();
         PlayerSetup();
-
-        if(cardSpawnAnimations) StartCoroutine(PreGameWaitRoutine());
     }
 
     private void KingdomSetup(){
@@ -181,16 +179,10 @@ public class GameManager : NetworkBehaviour {
 
             // Cards
             SpawnPlayerDeck(player);
-
-            if(!cardSpawnAnimations) {
-                player.deck.Shuffle();
-                player.DrawInitialHand(initialHandSize);
-            } else {
-                player.RpcResolveCardSpawn(cardSpawnAnimations);
-            }
+            // if(cardSpawnAnimations) player.RpcResolveCardSpawn(cardSpawnAnimations);
         }
 
-        if(!cardSpawnAnimations) OnGameStart?.Invoke(players.Count);
+        StartCoroutine(PreGameWaitRoutine(true));
     }
 
     private void SpawnPlayerDeck(PlayerManager playerManager)
@@ -380,8 +372,9 @@ public class GameManager : NetworkBehaviour {
                 throw new ArgumentOutOfRangeException(nameof(destination), destination, null);
         }
 
-        if(cardSpawnAnimations) owner.RpcSpawnCard(cardObject, destination);
-        else owner.RpcMoveCard(cardObject, CardLocation.Spawned, destination);
+        owner.RpcSpawnCard(cardObject, destination);
+        // if(cardSpawnAnimations) owner.RpcSpawnCard(cardObject, destination);
+        // else owner.RpcMoveCard(cardObject, CardLocation.Spawned, destination);
     }
 
     public BattleZoneEntity SpawnFieldEntity(PlayerManager owner, GameObject card)
@@ -474,12 +467,25 @@ public class GameManager : NetworkBehaviour {
         _nbCreatureTiles = creatures;
     }
 
-    private IEnumerator PreGameWaitRoutine(){
-        yield return new WaitForSeconds(6f);
-        foreach(var player in players.Keys) {
-            player.deck.Shuffle();
-            player.DrawInitialHand(initialHandSize);
+    private IEnumerator PreGameWaitRoutine(bool cardSpawnAnimations){
+
+        // TODO: Need anohter approach of timing concept
+        // Use async / await ?
+        // How does this work with rpc calls and animations executing on players?
+
+        if(cardSpawnAnimations){
+            foreach(var player in players.Keys) {
+                
+                player.RpcResolveCardSpawn(false);
+                yield return new WaitForSeconds(2f);
+                // yield return new WaitForSeconds(6f);
+
+                player.deck.Shuffle();
+                player.DrawInitialHand(initialHandSize);
+            }
         }
+
+        yield return new WaitForSeconds(1f);
         OnGameStart?.Invoke(players.Count);
     }
 
