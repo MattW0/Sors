@@ -167,11 +167,7 @@ public class PlayerManager : NetworkBehaviour
     [Server]
     public void DrawCards(int amount)
     {
-        print($"Drawing cards, nb in discard : {discard.Count}");
-        print($"Drawing cards, nb in deck : {deck.Count}");
-
         amount = Math.Min(amount, discard.Count + deck.Count);
-
         StartCoroutine(Drawing(amount));
     }
 
@@ -188,7 +184,7 @@ public class PlayerManager : NetworkBehaviour
             RpcMoveCard(cardObject, CardLocation.Deck, CardLocation.Hand);
             print($"Drawing card : {cardInfo.title}");
 
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(0.1f);
         }
 
         yield return null;
@@ -631,11 +627,7 @@ public class PlayerManager : NetworkBehaviour
     [Server]
     private void RemoveHandCard(CardInfo cardInfo)
     {
-        print($"Removing hand card : {cardInfo.title}");
-
         var cardToRemove = hand.FirstOrDefault(c => c.Equals(cardInfo));
-
-        // print($"Card to remove : {cardToRemove.title}");
         hand.Remove(cardToRemove);
     }
 

@@ -19,25 +19,22 @@ public class CardsPileSors : MonoBehaviour
 	readonly List<GameObject> cards = new List<GameObject>();
 	public List<GameObject> Cards => new List<GameObject>(cards);
 
-	// public event Action<int> OnCountChanged;
 	readonly List<GameObject> forceSetPosition = new List<GameObject>();
 
 	public void Add(GameObject card, bool moveAnimation = false) => Add(card, -1, moveAnimation);
 
 	public void Add(GameObject card, int index, bool moveAnimation = true)
 	{
-		// Transform cardHolder = GetCardHolder();
-		card.transform.SetParent(cardHolder, false);
-
 		if (index == -1) cards.Add(card);
 		else cards.Insert(index, card);
 
 		if (!moveAnimation) forceSetPosition.Add(card);
+	}
 
-		// OnCountChanged?.Invoke(cards.Count);
-
+	public void CardHasArrived(GameObject card)
+	{
+		card.transform.SetParent(cardHolder, false);
 		updatePosition = true;
-		// UpdateCardPositions();
 	}
 
 	public void Remove(GameObject card)
@@ -47,17 +44,13 @@ public class CardsPileSors : MonoBehaviour
 		cards.Remove(card);
 		card.transform.DOKill();
 
-		// OnCountChanged?.Invoke(cards.Count);
-
 		updatePosition = true;
-		// UpdateCardPositions();
 	}
 
 	public void RemoveAt(int index)
 	{
 		Remove(cards[index]);
 		updatePosition = true;
-		// UpdateCardPositions();
 	}
 
 	public void RemoveAll()
@@ -66,7 +59,6 @@ public class CardsPileSors : MonoBehaviour
 			Remove(cards[0]);
 
 		updatePosition = true;
-		// UpdateCardPositions();
 	}
 
 	private void UpdateCardPositions()

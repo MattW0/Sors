@@ -29,16 +29,17 @@ public class CardMover : MonoBehaviour
 
     public void MoveTo(GameObject card, bool hasAuthority, CardLocation from, CardLocation to)
     {
-        RemoveFromPile(card, hasAuthority, from);
+        // Remove from pile, cards positions are immediately updated in CardsPile
+        var sourcePile = GetPile(from, hasAuthority);
+        if(sourcePile) sourcePile.Remove(card); // pile is null if card just spawned
         FlipCard(card, hasAuthority, to);
 
-        var destinationTransform = GetPile(to, hasAuthority).transform;
-        // card.transform.DOScale(0.7f, 0.5f);
-        card.transform.DOMove(destinationTransform.position, 0.5f).SetEase(Ease.InOutCubic).OnComplete(() => {
-            card.transform.SetParent(destinationTransform, true);
-            card.transform.localScale = Vector3.one;
-            AddToPile(card, hasAuthority, to);
-        });
+        // Add to pile and only update position after movement is done
+        var destinationPile = GetPile(to, hasAuthority);
+        destinationPile.Add(card);
+
+        ApplyScaling(card, from, to);
+        ApplyMovement(destinationPile, card);
     }
 
     private void FlipCard(GameObject card, bool hasAuthority, CardLocation to){
@@ -57,21 +58,31 @@ public class CardMover : MonoBehaviour
         }
     }
 
-    private void RemoveFromPile(GameObject card, bool hasAuthority, CardLocation from)
+    private void ApplyScaling(GameObject card, CardLocation from, CardLocation to)
     {
-        var sourcePile = GetPile(from, hasAuthority);
-        if(sourcePile) sourcePile.Remove(card); // pile is null if card just spawned
+        // Only apply scaling for piles PlayZone and MoneyZone
+        // These have local scale 0.7 to reduce playboard space occupation        
+        if(to == CardLocation.Hand)
+            card.transform.DOScale(1.4f, 0.5f);
+        else if(from == CardLocation.Hand || from == CardLocation.EntitySpawn || from == CardLocation.CardSpawn)
+            if(to == CardLocation.MoneyZone || to == CardLocation.PlayZone)
+                card.transform.DOScale(0.7f, 0.5f);
     }
 
-    private void AddToPile(GameObject card, bool hasAuthority, CardLocation to)
+    private void ApplyMovement(CardsPileSors pile, GameObject card)
     {
-        var destinationPile = GetPile(to, hasAuthority);
-        destinationPile.Add(card);
+        var destinationTransform = pile.transform;
+
+        card.transform.DOMove(destinationTransform.position, 0.5f).SetEase(Ease.InOutCubic).OnComplete(() => {
+            card.transform.SetParent(destinationTransform, true);
+            card.transform.localScale = Vector3.one;
+            pile.CardHasArrived(card);
+        });
     }
 
     private CardsPileSors GetPile(CardLocation location, bool hasAuthority){
         var pile = location switch{
-            CardLocation.Spawned => null,
+            CardLocation.CardSpawn => null,
             CardLocation.EntitySpawn => entitySpawn,
             CardLocation.Trash => trash,
             CardLocation.Deck => hasAuthority ? playerDeck : opponentDeck,
@@ -101,7 +112,7 @@ public class CardMover : MonoBehaviour
 
         yield return new WaitForSeconds(0.7f);
 
-        MoveTo(card, hasAuthority, CardLocation.Spawned, destination);
+        MoveTo(card, hasAuthority, CardLocation.CardSpawn, destination);
 
         yield return null;
     }
@@ -118,7 +129,7 @@ public class CardMover : MonoBehaviour
 
 public enum CardLocation : byte
 {
-    Spawned,
+    CardSpawn,
     EntitySpawn,
     Trash,
     Deck,
