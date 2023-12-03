@@ -25,7 +25,7 @@ public class PlayerManager : NetworkBehaviour
     [Header("Game State")]
     public List<Phase> chosenPhases = new();
     public List<PrevailOption> chosenPrevailOptions = new();
-    private Dictionary<CardLocation, List<GameObject>> _spawnedCards = new();
+    // private Dictionary<CardLocation, List<GameObject>> _spawnedCards = new();
     private List<GameObject> _selectedCards = new();
     public Dictionary<GameObject, CardInfo> moneyCards = new();
 
@@ -167,11 +167,10 @@ public class PlayerManager : NetworkBehaviour
     [Server]
     public void DrawCards(int amount)
     {
+        // First draw cards on Server, manipulating card collections
         amount = Math.Min(amount, discard.Count + deck.Count);
-        StartCoroutine(Drawing(amount));
-    }
 
-    private IEnumerator Drawing(int amount){
+        List<GameObject> cards = new();
         for (var i = 0; i < amount; i++)
         {
             if (deck.Count == 0) ShuffleDiscardIntoDeck();
@@ -180,14 +179,19 @@ public class PlayerManager : NetworkBehaviour
             deck.RemoveAt(0);
             hand.Add(cardInfo);
 
-            var cardObject = GameManager.GetCardObject(cardInfo.goID);
-            RpcMoveCard(cardObject, CardLocation.Deck, CardLocation.Hand);
-            print($"Drawing card : {cardInfo.title}");
-
-            yield return new WaitForSeconds(0.1f);
+            cards.Add(GameManager.GetCardObject(cardInfo.goID));
         }
 
-        yield return null;
+        // The draw cards on Clients, moving the card objects with movement durations
+        StartCoroutine(ClientDrawing(cards));
+    }
+
+    private IEnumerator ClientDrawing(List<GameObject> cards)
+    {
+        foreach(var card in cards){
+            RpcMoveCard(card, CardLocation.Deck, CardLocation.Hand);
+            yield return new WaitForSeconds(0.15f);
+        }
     }
 
     [Server]
@@ -196,7 +200,6 @@ public class PlayerManager : NetworkBehaviour
         var temp = new List<CardInfo>();
         foreach (var card in discard)
         {
-            print($"Shuffle in {card.title}");
             temp.Add(card);
             deck.Add(card);
 
@@ -219,8 +222,7 @@ public class PlayerManager : NetworkBehaviour
     [Command]
     public void CmdSkipCardPlay() => _turnManager.PlayerSkipsCardPlay(this);
 
-    [ClientRpc]
-    public void RpcMoveCard(GameObject card, CardLocation from, CardLocation to)
+    private void MoveCard(GameObject card, CardLocation from, CardLocation to)
     {
         _cardMover.MoveTo(card, isOwned, from, to);
 
@@ -230,20 +232,13 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcSpawnCard(GameObject card, CardLocation destination)
-    {
-        card.SetActive(false);
-        if (!_spawnedCards.ContainsKey(destination)) _spawnedCards.Add(destination, new());
-        _spawnedCards[destination].Add(card);
-    }
+    public void RpcMoveCard(GameObject card, CardLocation from, CardLocation to) => MoveCard(card, from, to);
 
     [ClientRpc]
-    public void RpcResolveCardSpawn(bool animate)
-    {
-        var waitTime = animate ? 0.5f : 0f;
-        StartCoroutine(_cardMover.ResolveSpawn(_spawnedCards, isOwned, waitTime));
-        _spawnedCards.Clear();
-    }
+    public void RpcShowSpawnedCard(GameObject card, CardLocation destination) => StartCoroutine(_cardMover.ShowSpawnedCard(card, isOwned, destination));
+
+    [ClientRpc]
+    public void RpcShowSpawnedCards(List<GameObject> cards, CardLocation destination) => StartCoroutine(_cardMover.ShowSpawnedCards(cards, isOwned, destination));
 
     [Command]
     public void CmdPlayMoneyCard(GameObject card, CardInfo cardInfo)
@@ -266,7 +261,7 @@ public class PlayerManager : NetworkBehaviour
     [Server]
     public void ReturnMoneyToHand(bool isUndo)
     {
-        print($"ReturnMoneyToHand : {moneyCards.Count} cards");
+        // print($"ReturnMoneyToHand : {moneyCards.Count} cards");
 
         // Don't allow to return already spent money
         var totalMoneyBack = 0;
@@ -279,7 +274,7 @@ public class PlayerManager : NetworkBehaviour
             totalMoneyBack += info.moneyValue;
         }
 
-        print($"CardsToReturn : {cardsToReturn.Count} cards");
+        // print($"CardsToReturn : {cardsToReturn.Count} cards");
         // Return to hand
         foreach (var (card, info) in cardsToReturn)
         {

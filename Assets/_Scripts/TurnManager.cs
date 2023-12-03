@@ -322,11 +322,6 @@ public class TurnManager : NetworkBehaviour
             }
         }
 
-        foreach (var player in _gameManager.players.Keys)
-        {
-            player.RpcResolveCardSpawn(_gameManager.cardSpawnAnimations);
-        }
-
         PlayersStatsResetAndDiscardMoney(false);
         _kingdom.RpcEndKingdomPhase();
 

@@ -19,9 +19,10 @@ public class CardMover : MonoBehaviour
     [SerializeField] private CardsPileSors opponentPlayZone;
     [SerializeField] private CardsPileSors opponentDeck;
     [SerializeField] private CardsPileSors opponentDiscardPile;
-    [SerializeField] private CardsPileSors trash;
-    [SerializeField] private CardsPileSors spawned;
+    [SerializeField] private CardsPileSors playerCardSpawn;
+    [SerializeField] private CardsPileSors opponentCardSpawn;
     [SerializeField] private CardsPileSors entitySpawn;
+    [SerializeField] private CardsPileSors trash;
     
     private void Awake(){
         if(!Instance) Instance = this;
@@ -31,7 +32,9 @@ public class CardMover : MonoBehaviour
     {
         // Remove from pile, cards positions are immediately updated in CardsPile
         var sourcePile = GetPile(from, hasAuthority);
-        if(sourcePile) sourcePile.Remove(card); // pile is null if card just spawned
+        sourcePile.Remove(card);
+
+        // Is front or back up ?
         FlipCard(card, hasAuthority, to);
 
         // Add to pile and only update position after movement is done
@@ -82,7 +85,7 @@ public class CardMover : MonoBehaviour
 
     private CardsPileSors GetPile(CardLocation location, bool hasAuthority){
         var pile = location switch{
-            CardLocation.CardSpawn => null,
+            CardLocation.CardSpawn => hasAuthority ? playerCardSpawn : opponentCardSpawn,
             CardLocation.EntitySpawn => entitySpawn,
             CardLocation.Trash => trash,
             CardLocation.Deck => hasAuthority ? playerDeck : opponentDeck,
@@ -102,28 +105,43 @@ public class CardMover : MonoBehaviour
         }
     }
 
-    private IEnumerator SpawnCard(GameObject card, bool hasAuthority, CardLocation destination){
+    public IEnumerator ShowSpawnedCard(GameObject card, bool hasAuthority, CardLocation destination)
+    {
+        InitSpawnedCard(card, hasAuthority, destination);
         
-        // Add and reomove to correctly place card object in world space
-        card.GetComponent<CardUI>().CardFrontUp();
-        spawned.Add(card);
-        spawned.Remove(card);
-        card.SetActive(true);
-
-        yield return new WaitForSeconds(0.7f);
+        yield return new WaitForSeconds(1f);
 
         MoveTo(card, hasAuthority, CardLocation.CardSpawn, destination);
-
-        yield return null;
     }
 
-    public IEnumerator ResolveSpawn(Dictionary<CardLocation, List<GameObject>> cards, bool hasAuthority, float waitTime){
-        foreach(var (dest, cardList) in cards){
-            foreach(var card in cardList){
-                StartCoroutine(SpawnCard(card, hasAuthority, dest));
-                yield return new WaitForSeconds(waitTime);
-            }
+    public IEnumerator ShowSpawnedCards(List<GameObject> cards, bool hasAuthority, CardLocation destination)
+    {
+        foreach(var card in cards){
+            InitSpawnedCard(card, hasAuthority, destination);
+            yield return new WaitForSeconds(0.05f);
         }
+
+        yield return new WaitForSeconds(2f);
+
+        foreach(var card in cards){
+            MoveTo(card, hasAuthority, CardLocation.CardSpawn, destination);
+            yield return new WaitForSeconds(0.1f);
+        }
+    }
+
+    private void InitSpawnedCard(GameObject card, bool hasAuthority, CardLocation destination)
+    {    
+        card.transform.localScale = Vector3.one;
+        card.GetComponent<CardUI>().CardFrontUp();
+
+        if(hasAuthority){
+            playerCardSpawn.Add(card);
+            playerCardSpawn.updatePosition = true;
+        } else {
+            opponentCardSpawn.Add(card);
+            opponentCardSpawn.updatePosition = true;
+        }
+        card.SetActive(true);
     }
 }
 

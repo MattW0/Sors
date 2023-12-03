@@ -6,7 +6,7 @@ using System;
 [System.Serializable]
 public struct CardInfo : IEquatable<CardInfo>
 {
-    public string goID;
+    public int goID;
     public string hash;
     public CardType type;
     public string title;
@@ -25,10 +25,9 @@ public struct CardInfo : IEquatable<CardInfo>
     [Header("Creature properties")]
     public List<Keywords> keywordAbilities;
 
-    public CardInfo(ScriptableCard card, string gameObjectID = null)
+    public CardInfo(ScriptableCard card, int gameObjectID = -1)
     {
-        if (gameObjectID != null) goID = gameObjectID;
-        else goID = null;
+        goID = gameObjectID;
 
         hash = card.hash;
         type = card.type;
@@ -59,7 +58,7 @@ public struct CardInfo : IEquatable<CardInfo>
 
         this.attack = 0;
         this.health = 0;
-        this.goID = null;
+        this.goID = 0;
 
         // this.type = CardType.Technology;
         this.moneyValue = 0;
