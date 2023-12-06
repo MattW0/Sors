@@ -75,8 +75,8 @@ public class GameManager : NetworkBehaviour {
     [SerializeField] private GameObject creatureEntityPrefab;
     [SerializeField] private GameObject technologyEntityPrefab;
 
-    [Header("Helpers")]
-    [SerializeField] private Transform _entitySpawnTransform;
+    // [Header("Helpers")]
+    // [SerializeField] private Transform _entitySpawnTransform;
 
     // Caching all gameObjects of cards in game
     private static Dictionary<int, GameObject> Cache { get; set; } = new();
@@ -428,8 +428,8 @@ public class GameManager : NetworkBehaviour {
         // Entity prefab depending on type
         GameObject entityObject = cardInfo.type switch
         {
-            CardType.Creature => Instantiate(creatureEntityPrefab, _entitySpawnTransform) as GameObject,
-            CardType.Technology => Instantiate(technologyEntityPrefab, _entitySpawnTransform) as GameObject,
+            CardType.Creature => Instantiate(creatureEntityPrefab) as GameObject,
+            CardType.Technology => Instantiate(technologyEntityPrefab) as GameObject,
             _ => null
         };
         
@@ -514,7 +514,7 @@ public class GameManager : NetworkBehaviour {
         // Use async / await ?
         // How does this work with rpc calls and animations executing on players?
 
-        yield return new WaitForSeconds(6f);
+        yield return new WaitForSeconds(4f);
 
         foreach(var player in players.Keys) {
             player.deck.Shuffle();

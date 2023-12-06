@@ -88,6 +88,9 @@ public class BattleZoneEntity : NetworkBehaviour
     [ClientRpc]
     public void RpcInitializeEntity(PlayerManager owner, PlayerManager opponent, CardInfo cardInfo)
     {
+        // Will be set active by cardMover, once entity is spawned correctly in UI
+        gameObject.SetActive(false);
+
         CardInfo = cardInfo;
         Owner = owner;
         Opponent = opponent;

@@ -104,11 +104,10 @@ public class EntityZones : NetworkBehaviour
 
     [ClientRpc]
     public void RpcMoveEntityToSpawned(BattleZoneEntity e){
-        e.transform.DOMove(_spawnedEntityTransform.position, 0.5f).SetEase(Ease.InOutCubic).OnComplete(() => {
-            e.transform.SetParent(_spawnedEntityTransform, true);
-            // e.transform.position = Vector3.zero;
-            // e.transform.localScale = Vector3.one;
-        });
+        e.transform.SetParent(_spawnedEntityTransform, false);
+        // e.transform.position = Vector3.zero;
+        // e.transform.localScale = Vector3.one;
+        e.gameObject.SetActive(true);
     }
 
     [ClientRpc]

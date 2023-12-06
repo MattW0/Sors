@@ -374,7 +374,7 @@ public class TurnManager : NetworkBehaviour
             _boardManager.BoardCleanUp(false);
             CheckPlayAnotherCard();
             return;
-        } 
+        }
         
         StartCoroutine(PlayCardsIntermission());
     }

@@ -68,11 +68,6 @@ public class CombatManager : NetworkBehaviour
         _playerInterfaceManager = PlayerInterfaceManager.Instance;
     }
 
-    private void StartCombat(){
-        // TODO: Make only player and technologies targetable
-        
-    }
-
     public void PlayerChoosesTargetToAttack(BattleZoneEntity target, List<CreatureEntity> attackers)
     {
         foreach(var a in attackers) _attackerTarget.Add(a, target);
