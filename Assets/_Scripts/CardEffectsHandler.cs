@@ -17,10 +17,8 @@ public class CardEffectsHandler : NetworkBehaviour
     private BattleZoneEntity _abilitySource;
     // TODO: Make this a list for multiple targets
     private BattleZoneEntity _abilityTarget;
-    public float effectWaitTime = 0.5f;
 
     // Helper fields
-    private Phase _currentPhase;
     private List<Phase> _phaseTriggers = new(); // List to reduce number of searches on all entities and their triggers
     private Dictionary<BattleZoneEntity, List<Ability>> _presentAbilities = new();
 
@@ -33,32 +31,38 @@ public class CardEffectsHandler : NetworkBehaviour
         _playerInterfaceManager = PlayerInterfaceManager.Instance;
     }
 
-    public void CardIsPlayed(BattleZoneEntity entity){
+    public IEnumerator CardsArePlayed(List<BattleZoneEntity> entities){
+        
+        yield return new WaitForSeconds(0.1f);
+        foreach (var entity in entities){
 
-        List<Ability> abilities = entity.CardInfo.abilities;
-        if (abilities == null || abilities.Count == 0) return;
+            print($"Entity is played : {entity.Title}");
 
-        var activeAbilities = new List<Ability>();
-        foreach (var ability in abilities){
-            // Triggers and effects have the same index and a 1-1 relation
-            var trigger = ability.trigger;
+            List<Ability> abilities = entity.CardInfo.abilities;
+            if (abilities == null || abilities.Count == 0) continue;
 
-            // Dont add the relation to the dict as it resolves immediately
-            if (trigger == Trigger.When_enters_the_battlefield){
-                AddAbilityToQueue(entity, ability);
-                continue;
+            var activeAbilities = new List<Ability>();
+            foreach (var ability in abilities){
+                // Triggers and effects have the same index and a 1-1 relation
+                var trigger = ability.trigger;
+
+                // Dont add the relation to the dict as it resolves immediately
+                if (trigger == Trigger.When_enters_the_battlefield){
+                    AddAbilityToQueue(entity, ability);
+                    continue;
+                }
+                
+                activeAbilities.Add(ability);
+
+                // Beginning of phase triggers
+                var phase = TriggerToPhase(trigger);
+                // print($"New phase trigger: {trigger} in phase {phase}");
+                if (phase != Phase.None && !_phaseTriggers.Contains(phase))
+                    _phaseTriggers.Add(phase);
             }
-            
-            activeAbilities.Add(ability);
 
-            // Beginning of phase triggers
-            var phase = TriggerToPhase(trigger);
-            // print($"New phase trigger: {trigger} in phase {phase}");
-            if (phase != Phase.None && !_phaseTriggers.Contains(phase))
-                _phaseTriggers.Add(phase);
+            _presentAbilities.Add(entity, activeAbilities);
         }
-
-        _presentAbilities.Add(entity, activeAbilities);
     }
 
     public void CheckPhaseTriggers(Phase phase)
@@ -66,8 +70,11 @@ public class CardEffectsHandler : NetworkBehaviour
         // TurnManager waits for this to be false
         QueueResolving = true;
 
+        print("Current phases that trigger");
+        foreach(var p in _phaseTriggers)
+            print(p);
+
         // We only search for abilities if the current phase triggers at least one effect
-        _currentPhase = phase;
         if (!_phaseTriggers.Contains(phase)){
             QueueResolving = false;
             return;
@@ -124,7 +131,7 @@ public class CardEffectsHandler : NetworkBehaviour
         print($"Resolving ability : " + ability.ToString());
         
         entity.RpcEffectHighlight(true);
-        yield return new WaitForSeconds(2*effectWaitTime);
+        yield return new WaitForSeconds(SorsTimings.effectTrigger);
 
         _continue = CanContinueWithoutPlayerInput(entity, ability);
         while(!_continue) {
@@ -202,7 +209,7 @@ public class CardEffectsHandler : NetworkBehaviour
                 break;
         }
 
-        yield return new WaitForSeconds(2*effectWaitTime);
+        yield return new WaitForSeconds(SorsTimings.effectExecution);
         _continue = true;
         entity.RpcEffectHighlight(false);
 

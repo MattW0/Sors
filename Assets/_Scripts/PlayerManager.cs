@@ -190,7 +190,7 @@ public class PlayerManager : NetworkBehaviour
     {
         foreach(var card in cards){
             RpcMoveCard(card, CardLocation.Deck, CardLocation.Hand);
-            yield return new WaitForSeconds(0.15f);
+            yield return new WaitForSeconds(SorsTimings.draw);
         }
     }
 

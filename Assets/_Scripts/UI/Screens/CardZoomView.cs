@@ -34,6 +34,8 @@ public class CardZoomView : MonoBehaviour, IPointerClickHandler
     public void ZoomCard(CardInfo card){
         _cardZoomView.SetActive(true);
 
+        // print($"Card zoom : {card.title}, type : {card.type}");
+
         // Set Card
         _openedCardObject = card.type switch{
             CardType.Creature => _creatureDetailCard,

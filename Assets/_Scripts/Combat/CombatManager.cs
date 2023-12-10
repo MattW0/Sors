@@ -11,7 +11,6 @@ public class CombatManager : NetworkBehaviour
     public static CombatManager Instance { get; private set; }
     private static CombatState state { get; set; }
 
-    [SerializeField] private float combatDamageWaitTime = 0.8f;
     public static event Action<CombatState> OnCombatStateChanged;
 
     private Dictionary<CreatureEntity, BattleZoneEntity> _attackerTarget = new ();
@@ -163,7 +162,7 @@ public class CombatManager : NetworkBehaviour
             totalBlockerHealth += b.Health;
             _attackerTarget.Remove(a);
 
-            yield return new WaitForSeconds(combatDamageWaitTime);
+            yield return new WaitForSeconds(SorsTimings.combatClash);
         }
         StartCoroutine(Unblocked());
     }
@@ -186,7 +185,7 @@ public class CombatManager : NetworkBehaviour
             // t.RpcSetCombatHighlight(); 
             CombatClash(a, t);
 
-            yield return new WaitForSeconds(combatDamageWaitTime);
+            yield return new WaitForSeconds(SorsTimings.combatClash);
         }
 
         print($"Creatures attacking player(s) : {playerAttackers.Count}");
@@ -209,7 +208,7 @@ public class CombatManager : NetworkBehaviour
             var targetPlayer = attacker.Opponent;
             targetPlayer.Health -= attacker.Attack;
             _turnManager.PlayerHealthChanged(targetPlayer, attacker.Attack);
-            yield return new WaitForSeconds(combatDamageWaitTime);
+            yield return new WaitForSeconds(SorsTimings.combatClash);
         }
         
         UpdateCombatState(CombatState.CleanUp);

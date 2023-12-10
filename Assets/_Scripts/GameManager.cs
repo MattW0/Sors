@@ -126,7 +126,9 @@ public class GameManager : NetworkBehaviour {
         singlePlayer = options.NumberPlayers == 1;
         nbPhasesToChose = options.NumberPhases;
         initialHandSize = options.FullHand ? initialDeckSize : initialHandSize;
-        cardSpawnAnimations = options.CardSpawnAnimations;
+        if(options.SkipCardSpawnAnimations){
+            SorsTimings.SkipCardSpawnAnimations();
+        }
 
         // Start game from state -> skip normal setup and start from there
         if(! string.IsNullOrWhiteSpace(options.StateFile)) {
@@ -259,12 +261,12 @@ public class GameManager : NetworkBehaviour {
         foreach(var (player, cards) in playerCards){
             StartCoroutine(SpawnCardsFromFile(player, cards));
 
-            yield return new WaitForSeconds(6f);
+            yield return new WaitForSeconds(SorsTimings.waitForSpawnFromFile);
 
             StartCoroutine(SpawnEntitiesFromFile(player, playerEntities[player]));
         }
 
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(SorsTimings.waitForSpawnFromFile / 3f);
         
         OnGameStart?.Invoke(players.Count);
     }
@@ -279,7 +281,7 @@ public class GameManager : NetworkBehaviour {
         p.RpcShowSpawnedCards(cardList, CardLocation.Hand);
         cardList.Clear();
 
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(SorsTimings.waitForSpawnFromFile / 3f);
 
         foreach(var c in cards.deckCards){
             var scriptableCard = Resources.Load<ScriptableCard>(c);
@@ -288,7 +290,7 @@ public class GameManager : NetworkBehaviour {
         p.RpcShowSpawnedCards(cardList, CardLocation.Deck);
         cardList.Clear();
 
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(SorsTimings.waitForSpawnFromFile / 3f);
 
         foreach(var c in cards.discardCards){
             var scriptableCard = Resources.Load<ScriptableCard>(c);
@@ -296,7 +298,7 @@ public class GameManager : NetworkBehaviour {
         }
         p.RpcShowSpawnedCards(cardList, CardLocation.Discard);
 
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(SorsTimings.waitForSpawnFromFile / 3f);
     }
 
     private IEnumerator SpawnEntitiesFromFile(PlayerManager p, Entities entities)
@@ -326,7 +328,7 @@ public class GameManager : NetworkBehaviour {
         }
 
         p.RpcShowSpawnedCards(entitiesDict.Keys.ToList(), CardLocation.PlayZone);
-        _boardManager.PlayEntities(entitiesDict, fromFile: true);
+        _boardManager.PlayEntities(entitiesDict);
     }
 
     #endregion
@@ -334,6 +336,8 @@ public class GameManager : NetworkBehaviour {
     #region Spawning
     private GameObject SpawnCardAndAddToCollection(PlayerManager player, ScriptableCard scriptableCard, CardLocation destination)
     {
+        // print($"Spawning card {scriptableCard.title}, type : {scriptableCard.type}");
+
         // Card object prefab depending on type
         var cardObject = scriptableCard.type switch
         {
@@ -514,14 +518,14 @@ public class GameManager : NetworkBehaviour {
         // Use async / await ?
         // How does this work with rpc calls and animations executing on players?
 
-        yield return new WaitForSeconds(4f);
+        yield return new WaitForSeconds(SorsTimings.waitForSpawn);
 
         foreach(var player in players.Keys) {
             player.deck.Shuffle();
             player.DrawInitialHand(initialHandSize);
         }
 
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(SorsTimings.wait);
         OnGameStart?.Invoke(players.Count);
     }
 

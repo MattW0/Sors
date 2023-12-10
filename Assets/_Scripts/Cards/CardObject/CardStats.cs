@@ -32,5 +32,6 @@ public class CardStats : NetworkBehaviour
 
         cardInfo = card;
         _cardUI.SetCardUI(card);
+        gameObject.GetComponent<CardClick>().SetCardInfo(card);
     }
 }

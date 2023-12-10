@@ -9,8 +9,6 @@ public class TurnScreenOverlay : MonoBehaviour
     public static TurnScreenOverlay Instance { get; private set; }
     [SerializeField] private TMP_Text overlayTurnText;
     [SerializeField] private Image overlayImage;
-    [SerializeField] private int overlayScreenWaitTime = 1;
-    [SerializeField] private float overlayScreenFadeTime = 0.5f;
 
     private void Awake(){
         if(!Instance) Instance = this;
@@ -26,12 +24,12 @@ public class TurnScreenOverlay : MonoBehaviour
         // overlayImage.enabled = true;
         
         // Wait and fade
-        yield return new WaitForSeconds(overlayScreenWaitTime);
-        overlayImage.CrossFadeAlpha(0f, overlayScreenFadeTime, false);
+        yield return new WaitForSeconds(SorsTimings.overlayScreenDisplayTime);
+        overlayImage.CrossFadeAlpha(0f, SorsTimings.overlayScreenFadeTime, false);
         overlayTurnText.text = "";
 
         // Wait and disable
-        yield return new WaitForSeconds(overlayScreenFadeTime);
+        yield return new WaitForSeconds(SorsTimings.overlayScreenFadeTime);
 
         // overlayImage.enabled = false;
         overlayImage.gameObject.SetActive(false);

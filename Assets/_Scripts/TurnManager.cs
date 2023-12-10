@@ -382,11 +382,12 @@ public class TurnManager : NetworkBehaviour
     private IEnumerator PlayCardsIntermission()
     {
         // Waiting for Entities abilities (ETB) being tracked 
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(SorsTimings.wait);
 
         // Waiting for CEH to set QueueResolving to false
         StartCoroutine(_cardEffectsHandler.StartResolvingQueue());
-        while (_cardEffectsHandler.QueueResolving) yield return new WaitForSeconds(0.1f);
+        while (_cardEffectsHandler.QueueResolving) 
+            yield return new WaitForSeconds(0.1f);
 
         _boardManager.BoardCleanUp(false);
         CheckPlayAnotherCard();
@@ -612,7 +613,7 @@ public class TurnManager : NetworkBehaviour
         _boardManager.BoardCleanUp(true);
         PlayersStatsResetAndDiscardMoney(endOfTurn: true);
 
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(SorsTimings.turnStateTransition);
 
         UpdateTurnState(TurnState.PhaseSelection);
     }

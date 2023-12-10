@@ -13,6 +13,7 @@ public class InputField : MonoBehaviour
     {
         inputField.text = "";
         inputField.onEndEdit.AddListener(delegate { UpdateTextBox(); });
+        UpdateTextBox();
     }
  
     public void UpdateTextBox()

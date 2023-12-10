@@ -39,16 +39,17 @@ public class BoardManager : NetworkBehaviour
         _dropZone = DropZoneManager.Instance;
     }
 
-    public void PlayEntities(Dictionary<GameObject, BattleZoneEntity> entities, bool fromFile = false) 
+    public void PlayEntities(Dictionary<GameObject, BattleZoneEntity> entities) 
     {
         foreach(var (card, entity) in entities){
             // Initialize and keep track which card object corresponds to which entity
             _entitiesObjectsCache.Add(entity, card);
-            
-            // Check for ETB and if phase start trigger gets added to phases being tracked
-            if(!fromFile) _cardEffectsHandler.CardIsPlayed(entity);
         }
 
+        // Check for ETB and if phase start trigger gets added to phases being tracked
+        StartCoroutine(_cardEffectsHandler.CardsArePlayed(entities.Values.ToList()));
+
+        // Move entities to holders and card into played zone
         StartCoroutine(_dropZone.EntitiesEnterDropZone(entities));
     }
 
@@ -82,7 +83,7 @@ public class BoardManager : NetworkBehaviour
 
     private IEnumerator CombatTransitionAnimation(CombatState state)
     {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(SorsTimings.turnStateTransition);
 
         if (state == CombatState.Attackers) {
             DeclareAttackers();

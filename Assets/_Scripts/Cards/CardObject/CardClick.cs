@@ -19,7 +19,9 @@ public class CardClick : MonoBehaviour, IPointerClickHandler
         }
     }
     public void OnPointerClick(PointerEventData eventData) {
-
+        
+        // print($"click card {_cardInfo.title}");
+        
         // Right click to preview card only
         if (eventData.button == PointerEventData.InputButton.Right) {
             _cardZoomView.ZoomCard(_cardInfo);

@@ -66,17 +66,17 @@ public class CardMover : MonoBehaviour
         // Only apply scaling for piles PlayZone and MoneyZone
         // These have local scale 0.7 to reduce playboard space occupation        
         if(to == CardLocation.Hand)
-            card.transform.DOScale(1.4f, 0.5f);
+            card.transform.DOScale(1.4f, SorsTimings.cardMoveTime);
         else if(from == CardLocation.Hand || from == CardLocation.EntitySpawn || from == CardLocation.CardSpawn)
             if(to == CardLocation.MoneyZone || to == CardLocation.PlayZone)
-                card.transform.DOScale(0.7f, 0.5f);
+                card.transform.DOScale(0.7f, SorsTimings.cardMoveTime);
     }
 
     private void ApplyMovement(CardsPileSors pile, GameObject card)
     {
         var destinationTransform = pile.transform;
 
-        card.transform.DOMove(destinationTransform.position, 0.5f).SetEase(Ease.InOutCubic).OnComplete(() => {
+        card.transform.DOMove(destinationTransform.position, SorsTimings.cardMoveTime).SetEase(Ease.InOutCubic).OnComplete(() => {
             card.transform.SetParent(destinationTransform, true);
             card.transform.localScale = Vector3.one;
             pile.CardHasArrived(card);
@@ -109,7 +109,7 @@ public class CardMover : MonoBehaviour
     {
         InitSpawnedCard(card, hasAuthority, destination);
         
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(SorsTimings.showSpawnedCard);
 
         MoveTo(card, hasAuthority, CardLocation.CardSpawn, destination);
     }
@@ -118,14 +118,14 @@ public class CardMover : MonoBehaviour
     {
         foreach(var card in cards){
             InitSpawnedCard(card, hasAuthority, destination);
-            yield return new WaitForSeconds(0.05f);
+            yield return new WaitForSeconds(SorsTimings.spawnCard);
         }
 
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(2*SorsTimings.showSpawnedCard);
 
         foreach(var card in cards){
             MoveTo(card, hasAuthority, CardLocation.CardSpawn, destination);
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(SorsTimings.moveSpawnedCard);
         }
     }
 

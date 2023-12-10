@@ -13,7 +13,6 @@ public class CardsPileSors : MonoBehaviour
 	public float yPerCard = 0f;
 	public float zDistance;
 
-	public float moveDuration = 0.5f;
 	public Transform cardHolder;
 
 	readonly List<GameObject> cards = new List<GameObject>();
@@ -84,9 +83,9 @@ public class CardsPileSors : MonoBehaviour
 
 			if (!forceSetPosition.Contains(cards[i])) {
 				cards[i].transform.DOKill();
-				cards[i].transform.DOLocalMove(position, moveDuration);
-				cards[i].transform.DOLocalRotate(rotation, moveDuration);
-				cards[i].transform.DOScale(Vector3.one, moveDuration);
+				cards[i].transform.DOLocalMove(position, SorsTimings.cardPileRearrangement);
+				cards[i].transform.DOLocalRotate(rotation, SorsTimings.cardPileRearrangement);
+				cards[i].transform.DOScale(Vector3.one, SorsTimings.cardPileRearrangement);
 			} else {
 				forceSetPosition.Remove(cards[i]);
 				cards[i].transform.localPosition = position;

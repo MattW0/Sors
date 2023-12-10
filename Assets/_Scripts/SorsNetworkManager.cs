@@ -9,7 +9,7 @@ public class SorsNetworkManager : NetworkManager
     private NetworkManager _manager;
     private string _playerNameBuffer;
     private string[] _networkAddresses = new string[2] {"localhost", "192.168.1.170"};
-    public static GameOptions gameOptions = new GameOptions(2, 2, false, false, "192.168.1.170", "");
+    public static GameOptions gameOptions = new GameOptions(1, 2, true, true, "192.168.1.170", "");
     public static event Action<GameOptions> OnAllPlayersReady;
 
     public override void Awake(){
@@ -32,10 +32,10 @@ public class SorsNetworkManager : NetworkManager
     private IEnumerator WaitingForPlayers(){
         while (NetworkServer.connections.Count < gameOptions.NumberPlayers){
             print("Waiting for players...");
-            yield return new WaitForSeconds(1);
+            yield return new WaitForSeconds(SorsTimings.wait);
         }
 
-        yield return new WaitForSeconds(0.5f);        
+        yield return new WaitForSeconds(0.1f);        
         StartGame();
     }
 
@@ -85,7 +85,7 @@ public class SorsNetworkManager : NetworkManager
     public static void SetNumberPlayers(int numberPlayers) => gameOptions.NumberPlayers = numberPlayers + 1;
     public static void SetNumberPhases(int numberPhases) => gameOptions.NumberPhases = numberPhases + 1;
     public static void SetFullHand(bool drawAll) => gameOptions.FullHand = drawAll;
-    public static void SetSpawnimations(bool b) => gameOptions.CardSpawnAnimations = b;
+    public static void SetSpawnimations(bool b) => gameOptions.SkipCardSpawnAnimations = b;
     public static void SetStateFile(string stateFile) => gameOptions.StateFile = stateFile;
     private void UpdateNetworkAddress(string networkAddress){
         _manager.networkAddress = networkAddress;
