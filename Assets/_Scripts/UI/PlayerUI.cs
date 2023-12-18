@@ -32,16 +32,22 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
         BoardManager.OnCombatEnd += EndCombat;
     }
 
-    public void SetEntity(BattleZoneEntity e) => _playerEntity = e;
+    public void SetEntity(BattleZoneEntity e, Vector3 p) {
+        _playerEntity = e;
+        _playerEntity.transform.position = p;
+    }
 
     private void StartCombat()
     {
+        print("Start combat on player UI");
         transform.position += _combatPosition;
+        _playerEntity.transform.position += _combatPosition;
     }
 
     private void EndCombat()
     {
         transform.position -= _combatPosition;
+        _playerEntity.transform.position -= _combatPosition;
     }
 
     public void OnPointerClick(PointerEventData eventData)

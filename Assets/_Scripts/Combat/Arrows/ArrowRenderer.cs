@@ -21,6 +21,12 @@ public class ArrowRenderer : MonoBehaviour
     readonly List<Transform> segments = new List<Transform>();
     readonly List<MeshRenderer> renderers = new List<MeshRenderer>();
 
+    [Header("Resolution Constants")]
+    [SerializeField] private const float SCREEN_WIDTH = 1920f;
+    [SerializeField] private const float SCREEN_HEIGHT = 1080f;
+    [SerializeField] private const float ARROW_RENDER_WIDHT = 9.7f;
+    [SerializeField] private const float ARROW_RENDER_HEIGHT = 5.5f;
+
     private void Awake(){
         DropZoneManager.OnDestroyArrows += DestroyArrow;
     }
@@ -32,13 +38,13 @@ public class ArrowRenderer : MonoBehaviour
         // Input range X: [0, 1920], Y: 0, Z: [0, 1080]
         // Arrow renderer range X: [-9.7, 9.7], Y: 0.5, Z: [-5.5, 5.5]
         // X: [0, 1920] -> X: [-9.7, 9.7]
-        input.x = (input.x / 1920f) * 19.4f - 9.7f;
+        input.x = ARROW_RENDER_WIDHT * (2 * (input.x / SCREEN_WIDTH) - 1);
         // Z: [0, 1080] -> Z: [-5.5, 5.5]
-        input.z = (input.z / 1080f) * 11f - 5.5f;
+        input.z = ARROW_RENDER_HEIGHT * (2 * (input.z / SCREEN_HEIGHT) - 1);
 
         // clamp to screen size
-        input.x = Mathf.Clamp(input.x, -9.7f, 9.7f);
-        input.z = Mathf.Clamp(input.z, -5.5f, 5.5f);
+        input.x = Mathf.Clamp(input.x, -ARROW_RENDER_WIDHT, ARROW_RENDER_WIDHT);
+        input.z = Mathf.Clamp(input.z, -ARROW_RENDER_HEIGHT, ARROW_RENDER_HEIGHT);
 
         end = input;
     }

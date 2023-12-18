@@ -11,7 +11,7 @@ public class InputField : MonoBehaviour
     
     private void Start()
     {
-        inputField.text = "";
+        inputField.text = (option == GameOption.NetworkAddress) ? "localhost" : "";
         inputField.onEndEdit.AddListener(delegate { UpdateTextBox(); });
         UpdateTextBox();
     }

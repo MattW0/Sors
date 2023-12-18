@@ -13,7 +13,6 @@ public static class SorsTimings
     public static float draw = 0.15f;
     
     // Game Start
-    public static float waitForSpawn = 4f;
     public static float waitForSpawnFromFile = 6f;
 
     // Card Spawning
@@ -28,7 +27,6 @@ public static class SorsTimings
 	public static float cardPileRearrangement = 0.5f;
 
     public static void SkipCardSpawnAnimations(){
-        waitForSpawn = 0.5f;
         waitForSpawnFromFile = 0.5f;
         spawnCard = 0f;
         showSpawnedCard = 0f;

@@ -27,6 +27,7 @@ public class GameManager : NetworkBehaviour {
     [SyncVar] public int turnNumber;
     public Dictionary<PlayerManager, NetworkIdentity> players = new();
     private List<PlayerManager> _loosingPlayers = new();
+    [SerializeField] private bool skipCardDraw;
 
     [Header("Game start settings")]
     private int _nbMoneyTiles;
@@ -126,9 +127,8 @@ public class GameManager : NetworkBehaviour {
         singlePlayer = options.NumberPlayers == 1;
         nbPhasesToChose = options.NumberPhases;
         initialHandSize = options.FullHand ? initialDeckSize : initialHandSize;
-        if(options.SkipCardSpawnAnimations){
-            SorsTimings.SkipCardSpawnAnimations();
-        }
+        skipCardDraw = options.SkipCardSpawnAnimations;
+        if(skipCardDraw) SorsTimings.SkipCardSpawnAnimations();
 
         // Start game from state -> skip normal setup and start from there
         if(! string.IsNullOrWhiteSpace(options.StateFile)) {
@@ -518,7 +518,8 @@ public class GameManager : NetworkBehaviour {
         // Use async / await ?
         // How does this work with rpc calls and animations executing on players?
 
-        yield return new WaitForSeconds(SorsTimings.waitForSpawn);
+        float waitForSpawn = skipCardDraw ? 0.5f : 4f;
+        yield return new WaitForSeconds(waitForSpawn);
 
         foreach(var player in players.Keys) {
             player.deck.Shuffle();
@@ -528,6 +529,9 @@ public class GameManager : NetworkBehaviour {
         yield return new WaitForSeconds(SorsTimings.wait);
         OnGameStart?.Invoke(players.Count);
     }
+
+    [ClientRpc]
+    private void RpcSkipCardSpawnAnimations() => SorsTimings.SkipCardSpawnAnimations();
 
     public PlayerManager GetOpponent(PlayerManager player)
     {

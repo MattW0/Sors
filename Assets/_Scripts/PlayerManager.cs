@@ -124,15 +124,8 @@ public class PlayerManager : NetworkBehaviour
         _opponentUI = GameObject.Find("OpponentInfo").GetComponent<PlayerUI>();
         
         _entity = GetComponent<BattleZoneEntity>();
-        if(isOwned) {
-            _playerUI.SetEntity(_entity);
-            gameObject.transform.position = new Vector3(-9f, 0f, -4.75f);
-            // gameObject.transform.localScale = Vector3.one;
-        } else {
-            _opponentUI.SetEntity(_entity);
-            gameObject.transform.position = new Vector3(-9f, 0f, 4.75f);
-            gameObject.transform.localScale = Vector3.one;
-        }
+        if(isOwned) _playerUI.SetEntity(_entity, _playerUI.transform.position);
+        else _opponentUI.SetEntity(_entity, _opponentUI.transform.position);
     }
 
     [Server] // GameManager calls this on player object
