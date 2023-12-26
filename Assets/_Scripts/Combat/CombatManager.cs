@@ -59,7 +59,7 @@ public class CombatManager : NetworkBehaviour
         }
     }
 
-    private void Prepare(int nbPlayers)
+    private void Prepare(GameOptions options)
     {
         _gameManager = GameManager.Instance;
         _turnManager = TurnManager.Instance;
@@ -175,7 +175,7 @@ public class CombatManager : NetworkBehaviour
         foreach(var (a, t) in _attackerTarget){
             _playerInterfaceManager.RpcLog($"{a.Title} attacks {t.Title}", LogType.CombatClash);
 
-            if(t.cardType == CardType.Player){
+            if(t.CardType == CardType.Player){
                 playerAttackers.Add(a);
                 continue;
             }
@@ -183,7 +183,7 @@ public class CombatManager : NetworkBehaviour
             a.RpcSetCombatHighlight();
             // TODO: Move highlight to BZE
             // t.RpcSetCombatHighlight(); 
-            CombatClash(a, t);
+            EntityTakesDamage(a, t);
 
             yield return new WaitForSeconds(SorsTimings.combatClash);
         }
@@ -195,7 +195,7 @@ public class CombatManager : NetworkBehaviour
     private IEnumerator PlayerDamage(List<CreatureEntity> playerAttackers)
     {
         // Skip if in single-player (for debugging)
-        if (_gameManager.singlePlayer) {
+        if (_gameManager.isSinglePlayer){
             UpdateCombatState(CombatState.CleanUp);
             yield break;
         }
@@ -207,7 +207,7 @@ public class CombatManager : NetworkBehaviour
             // player takes damage from unblocked creatures
             var targetPlayer = attacker.Opponent;
             targetPlayer.Health -= attacker.Attack;
-            _turnManager.PlayerHealthChanged(targetPlayer, attacker.Attack);
+            // _turnManager.PlayerHealthChanged(targetPlayer, attacker.Attack);
             yield return new WaitForSeconds(SorsTimings.combatClash);
         }
         
@@ -216,24 +216,29 @@ public class CombatManager : NetworkBehaviour
     #endregion
 
     #region Combat Logic
-    private void CombatClash(CreatureEntity attacker, BattleZoneEntity blocker){
+
+    private void EntityTakesDamage(CreatureEntity attacker, BattleZoneEntity entity)
+    {
+        var attackerKw = attacker.GetKeywords();
+        entity.TakesDamage(attacker.Attack, attackerKw.Contains(Keywords.Deathtouch));
+    }
+
+    private void CombatClash(CreatureEntity attacker, CreatureEntity blocker){
 
         var firstStrike = CheckFirststrike(attacker, blocker);
         if (firstStrike) return; // Damage already happens in CheckFirstStrike
 
         var attackerKw = attacker.GetKeywords();
-        var blockerKw = new List<Keywords>();
-        if (blocker.Creature) blockerKw = blocker.Creature.GetKeywords();
+        var blockerKw = blocker.GetKeywords();
 
         blocker.TakesDamage(attacker.Attack, attackerKw.Contains(Keywords.Deathtouch));
         attacker.TakesDamage(blocker.Attack, blockerKw.Contains(Keywords.Deathtouch));
     }
 
-    private bool CheckFirststrike(CreatureEntity attacker, BattleZoneEntity blocker)
+    private bool CheckFirststrike(CreatureEntity attacker, CreatureEntity blocker)
     {
         var attackerKw = attacker.GetKeywords();
-        var blockerKw = new List<Keywords>();
-        if (blocker.Creature) blockerKw = blocker.Creature.GetKeywords();
+        var blockerKw = blocker.GetKeywords();
 
         // XOR: return if none or both have first strike
         if( ! attackerKw.Contains(Keywords.First_Strike)
@@ -268,7 +273,7 @@ public class CombatManager : NetworkBehaviour
 
         var targetPlayer = attacker.Opponent;
         targetPlayer.Health -= attacker.Attack - totalBlockerHealth;
-        _turnManager.PlayerHealthChanged(targetPlayer, attacker.Attack - totalBlockerHealth);
+        // _turnManager.PlayerHealthChanged(targetPlayer, attacker.Attack - totalBlockerHealth);
     }
     #endregion
 

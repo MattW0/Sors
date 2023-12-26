@@ -9,7 +9,7 @@ public class SorsNetworkManager : NetworkManager
     private NetworkManager _manager;
     private string _playerNameBuffer;
     private string[] _networkAddresses = new string[2] {"localhost", "192.168.1.170"};
-    public static GameOptions gameOptions = new GameOptions(2, 2, true, false, "192.168.1.170", "");
+    public static GameOptions gameOptions = new GameOptions(2, 1, true, false, "192.168.1.170", "", 4);
     public static event Action<GameOptions> OnAllPlayersReady;
 
     public override void Awake(){
@@ -84,7 +84,10 @@ public class SorsNetworkManager : NetworkManager
     #region Host Options
     public static void SetNumberPlayers(int numberPlayers) => gameOptions.NumberPlayers = numberPlayers + 1;
     public static void SetNumberPhases(int numberPhases) => gameOptions.NumberPhases = numberPhases + 1;
-    public static void SetFullHand(bool drawAll) => gameOptions.FullHand = drawAll;
+    public static void SetFullHand(bool drawAll){
+        gameOptions.FullHand = drawAll;
+        gameOptions.InitialHandSize = drawAll ? 10 : 4;
+    } 
     public static void SetSpawnimations(bool b) => gameOptions.SkipCardSpawnAnimations = b;
     public static void SetStateFile(string stateFile) => gameOptions.StateFile = stateFile;
     private void UpdateNetworkAddress(string networkAddress){

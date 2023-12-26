@@ -10,13 +10,16 @@ public struct GameOptions{
     public bool SkipCardSpawnAnimations { get; set;}
     public string NetworkAddress { get; set;}
     public string StateFile { get; set;}
-    public GameOptions(int numPlayers, int numPhases, bool fullHand, bool skipSpawnimations, string address, string stateFile){
+    public int InitialHandSize { get; set;}
+
+    public GameOptions(int numPlayers, int numPhases, bool fullHand, bool skipSpawnimations, string address, string stateFile, int initialHandSize){
         NumberPlayers = numPlayers;
         NumberPhases = numPhases;
         FullHand = fullHand;
         SkipCardSpawnAnimations = skipSpawnimations;
         NetworkAddress = address;
         StateFile = stateFile;
+        InitialHandSize = initialHandSize;
     }
 
     public override string ToString()
@@ -26,10 +29,11 @@ public struct GameOptions{
         var fullHand = $"Full hand: {FullHand}\n";
         var spawnimations = $"Skip spawn animations: {SkipCardSpawnAnimations}\n";
         var address = $"Host address: {NetworkAddress}\n";
+        var initialHandSize = $"Initial hand size: {InitialHandSize}\n";
         var state = "";
         if (StateFile != "") state = $"Loading from state: {StateFile}\n";
 
-        return address + state + players + phases + fullHand + spawnimations;
+        return address + state + players + phases + fullHand + initialHandSize + spawnimations;
     } 
 }
 

@@ -30,8 +30,9 @@ public class TurnManager : NetworkBehaviour
     private Dictionary<PlayerManager, List<PrevailOption>> _playerPrevailOptions = new();
     private List<PlayerManager> _readyPlayers = new();
     private int _nbPlayers;
-    private Dictionary<PlayerManager, int> _playerHealth = new();
-    public int GetHealth(PlayerManager player) => _playerHealth[player];
+    private bool _skipCardDrawAnimations;
+    // private Dictionary<PlayerManager, int> _playerHealth = new();
+    // public int GetHealth(PlayerManager player) => _playerHealth[player];
 
     [Header("Helper Fields")]
     private Dictionary<PlayerManager, List<CardInfo>> _selectedKingdomCards = new();
@@ -102,7 +103,18 @@ public class TurnManager : NetworkBehaviour
         _phasePanel.RpcChangeActionDescriptionText(turnState);
     }
 
-    private void Prepare(int nbPlayers)
+    private void Prepare(GameOptions gameOptions)
+    {
+        SetupInstances(gameOptions);
+
+        VariablesCaching(gameOptions);
+
+        _nbPlayers = gameOptions.NumberPlayers;
+        _skipCardDrawAnimations = gameOptions.SkipCardSpawnAnimations;
+        StartCoroutine(DrawInitialHand(gameOptions.InitialHandSize));
+    }
+
+    private void SetupInstances(GameOptions gameOptions)
     {
         _gameManager = GameManager.Instance;
         _handManager = Hand.Instance;
@@ -115,16 +127,17 @@ public class TurnManager : NetworkBehaviour
         _cardCollectionPanel = HandInteractionPanel.Instance;
         _cardCollectionPanel.RpcPrepareCardCollectionPanel(_gameManager.nbDiscard);
         _phasePanel = PhasePanel.Instance;
-        _phasePanel.RpcPreparePhasePanel(nbPlayers, _gameManager.nbPhasesToChose, _gameManager.animations);
+        _phasePanel.RpcPreparePhasePanel(gameOptions.NumberPlayers, gameOptions.NumberPhases, gameOptions.SkipCardSpawnAnimations);
         _prevailPanel = PrevailPanel.Instance;
         _prevailPanel.RpcPreparePrevailPanel(_gameManager.prevailOptionsToChoose, _gameManager.prevailExtraOptions);
+    }
 
-        _nbPlayers = nbPlayers;
-        // print($"TurnManager prepare for {_nbPlayers} players");
+    private void VariablesCaching(GameOptions gameOptions)
+    {
         foreach (var player in _gameManager.players.Keys)
         {
-            _playerHealth.Add(player, _gameManager.startHealth);
-            _playerPhaseChoices.Add(player, new Phase[_gameManager.nbPhasesToChose]);
+            // _playerHealth.Add(player, _gameManager.startHealth);
+            _playerPhaseChoices.Add(player, new Phase[gameOptions.NumberPhases]);
             _playerPrevailOptions.Add(player, new List<PrevailOption>());
             _selectedCards.Add(player, new List<GameObject>());
         }
@@ -132,8 +145,32 @@ public class TurnManager : NetworkBehaviour
         _playerPhaseChoices = _playerPhaseChoices.Reverse().ToDictionary(x => x.Key, x => x.Value);
         _playerPrevailOptions = _playerPrevailOptions.Reverse().ToDictionary(x => x.Key, x => x.Value);
         PlayerManager.OnCashChanged += PlayerCashChanged;
+    }
+
+    private IEnumerator DrawInitialHand(int initialHandSize){
+
+        // TODO: Need anohter approach of timing concept
+        // Use async / await ?
+        // How does this work with rpc calls and animations executing on players?
+
+        float waitForSpawn = _skipCardDrawAnimations ? 0.5f : 4f;
+        print("SkipCardSpawnAnimations: " + _skipCardDrawAnimations);
+        yield return new WaitForSeconds(waitForSpawn);
+
+        print($"Waited for {waitForSpawn} seconds");
+
+        foreach(var player in _gameManager.players.Keys) {
+            player.deck.Shuffle();
+            player.DrawInitialHand(initialHandSize);
+        }
+
+        yield return new WaitForSeconds(SorsTimings.wait);
+
+        print($"Drew initial hand and waited for {SorsTimings.wait} seconds");
+
 
         UpdateTurnState(TurnState.PhaseSelection);
+
     }
 
     #region PhaseSelection
@@ -621,7 +658,7 @@ public class TurnManager : NetworkBehaviour
     private bool GameEnds()
     {
         var gameEnds = false;
-        foreach (var (player, health) in _playerHealth)
+        foreach (var (player, health) in _gameManager.players.Keys.Select(player => (player, player.Health)))
         {
             if (health > 0) continue;
 
@@ -694,7 +731,7 @@ public class TurnManager : NetworkBehaviour
     }
 
     // TODO: CHeck logic with game state loading. Move to gameManager?
-    public void PlayerHealthChanged(PlayerManager player, int amount) => _playerHealth[player] -= amount;
+    // public void PlayerHealthChanged(PlayerManager player, int amount) => _playerHealth[player] -= amount;
 
     private void PlayerCashChanged(PlayerManager player, int newAmount)
     {

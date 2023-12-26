@@ -102,7 +102,7 @@ public class BoardManager : NetworkBehaviour
 
     private void DeclareAttackers() {
 
-        if (_gameManager.singlePlayer) 
+        if (_gameManager.isSinglePlayer)
         {
             _dropZone.StartDeclareAttackers(_gameManager.players.Keys.ToList()[0], null);
             return;
@@ -160,7 +160,7 @@ public class BoardManager : NetworkBehaviour
             _dropZone.EntityLeavesPlayZone(dead);
             _cardEffectsHandler.EntityDies(dead);
 
-            if(dead.cardType == CardType.Creature){
+            if(dead.CardType == CardType.Creature){
                 var creature = dead.GetComponent<CreatureEntity>();
             }
 

@@ -7,6 +7,7 @@ using System.Linq;
 
 public class PlayerManager : NetworkBehaviour
 {
+
     [SyncVar, SerializeField] private string playerName;
     public string PlayerName
     {
@@ -56,6 +57,20 @@ public class PlayerManager : NetworkBehaviour
         get => _health;
         set => SetHealthValue(value);
     }
+    public PlayerManager Owner { get; }
+
+    [Server]
+    public void TakesDamage(int value, bool deathtouch){
+        Health -= value;
+    }
+
+    public void Die() {}
+
+    public void RpcInitializeEntity(PlayerManager owner, PlayerManager opponent, CardInfo cardInfo) {}
+
+    public string Title { get; set; }
+    public CardType cardType { get; }
+
 
     private int _score;
     public int Score
@@ -643,6 +658,9 @@ public class PlayerManager : NetworkBehaviour
     // private void PlayerClickedCollectionViewButton(PlayerManager player) {
     //     _cardCollectionPanel.TargetShowCardCollection(player.connectionToClient, hand);
     // }
+
+    [ClientRpc]
+    public void RpcSkipCardSpawnAnimations() => SorsTimings.SkipCardSpawnAnimations();
 
     [Server]
     public void ForceEndTurn() => _turnManager.ForceEndTurn();

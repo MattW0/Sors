@@ -28,8 +28,10 @@ public static class SorsTimings
 
     public static void SkipCardSpawnAnimations(){
         waitForSpawnFromFile = 0.5f;
-        spawnCard = 0f;
-        showSpawnedCard = 0f;
-        moveSpawnedCard = 0f;
+        spawnCard = 0.01f;
+        showSpawnedCard = 0.01f;
+        moveSpawnedCard = 0.01f;
+
+        // showSpawnedEntity = 0.01f;
     }
 }

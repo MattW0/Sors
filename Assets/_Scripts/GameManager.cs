@@ -10,38 +10,33 @@ using GameState;
 
 public class GameManager : NetworkBehaviour {
     
-    [Header("For Coding")]
-    public bool singlePlayer;
-    public bool animations = true;
-    public bool cardSpawnAnimations = false;
-
     public static GameManager Instance { get; private set; }
     private TurnManager _turnManager;
     private Kingdom _kingdom;
     private EndScreen _endScreen;
     private BoardManager _boardManager;
 
-    public static event Action<int> OnGameStart;
+    private GameOptions _gameOptions;
+    public static event Action<GameOptions> OnGameStart;
 
     [Header("Game state")]
     [SyncVar] public int turnNumber;
     public Dictionary<PlayerManager, NetworkIdentity> players = new();
     private List<PlayerManager> _loosingPlayers = new();
-    [SerializeField] private bool skipCardDraw;
 
     [Header("Game start settings")]
-    private int _nbMoneyTiles;
-    private int _nbTechnologyTiles;
-    private int _nbCreatureTiles;
+    public bool isSinglePlayer = false;
     [SerializeField] private int initialDeckSize = 10;
     [SerializeField] private int initialCreatures = 3;
     [SerializeField] private int initialTechnologies = 2;
     [SerializeField] private int initialHandSize = 6;
     public int startHealth = 10;
     public int startScore = 0;
+    private int _nbMoneyTiles;
+    private int _nbTechnologyTiles;
+    private int _nbCreatureTiles;
 
     [Header("Turn specifics")]
-    public int nbPhasesToChose;
     [SerializeField] public int fixCardDraw = 2;
     [SerializeField] public int phaseCardDraw = 2;
     [SerializeField] public int nbDiscard = 1;
@@ -124,11 +119,10 @@ public class GameManager : NetworkBehaviour {
         _endScreen = EndScreen.Instance;
 
         print(" --- Game starting --- \n" + options.ToString());
-        singlePlayer = options.NumberPlayers == 1;
-        nbPhasesToChose = options.NumberPhases;
+        _gameOptions = options;
+
+        isSinglePlayer = options.NumberPlayers == 1;
         initialHandSize = options.FullHand ? initialDeckSize : initialHandSize;
-        skipCardDraw = options.SkipCardSpawnAnimations;
-        if(skipCardDraw) SorsTimings.SkipCardSpawnAnimations();
 
         // Start game from state -> skip normal setup and start from there
         if(! string.IsNullOrWhiteSpace(options.StateFile)) {
@@ -138,6 +132,8 @@ public class GameManager : NetworkBehaviour {
 
         KingdomSetup();
         PlayerSetup();
+
+        OnGameStart?.Invoke(_gameOptions);
     }
 
     private void KingdomSetup(){
@@ -183,7 +179,14 @@ public class GameManager : NetworkBehaviour {
             SpawnPlayerDeck(player);
         }
 
-        StartCoroutine(PreGameWaitRoutine());
+        if(_gameOptions.SkipCardSpawnAnimations) {
+            // Needs to be done on all clients
+            playerManagers[0].RpcSkipCardSpawnAnimations();
+            // And on server
+            SkipCardSpawnAnimations();
+        }
+
+        // StartCoroutine(PreGameWaitRoutine());
     }
 
     private void SpawnPlayerDeck(PlayerManager player)
@@ -268,7 +271,7 @@ public class GameManager : NetworkBehaviour {
 
         yield return new WaitForSeconds(SorsTimings.waitForSpawnFromFile / 3f);
         
-        OnGameStart?.Invoke(players.Count);
+        OnGameStart?.Invoke(_gameOptions);
     }
 
     private IEnumerator SpawnCardsFromFile(PlayerManager p, Cards cards)
@@ -460,7 +463,7 @@ public class GameManager : NetworkBehaviour {
     {
         foreach (var player in players.Keys)
         {
-            var health = _turnManager.GetHealth(player);
+            var health = player.Health;
             _endScreen.RpcSetFinalScore(player, health, 0);
         }
         
@@ -512,26 +515,8 @@ public class GameManager : NetworkBehaviour {
         _nbCreatureTiles = creatures;
     }
 
-    private IEnumerator PreGameWaitRoutine(){
-
-        // TODO: Need anohter approach of timing concept
-        // Use async / await ?
-        // How does this work with rpc calls and animations executing on players?
-
-        float waitForSpawn = skipCardDraw ? 0.5f : 4f;
-        yield return new WaitForSeconds(waitForSpawn);
-
-        foreach(var player in players.Keys) {
-            player.deck.Shuffle();
-            player.DrawInitialHand(initialHandSize);
-        }
-
-        yield return new WaitForSeconds(SorsTimings.wait);
-        OnGameStart?.Invoke(players.Count);
-    }
-
-    [ClientRpc]
-    private void RpcSkipCardSpawnAnimations() => SorsTimings.SkipCardSpawnAnimations();
+    [Server]
+    private void SkipCardSpawnAnimations() => SorsTimings.SkipCardSpawnAnimations();
 
     public PlayerManager GetOpponent(PlayerManager player)
     {

@@ -34,13 +34,13 @@ public class PhasePanel : NetworkBehaviour
 
     #region Prepare and Phase Selection
     [ClientRpc]
-    public void RpcPreparePhasePanel(int nbPlayers, int nbPhasesToChose, bool animations){
+    public void RpcPreparePhasePanel(int nbPlayers, int nbPhases, bool skipAnimations){
         _phasePanelUI = PhasePanelUI.Instance;
         _phasePanelUI.PrepareUI(nbPlayers);
         _turnScreenOverlay = TurnScreenOverlay.Instance;
 
-        _nbPhasesToChose = nbPhasesToChose;
-        _animate = animations;
+        _nbPhasesToChose = nbPhases;
+        _animate = ! skipAnimations;
     }
 
     [ClientRpc]
@@ -48,8 +48,8 @@ public class PhasePanel : NetworkBehaviour
         turnText.text = "Turn " + currentTurn.ToString();
         OnPhaseSelectionStarted?.Invoke();
 
-        if(!_animate) return;
-        _turnScreenOverlay.UpdateTurnScreen(currentTurn);
+        // if(!_animate) return;
+        // _turnScreenOverlay.UpdateTurnScreen(currentTurn);
     }
 
     public void UpdateSelectedPhase(Phase phase){

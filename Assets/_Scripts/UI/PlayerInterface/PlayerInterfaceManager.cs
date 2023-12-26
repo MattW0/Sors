@@ -18,7 +18,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void RpcPrepareUIs(int nbPlayers){
+    private void RpcPrepareUIs(GameOptions gameOptions){
         _buttons = PlayerInterfaceButtons.Instance;
     }
 

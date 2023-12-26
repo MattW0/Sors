@@ -48,12 +48,12 @@ public class DropZoneManager : NetworkBehaviour
     [Server]
     public void EntityLeavesPlayZone(BattleZoneEntity entity)
     {
-        if (entity.cardType == CardType.Technology)
+        if (entity.CardType == CardType.Technology)
         {
             var development = entity.GetComponent<TechnologyEntity>();
             entityZones.RemoveDevelopment(development, entity.Owner.isLocalPlayer);
         }
-        else if (entity.cardType == CardType.Creature)
+        else if (entity.CardType == CardType.Creature)
         {
             var creature = entity.GetComponent<CreatureEntity>();
             entityZones.RemoveCreature(creature, entity.Owner.isLocalPlayer);
