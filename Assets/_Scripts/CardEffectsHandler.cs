@@ -98,6 +98,10 @@ public class CardEffectsHandler : NetworkBehaviour
         StartCoroutine(StartResolvingQueue());
     }
     
+
+    // TODO : Need function to handle triggered Abilities like taking damage, gain health etc.
+    // Or should this be on entity and then added to queue from externally ?
+
     private void AddAbilityToQueue(BattleZoneEntity entity, Ability ability){
         _playerInterfaceManager.RpcLog($"'{entity.Title}': {ability.trigger} -> {ability.effect}", LogType.EffectTrigger);
         print($"'{entity.Title}': {ability.trigger} -> {ability.effect}");
@@ -288,6 +292,11 @@ public class CardEffectsHandler : NetworkBehaviour
         };
 
         return trigger;
+    }
+
+    public void ClearAbilitiesQueue()
+    {
+        _abilityQueue.Clear();
     }
     #endregion
 }

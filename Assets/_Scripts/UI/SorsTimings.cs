@@ -27,7 +27,7 @@ public static class SorsTimings
 	public static float cardPileRearrangement = 0.5f;
 
     public static void SkipCardSpawnAnimations(){
-        waitForSpawnFromFile = 0.5f;
+        waitForSpawnFromFile = 0.01f;
         spawnCard = 0.01f;
         showSpawnedCard = 0.01f;
         moveSpawnedCard = 0.01f;

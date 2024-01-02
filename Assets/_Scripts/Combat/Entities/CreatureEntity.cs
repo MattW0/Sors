@@ -1,27 +1,14 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using Mirror;
 
+[RequireComponent(typeof(BlockerArrowHandler))]
 public class CreatureEntity : BattleZoneEntity
 {
     [SerializeField] private CreatureEntityUI _creatureUI;
     private List<Keywords> _keywordAbilities;
     public List<Keywords> GetKeywords() => _keywordAbilities;
     private BlockerArrowHandler _blockerArrowHandler;
-
-
-    public void InitializeCreature(int attack, List<Keywords> keywords){
-        _keywordAbilities = keywords;
-        _blockerArrowHandler = GetComponent<BlockerArrowHandler>();
-        _attack = attack;
-    }
-
-    [ClientRpc]
-    public override void RpcCombatStateChanged(CombatState newState){
-        base.RpcCombatStateChanged(newState);
-        _blockerArrowHandler.CombatStateChanged(newState);
-    }
     
     [SerializeField] private int _attack;
     public int Attack
@@ -35,7 +22,7 @@ public class CreatureEntity : BattleZoneEntity
     }
 
     private bool _canAct;
-    public bool CanAct 
+    public bool CanAct
     {
         get => _canAct;
         set {
@@ -66,6 +53,18 @@ public class CreatureEntity : BattleZoneEntity
         }
     }
 
+    public void InitializeCreature(int attack, List<Keywords> keywords){
+        _keywordAbilities = keywords;
+        _blockerArrowHandler = GetComponent<BlockerArrowHandler>();
+        _attack = attack;
+    }
+
+    [ClientRpc]
+    public override void RpcCombatStateChanged(CombatState newState){
+        base.RpcCombatStateChanged(newState);
+        _blockerArrowHandler.CombatStateChanged(newState);
+    }
+
     public void CheckIfCanAct(){
         if (!isOwned) return;
 
@@ -73,45 +72,43 @@ public class CreatureEntity : BattleZoneEntity
         CanAct = true;
     }
 
-
-    // TODO: Move to BZE because technologies taking damage
     [ClientRpc]
-    public void RpcSetCombatHighlight() => _creatureUI.CombatHighlight();
+    public void RpcDeclaredAttack(BattleZoneEntity target){
+        CanAct = false;
+        IsAttacking = true;
+        attackerArrowHandler.HandleFoundTarget(target.transform);
+        // PlayerInterfaceManager.Log($"  - {Title} attacks {target.Title}", LogType.Standard);
+    }
+
+    [TargetRpc]
+    public void TargetDeclaredAttack(NetworkConnection conn, BattleZoneEntity target)
+    {
+        CanAct = false;
+        attackerArrowHandler.HandleFoundTarget(target.transform);
+    }
+
+    [TargetRpc]
+    public void TargetDeclaredBlock(NetworkConnection conn, BattleZoneEntity target)
+    {
+        CanAct = false;
+        IsBlocking = true;
+        _blockerArrowHandler.HandleFoundTarget(target.transform);
+    }
+
+    [ClientRpc]
+    public void RpcDeclaredBlock(BattleZoneEntity target)
+    {
+        CanAct = false;
+        _blockerArrowHandler.HandleFoundTarget(target.transform);
+    }
 
     [ClientRpc]
     public void RpcResetAfterCombat(){
         CanAct = false;
         IsAttacking = false;
+        IsBlocking = false;
 
         _creatureUI.ResetHighlight();
-    }
-
-    [ClientRpc]
-    public void RpcDeclaredAttack(BattleZoneEntity target){
-        CanAct = false;
-        IsAttacking = true;
-        // _attackerArrowHandler.HandleFoundTarget(target.transform);
-        // PlayerInterfaceManager.Log($"  - {Title} attacks {target.Title}", LogType.Standard);
-    }
-
-
-    public void TargetDeclaredAttack(NetworkConnection conn, BattleZoneEntity target)
-    {
-        CanAct = false;
-        // attackerArrowHandler.HandleFoundTarget(target.transform);
-    }
-
-    public void TargetDeclaredBlock(NetworkConnection conn, BattleZoneEntity target)
-    {
-        CanAct = false;
-        IsBlocking = true;
-        // _blockerArrowHandler.HandleFoundTarget(target.transform);
-    }
-
-    public void RpcDeclaredBlock(BattleZoneEntity target)
-    {
-        CanAct = false;
-        // _blockerArrowHandler.HandleFoundTarget(target.transform);
     }
 
     [ClientRpc]

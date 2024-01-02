@@ -6,7 +6,7 @@ using UnityEngine;
 using Unity.Collections;
 using Mirror;
 using Random = UnityEngine.Random;
-using GameState;
+using SorsGameState;
 
 public class GameManager : NetworkBehaviour {
     
@@ -75,8 +75,8 @@ public class GameManager : NetworkBehaviour {
     // [SerializeField] private Transform _entitySpawnTransform;
 
     // Caching all gameObjects of cards in game
-    private static Dictionary<int, GameObject> Cache { get; set; } = new();
-    public static GameObject GetCardObject(int goID) { return Cache[goID]; }
+    private static Dictionary<int, GameObject> CardsCache { get; set; } = new();
+    public static GameObject GetCardObject(int goID) { return CardsCache[goID]; }
     // convert cardInfo (goIDs) to cached objects
     public static List<GameObject> CardInfosToGameObjects(List<CardInfo> cards){
         return cards.Select(card => GetCardObject(card.goID)).ToList();
@@ -124,16 +124,46 @@ public class GameManager : NetworkBehaviour {
         isSinglePlayer = options.NumberPlayers == 1;
         initialHandSize = options.FullHand ? initialDeckSize : initialHandSize;
 
-        // Start game from state -> skip normal setup and start from there
-        if(! string.IsNullOrWhiteSpace(options.StateFile)) {
+        InitPlayers();
+
+        if(string.IsNullOrWhiteSpace(options.StateFile)){
+            // Normal game setup
+            KingdomSetup();
+            foreach (var player in players.Keys) SpawnPlayerDeck(player);
+            OnGameStart?.Invoke(_gameOptions);
+        } else {
+            // Start game from state file
             LoadGameState(options.StateFile);
-            return;
+        }
+    }
+
+    private void InitPlayers(){
+
+        var playerManagers = FindObjectsOfType<PlayerManager>();
+        foreach (var player in playerManagers)
+        {
+            players.Add(player, player.GetComponent<NetworkIdentity>());
+            player.RpcInitPlayer();
+
+            // Player stats
+            player.PlayerName = player.PlayerName; // To update info in network
+            player.Health = startHealth;
+            player.Score = startScore;
+            
+            // Turn stats
+            player.Cash = turnCash;
+            player.Invents = turnInvents;
+            player.Develops = turnDevelops;
+            player.Deploys = turnDeploys;
+            player.Recruits = turnRecruits;
         }
 
-        KingdomSetup();
-        PlayerSetup();
-
-        OnGameStart?.Invoke(_gameOptions);
+        if(_gameOptions.SkipCardSpawnAnimations) {
+            // Needs to be done on all clients
+            playerManagers[0].RpcSkipCardSpawnAnimations();
+            // And on server
+            SkipCardSpawnAnimations();
+        }
     }
 
     private void KingdomSetup(){
@@ -152,41 +182,6 @@ public class GameManager : NetworkBehaviour {
         var creatures = new CardInfo[_nbCreatureTiles];
         for (var i = 0; i < _nbCreatureTiles; i++) creatures[i] = GetNewCreatureFromDb();
         _kingdom.RpcSetRecruitTiles(creatures);
-    }
-
-    private void PlayerSetup(){
-        
-        var playerManagers = FindObjectsOfType<PlayerManager>();
-        foreach (var player in playerManagers)
-        {
-            var playerNetworkId = player.GetComponent<NetworkIdentity>();
-            players.Add(player, playerNetworkId);
-            player.RpcInitPlayer();
-
-            // Player stats
-            player.PlayerName = player.PlayerName; // To update info in network
-            player.Health = startHealth;
-            player.Score = startScore;
-            
-            // Turn stats
-            player.Cash = turnCash;
-            player.Invents = turnInvents;
-            player.Develops = turnDevelops;
-            player.Deploys = turnDeploys;
-            player.Recruits = turnRecruits;
-
-            // Cards
-            SpawnPlayerDeck(player);
-        }
-
-        if(_gameOptions.SkipCardSpawnAnimations) {
-            // Needs to be done on all clients
-            playerManagers[0].RpcSkipCardSpawnAnimations();
-            // And on server
-            SkipCardSpawnAnimations();
-        }
-
-        // StartCoroutine(PreGameWaitRoutine());
     }
 
     private void SpawnPlayerDeck(PlayerManager player)
@@ -215,13 +210,14 @@ public class GameManager : NetworkBehaviour {
 
     #region Game State Loading
 
-    private void LoadGameState(string fileName){
-
+    private void LoadGameState(string fileName)
+    {
         print($"Loading game state from file: {fileName}");
         
         var stateFile = Resources.Load<TextAsset>("GameStates/" + fileName);
-        var state = JsonUtility.FromJson<GameState.GameState>(stateFile.text);
+        var state = JsonUtility.FromJson<GameState>(stateFile.text);
 
+        // TODO: Load specific kingdom from state file
         KingdomSetup();
         PlayerSetupFromFile(state.players);
     }
@@ -238,19 +234,12 @@ public class GameManager : NetworkBehaviour {
 
         Dictionary<PlayerManager, Cards> playerCards = new();
         Dictionary<PlayerManager, Entities> playerEntities = new();
-        foreach (var player in FindObjectsOfType<PlayerManager>())
+        foreach (var player in players.Keys)
         {
-            var playerNetworkId = player.GetComponent<NetworkIdentity>();
-            players.Add(player, playerNetworkId);
-            player.RpcInitPlayer();
-
             // p has player info and game state 
             Player p = new Player();
             if(player.isLocalPlayer) p = host;
             else p = client;
-
-            // To update string in network
-            player.PlayerName = p.playerName;
 
             playerCards.Add(player, p.cards);
             playerEntities.Add(player, p.entities);
@@ -265,12 +254,14 @@ public class GameManager : NetworkBehaviour {
             StartCoroutine(SpawnCardsFromFile(player, cards));
 
             yield return new WaitForSeconds(SorsTimings.waitForSpawnFromFile);
+            // yield return new WaitForSeconds(0.1f);
 
             StartCoroutine(SpawnEntitiesFromFile(player, playerEntities[player]));
         }
 
         yield return new WaitForSeconds(SorsTimings.waitForSpawnFromFile / 3f);
-        
+        // yield return new WaitForSeconds(0.1f);
+
         OnGameStart?.Invoke(_gameOptions);
     }
 
@@ -313,7 +304,7 @@ public class GameManager : NetworkBehaviour {
             var cardObject = SpawnCardAndAddToCollection(p, scriptableCard, CardLocation.PlayZone);
             
             // Wait for card initialization
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0.01f);
             var entity = SpawnFieldEntity(p, cardObject);
 
             entitiesDict.Add(cardObject, entity);
@@ -324,7 +315,7 @@ public class GameManager : NetworkBehaviour {
             var cardObject = SpawnCardAndAddToCollection(p, scriptableCard, CardLocation.PlayZone);
             
             // Wait for card initialization
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0.01f);
             var entity = SpawnFieldEntity(p, cardObject);
 
             entitiesDict.Add(cardObject, entity);
@@ -392,7 +383,7 @@ public class GameManager : NetworkBehaviour {
         // Using the unique gameObject instance ID ()
         var instanceID = cardObject.GetInstanceID();
         cardObject.name = instanceID.ToString();
-        Cache.Add(instanceID, cardObject);
+        CardsCache.Add(instanceID, cardObject);
 
         NetworkServer.Spawn(cardObject, connectionToClient);
         cardObject.GetComponent<NetworkIdentity>().AssignClientAuthority(players[owner].connectionToClient);
@@ -409,6 +400,7 @@ public class GameManager : NetworkBehaviour {
     }
 
     private void AddCardToPlayerCollection(PlayerManager owner, CardInfo cardInfo, CardLocation destination){
+        
         switch (destination)
         {
             case CardLocation.Deck:
@@ -419,6 +411,7 @@ public class GameManager : NetworkBehaviour {
                 break;
             case CardLocation.Hand:
                 owner.hand.Add(cardInfo);
+                owner.RpcUpdateHandCards(CardsCache[cardInfo.goID], true);
                 break;
             case CardLocation.PlayZone:
                 // When loading game state

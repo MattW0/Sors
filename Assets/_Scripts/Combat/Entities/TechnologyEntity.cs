@@ -6,5 +6,8 @@ using Mirror;
 
 public class TechnologyEntity : BattleZoneEntity
 {
-    
+    public void InitializeTechnology()
+    {
+        throw new System.NotImplementedException();
+    }
 }

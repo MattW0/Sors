@@ -31,8 +31,6 @@ public class TurnManager : NetworkBehaviour
     private List<PlayerManager> _readyPlayers = new();
     private int _nbPlayers;
     private bool _skipCardDrawAnimations;
-    // private Dictionary<PlayerManager, int> _playerHealth = new();
-    // public int GetHealth(PlayerManager player) => _playerHealth[player];
 
     [Header("Helper Fields")]
     private Dictionary<PlayerManager, List<CardInfo>> _selectedKingdomCards = new();
@@ -111,7 +109,9 @@ public class TurnManager : NetworkBehaviour
 
         _nbPlayers = gameOptions.NumberPlayers;
         _skipCardDrawAnimations = gameOptions.SkipCardSpawnAnimations;
-        StartCoroutine(DrawInitialHand(gameOptions.InitialHandSize));
+
+        // StateFile is NOT null or empty if we load from a file eg. state.json
+        StartCoroutine(DrawInitialHand(gameOptions.InitialHandSize, ! string.IsNullOrEmpty(gameOptions.StateFile)));
     }
 
     private void SetupInstances(GameOptions gameOptions)
@@ -147,30 +147,22 @@ public class TurnManager : NetworkBehaviour
         PlayerManager.OnCashChanged += PlayerCashChanged;
     }
 
-    private IEnumerator DrawInitialHand(int initialHandSize){
-
-        // TODO: Need anohter approach of timing concept
-        // Use async / await ?
-        // How does this work with rpc calls and animations executing on players?
-
+    private IEnumerator DrawInitialHand(int initialHandSize, bool isLoadedFromFile)
+    {
         float waitForSpawn = _skipCardDrawAnimations ? 0.5f : 4f;
-        print("SkipCardSpawnAnimations: " + _skipCardDrawAnimations);
         yield return new WaitForSeconds(waitForSpawn);
 
-        print($"Waited for {waitForSpawn} seconds");
-
-        foreach(var player in _gameManager.players.Keys) {
-            player.deck.Shuffle();
-            player.DrawInitialHand(initialHandSize);
+        // Dont want ETB triggers for entities from game state and only draw initial hand in normal game start 
+        if(isLoadedFromFile) _cardEffectsHandler.ClearAbilitiesQueue();
+        else {
+            foreach(var player in _gameManager.players.Keys) {
+                player.deck.Shuffle();
+                player.DrawInitialHand(initialHandSize);
+            }
+            yield return new WaitForSeconds(SorsTimings.wait);
         }
-
-        yield return new WaitForSeconds(SorsTimings.wait);
-
-        print($"Drew initial hand and waited for {SorsTimings.wait} seconds");
-
-
+        
         UpdateTurnState(TurnState.PhaseSelection);
-
     }
 
     #region PhaseSelection

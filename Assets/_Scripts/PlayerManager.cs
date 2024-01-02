@@ -228,19 +228,17 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Command]
-    public void CmdSkipCardPlay() => _turnManager.PlayerSkipsCardPlay(this);
+    public void CmdSkipCardPlay() => _turnManager.PlayerSkipsCardPlay(this);    
 
-    private void MoveCard(GameObject card, CardLocation from, CardLocation to)
+    [ClientRpc]
+    public void RpcMoveCard(GameObject card, CardLocation from, CardLocation to)
     {
         _cardMover.MoveTo(card, isOwned, from, to);
 
         if (!isOwned) return;
-        if (to == CardLocation.Hand) _handManager.UpdateHandsCardList(card, true);
-        else if (from == CardLocation.Hand) _handManager.UpdateHandsCardList(card, false);
+        if (to == CardLocation.Hand) _handManager.UpdateHandCardList(card, true);
+        else if (from == CardLocation.Hand) _handManager.UpdateHandCardList(card, false);
     }
-
-    [ClientRpc]
-    public void RpcMoveCard(GameObject card, CardLocation from, CardLocation to) => MoveCard(card, from, to);
 
     [ClientRpc]
     public void RpcShowSpawnedCard(GameObject card, CardLocation destination) => StartCoroutine(_cardMover.ShowSpawnedCard(card, isOwned, destination));
@@ -607,18 +605,23 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [ClientRpc]
+    public void RpcUpdateHandCards(GameObject card, bool addingCard){
+        _handManager.UpdateHandCardList(card, addingCard);
+    }
+
+    [ClientRpc]
     private void RpcPlayMoney(GameObject card)
     {
         // TODO: Does this make sense like this ? Bugness
         _cardMover.MoveTo(card, isOwned, CardLocation.Hand, CardLocation.MoneyZone);
-        if (isOwned) _handManager.UpdateHandsCardList(card, false);
+        if (isOwned) _handManager.UpdateHandCardList(card, false);
     }
 
     [ClientRpc]
     private void RpcReturnMoneyCardToHand(GameObject card)
     {
         _cardMover.MoveTo(card, isOwned, CardLocation.MoneyZone, CardLocation.Hand);
-        if (isOwned) _handManager.UpdateHandsCardList(card, true);
+        if (isOwned) _handManager.UpdateHandCardList(card, true);
     }
 
     [ClientRpc]

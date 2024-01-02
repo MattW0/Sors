@@ -71,6 +71,7 @@ public class CombatManager : NetworkBehaviour
     {
         foreach(var a in attackers) _attackerTarget.Add(a, target);
 
+        print($"Player {attackers[0].Owner.PlayerName} declared attack on {target.Title}");
         var attackingPlayerConn = attackers[0].Owner.connectionToClient;
 
         foreach (var attacker in attackers){
@@ -175,7 +176,7 @@ public class CombatManager : NetworkBehaviour
         foreach(var (a, t) in _attackerTarget){
             _playerInterfaceManager.RpcLog($"{a.Title} attacks {t.Title}", LogType.CombatClash);
 
-            if(t.CardType == CardType.Player){
+            if(t.cardType == CardType.Player){
                 playerAttackers.Add(a);
                 continue;
             }

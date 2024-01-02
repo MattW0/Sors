@@ -31,13 +31,13 @@ public class EntityZones : NetworkBehaviour
     [Server]
     public void AddEntity(BattleZoneEntity entity, bool isHost)
     {
-        if (entity.CardType == CardType.Technology)
+        if (entity.cardType == CardType.Technology)
         {
             var development = entity.GetComponent<TechnologyEntity>();
             if(isHost) _hostDevelopments.Add(development);
             else _clientDevelopments.Add(development);
         }
-        else if (entity.CardType == CardType.Creature)
+        else if (entity.cardType == CardType.Creature)
         {
             var creature = entity.GetComponent<CreatureEntity>();
             if(isHost) _hostCreatures.Add(creature);
@@ -139,20 +139,20 @@ public class EntityZones : NetworkBehaviour
     {
         var index = 0;
         if(entity.isOwned){
-            if(entity.CardType == CardType.Technology){
+            if(entity.cardType == CardType.Technology){
                 index = GetFirstFreeHolderIndex(_playerDevelopmentHolders);
                 return _playerDevelopmentHolders[index].transform;
-            } else if(entity.CardType == CardType.Creature){
+            } else if(entity.cardType == CardType.Creature){
                 index = GetFirstFreeHolderIndex(_playerCreatureHolders);
                 return _playerCreatureHolders[index].transform;
             }
         }
         
         // Opponent Entity
-        if(entity.CardType == CardType.Technology){
+        if(entity.cardType == CardType.Technology){
             index = GetFirstFreeHolderIndex(_opponentDevelopmentHolders);
             return _opponentDevelopmentHolders[index].transform;
-        } else if(entity.CardType == CardType.Creature){
+        } else if(entity.cardType == CardType.Creature){
             index = GetFirstFreeHolderIndex(_opponentCreatureHolders);
             return _opponentCreatureHolders[index].transform;
         }

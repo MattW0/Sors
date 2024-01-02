@@ -11,15 +11,16 @@ public class CreatureEntityUI : MonoBehaviour
     [SerializeField] private Image attackerImage;
 
     private void Awake() => attackerImage.color = SorsColors.creatureIdle;
-    public void CanAct(bool isTrue) => highlight.enabled = isTrue;
-    public void CreatureIdle() => attackerImage.color = SorsColors.creatureIdle;
+    public void CanAct(bool b) => highlight.enabled = b;
+    public void CreatureIdle(){
+        print("Creature is idle");
+        attackerImage.color = SorsColors.creatureIdle;
+    }
     public void ShowAsAttacker(){
-        // TODO: Why this no work ???
-        // print($"show as attacker, color : {SorsColors.creatureAttacking}");
         attackerImage.color = SorsColors.creatureAttacking;
     }
     public void ShowAsBlocker() => attackerImage.color = SorsColors.creatureBlocking;
-    public void CombatHighlight() => attackerImage.color = SorsColors.creatureClashing;
+
     public void ResetHighlight(){
         attackerImage.color = SorsColors.creatureIdle;
         highlight.color = SorsColors.creatureHighlight;
@@ -40,7 +41,7 @@ public class CreatureEntityUI : MonoBehaviour
         _transform.DOLocalMove(_tappedPosition, TappingDuration).OnComplete( () => {} );
     }
 
-    public void UntapCreature(bool highlight) {
+    public void UntapCreature() {
         _transform.DOLocalMove(_untappedPosition, TappingDuration).OnComplete( () => {} );
         ResetHighlight();
     }

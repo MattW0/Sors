@@ -4,7 +4,7 @@ using Mirror;
 using UnityEngine;
 
 
-
+[RequireComponent(typeof(AttackerArrowHandler), typeof(TargetArrowHandler))]
 public class BattleZoneEntity : NetworkBehaviour
 {
     private BoardManager _boardManager;
@@ -14,7 +14,7 @@ public class BattleZoneEntity : NetworkBehaviour
     [SerializeField] public EntityUI _entityUI;
 
     [field: Header("Stats")]
-    public CardType CardType { get; private set; }
+    public CardType cardType;
     public CardInfo CardInfo { get; private set; }
     [SerializeField] private int _health;
     public int Health
@@ -23,22 +23,11 @@ public class BattleZoneEntity : NetworkBehaviour
         set
         {
             _health = value;
-            if(CardType == CardType.Player) return;
+            if(cardType == CardType.Player) return;
             RpcSetHealth(_health);
             if (_health <= 0) Die();
         }
     }
-    
-    // [SerializeField] private int _attack;
-    // public int Attack
-    // {
-    //     get => _attack;
-    //     set
-    //     {
-    //         _attack = value;
-    //         RpcSetAttack(_attack);
-    //     }
-    // }
 
     [SerializeField] private int _points;
     private int Points
@@ -57,7 +46,7 @@ public class BattleZoneEntity : NetworkBehaviour
         set {
             _targetable = value;
 
-            if(CardType == CardType.Player) Player.EntityTargetHighlight(value);
+            if(cardType == CardType.Player) Player.EntityTargetHighlight(value);
             else {
                 var color = value ? SorsColors.targetColor : SorsColors.creatureHighlight;
                 _entityUI.EffectHighlight(true, color);
@@ -66,19 +55,16 @@ public class BattleZoneEntity : NetworkBehaviour
     }
 
     public PlayerManager Player { get; private set; }
-    // public CreatureEntity Creature { get; private set; }
-    public TechnologyEntity Technology { get; private set; }
-    private TargetArrowHandler _targetArrowHandler;
-    private AttackerArrowHandler _attackerArrowHandler;
+    public TargetArrowHandler targetArrowHandler;
+    public AttackerArrowHandler attackerArrowHandler;
 
     private void Awake(){
         CombatManager.OnCombatStateChanged += RpcCombatStateChanged;
-        _targetArrowHandler = gameObject.GetComponent<TargetArrowHandler>();
-        _attackerArrowHandler = gameObject.GetComponent<AttackerArrowHandler>();
 
-        if (CardType == CardType.Technology){
-            Technology = GetComponent<TechnologyEntity>();
-        } else if (CardType == CardType.Player){
+        targetArrowHandler = GetComponent<TargetArrowHandler>();
+        attackerArrowHandler = GetComponent<AttackerArrowHandler>();
+
+        if (cardType == CardType.Player){
             Player = GetComponent<PlayerManager>();
         }
     }
@@ -94,11 +80,11 @@ public class BattleZoneEntity : NetworkBehaviour
         Opponent = opponent;
 
         Title = cardInfo.title;
-        CardType = cardInfo.type;
+        cardType = cardInfo.type;
         _health = cardInfo.health;
         _points = cardInfo.points;
 
-        if(CardType == CardType.Creature) gameObject.GetComponent<CreatureEntity>().InitializeCreature(cardInfo.attack, cardInfo.keywordAbilities);
+        if(cardType == CardType.Creature) gameObject.GetComponent<CreatureEntity>().InitializeCreature(cardInfo.attack, cardInfo.keywordAbilities);
 
         _entityUI.SetEntityUI(cardInfo);
         
@@ -126,8 +112,8 @@ public class BattleZoneEntity : NetworkBehaviour
 
     [ClientRpc]
     public virtual void RpcCombatStateChanged(CombatState newState){
-        _targetArrowHandler.CombatStateChanged(newState);
-        _attackerArrowHandler.CombatStateChanged(newState);
+        targetArrowHandler.CombatStateChanged(newState);
+        attackerArrowHandler.CombatStateChanged(newState);
     }
 
     private void OnDestroy()
@@ -136,38 +122,15 @@ public class BattleZoneEntity : NetworkBehaviour
     }
     
     #region UI Target Arrows
-    // [TargetRpc]
-    // public void TargetDeclaredAttack(NetworkConnection conn, BattleZoneEntity target){
-    //     Creature.CanAct = false;
-    //     _attackerArrowHandler.HandleFoundTarget(target.transform);
-    // }
-
-    // [ClientRpc]
-    // public void RpcDeclaredAttack(BattleZoneEntity target){
-    //     Creature.CanAct = false;
-    //     Creature.IsAttacking = true;
-    //     _attackerArrowHandler.HandleFoundTarget(target.transform);
-    //     // PlayerInterfaceManager.Log($"  - {Title} attacks {target.Title}", LogType.Standard);
-    // }
-
-    // [TargetRpc]
-    // public void TargetDeclaredBlock(NetworkConnection conn, BattleZoneEntity target){
-    //     Creature.CanAct = false;
-    //     _blockerArrowHandler.HandleFoundTarget(target.transform);
-    // }
-    // [ClientRpc]
-    // public void RpcDeclaredBlock(BattleZoneEntity target){
-    //     Creature.CanAct = false;
-    //     Creature.IsBlocking = true;
-    //     _blockerArrowHandler.HandleFoundTarget(target.transform);  
-    // }
     
+    [ClientRpc]
+    public void RpcSetCombatHighlight() => _entityUI.EffectHighlight(true, SorsColors.creatureClashing);
     [TargetRpc]
-    public void TargetSpawnTargetArrow(NetworkConnection target) => _targetArrowHandler.SpawnArrow();
+    public void TargetSpawnTargetArrow(NetworkConnection target) => targetArrowHandler.SpawnArrow();
     [ClientRpc]
-    public void RpcDeclaredTarget(BattleZoneEntity target) => _targetArrowHandler.HandleFoundTarget(target.transform);
+    public void RpcDeclaredTarget(BattleZoneEntity target) => targetArrowHandler.HandleFoundTarget(target.transform);
     [ClientRpc]
-    public void RpcResetAfterTarget() => _targetArrowHandler.RemoveArrow(false);
+    public void RpcResetAfterTarget() => targetArrowHandler.RemoveArrow(false);
     #endregion
 
 }

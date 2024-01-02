@@ -48,12 +48,12 @@ public class DropZoneManager : NetworkBehaviour
     [Server]
     public void EntityLeavesPlayZone(BattleZoneEntity entity)
     {
-        if (entity.CardType == CardType.Technology)
+        if (entity.cardType == CardType.Technology)
         {
             var development = entity.GetComponent<TechnologyEntity>();
             entityZones.RemoveDevelopment(development, entity.Owner.isLocalPlayer);
         }
-        else if (entity.CardType == CardType.Creature)
+        else if (entity.cardType == CardType.Creature)
         {
             var creature = entity.GetComponent<CreatureEntity>();
             entityZones.RemoveCreature(creature, entity.Owner.isLocalPlayer);
@@ -174,7 +174,7 @@ public class DropZoneManager : NetworkBehaviour
         var creatures = entityZones.GetAllCreatures();
         foreach (var c in creatures) c.RpcResetAfterCombat();
 
-        RpcDestroyBlockerArrows();
+        RpcDestroyArrows();
     }
 
     // TODO: Check if it makes sense to loose health after triggering or at the end of the turn
@@ -210,18 +210,13 @@ public class DropZoneManager : NetworkBehaviour
         var entities = entityZones.GetAllEntities();
         foreach (var entity in entities) entity.RpcResetAfterTarget();
 
-        RpcDestroyTargetArrows();
+        RpcDestroyArrows();
     }
 
     [ClientRpc]
-    private void RpcDestroyTargetArrows() => OnDestroyArrows?.Invoke();
-    
-    [ClientRpc]
-    private void RpcDestroyBlockerArrows() => OnDestroyArrows?.Invoke();
-
+    private void RpcDestroyArrows() => OnDestroyArrows?.Invoke();
     [ClientRpc]
     public void RpcHighlightCardHolders(TurnState state) => entityZones.HighlightCardHolders(state);
-
     [ClientRpc]
     public void RpcResetHolders() => entityZones.ResetHolders();
 

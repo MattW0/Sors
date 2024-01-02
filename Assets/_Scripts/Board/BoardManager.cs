@@ -160,7 +160,7 @@ public class BoardManager : NetworkBehaviour
             _dropZone.EntityLeavesPlayZone(dead);
             _cardEffectsHandler.EntityDies(dead);
 
-            if(dead.CardType == CardType.Creature){
+            if(dead.cardType == CardType.Creature){
                 var creature = dead.GetComponent<CreatureEntity>();
             }
 
