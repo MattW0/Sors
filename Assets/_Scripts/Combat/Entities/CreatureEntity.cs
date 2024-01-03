@@ -27,8 +27,8 @@ public class CreatureEntity : BattleZoneEntity
         get => _canAct;
         set {
             _canAct = value;
-            if(value) _creatureUI.CanAct(true);
-            else _creatureUI.CanAct(false);
+            if(value) _creatureUI.Highlight(true);
+            else _creatureUI.Highlight(false);
         }
     }
     [SerializeField] private bool _isAttacking;
@@ -53,6 +53,10 @@ public class CreatureEntity : BattleZoneEntity
         }
     }
 
+    private void Start(){
+        DropZoneManager.OnResetEntityUI += ResetCreatureUI;
+    }
+
     public void InitializeCreature(int attack, List<Keywords> keywords){
         _keywordAbilities = keywords;
         _blockerArrowHandler = GetComponent<BlockerArrowHandler>();
@@ -72,18 +76,19 @@ public class CreatureEntity : BattleZoneEntity
         CanAct = true;
     }
 
-    [ClientRpc]
-    public void RpcDeclaredAttack(BattleZoneEntity target){
-        CanAct = false;
-        IsAttacking = true;
-        attackerArrowHandler.HandleFoundTarget(target.transform);
-        // PlayerInterfaceManager.Log($"  - {Title} attacks {target.Title}", LogType.Standard);
-    }
-
     [TargetRpc]
     public void TargetDeclaredAttack(NetworkConnection conn, BattleZoneEntity target)
     {
         CanAct = false;
+        IsAttacking = true;
+        attackerArrowHandler.HandleFoundTarget(target.transform);
+    }
+
+    [ClientRpc]
+    public void RpcDeclaredAttack(BattleZoneEntity target)
+    {
+        CanAct = false;
+        IsAttacking = true;
         attackerArrowHandler.HandleFoundTarget(target.transform);
     }
 
@@ -102,8 +107,8 @@ public class CreatureEntity : BattleZoneEntity
         _blockerArrowHandler.HandleFoundTarget(target.transform);
     }
 
-    [ClientRpc]
-    public void RpcResetAfterCombat(){
+    // [ClientRpc]
+    public void ResetCreatureUI(){
         CanAct = false;
         IsAttacking = false;
         IsBlocking = false;
@@ -113,4 +118,9 @@ public class CreatureEntity : BattleZoneEntity
 
     [ClientRpc]
     private void RpcSetAttack(int value) => _entityUI.SetAttack(value);
+
+    private void OnDestroy()
+    {
+        DropZoneManager.OnResetEntityUI -= ResetCreatureUI;
+    }
 }

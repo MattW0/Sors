@@ -50,8 +50,9 @@ public class EntityUI : MonoBehaviour, IPointerClickHandler
     public void SetAttack(int newValue) => attack.text = newValue.ToString();
     public void SetPoints(int newValue) => points.text = newValue.ToString();
 
-    public void EffectHighlight(bool enabled, Color color){
+    public void Highlight(bool enabled, Color color){
         effectHighlight.enabled = enabled;
         effectHighlight.color = color;
     }
+    public void DisableHighlight() => effectHighlight.enabled = false;
 }

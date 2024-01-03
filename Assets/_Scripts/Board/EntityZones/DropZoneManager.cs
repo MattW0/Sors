@@ -13,6 +13,7 @@ public class DropZoneManager : NetworkBehaviour
     [SerializeField] private EntityZones entityZones;
     [SerializeField] private MoneyZone playerMoneyZone;
     [SerializeField] private MoneyZone opponentMoneyZone;
+    public static event Action OnResetEntityUI;
     public static event Action OnDestroyArrows;
 
     private void Awake()
@@ -107,6 +108,10 @@ public class DropZoneManager : NetworkBehaviour
         _boardManager.DisableReadyButton(player);
         _boardManager.AttackersDeclared(player);
 
+        // Player creatures stop being able to attack
+        var creatures = entityZones.GetCreatures(player.isLocalPlayer);
+        TargetMakeCreaturesIdle(player.connectionToClient, creatures);
+
         // Opponent attackable targets stop to be targetable
         var targets = entityZones.GetTechnologies(!player.isLocalPlayer);
         TargetMakeEntitiesTargetable(player.connectionToClient, targets, false);
@@ -164,16 +169,17 @@ public class DropZoneManager : NetworkBehaviour
     {
         _boardManager.DisableReadyButton(player);
         _boardManager.BlockersDeclared(player);
-    }
 
+        // Player creatures stop being able to block
+        var creatures = entityZones.GetCreatures(player.isLocalPlayer);
+        TargetMakeCreaturesIdle(player.connectionToClient, creatures);
+    }
     #endregion
 
     [Server]
     public void CombatCleanUp()
     {
-        var creatures = entityZones.GetAllCreatures();
-        foreach (var c in creatures) c.RpcResetAfterCombat();
-
+        RpcEntityUIReset();
         RpcDestroyArrows();
     }
 
@@ -200,7 +206,14 @@ public class DropZoneManager : NetworkBehaviour
     }
 
     [TargetRpc]
-    private void TargetMakeEntitiesTargetable(NetworkConnection conn, List<BattleZoneEntity> entities, bool targetable){
+    private void TargetMakeCreaturesIdle(NetworkConnection conn, List<CreatureEntity> creatures)
+    {
+        foreach (var c in creatures) c.CanAct = false;
+    }
+
+    [TargetRpc]
+    private void TargetMakeEntitiesTargetable(NetworkConnection conn, List<BattleZoneEntity> entities, bool targetable)
+    {
         foreach(var e in entities) e.IsTargetable = targetable;
     }
 
@@ -213,6 +226,8 @@ public class DropZoneManager : NetworkBehaviour
         RpcDestroyArrows();
     }
 
+    [ClientRpc]
+    private void RpcEntityUIReset() => OnResetEntityUI?.Invoke();
     [ClientRpc]
     private void RpcDestroyArrows() => OnDestroyArrows?.Invoke();
     [ClientRpc]

@@ -51,7 +51,7 @@ public class CombatManager : NetworkBehaviour
                 break;
             case CombatState.CleanUp:
                 _playerInterfaceManager.RpcLog(" --- Combat ends --- ", LogType.Combat);
-                ResolveCombat(false);
+                StartCoroutine(CombatCleanUp(false));
                 break;
             default:
                 print("<color=red>Invalid turn state</color>");
@@ -71,7 +71,7 @@ public class CombatManager : NetworkBehaviour
     {
         foreach(var a in attackers) _attackerTarget.Add(a, target);
 
-        print($"Player {attackers[0].Owner.PlayerName} declared attack on {target.Title}");
+        // print($"Player {attackers[0].Owner.PlayerName} declared attack on {target.Title}");
         var attackingPlayerConn = attackers[0].Owner.connectionToClient;
 
         foreach (var attacker in attackers){
@@ -105,9 +105,6 @@ public class CombatManager : NetworkBehaviour
         
         foreach (var blocker in blockers)
         {
-            // TODO: Add UI stuff like this? 
-            // blocker.IsBlocking = true;
-
             // Only shows local blockers
             blocker.TargetDeclaredBlock(blockingPlayerConn, attacker);
         }
@@ -128,23 +125,23 @@ public class CombatManager : NetworkBehaviour
         UpdateCombatState(CombatState.Damage);
     }
 
-    #region Damage
+    #region Combat Logic
     private void ResolveDamage()
     {
         // Skip damage logic if there are no attackers 
-        if (_blockerAttacker.Keys.Count == 0){
-            UpdateCombatState(CombatState.CleanUp);
-            return;
-        }
-        
-        StartCoroutine(Blocks());
+        if (_attackerTarget.Count == 0) UpdateCombatState(CombatState.CleanUp);
+        else StartCoroutine(Blocks());
     }
 
     private IEnumerator Blocks()
     {
         print($"Blocked creatures : {_blockerAttacker.Count}");
-        print($"Unlocked creatures pre blocks : {_attackerTarget.Count}");
+        if (_blockerAttacker.Count == 0){
+            StartCoroutine(Unblocked());
+            yield break;
+        }
 
+        print($"Unlocked creatures pre blocks : {_attackerTarget.Count}");
         int totalBlockerHealth = 0;
         CreatureEntity aPrev = null;
         foreach(var (b, a) in _blockerAttacker){
@@ -182,8 +179,7 @@ public class CombatManager : NetworkBehaviour
             }
 
             a.RpcSetCombatHighlight();
-            // TODO: Move highlight to BZE
-            // t.RpcSetCombatHighlight(); 
+            t.RpcSetCombatHighlight(); 
             EntityTakesDamage(a, t);
 
             yield return new WaitForSeconds(SorsTimings.combatClash);
@@ -216,7 +212,7 @@ public class CombatManager : NetworkBehaviour
     }   
     #endregion
 
-    #region Combat Logic
+    #region Dealing Damage
 
     private void EntityTakesDamage(CreatureEntity attacker, BattleZoneEntity entity)
     {
@@ -278,12 +274,14 @@ public class CombatManager : NetworkBehaviour
     }
     #endregion
 
-    public void ResolveCombat(bool forced)
+    public IEnumerator CombatCleanUp(bool forced)
     {
         _readyPlayers.Clear();
         _attackerTarget.Clear();
         _blockerAttacker.Clear();
         
+        yield return new WaitForSeconds(SorsTimings.combatCleanUp);
+
         UpdateCombatState(CombatState.Idle);
         if(!forced) _turnManager.FinishCombat();
     }

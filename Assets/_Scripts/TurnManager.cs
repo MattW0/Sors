@@ -767,7 +767,7 @@ public class TurnManager : NetworkBehaviour
         _kingdom.RpcEndKingdomPhase();
         _boardManager.ShowHolders(false);
 
-        combatManager.ResolveCombat(true);
+        combatManager.CombatCleanUp(true);
 
         _prevailPanel.RpcOptionsSelected();
         _prevailPanel.RpcReset();

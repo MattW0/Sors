@@ -11,6 +11,7 @@ public static class SorsTimings
     // Turn State Machine
     public static float turnStateTransition = 1f;
     public static float draw = 0.15f;
+    public static float combatCleanUp = 1.5f;
     
     // Game Start
     public static float waitForSpawnFromFile = 6f;

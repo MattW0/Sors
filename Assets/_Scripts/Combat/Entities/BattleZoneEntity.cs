@@ -48,8 +48,8 @@ public class BattleZoneEntity : NetworkBehaviour
 
             if(cardType == CardType.Player) Player.EntityTargetHighlight(value);
             else {
-                var color = value ? SorsColors.targetColor : SorsColors.creatureHighlight;
-                _entityUI.EffectHighlight(true, color);
+                if(value) _entityUI.Highlight(true, SorsColors.targetColor);
+                else _entityUI.DisableHighlight();
             }
         }
     }
@@ -59,13 +59,14 @@ public class BattleZoneEntity : NetworkBehaviour
     public AttackerArrowHandler attackerArrowHandler;
 
     private void Awake(){
-        CombatManager.OnCombatStateChanged += RpcCombatStateChanged;
-
         targetArrowHandler = GetComponent<TargetArrowHandler>();
         attackerArrowHandler = GetComponent<AttackerArrowHandler>();
 
         if (cardType == CardType.Player){
             Player = GetComponent<PlayerManager>();
+        } else {
+            CombatManager.OnCombatStateChanged += RpcCombatStateChanged;
+            DropZoneManager.OnResetEntityUI += ResetEntityUI;
         }
     }
 
@@ -108,23 +109,21 @@ public class BattleZoneEntity : NetworkBehaviour
     [ClientRpc]
     private void RpcSetPoints(int value)=> _entityUI.SetPoints(value);
     [ClientRpc]
-    public void RpcEffectHighlight(bool value) => _entityUI.EffectHighlight(value, Color.red);
+    public void RpcEffectHighlight(bool value) => _entityUI.Highlight(value, Color.red);
 
     [ClientRpc]
     public virtual void RpcCombatStateChanged(CombatState newState){
         targetArrowHandler.CombatStateChanged(newState);
         attackerArrowHandler.CombatStateChanged(newState);
     }
-
-    private void OnDestroy()
-    {
-        CombatManager.OnCombatStateChanged -= RpcCombatStateChanged;
-    }
     
     #region UI Target Arrows
-    
+    private void ResetEntityUI()
+    {
+        if(!(cardType == CardType.Player)) _entityUI.DisableHighlight();
+    }
     [ClientRpc]
-    public void RpcSetCombatHighlight() => _entityUI.EffectHighlight(true, SorsColors.creatureClashing);
+    public void RpcSetCombatHighlight() => _entityUI.Highlight(true, SorsColors.creatureClashing);
     [TargetRpc]
     public void TargetSpawnTargetArrow(NetworkConnection target) => targetArrowHandler.SpawnArrow();
     [ClientRpc]
@@ -133,4 +132,9 @@ public class BattleZoneEntity : NetworkBehaviour
     public void RpcResetAfterTarget() => targetArrowHandler.RemoveArrow(false);
     #endregion
 
+    private void OnDestroy()
+    {
+        CombatManager.OnCombatStateChanged -= RpcCombatStateChanged;
+        DropZoneManager.OnResetEntityUI -= ResetEntityUI;
+    }
 }

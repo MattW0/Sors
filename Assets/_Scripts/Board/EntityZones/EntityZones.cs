@@ -105,8 +105,6 @@ public class EntityZones : NetworkBehaviour
     [ClientRpc]
     public void RpcMoveEntityToSpawned(BattleZoneEntity e){
         e.transform.SetParent(_spawnedEntityTransform, false);
-        // e.transform.position = Vector3.zero;
-        // e.transform.localScale = Vector3.one;
         e.gameObject.SetActive(true);
     }
 

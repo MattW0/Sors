@@ -36,7 +36,7 @@ public class CardEffectsHandler : NetworkBehaviour
         yield return new WaitForSeconds(0.1f);
         foreach (var entity in entities){
 
-            print($"Entity is played : {entity.Title}");
+            // print($"Entity is played : {entity.Title}");
 
             List<Ability> abilities = entity.CardInfo.abilities;
             if (abilities == null || abilities.Count == 0) continue;
@@ -70,9 +70,9 @@ public class CardEffectsHandler : NetworkBehaviour
         // TurnManager waits for this to be false
         QueueResolving = true;
 
-        print("Current phases that trigger");
-        foreach(var p in _phaseTriggers)
-            print(p);
+        // print("Current phases that trigger");
+        // foreach(var p in _phaseTriggers)
+        //     print(p);
 
         // We only search for abilities if the current phase triggers at least one effect
         if (!_phaseTriggers.Contains(phase)){

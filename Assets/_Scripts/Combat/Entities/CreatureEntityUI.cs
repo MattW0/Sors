@@ -11,9 +11,9 @@ public class CreatureEntityUI : MonoBehaviour
     [SerializeField] private Image attackerImage;
 
     private void Awake() => attackerImage.color = SorsColors.creatureIdle;
-    public void CanAct(bool b) => highlight.enabled = b;
+    public void Highlight(bool b) => highlight.enabled = b;
     public void CreatureIdle(){
-        print("Creature is idle");
+        // print("Creature is idle");
         attackerImage.color = SorsColors.creatureIdle;
     }
     public void ShowAsAttacker(){
