@@ -57,6 +57,8 @@ public class BattleZoneEntity : NetworkBehaviour
     public PlayerManager Player { get; private set; }
     public TargetArrowHandler targetArrowHandler;
     public AttackerArrowHandler attackerArrowHandler;
+    public BlockerArrowHandler blockerArrowHandler;
+
 
     private void Awake(){
         targetArrowHandler = GetComponent<TargetArrowHandler>();
@@ -109,7 +111,7 @@ public class BattleZoneEntity : NetworkBehaviour
     [ClientRpc]
     private void RpcSetPoints(int value)=> _entityUI.SetPoints(value);
     [ClientRpc]
-    public void RpcEffectHighlight(bool value) => _entityUI.Highlight(value, Color.red);
+    public void RpcEffectHighlight(bool value) => _entityUI.Highlight(value, SorsColors.effectTriggerHighlight);
 
     [ClientRpc]
     public virtual void RpcCombatStateChanged(CombatState newState){

@@ -12,6 +12,7 @@ public class ScriptableCard : ScriptableObject
     public CardType type;
     public int cost;
     public string title;
+    public bool isStartCard;
 
     [Header("Enitity properties")]
     public int health;

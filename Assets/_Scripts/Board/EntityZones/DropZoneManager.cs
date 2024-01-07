@@ -64,11 +64,10 @@ public class DropZoneManager : NetworkBehaviour
     #endregion
 
     [Server]
-    public void ShowAbilityTargets(PlayerManager owner, EffectTarget target)
+    public void EntitiesAreTargetable(PlayerManager owner)
     {
         // TODO: Expand for different possible effect targets and standard combat targeting
         var entities = entityZones.GetAllEntities();
-        print("Showing targets for player: " + owner.PlayerName + ", target: " + target);
         print("targets count: " + entities.Count);
 
         TargetMakeEntitiesTargetable(owner.connectionToClient, entities, true);

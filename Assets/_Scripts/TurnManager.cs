@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Mirror;
+using SorsGameState;
 
 public class TurnManager : NetworkBehaviour
 {
@@ -136,7 +137,6 @@ public class TurnManager : NetworkBehaviour
     {
         foreach (var player in _gameManager.players.Keys)
         {
-            // _playerHealth.Add(player, _gameManager.startHealth);
             _playerPhaseChoices.Add(player, new Phase[gameOptions.NumberPhases]);
             _playerPrevailOptions.Add(player, new List<PrevailOption>());
             _selectedCards.Add(player, new List<GameObject>());
@@ -162,6 +162,7 @@ public class TurnManager : NetworkBehaviour
             yield return new WaitForSeconds(SorsTimings.wait);
         }
         
+        _boardManager.PrepareGameStateFile();
         UpdateTurnState(TurnState.PhaseSelection);
     }
 
@@ -400,7 +401,6 @@ public class TurnManager : NetworkBehaviour
 
         // Skip waiting for entity ability checks
         if (entities.Count == 0){
-            _boardManager.BoardCleanUp(false);
             CheckPlayAnotherCard();
             return;
         }
@@ -418,7 +418,6 @@ public class TurnManager : NetworkBehaviour
         while (_cardEffectsHandler.QueueResolving) 
             yield return new WaitForSeconds(0.1f);
 
-        _boardManager.BoardCleanUp(false);
         CheckPlayAnotherCard();
     }
 
@@ -427,6 +426,7 @@ public class TurnManager : NetworkBehaviour
         // Reset
         var playAnotherCard = false;
         _readyPlayers.Clear();
+        _boardManager.BoardCleanUp(false);
 
         // Check if plays are still possible and if not, add player to _readyPlayers
         foreach (var player in _gameManager.players.Keys)
@@ -638,8 +638,8 @@ public class TurnManager : NetworkBehaviour
 
     private IEnumerator CleanUpIntermission()
     {
-        OnPhaseChanged?.Invoke(TurnState.CleanUp);
         _boardManager.BoardCleanUp(true);
+        OnPhaseChanged?.Invoke(TurnState.CleanUp);
         PlayersStatsResetAndDiscardMoney(endOfTurn: true);
 
         yield return new WaitForSeconds(SorsTimings.turnStateTransition);

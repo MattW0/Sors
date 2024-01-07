@@ -27,8 +27,7 @@ public class GameManager : NetworkBehaviour {
     [Header("Game start settings")]
     public bool isSinglePlayer = false;
     [SerializeField] private int initialDeckSize = 10;
-    [SerializeField] private int initialCreatures = 3;
-    [SerializeField] private int initialTechnologies = 2;
+    [SerializeField] private int initialEntities = 5;
     [SerializeField] private int initialHandSize = 6;
     public int startHealth = 10;
     public int startScore = 0;
@@ -55,8 +54,7 @@ public class GameManager : NetworkBehaviour {
     public int deployBonusDeploys = 1;
 
     [Header("Available cards")]
-    public ScriptableCard[] startCreatures;
-    public ScriptableCard[] startTechnologies;
+    public ScriptableCard[] startEntities;
     public ScriptableCard[] creatureCardsDb;
     public ScriptableCard[] moneyCardsDb;
     public ScriptableCard[] technologyCardsDb;
@@ -70,9 +68,6 @@ public class GameManager : NetworkBehaviour {
     [SerializeField] private GameObject technologyCardPrefab;
     [SerializeField] private GameObject creatureEntityPrefab;
     [SerializeField] private GameObject technologyEntityPrefab;
-
-    // [Header("Helpers")]
-    // [SerializeField] private Transform _entitySpawnTransform;
 
     // Caching all gameObjects of cards in game
     private static Dictionary<int, GameObject> CardsCache { get; set; } = new();
@@ -94,8 +89,7 @@ public class GameManager : NetworkBehaviour {
 
     private void LoadCards(){
         _moneySprites = Resources.LoadAll<Sprite>("Sprites/Money/");
-        startCreatures = Resources.LoadAll<ScriptableCard>("Cards/_StartCards/Creatures/");
-        startTechnologies = Resources.LoadAll<ScriptableCard>("Cards/_StartCards/Technologies/");
+        startEntities = Resources.LoadAll<ScriptableCard>("Cards/_StartCards/");
 
         // Databases of generated cards
         creatureCardsDb = Resources.LoadAll<ScriptableCard>("Cards/CreatureCards/");
@@ -188,18 +182,13 @@ public class GameManager : NetworkBehaviour {
     {
         List<GameObject> startCards = new();
         // Only paper money currently
-        for (var i = 0; i < initialDeckSize - initialCreatures - initialTechnologies; i++){
+        for (var i = 0; i < initialDeckSize - initialEntities; i++){
             var scriptableCard = moneyCardsDb[0];
             startCards.Add(SpawnCardAndAddToCollection(player, scriptableCard, CardLocation.Deck));
         }
 
-        for (var i = 0; i < initialCreatures; i++){
-            var scriptableCard = startCreatures[i]; // 
-            startCards.Add(SpawnCardAndAddToCollection(player, scriptableCard, CardLocation.Deck));
-        }
-
-        for (var i = 0; i < initialTechnologies; i++){
-            var scriptableCard = startTechnologies[i];
+        for (var i = 0; i < initialEntities; i++){
+            var scriptableCard = startEntities[i];
             startCards.Add(SpawnCardAndAddToCollection(player, scriptableCard, CardLocation.Deck));
         }
 

@@ -8,7 +8,6 @@ public class CreatureEntity : BattleZoneEntity
     [SerializeField] private CreatureEntityUI _creatureUI;
     private List<Keywords> _keywordAbilities;
     public List<Keywords> GetKeywords() => _keywordAbilities;
-    private BlockerArrowHandler _blockerArrowHandler;
     
     [SerializeField] private int _attack;
     public int Attack
@@ -17,7 +16,7 @@ public class CreatureEntity : BattleZoneEntity
         set
         {
             _attack = value;
-            RpcSetAttack(_attack);
+            // RpcSetAttack(_attack);
         }
     }
 
@@ -59,14 +58,14 @@ public class CreatureEntity : BattleZoneEntity
 
     public void InitializeCreature(int attack, List<Keywords> keywords){
         _keywordAbilities = keywords;
-        _blockerArrowHandler = GetComponent<BlockerArrowHandler>();
         _attack = attack;
+        blockerArrowHandler = GetComponent<BlockerArrowHandler>();
     }
 
     [ClientRpc]
     public override void RpcCombatStateChanged(CombatState newState){
         base.RpcCombatStateChanged(newState);
-        _blockerArrowHandler.CombatStateChanged(newState);
+        blockerArrowHandler.CombatStateChanged(newState);
     }
 
     public void CheckIfCanAct(){
@@ -97,14 +96,14 @@ public class CreatureEntity : BattleZoneEntity
     {
         CanAct = false;
         IsBlocking = true;
-        _blockerArrowHandler.HandleFoundTarget(target.transform);
+        blockerArrowHandler.HandleFoundTarget(target.transform);
     }
 
     [ClientRpc]
     public void RpcDeclaredBlock(BattleZoneEntity target)
     {
         CanAct = false;
-        _blockerArrowHandler.HandleFoundTarget(target.transform);
+        blockerArrowHandler.HandleFoundTarget(target.transform);
     }
 
     // [ClientRpc]
@@ -116,8 +115,8 @@ public class CreatureEntity : BattleZoneEntity
         _creatureUI.ResetHighlight();
     }
 
-    [ClientRpc]
-    private void RpcSetAttack(int value) => _entityUI.SetAttack(value);
+    // [ClientRpc]
+    // private void RpcSetAttack(int value) => _entityUI.SetAttack(value);
 
     private void OnDestroy()
     {

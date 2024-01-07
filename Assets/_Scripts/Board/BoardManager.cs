@@ -5,6 +5,7 @@ using System.Linq;
 using Mirror;
 using UnityEngine;
 using UnityEditor;
+using SorsGameState;
 
 
 public class BoardManager : NetworkBehaviour
@@ -19,6 +20,7 @@ public class BoardManager : NetworkBehaviour
     private Dictionary<BattleZoneEntity, GameObject> _entitiesObjectsCache = new();
     private List<BattleZoneEntity> _deadEntities = new();
     private CombatState _combatState;
+    private GameState _gameState;
 
     // Events
     public static event Action OnCombatStart;
@@ -37,6 +39,21 @@ public class BoardManager : NetworkBehaviour
     {
         _gameManager = GameManager.Instance;
         _dropZone = DropZoneManager.Instance;
+
+        // GameManager.OnGameStart += PrepareGameStateFile;
+    }
+
+    [Server]
+    public void PrepareGameStateFile()
+    {
+        _gameState = new GameState(_gameManager.players.Count);
+        int i = 0;
+        foreach (var player in _gameManager.players.Keys){
+            _gameState.players[i] = new Player(player.PlayerName, player.isLocalPlayer);
+            i++;
+        }
+
+        SaveGameState();
     }
 
     public void PlayEntities(Dictionary<GameObject, BattleZoneEntity> entities) 
@@ -57,14 +74,14 @@ public class BoardManager : NetworkBehaviour
 
     public void FindTargets(BattleZoneEntity entity, EffectTarget target)
     {
-        print(entity.Title + " - looking for target: " + target);
         var owner = entity.Owner;
+        print($"Player {owner.PlayerName} - looking for target: {target}");
 
         // TODO : Check if it makes sense to continue effects handler from here
         // Also need to add other possible targets (player, ...)
         if (target.Equals(EffectTarget.Entity)){
             // _cardEffectsHandler.Continue = true;
-            _dropZone.ShowAbilityTargets(owner, target);
+            _dropZone.EntitiesAreTargetable(owner);
             return;
         }
     }
@@ -149,6 +166,7 @@ public class BoardManager : NetworkBehaviour
         if(endOfTurn){
             _dropZone.DevelopmentsLooseHealth();
             ClearDeadEntities();
+            if(isServer) SaveGameState();
         }
     }
 
@@ -173,6 +191,18 @@ public class BoardManager : NetworkBehaviour
             NetworkServer.Destroy(dead.gameObject);
         }
         _deadEntities.Clear();
+    }
+
+    [Server]
+    private void SaveGameState()
+    {
+        int i = 0;
+        foreach(var player in _gameManager.players.Keys){
+            _gameState.players[i].SavePlayerCardCollections(player);
+            i++;
+        }
+        
+        _gameState.SaveState(_gameManager.turnNumber);
     }
 
     #region UI
@@ -202,6 +232,7 @@ public class BoardManager : NetworkBehaviour
     #endregion
     private void OnDestroy()
     {
+        // GameManager.OnGameStart -= PrepareGameStateFile;
         CombatManager.OnCombatStateChanged -= StartCombatPhase;
     }
 

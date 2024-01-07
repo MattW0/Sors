@@ -9,6 +9,7 @@ public struct CardInfo : IEquatable<CardInfo>
     public int goID;
     public string hash;
     public CardType type;
+    public bool isStartCard;
     public string title;
     public string description;
 
@@ -32,6 +33,8 @@ public struct CardInfo : IEquatable<CardInfo>
         hash = card.hash;
         type = card.type;
         title = card.title;
+        isStartCard = card.isStartCard;
+
         description = card.description;
         cost = card.cost;
 
