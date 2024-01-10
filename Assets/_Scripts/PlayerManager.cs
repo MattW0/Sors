@@ -38,8 +38,6 @@ public class PlayerManager : NetworkBehaviour
     private PlayerUI _playerUI;
     private PlayerUI _opponentUI;
     private BattleZoneEntity _entity;
-
-    public static event Action OnCardPileChanged;
     public static event Action<PlayerManager, int> OnCashChanged;
 
     // public CardCollection cards;
@@ -168,9 +166,6 @@ public class PlayerManager : NetworkBehaviour
     #endregion
 
     #region Cards
-
-    [ClientRpc]
-    public void RpcCardPilesChanged() => OnCardPileChanged?.Invoke();
 
     [Server]
     public void DrawCards(int amount)
