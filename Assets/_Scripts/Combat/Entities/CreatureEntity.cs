@@ -16,7 +16,7 @@ public class CreatureEntity : BattleZoneEntity
         set
         {
             _attack = value;
-            // RpcSetAttack(_attack);
+            RpcSetAttack(_attack);
         }
     }
 

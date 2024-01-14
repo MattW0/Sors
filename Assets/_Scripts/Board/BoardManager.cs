@@ -43,19 +43,6 @@ public class BoardManager : NetworkBehaviour
         // GameManager.OnGameStart += PrepareGameStateFile;
     }
 
-    [Server]
-    public void PrepareGameStateFile()
-    {
-        _gameState = new GameState(_gameManager.players.Count);
-        int i = 0;
-        foreach (var player in _gameManager.players.Keys){
-            _gameState.players[i] = new Player(player.PlayerName, player.isLocalPlayer);
-            i++;
-        }
-
-        SaveGameState();
-    }
-
     public void PlayEntities(Dictionary<GameObject, BattleZoneEntity> entities) 
     {
         foreach(var (card, entity) in entities){
@@ -132,10 +119,7 @@ public class BoardManager : NetworkBehaviour
         }
     }
 
-    public void AttackersDeclared(PlayerManager player)
-    {
-        OnAttackersDeclared?.Invoke(player);
-    }
+    public void AttackersDeclared(PlayerManager player) => OnAttackersDeclared?.Invoke(player);
     
     private void DeclareBlockers() => _dropZone.StartDeclareBlockers(_gameManager.players.Keys.ToList());
     public void BlockersDeclared(PlayerManager player) => OnBlockersDeclared?.Invoke(player);
@@ -164,7 +148,7 @@ public class BoardManager : NetworkBehaviour
         _dropZone.DestroyTargetArrows();
 
         if(endOfTurn){
-            _dropZone.DevelopmentsLooseHealth();
+            _dropZone.TechnologiesLooseHealth();
             ClearDeadEntities();
             if(isServer) SaveGameState();
         }
@@ -194,11 +178,39 @@ public class BoardManager : NetworkBehaviour
     }
 
     [Server]
+    public void PrepareGameStateFile()
+    {
+        _gameState = new GameState(_gameManager.players.Count);
+        int i = 0;
+        foreach (var player in _gameManager.players.Keys){
+            _gameState.players[i] = new Player(player.PlayerName, player.isLocalPlayer);
+            i++;
+        }
+
+        SaveGameState();
+    }
+
+    [Server]
     private void SaveGameState()
     {
         int i = 0;
         foreach(var player in _gameManager.players.Keys){
-            _gameState.players[i].SavePlayerCardCollections(player);
+            _gameState.players[i].SavePlayerState(player);
+            
+            var (creatures, technologies) = _dropZone.GetPlayerEntities(player);
+
+            _gameState.players[i].entities.creatures.Clear();
+            _gameState.players[i].entities.technologies.Clear();
+
+            foreach(var entity in creatures){
+                var e = new SorsGameState.Entity(entity.CardInfo, entity.Health, entity.Attack);
+                _gameState.players[i].entities.creatures.Add(e);
+            }
+            foreach(var entity in technologies){
+                var e = new SorsGameState.Entity(entity.CardInfo, entity.Health);
+                _gameState.players[i].entities.technologies.Add(e);
+            }
+
             i++;
         }
         

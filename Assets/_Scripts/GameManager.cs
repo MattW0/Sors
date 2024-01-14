@@ -192,7 +192,7 @@ public class GameManager : NetworkBehaviour {
             startCards.Add(SpawnCardAndAddToCollection(player, scriptableCard, CardLocation.Deck));
         }
 
-        player.RpcShowSpawnedCards(startCards, CardLocation.Deck);
+        player.RpcShowSpawnedCards(startCards, CardLocation.Deck, false);
     }
 
     #endregion
@@ -261,7 +261,7 @@ public class GameManager : NetworkBehaviour {
             var scriptableCard = Resources.Load<ScriptableCard>(c);
             cardList.Add(SpawnCardAndAddToCollection(p, scriptableCard, CardLocation.Hand));
         }
-        p.RpcShowSpawnedCards(cardList, CardLocation.Hand);
+        p.RpcShowSpawnedCards(cardList, CardLocation.Hand, true);
         cardList.Clear();
 
         yield return new WaitForSeconds(SorsTimings.waitForSpawnFromFile / 3f);
@@ -270,7 +270,7 @@ public class GameManager : NetworkBehaviour {
             var scriptableCard = Resources.Load<ScriptableCard>(c);
             cardList.Add(SpawnCardAndAddToCollection(p, scriptableCard, CardLocation.Deck));
         }
-        p.RpcShowSpawnedCards(cardList, CardLocation.Deck);
+        p.RpcShowSpawnedCards(cardList, CardLocation.Deck, true);
         cardList.Clear();
 
         yield return new WaitForSeconds(SorsTimings.waitForSpawnFromFile / 3f);
@@ -279,7 +279,7 @@ public class GameManager : NetworkBehaviour {
             var scriptableCard = Resources.Load<ScriptableCard>(c);
             cardList.Add(SpawnCardAndAddToCollection(p, scriptableCard, CardLocation.Discard));
         }
-        p.RpcShowSpawnedCards(cardList, CardLocation.Discard);
+        p.RpcShowSpawnedCards(cardList, CardLocation.Discard, true);
 
         yield return new WaitForSeconds(SorsTimings.waitForSpawnFromFile / 3f);
     }
@@ -289,28 +289,38 @@ public class GameManager : NetworkBehaviour {
         var entitiesDict = new Dictionary<GameObject, BattleZoneEntity>();
 
         foreach(var e in entities.creatures){
-            var scriptableCard = Resources.Load<ScriptableCard>(e);
+            var scriptableCard = Resources.Load<ScriptableCard>(e.scriptableCard);
             var cardObject = SpawnCardAndAddToCollection(p, scriptableCard, CardLocation.PlayZone);
             
             // Wait for card initialization
             yield return new WaitForSeconds(0.01f);
             var entity = SpawnFieldEntity(p, cardObject);
+
+            // Wait for entity initialization
+            yield return new WaitForSeconds(0.01f);
+            entity.Health = e.health;
+            entity.GetComponent<CreatureEntity>().Attack = e.attack;
+            // entity.GetComponent<CreatureEntity>().SetDefense(e.defense);
 
             entitiesDict.Add(cardObject, entity);
         }
 
         foreach(var e in entities.technologies){
-            var scriptableCard = Resources.Load<ScriptableCard>(e);
+            var scriptableCard = Resources.Load<ScriptableCard>(e.scriptableCard);
             var cardObject = SpawnCardAndAddToCollection(p, scriptableCard, CardLocation.PlayZone);
             
             // Wait for card initialization
             yield return new WaitForSeconds(0.01f);
             var entity = SpawnFieldEntity(p, cardObject);
+            
+            // Wait for entity initialization
+            yield return new WaitForSeconds(0.01f);
+            entity.Health = e.health;
 
             entitiesDict.Add(cardObject, entity);
         }
 
-        p.RpcShowSpawnedCards(entitiesDict.Keys.ToList(), CardLocation.PlayZone);
+        p.RpcShowSpawnedCards(entitiesDict.Keys.ToList(), CardLocation.PlayZone, true);
         _boardManager.PlayEntities(entitiesDict);
     }
 

@@ -3267,15 +3267,17 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
+  _playerEntity: {fileID: 0}
+  _opponentEntity: {fileID: 0}
   _hostCreatures: []
   _clientCreatures: []
-  _hostDevelopments: []
-  _clientDevelopments: []
+  _hostTechnologies: []
+  _clientTechnologies: []
   _spawnedEntityTransform: {fileID: 1117497930}
   playerCreatureZone: {fileID: 2796847170642765006}
-  playerDevelopmentZone: {fileID: 523030929}
+  playerTechnologyZone: {fileID: 523030929}
   opponentCreatureZone: {fileID: 1343594638}
-  opponentDevelopmentZone: {fileID: 1056073878}
+  opponentTechnologyZone: {fileID: 1056073878}
 --- !u!114 &246040001
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9395,7 +9397,7 @@ GameObject:
   m_Component:
   - component: {fileID: 875913264}
   m_Layer: 5
-  m_Name: DevelopmentDropZone
+  m_Name: TechnologyDropZone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -12435,7 +12437,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1193665623}
   m_Layer: 5
-  m_Name: DevelopmentDropZone
+  m_Name: TechnologyDropZone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

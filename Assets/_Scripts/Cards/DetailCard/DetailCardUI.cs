@@ -40,7 +40,7 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         _description.text = cardInfo.description;
 
         if (cardInfo.type == CardType.Technology) {
-            _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Development/development");
+            _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Technology/technology");
         } else {
             _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Creature/creature");
             _attack.text = cardInfo.attack.ToString();

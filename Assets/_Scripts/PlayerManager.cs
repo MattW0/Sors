@@ -239,7 +239,7 @@ public class PlayerManager : NetworkBehaviour
     public void RpcShowSpawnedCard(GameObject card, CardLocation destination) => StartCoroutine(_cardMover.ShowSpawnedCard(card, isOwned, destination));
 
     [ClientRpc]
-    public void RpcShowSpawnedCards(List<GameObject> cards, CardLocation destination) => StartCoroutine(_cardMover.ShowSpawnedCards(cards, isOwned, destination));
+    public void RpcShowSpawnedCards(List<GameObject> cards, CardLocation destination, bool fromFile) => StartCoroutine(_cardMover.ShowSpawnedCards(cards, isOwned, destination, fromFile));
 
     [Command]
     public void CmdPlayMoneyCard(GameObject card, CardInfo cardInfo)

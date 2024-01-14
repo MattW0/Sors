@@ -147,8 +147,8 @@ public class PhasePanel : NetworkBehaviour
         var text = state switch {
             TurnState.PhaseSelection => "Select " + _nbPhasesToChose.ToString() + " phases",
             TurnState.Discard => "Discard cards",
-            TurnState.Invent => "Buy developments",
-            TurnState.Develop => "Play developments",
+            TurnState.Invent => "Buy technologies",
+            TurnState.Develop => "Play technologies",
             TurnState.Recruit => "Buy creatures",
             TurnState.Deploy => "Play creatures",
             TurnState.Prevail => "Choose prevail options",

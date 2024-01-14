@@ -114,10 +114,10 @@ public class CardMover : MonoBehaviour
         MoveTo(card, hasAuthority, CardLocation.CardSpawn, destination);
     }
 
-    public IEnumerator ShowSpawnedCards(List<GameObject> cards, bool hasAuthority, CardLocation destination)
+    public IEnumerator ShowSpawnedCards(List<GameObject> cards, bool hasAuthority, CardLocation destination, bool fromFile)
     {
         foreach(var card in cards){
-            InitSpawnedCard(card, hasAuthority, destination);
+            InitSpawnedCard(card, hasAuthority, destination, fromFile);
             yield return new WaitForSeconds(SorsTimings.spawnCard);
         }
 
@@ -129,10 +129,10 @@ public class CardMover : MonoBehaviour
         }
     }
 
-    private void InitSpawnedCard(GameObject card, bool hasAuthority, CardLocation destination)
+    private void InitSpawnedCard(GameObject card, bool hasAuthority, CardLocation destination, bool fromFile=false)
     {    
         card.transform.localScale = Vector3.one;
-        card.GetComponent<CardUI>().CardFrontUp();
+        if(!fromFile && hasAuthority) card.GetComponent<CardUI>().CardFrontUp();
 
         if(hasAuthority){
             playerCardSpawn.Add(card);

@@ -66,6 +66,7 @@ public class BattleZoneEntity : NetworkBehaviour
 
         if (cardType == CardType.Player){
             Player = GetComponent<PlayerManager>();
+            // DropZoneManager.OnTargetPlayer += MakeTargetable;
         } else {
             CombatManager.OnCombatStateChanged += RpcCombatStateChanged;
             DropZoneManager.OnResetEntityUI += ResetEntityUI;
@@ -108,6 +109,10 @@ public class BattleZoneEntity : NetworkBehaviour
     [ClientRpc]
     private void RpcSetHealth(int value)=> _entityUI.SetHealth(value);
     
+    // Public because from creatureEntity
+    [ClientRpc]
+    public void RpcSetAttack(int value)=> _entityUI.SetAttack(value);
+    
     [ClientRpc]
     private void RpcSetPoints(int value)=> _entityUI.SetPoints(value);
     [ClientRpc]
@@ -117,6 +122,10 @@ public class BattleZoneEntity : NetworkBehaviour
     public virtual void RpcCombatStateChanged(CombatState newState){
         targetArrowHandler.CombatStateChanged(newState);
         attackerArrowHandler.CombatStateChanged(newState);
+
+        // if(newState == CombatState.Attackers && cardType == CardType.Technology || cardType == CardType.Player){
+        //     attackerArrowHandler.SpawnArrow();
+        // }
     }
     
     #region UI Target Arrows

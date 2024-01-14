@@ -13,6 +13,9 @@ public class DropZoneManager : NetworkBehaviour
     [SerializeField] private EntityZones entityZones;
     [SerializeField] private MoneyZone playerMoneyZone;
     [SerializeField] private MoneyZone opponentMoneyZone;
+    // public static event Action OnTargetPlayer;
+    // public static event Action OnTargetOpponent;
+    // public static event Action OnTargetCreatures;
     public static event Action OnResetEntityUI;
     public static event Action OnDestroyArrows;
 
@@ -51,8 +54,8 @@ public class DropZoneManager : NetworkBehaviour
     {
         if (entity.cardType == CardType.Technology)
         {
-            var development = entity.GetComponent<TechnologyEntity>();
-            entityZones.RemoveDevelopment(development, entity.Owner.isLocalPlayer);
+            var technology = entity.GetComponent<TechnologyEntity>();
+            entityZones.RemoveTechnology(technology, entity.Owner.isLocalPlayer);
         }
         else if (entity.cardType == CardType.Creature)
         {
@@ -70,7 +73,9 @@ public class DropZoneManager : NetworkBehaviour
         var entities = entityZones.GetAllEntities();
         print("targets count: " + entities.Count);
 
-        TargetMakeEntitiesTargetable(owner.connectionToClient, entities, true);
+        TargetMakeEntitiesTargetable(owner.connectionToClient, true, true);
+        // TargetMakeEntitiesTargetable(owner.connectionToClient, entities, true);
+
     }
 
     #region Attackers
@@ -86,12 +91,15 @@ public class DropZoneManager : NetworkBehaviour
         }
 
         // Get opponent attackable targets
+        // TODO: How to get around this?
         var targets = entityZones.GetTechnologies(!player.isLocalPlayer);
-        if(opponent) targets.Add(opponent);
+        // if(opponent) targets.Add(opponent);
 
         // Else we enable entities to be tapped and wait for player to declare attackers and press ready btn
         TargetDeclareAttackers(player.connectionToClient, creatures);
-        TargetMakeEntitiesTargetable(player.connectionToClient, targets, true);
+        
+        // TargetMakeEntitiesTargetable(player.connectionToClient, targets, true);
+        TargetMakeEntitiesTargetable(player.connectionToClient, true, true);
     }
 
     [TargetRpc]
@@ -112,8 +120,9 @@ public class DropZoneManager : NetworkBehaviour
         TargetMakeCreaturesIdle(player.connectionToClient, creatures);
 
         // Opponent attackable targets stop to be targetable
-        var targets = entityZones.GetTechnologies(!player.isLocalPlayer);
-        TargetMakeEntitiesTargetable(player.connectionToClient, targets, false);
+        // var targets = entityZones.GetTechnologies(!player.isLocalPlayer);
+        // TargetMakeEntitiesTargetable(player.connectionToClient, targets, false);
+        TargetMakeEntitiesTargetable(player.connectionToClient, true, false);
     }
 
     #endregion
@@ -183,15 +192,15 @@ public class DropZoneManager : NetworkBehaviour
     }
 
     // TODO: Check if it makes sense to loose health after triggering or at the end of the turn
-    // How to handle developments without trigger ? 
+    // How to handle technologies without trigger ? 
     [Server]
-    public void DevelopmentsLooseHealth()
+    public void TechnologiesLooseHealth()
     {
-        var developments = entityZones.GetAllDevelopments();
+        var technologies = entityZones.GetAllTechnologies();
 
-        foreach (var development in developments)
+        foreach (var technology in technologies)
         {
-            development.Health -= 1;
+            technology.Health -= 1;
         }
     }
 
@@ -211,9 +220,14 @@ public class DropZoneManager : NetworkBehaviour
     }
 
     [TargetRpc]
-    private void TargetMakeEntitiesTargetable(NetworkConnection conn, List<BattleZoneEntity> entities, bool targetable)
+    private void TargetMakeEntitiesTargetable(NetworkConnection conn, bool combat, bool targetable)
+    // private void TargetMakeEntitiesTargetable(NetworkConnection conn, List<BattleZoneEntity> entities, bool targetable)
     {
-        foreach(var e in entities) e.IsTargetable = targetable;
+        // TODO: Logic to only make some entities targetable
+        // Tie this to ability target ? 
+
+        // OnStartCombat.Invoke();
+        // foreach(var e in entities) e.IsTargetable = targetable;
     }
 
     [Server]
@@ -233,6 +247,14 @@ public class DropZoneManager : NetworkBehaviour
     public void RpcHighlightCardHolders(TurnState state) => entityZones.HighlightCardHolders(state);
     [ClientRpc]
     public void RpcResetHolders() => entityZones.ResetHolders();
+
+    internal (List<CreatureEntity> creatures, List<TechnologyEntity> technologies) GetPlayerEntities(PlayerManager player)
+    {
+        var creatures = entityZones.GetCreatures(player.isLocalPlayer);
+        var technologies = entityZones.GetTechnologies(player.isLocalPlayer);
+
+        return (creatures, technologies);
+    }
 
     #endregion
 }

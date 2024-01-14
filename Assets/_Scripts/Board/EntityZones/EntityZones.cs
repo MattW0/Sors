@@ -6,20 +6,22 @@ using DG.Tweening;
 public class EntityZones : NetworkBehaviour
 {
     private const int MAX_ENTITIES = 6;
+    [SerializeField] private BattleZoneEntity _playerEntity;
+    [SerializeField] private BattleZoneEntity _opponentEntity;
     [SerializeField] private List<CreatureEntity> _hostCreatures = new();
     [SerializeField] private List<CreatureEntity> _clientCreatures = new();
-    [SerializeField] private List<BattleZoneEntity> _hostDevelopments = new();
-    [SerializeField] private List<BattleZoneEntity> _clientDevelopments = new();
+    [SerializeField] private List<TechnologyEntity> _hostTechnologies = new();
+    [SerializeField] private List<TechnologyEntity> _clientTechnologies = new();
 
     #region Entity Holders
     [SerializeField] private Transform _spawnedEntityTransform;
     [SerializeField] private GameObject playerCreatureZone;
-    [SerializeField] private GameObject playerDevelopmentZone;
+    [SerializeField] private GameObject playerTechnologyZone;
     [SerializeField] private GameObject opponentCreatureZone;
-    [SerializeField] private GameObject opponentDevelopmentZone;
-    private PlayZoneCardHolder[] _playerDevelopmentHolders = new PlayZoneCardHolder[MAX_ENTITIES];
+    [SerializeField] private GameObject opponentTechnologyZone;
+    private PlayZoneCardHolder[] _playerTechnologyHolders = new PlayZoneCardHolder[MAX_ENTITIES];
     private PlayZoneCardHolder[] _playerCreatureHolders = new PlayZoneCardHolder[MAX_ENTITIES];
-    private PlayZoneCardHolder[] _opponentDevelopmentHolders= new PlayZoneCardHolder[MAX_ENTITIES];
+    private PlayZoneCardHolder[] _opponentTechnologyHolders= new PlayZoneCardHolder[MAX_ENTITIES];
     private PlayZoneCardHolder[] _opponentCreatureHolders = new PlayZoneCardHolder[MAX_ENTITIES];
 
     #endregion
@@ -33,9 +35,9 @@ public class EntityZones : NetworkBehaviour
     {
         if (entity.cardType == CardType.Technology)
         {
-            var development = entity.GetComponent<TechnologyEntity>();
-            if(isHost) _hostDevelopments.Add(development);
-            else _clientDevelopments.Add(development);
+            var technology = entity.GetComponent<TechnologyEntity>();
+            if(isHost) _hostTechnologies.Add(technology);
+            else _clientTechnologies.Add(technology);
         }
         else if (entity.cardType == CardType.Creature)
         {
@@ -48,9 +50,16 @@ public class EntityZones : NetworkBehaviour
     }
 
     [Server]
-    public void RemoveDevelopment(TechnologyEntity development, bool isHost){
-        if(isHost) _hostDevelopments.Remove(development);
-        else _clientDevelopments.Remove(development);
+    public void AddPlayers(BattleZoneEntity playerEntity, BattleZoneEntity opponentEntity)
+    {
+        _playerEntity = playerEntity;
+        _opponentEntity = opponentEntity;
+    }
+
+    [Server]
+    public void RemoveTechnology(TechnologyEntity technology, bool isHost){
+        if(isHost) _hostTechnologies.Remove(technology);
+        else _clientTechnologies.Remove(technology);
     }
 
     [Server]
@@ -66,17 +75,19 @@ public class EntityZones : NetworkBehaviour
     }
 
     [Server]
-    public List<BattleZoneEntity> GetTechnologies(bool isHost){
-        if(isHost) return _hostDevelopments;
-        else return _clientDevelopments;
+    public List<TechnologyEntity> GetTechnologies(bool isHost){
+        if(isHost) return _hostTechnologies;
+        else return _clientTechnologies;
     }
 
-    public List<BattleZoneEntity> GetAllDevelopments(){
-        var developments = new List<BattleZoneEntity>();
-        developments.AddRange(_hostDevelopments);
-        developments.AddRange(_clientDevelopments);
 
-        return developments;
+
+    public List<BattleZoneEntity> GetAllTechnologies(){
+        var technologies = new List<BattleZoneEntity>();
+        technologies.AddRange(_hostTechnologies);
+        technologies.AddRange(_clientTechnologies);
+
+        return technologies;
     }
 
     public List<CreatureEntity> GetAllCreatures(){
@@ -88,12 +99,12 @@ public class EntityZones : NetworkBehaviour
     }
 
     public List<BattleZoneEntity> GetAllEntities(){
-        var developments = GetAllDevelopments();
+        var technologies = GetAllTechnologies();
         var creatures = GetAllCreatures();
 
         var entities = new List<BattleZoneEntity>();
-        foreach (var development in developments){
-            entities.Add(development.GetComponent<BattleZoneEntity>());
+        foreach (var technology in technologies){
+            entities.Add(technology.GetComponent<BattleZoneEntity>());
         }
         foreach (var creature in creatures){
             entities.Add(creature.GetComponent<BattleZoneEntity>());
@@ -127,9 +138,9 @@ public class EntityZones : NetworkBehaviour
     #region Entity holders
     private void FindEntityHolders(){
         for (int i = 0; i < MAX_ENTITIES; i++){
-            _playerDevelopmentHolders[i] = playerDevelopmentZone.transform.GetChild(i).GetComponent<PlayZoneCardHolder>();
+            _playerTechnologyHolders[i] = playerTechnologyZone.transform.GetChild(i).GetComponent<PlayZoneCardHolder>();
             _playerCreatureHolders[i] = playerCreatureZone.transform.GetChild(i).GetComponent<PlayZoneCardHolder>();
-            _opponentDevelopmentHolders[i] = opponentDevelopmentZone.transform.GetChild(i).GetComponent<PlayZoneCardHolder>();
+            _opponentTechnologyHolders[i] = opponentTechnologyZone.transform.GetChild(i).GetComponent<PlayZoneCardHolder>();
             _opponentCreatureHolders[i] = opponentCreatureZone.transform.GetChild(i).GetComponent<PlayZoneCardHolder>();
         }
     }
@@ -138,8 +149,8 @@ public class EntityZones : NetworkBehaviour
         var index = 0;
         if(entity.isOwned){
             if(entity.cardType == CardType.Technology){
-                index = GetFirstFreeHolderIndex(_playerDevelopmentHolders);
-                return _playerDevelopmentHolders[index].transform;
+                index = GetFirstFreeHolderIndex(_playerTechnologyHolders);
+                return _playerTechnologyHolders[index].transform;
             } else if(entity.cardType == CardType.Creature){
                 index = GetFirstFreeHolderIndex(_playerCreatureHolders);
                 return _playerCreatureHolders[index].transform;
@@ -148,8 +159,8 @@ public class EntityZones : NetworkBehaviour
         
         // Opponent Entity
         if(entity.cardType == CardType.Technology){
-            index = GetFirstFreeHolderIndex(_opponentDevelopmentHolders);
-            return _opponentDevelopmentHolders[index].transform;
+            index = GetFirstFreeHolderIndex(_opponentTechnologyHolders);
+            return _opponentTechnologyHolders[index].transform;
         } else if(entity.cardType == CardType.Creature){
             index = GetFirstFreeHolderIndex(_opponentCreatureHolders);
             return _opponentCreatureHolders[index].transform;
@@ -170,13 +181,13 @@ public class EntityZones : NetworkBehaviour
 
     public void HighlightCardHolders(TurnState state)
     {
-        if(state == TurnState.Develop) HighlightDevelopmentHolders();
+        if(state == TurnState.Develop) HighlightTechnologyHolders();
         else if (state == TurnState.Deploy) HighlightCreatureHolders();
     }
 
-    public void HighlightDevelopmentHolders()
+    public void HighlightTechnologyHolders()
     {
-        foreach (var holder in _playerDevelopmentHolders) {
+        foreach (var holder in _playerTechnologyHolders) {
             holder.SetHighlight();
         }
     }
@@ -190,7 +201,7 @@ public class EntityZones : NetworkBehaviour
     
     public void ResetHolders()
     {
-        foreach (var holder in _playerDevelopmentHolders) {
+        foreach (var holder in _playerTechnologyHolders) {
             holder.ResetHighlight();
         }
         foreach (var holder in _playerCreatureHolders) {

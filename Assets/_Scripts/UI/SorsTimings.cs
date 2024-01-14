@@ -14,7 +14,7 @@ public static class SorsTimings
     public static float combatCleanUp = 1.5f;
     
     // Game Start
-    public static float waitForSpawnFromFile = 6f;
+    public static float waitForSpawnFromFile = 7f;
 
     // Card Spawning
     public static float spawnCard = 0.05f;

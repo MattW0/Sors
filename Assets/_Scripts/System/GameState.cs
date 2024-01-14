@@ -9,14 +9,15 @@ namespace SorsGameState
 {
 public class GameState
 {
-    public Player[] players;
+    public int turn;
     public string fileName;
+    public Player[] players;
 
     public GameState(int playerCount) 
     {
         players = new Player[playerCount];
-        // Create random file name ending in .json
-        fileName = Guid.NewGuid().ToString() + "_0.json";
+        // Create fileName from current time
+        fileName = DateTime.Now.ToString("yyyy-MM-dd--HH-mm-ss") + "_0.json";
     }
 
     public GameState(int playerCount, string fileName)
@@ -27,6 +28,7 @@ public class GameState
 
     public void SaveState(int turnNumber)
     {
+        turn = turnNumber;
         // Replace _X with _turnNumber, where X is the last turn number
         fileName = Regex.Replace(fileName, @"_\d+", "_" + turnNumber.ToString());
         
@@ -41,6 +43,7 @@ public class Player
 {
     public string playerName;
     public bool isHost;
+    public int health;
     public Entities entities;
     public Cards cards;
 
@@ -54,8 +57,9 @@ public class Player
         cards = new Cards();
     }
 
-    public void SavePlayerCardCollections(PlayerManager player)
+    public void SavePlayerState(PlayerManager player)
     {
+        health = player.Health;
         cards.CardInfosToScriptablePathStrings(CardLocation.Deck, player.deck);
         cards.CardInfosToScriptablePathStrings(CardLocation.Hand, player.hand);
         cards.CardInfosToScriptablePathStrings(CardLocation.Discard, player.discard);
@@ -63,15 +67,38 @@ public class Player
 }
 
 [System.Serializable]
-public class Entities : Dictionary<string, List<string>>
+public class Entities : Dictionary<string, List<Entity>>
 {
-    public List<string> creatures;
-    public List<string> technologies;
+    public List<Entity> creatures;
+    public List<Entity> technologies;
 
     public Entities()
     {
-        creatures = new List<string>();
-        technologies = new List<string>();
+        creatures = new List<Entity>();
+        technologies = new List<Entity>();
+    }
+}
+
+[System.Serializable]
+public class Entity
+{
+    public string scriptableCard;
+    public int health;
+    public int attack;
+
+    // For creatures
+    public Entity(CardInfo card, int h, int a)
+    {
+        scriptableCard = Cards.GetScriptableObjectPath(card);
+        health = h;
+        attack = a;
+    }
+
+    // For entities
+    public Entity(CardInfo card, int h)
+    {
+        scriptableCard = Cards.GetScriptableObjectPath(card);
+        health = h;
     }
 }
 
@@ -89,23 +116,10 @@ public class Cards : Dictionary<string, List<string>>
         discardCards = new List<string>();
     }
 
-    public void CardInfosToScriptablePathStrings(CardLocation location, List<CardInfo> cards){
-        
+    public void CardInfosToScriptablePathStrings(CardLocation location, List<CardInfo> cards)
+    {    
         List<string> scriptableCardPaths = new List<string>();
-        foreach(var card in cards){
-            string path = "Cards/";
-
-            if (card.isStartCard) {
-                path += "_StartCards/";
-            } else {
-                if(card.type == CardType.Creature) path += "CreatureCards/";
-                else if(card.type == CardType.Technology) path += "TechnologyCards/";
-                else if(card.type == CardType.Money) path += "MoneyCards/" + card.hash + "_";
-            }
-
-            path += card.title;
-            scriptableCardPaths.Add(path);
-        }
+        foreach(var card in cards) scriptableCardPaths.Add(GetScriptableObjectPath(card));
         
         switch(location){
             case CardLocation.Hand:
@@ -120,6 +134,22 @@ public class Cards : Dictionary<string, List<string>>
             default:
                 break;
         }
+    }
+
+    public static string GetScriptableObjectPath(CardInfo card)
+    {
+        string path = "Cards/";
+
+        if (card.isStartCard) {
+            path += "_StartCards/";
+        } else {
+            if(card.type == CardType.Creature) path += "CreatureCards/";
+            else if(card.type == CardType.Technology) path += "TechnologyCards/";
+            else if(card.type == CardType.Money) path += "MoneyCards/" + card.hash + "_";
+        }
+
+        path += card.title;
+        return path;
     }
 }
 

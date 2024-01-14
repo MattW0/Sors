@@ -2,67 +2,75 @@
     "market": [
 
     ],
-    "players": [{
-        "playerName": "Host",
-        "isHost": true,
-        "entities": {
-            "creatures": [
-                "Cards/CreatureCards/EmotionalDamage",
-                "Cards/_StartCards/Creatures/DmgCreature"
-            ],
-            "technologies": [
-                "Cards/TechnologyCards/Damage",
-                "Cards/TechnologyCards/EtbDraw"
-            ]
+    "players": [
+        {
+            "playerName": "Host",
+            "isHost": true,
+            "entities": {
+                "creatures": [
+                    {
+                        "scriptableCard": "Cards/CreatureCards/DiniMueter",
+                        "health": 3,
+                        "attack": 100
+                    }
+                ],
+                "technologies": [
+                    {
+                        "scriptableCard": "Cards/TechnologyCards/LifeGain",
+                        "health": 1,
+                        "attack": 0
+                    }
+                ]
+            },
+            "cards": {
+                "handCards": [
+                    "Cards/MoneyCards/3_Electron",
+                    "Cards/MoneyCards/1_Paper Money",
+                    "Cards/CreatureCards/EmotionalDamage",
+                    "Cards/TechnologyCards/Damage",
+                    "Cards/MoneyCards/3_Electron"
+                ],
+                "deckCards": [
+                    "Cards/MoneyCards/3_Electron",
+                    "Cards/MoneyCards/3_Electron"
+                ],
+                "discardCards": [
+                    "Cards/MoneyCards/1_Paper Money",
+                    "Cards/MoneyCards/3_Electron"
+                ]
+            }
         },
-        "cards": {
-            "handCards": [
-                "Cards/MoneyCards/3_Electron",
-                "Cards/MoneyCards/1_Paper Money",
-                "Cards/CreatureCards/EmotionalDamage",
-                "Cards/TechnologyCards/Damage",
-                "Cards/MoneyCards/3_Electron"
-            ],
-            "deckCards": [
-                "Cards/MoneyCards/3_Electron",
-                "Cards/MoneyCards/3_Electron"
-            ],
-            "discardCards": [
-                "Cards/MoneyCards/1_Paper Money",
-                "Cards/MoneyCards/3_Electron"
-            ]
+        {
+            "playerName": "test",
+            "isHost": false,
+            "entities": {
+                "creatures": [
+                    {
+                        "scriptableCard": "Cards/CreatureCards/DiniMueter",
+                        "health": 3,
+                        "attack": 1
+                    }
+                ]
+            },
+            "cards": {
+                "handCards": [
+                    "Cards/MoneyCards/1_Paper Money",
+                    "Cards/MoneyCards/1_Paper Money",
+                    "Cards/MoneyCards/1_Paper Money",
+                    "Cards/MoneyCards/1_Paper Money",
+                    "Cards/MoneyCards/1_Paper Money"
+                ],
+                "deckCards": [
+                    "Cards/MoneyCards/1_Paper Money",
+                    "Cards/MoneyCards/1_Paper Money"
+                ],
+                "discardCards": [
+                    "Cards/MoneyCards/1_Paper Money",
+                    "Cards/MoneyCards/1_Paper Money",
+                    "Cards/MoneyCards/1_Paper Money",
+                    "Cards/MoneyCards/1_Paper Money"
+                ]
+            }
         }
-    },
-    {
-        "playerName": "test",
-        "isHost": false,
-        "entities": {
-            "creatures": [
-                "Cards/CreatureCards/DiniMueter",
-                "Cards/CreatureCards/EmotionalDamage"
-            ],
-            "technologies": [
-                "Cards/TechnologyCards/LifeGain"
-            ]
-        },
-        "cards": {
-            "handCards": [
-                "Cards/MoneyCards/1_Paper Money",
-                "Cards/MoneyCards/1_Paper Money",
-                "Cards/MoneyCards/1_Paper Money",
-                "Cards/MoneyCards/1_Paper Money",
-                "Cards/MoneyCards/1_Paper Money"
-            ],
-            "deckCards": [
-                "Cards/MoneyCards/1_Paper Money",
-                "Cards/MoneyCards/1_Paper Money"
-            ],
-            "discardCards": [
-                "Cards/MoneyCards/1_Paper Money",
-                "Cards/MoneyCards/1_Paper Money",
-                "Cards/MoneyCards/1_Paper Money",
-                "Cards/MoneyCards/1_Paper Money"
-            ]
-        }
-    }]
+    ]
 }
