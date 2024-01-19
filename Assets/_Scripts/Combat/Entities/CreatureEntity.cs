@@ -53,6 +53,8 @@ public class CreatureEntity : BattleZoneEntity
     }
 
     private void Start(){
+        DropZoneManager.OnDeclareAttackers += DeclareAttackers;
+        DropZoneManager.OnDeclareBlockers += DeclareBlockers;
         DropZoneManager.OnResetEntityUI += ResetCreatureUI;
     }
 
@@ -75,6 +77,12 @@ public class CreatureEntity : BattleZoneEntity
         CanAct = true;
     }
 
+    private void DeclareAttackers(bool begin)
+    {
+        if(begin) CheckIfCanAct();
+        else CanAct = false;
+    }
+
     [TargetRpc]
     public void TargetDeclaredAttack(NetworkConnection conn, BattleZoneEntity target)
     {
@@ -89,6 +97,17 @@ public class CreatureEntity : BattleZoneEntity
         CanAct = false;
         IsAttacking = true;
         attackerArrowHandler.HandleFoundTarget(target.transform);
+    }
+
+    private void DeclareBlockers(bool begin)
+    {
+        if(begin) {
+            if(isOwned) CheckIfCanAct();
+            else {
+                if(IsAttacking) IsTargetable = true;
+            }
+        }
+        else CanAct = false;
     }
 
     [TargetRpc]
@@ -121,5 +140,7 @@ public class CreatureEntity : BattleZoneEntity
     private void OnDestroy()
     {
         DropZoneManager.OnResetEntityUI -= ResetCreatureUI;
+        DropZoneManager.OnDeclareAttackers -= DeclareAttackers;
+        DropZoneManager.OnDeclareBlockers -= DeclareBlockers;
     }
 }

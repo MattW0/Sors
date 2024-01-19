@@ -6,8 +6,6 @@ using DG.Tweening;
 public class EntityZones : NetworkBehaviour
 {
     private const int MAX_ENTITIES = 6;
-    [SerializeField] private BattleZoneEntity _playerEntity;
-    [SerializeField] private BattleZoneEntity _opponentEntity;
     [SerializeField] private List<CreatureEntity> _hostCreatures = new();
     [SerializeField] private List<CreatureEntity> _clientCreatures = new();
     [SerializeField] private List<TechnologyEntity> _hostTechnologies = new();
@@ -50,13 +48,6 @@ public class EntityZones : NetworkBehaviour
     }
 
     [Server]
-    public void AddPlayers(BattleZoneEntity playerEntity, BattleZoneEntity opponentEntity)
-    {
-        _playerEntity = playerEntity;
-        _opponentEntity = opponentEntity;
-    }
-
-    [Server]
     public void RemoveTechnology(TechnologyEntity technology, bool isHost){
         if(isHost) _hostTechnologies.Remove(technology);
         else _clientTechnologies.Remove(technology);
@@ -74,28 +65,26 @@ public class EntityZones : NetworkBehaviour
         else return _clientCreatures;
     }
 
-    [Server]
-    public List<TechnologyEntity> GetTechnologies(bool isHost){
-        if(isHost) return _hostTechnologies;
-        else return _clientTechnologies;
-    }
-
-
-
-    public List<BattleZoneEntity> GetAllTechnologies(){
-        var technologies = new List<BattleZoneEntity>();
-        technologies.AddRange(_hostTechnologies);
-        technologies.AddRange(_clientTechnologies);
-
-        return technologies;
-    }
-
     public List<CreatureEntity> GetAllCreatures(){
         var creatures = new List<CreatureEntity>();
         creatures.AddRange(_hostCreatures);
         creatures.AddRange(_clientCreatures);
 
         return creatures;
+    }
+
+    [Server]
+    public List<TechnologyEntity> GetTechnologies(bool isHost){
+        if(isHost) return _hostTechnologies;
+        else return _clientTechnologies;
+    }
+
+    public List<TechnologyEntity> GetAllTechnologies(){
+        var technologies = new List<TechnologyEntity>();
+        technologies.AddRange(_hostTechnologies);
+        technologies.AddRange(_clientTechnologies);
+
+        return technologies;
     }
 
     public List<BattleZoneEntity> GetAllEntities(){

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 8861709735916918007}
   - component: {fileID: 4771018743703844232}
   - component: {fileID: 6420962732462830893}
-  - component: {fileID: -2478721917270783527}
+  - component: {fileID: 2435064851221685217}
   - component: {fileID: 9154695337729997296}
   - component: {fileID: -5615103701373865539}
   m_Layer: 0
@@ -71,7 +71,7 @@ MonoBehaviour:
   playerName: 
   chosenPhases: 
   chosenPrevailOptions: 
---- !u!114 &-2478721917270783527
+--- !u!114 &2435064851221685217
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -80,7 +80,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3109964472370712586}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fec7d691756bab64a9f57b8f16da6cfa, type: 3}
+  m_Script: {fileID: 11500000, guid: cbaefc36150f79d47ae8b2f42f8ca16f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   syncDirection: 0
@@ -88,22 +88,11 @@ MonoBehaviour:
   syncInterval: 0.1
   _entityUI: {fileID: 0}
   cardType: 3
-  _cardInfo:
-    goID: 
-    hash: 
-    type: 0
-    title: 
-    description: 
-    cost: 0
-    health: 0
-    attack: 0
-    points: 0
-    moneyValue: 0
-    abilities: []
-    keywordAbilities: 
   _health: 0
-  _attack: 0
   _points: 0
+  targetArrowHandler: {fileID: 0}
+  attackerArrowHandler: {fileID: 0}
+  blockerArrowHandler: {fileID: 0}
 --- !u!114 &9154695337729997296
 MonoBehaviour:
   m_ObjectHideFlags: 0

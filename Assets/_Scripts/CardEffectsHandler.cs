@@ -171,7 +171,6 @@ public class CardEffectsHandler : NetworkBehaviour
             return true;
         }
 
-
         // Else we need input from player and set _continue to true after receiving it
         print($"NEED PLAYER INPUT: " + ability.ToString());
         _abilitySource = entity;

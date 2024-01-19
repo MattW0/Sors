@@ -8,7 +8,7 @@ using UnityEngine;
 public class DropZoneManager : NetworkBehaviour
 {
     public static DropZoneManager Instance { get; private set; }
-    private PlayerManager _player;
+    // private PlayerManager _player;
     [SerializeField] private BoardManager _boardManager;
     [SerializeField] private EntityZones entityZones;
     [SerializeField] private MoneyZone playerMoneyZone;
@@ -16,6 +16,12 @@ public class DropZoneManager : NetworkBehaviour
     // public static event Action OnTargetPlayer;
     // public static event Action OnTargetOpponent;
     // public static event Action OnTargetCreatures;
+    
+    public static event Action OnCombatStart;
+    public static event Action<bool> OnDeclareAttackers;
+    public static event Action<bool> OnDeclareBlockers;
+    public static event Action OnCombatEnd;
+    public static event Action<EffectTarget> OnTargetEntities;
     public static event Action OnResetEntityUI;
     public static event Action OnDestroyArrows;
 
@@ -23,7 +29,6 @@ public class DropZoneManager : NetworkBehaviour
     {
         if (!Instance) Instance = this;
     }
-    private void Start() => _player = PlayerManager.GetLocalPlayer();
 
     #region Entities ETB and LTB
 
@@ -66,64 +71,45 @@ public class DropZoneManager : NetworkBehaviour
 
     #endregion
 
-    [Server]
-    public void EntitiesAreTargetable(PlayerManager owner)
+    [TargetRpc]
+    public void TargetEntitiesAreTargetable(NetworkConnection conn, EffectTarget target)
     {
         // TODO: Expand for different possible effect targets and standard combat targeting
-        var entities = entityZones.GetAllEntities();
-        print("targets count: " + entities.Count);
-
-        TargetMakeEntitiesTargetable(owner.connectionToClient, true, true);
-        // TargetMakeEntitiesTargetable(owner.connectionToClient, entities, true);
-
+        print("targets count: " + entityZones.GetAllEntities().Count);
+        OnTargetEntities?.Invoke(target);
+        // RpcMakeEntitiesTargetable(owner, target);
     }
 
     #region Attackers
 
     [Server]
-    public void StartDeclareAttackers(PlayerManager player, BattleZoneEntity opponent)
+    public void StartDeclareAttackers(List<PlayerManager> players)
     {
-        // Auto-skipping if local player has no creatures
-        var creatures = entityZones.GetCreatures(player.isLocalPlayer);
-        if (creatures.Count == 0) {
-            PlayerFinishedChoosingAttackers(_player);
-            return;
+        foreach (var player in players)
+        {
+            // Auto-skip : Local player has no creatures
+            if (entityZones.GetCreatures(player.isLocalPlayer).Count == 0) PlayerFinishedChoosingAttackers(player);
+            else TargetDeclareAttackers(player.connectionToClient);
         }
-
-        // Get opponent attackable targets
-        // TODO: How to get around this?
-        var targets = entityZones.GetTechnologies(!player.isLocalPlayer);
-        // if(opponent) targets.Add(opponent);
-
-        // Else we enable entities to be tapped and wait for player to declare attackers and press ready btn
-        TargetDeclareAttackers(player.connectionToClient, creatures);
-        
-        // TargetMakeEntitiesTargetable(player.connectionToClient, targets, true);
-        TargetMakeEntitiesTargetable(player.connectionToClient, true, true);
     }
 
     [TargetRpc]
-    private void TargetDeclareAttackers(NetworkConnection conn, List<CreatureEntity> creatures)
+    private void TargetDeclareAttackers(NetworkConnection conn)
     {
-        foreach (var c in creatures) c.CheckIfCanAct();
+        OnDeclareAttackers?.Invoke(true);
+        OnCombatStart?.Invoke();
     }
 
     [Server]
     public void PlayerFinishedChoosingAttackers(PlayerManager player)
     {
         // From skip or pressing combat button
-        _boardManager.DisableReadyButton(player);
         _boardManager.AttackersDeclared(player);
-
-        // Player creatures stop being able to attack
-        var creatures = entityZones.GetCreatures(player.isLocalPlayer);
-        TargetMakeCreaturesIdle(player.connectionToClient, creatures);
-
-        // Opponent attackable targets stop to be targetable
-        // var targets = entityZones.GetTechnologies(!player.isLocalPlayer);
-        // TargetMakeEntitiesTargetable(player.connectionToClient, targets, false);
-        TargetMakeEntitiesTargetable(player.connectionToClient, true, false);
+        TargetFinishChoosingAttackers(player.connectionToClient);
     }
+
+    [TargetRpc]
+    private void TargetFinishChoosingAttackers(NetworkConnection conn) => OnDeclareAttackers?.Invoke(false);
 
     #endregion
 
@@ -136,52 +122,42 @@ public class DropZoneManager : NetworkBehaviour
         {
             // Inverting isLocalPlayer because we want opponent creatures
             var opponentCreatures = entityZones.GetCreatures(!player.isLocalPlayer);
+
+            // Auto-skip : No attacking opponent creature
+            var isAttacked = opponentCreatures.Exists(entity => entity.IsAttacking);
+            if(!isAttacked) {
+                PlayerFinishedChoosingBlockers(player);
+                continue;
+            }
+            
+            // Auto-skip : No creature able to block
             var playerCreatures = entityZones.GetCreatures(player.isLocalPlayer);
+            var hasBlocker = playerCreatures.Exists(entity => !entity.IsAttacking);
+            if(!hasBlocker) {
+                PlayerFinishedChoosingBlockers(player);
+                continue;
+            }
+            
             TargetDeclareBlockers(player.connectionToClient, playerCreatures, opponentCreatures);
         }
     }
 
     [TargetRpc]
-    private void TargetDeclareBlockers(NetworkConnection conn, List<CreatureEntity> creatures, List<CreatureEntity> opponentCreatures)
+    private void TargetDeclareBlockers(NetworkConnection conn, List<CreatureEntity> playerCreatures, List<CreatureEntity> opponentCreatures)
     {
-        // At least one attacking opponent entity
-        var isAttacked = opponentCreatures.Exists(entity => entity.IsAttacking);
-        
-        // At least one creature able to block
-        var nbAttackers = 0;
-        foreach (var c in creatures) if (c.IsAttacking) nbAttackers++;
-        var hasBlocker = creatures.Count != nbAttackers;
-
-        // If both is true -> player may declare blockers (wait until ready button press)
-        if (isAttacked && hasBlocker)
-        {
-            foreach (var creature in creatures) creature.CheckIfCanAct();
-            foreach (var c in opponentCreatures) if(c.IsAttacking) c.IsTargetable = true;
-        } else {
-            print($"Skipping blockers");
-            PlayerSkipsBlockers();
-        }
+        OnDeclareBlockers?.Invoke(true);
+        OnCombatEnd?.Invoke();
     }
-
-    private void PlayerSkipsBlockers()
-    {
-        if (isServer) PlayerFinishedChoosingBlockers(_player, true);
-        else CmdPlayerSkipsBlockers(_player);
-    }
-
-    [Command(requiresAuthority = false)]
-    private void CmdPlayerSkipsBlockers(PlayerManager player) => PlayerFinishedChoosingBlockers(player, true);
 
     [Server]
-    public void PlayerFinishedChoosingBlockers(PlayerManager player, bool skip = false)
+    public void PlayerFinishedChoosingBlockers(PlayerManager player)
     {
-        _boardManager.DisableReadyButton(player);
         _boardManager.BlockersDeclared(player);
-
-        // Player creatures stop being able to block
-        var creatures = entityZones.GetCreatures(player.isLocalPlayer);
-        TargetMakeCreaturesIdle(player.connectionToClient, creatures);
+        TargetFinishChoosingBlockers(player.connectionToClient);
     }
+
+    [TargetRpc]
+    private void TargetFinishChoosingBlockers(NetworkConnection conn) => OnDeclareBlockers?.Invoke(false);
     #endregion
 
     [Server]
@@ -211,23 +187,6 @@ public class DropZoneManager : NetworkBehaviour
     {
         playerMoneyZone.DiscardMoney();
         opponentMoneyZone.DiscardMoney();
-    }
-
-    [TargetRpc]
-    private void TargetMakeCreaturesIdle(NetworkConnection conn, List<CreatureEntity> creatures)
-    {
-        foreach (var c in creatures) c.CanAct = false;
-    }
-
-    [TargetRpc]
-    private void TargetMakeEntitiesTargetable(NetworkConnection conn, bool combat, bool targetable)
-    // private void TargetMakeEntitiesTargetable(NetworkConnection conn, List<BattleZoneEntity> entities, bool targetable)
-    {
-        // TODO: Logic to only make some entities targetable
-        // Tie this to ability target ? 
-
-        // OnStartCombat.Invoke();
-        // foreach(var e in entities) e.IsTargetable = targetable;
     }
 
     [Server]

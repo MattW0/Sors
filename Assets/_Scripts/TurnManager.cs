@@ -616,6 +616,7 @@ public class TurnManager : NetworkBehaviour
     {
         var owner = entity.Owner;
         _boardManager.FindTargets(entity, ability.target);
+        
         entity.TargetSpawnTargetArrow(owner.connectionToClient);
         owner.TargetPlayerStartChooseTarget();
     }

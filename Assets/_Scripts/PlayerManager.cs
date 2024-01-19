@@ -137,8 +137,13 @@ public class PlayerManager : NetworkBehaviour
         _opponentUI = GameObject.Find("OpponentInfo").GetComponent<PlayerUI>();
         
         _entity = GetComponent<BattleZoneEntity>();
-        if(isOwned) _playerUI.SetEntity(_entity, _playerUI.transform.position);
-        else _opponentUI.SetEntity(_entity, _opponentUI.transform.position);
+        if(isOwned) {
+            _entity.SetPlayerUI(_playerUI);
+            _playerUI.SetEntity(_entity, _playerUI.transform.position);
+        } else {
+            _entity.SetPlayerUI(_opponentUI);
+            _opponentUI.SetEntity(_entity, _opponentUI.transform.position);
+        }
     }
 
     [Server] // GameManager calls this on player object
@@ -453,11 +458,6 @@ public class PlayerManager : NetworkBehaviour
 
 
     #region UI
-
-    public void EntityTargetHighlight(bool targetable){
-        if(isOwned) _playerUI.TargetHighlight(targetable, true);
-        else _opponentUI.TargetHighlight(targetable, false);
-    }
 
     private void SetPlayerName(string name)
     {

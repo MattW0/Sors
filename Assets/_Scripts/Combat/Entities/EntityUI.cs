@@ -54,5 +54,8 @@ public class EntityUI : MonoBehaviour, IPointerClickHandler
         effectHighlight.enabled = enabled;
         effectHighlight.color = color;
     }
-    public void DisableHighlight() => effectHighlight.enabled = false;
+    public void DisableHighlight(){
+        if(effectHighlight == null) return;
+        effectHighlight.enabled = false;
+    } 
 }

@@ -28,8 +28,8 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
     {
         _idlePosition = transform.position;
 
-        BoardManager.OnCombatStart += StartCombat;
-        BoardManager.OnCombatEnd += EndCombat;
+        DropZoneManager.OnCombatStart += StartCombat;
+        DropZoneManager.OnCombatEnd += EndCombat;
     }
 
     public void SetEntity(BattleZoneEntity e, Vector3 p) {
@@ -39,7 +39,7 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
 
     private void StartCombat()
     {
-        print("Start combat on player UI");
+        // print("Start combat on player UI");
         transform.position += _combatPosition;
         _playerEntity.transform.position += _combatPosition;
     }
@@ -79,7 +79,7 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
     public void SetRecruits(int value) => turnRecruits.text = value.ToString();
 
     private void OnDestroy(){
-        BoardManager.OnCombatStart -= StartCombat;
-        BoardManager.OnCombatEnd -= EndCombat;
+        DropZoneManager.OnCombatStart -= StartCombat;
+        DropZoneManager.OnCombatEnd -= EndCombat;
     }
 }

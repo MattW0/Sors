@@ -27,8 +27,6 @@ public class CombatManager : NetworkBehaviour
         if (!Instance) Instance = this;
         
         GameManager.OnGameStart += Prepare;
-        BoardManager.OnAttackersDeclared += PlayerDeclaredAttackers;
-        BoardManager.OnBlockersDeclared += PlayerDeclaredBlockers;
     }
 
     public void UpdateCombatState(CombatState newState){
@@ -80,7 +78,7 @@ public class CombatManager : NetworkBehaviour
         }
     }
 
-    private void PlayerDeclaredAttackers(PlayerManager player)
+    public void PlayerDeclaredAttackers(PlayerManager player)
     {
         // print($"Player {player.PlayerName} declared attackers");
         _readyPlayers.Add(player);
@@ -110,7 +108,7 @@ public class CombatManager : NetworkBehaviour
         }
     }
 
-    private void PlayerDeclaredBlockers(PlayerManager player)
+    public void PlayerDeclaredBlockers(PlayerManager player)
     {
         _readyPlayers.Add(player);
         if (_readyPlayers.Count != _gameManager.players.Count) return;
@@ -289,8 +287,6 @@ public class CombatManager : NetworkBehaviour
     public void PlayerPressedReadyButton(PlayerManager player) => _boardManager.PlayerPressedReadyButton(player);
     private void OnDestroy(){
         GameManager.OnGameStart -= Prepare;
-        BoardManager.OnAttackersDeclared -= PlayerDeclaredAttackers;
-        BoardManager.OnBlockersDeclared -= PlayerDeclaredBlockers;
     }
 }
 

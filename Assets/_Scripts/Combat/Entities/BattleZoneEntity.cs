@@ -11,7 +11,8 @@ public class BattleZoneEntity : NetworkBehaviour
     public PlayerManager Owner { get; private set; }
     public PlayerManager Opponent { get; private set; }
     public string Title { get; private set; }
-    [SerializeField] public EntityUI _entityUI;
+    [SerializeField] private EntityUI _entityUI;
+    [SerializeField] private PlayerUI _playerUI;
 
     [field: Header("Stats")]
     public CardType cardType;
@@ -45,16 +46,11 @@ public class BattleZoneEntity : NetworkBehaviour
         get => _targetable;
         set {
             _targetable = value;
-
-            if(cardType == CardType.Player) Player.EntityTargetHighlight(value);
-            else {
-                if(value) _entityUI.Highlight(true, SorsColors.targetColor);
-                else _entityUI.DisableHighlight();
-            }
+            if(cardType == CardType.Player) _playerUI.TargetHighlight(value, isOwned);
+            else _entityUI.Highlight(value, SorsColors.targetColor);
         }
     }
 
-    public PlayerManager Player { get; private set; }
     public TargetArrowHandler targetArrowHandler;
     public AttackerArrowHandler attackerArrowHandler;
     public BlockerArrowHandler blockerArrowHandler;
@@ -64,10 +60,8 @@ public class BattleZoneEntity : NetworkBehaviour
         targetArrowHandler = GetComponent<TargetArrowHandler>();
         attackerArrowHandler = GetComponent<AttackerArrowHandler>();
 
-        if (cardType == CardType.Player){
-            Player = GetComponent<PlayerManager>();
-            // DropZoneManager.OnTargetPlayer += MakeTargetable;
-        } else {
+        DropZoneManager.OnTargetEntities += CheckTargetable;
+        if (cardType != CardType.Player){
             CombatManager.OnCombatStateChanged += RpcCombatStateChanged;
             DropZoneManager.OnResetEntityUI += ResetEntityUI;
         }
@@ -96,6 +90,21 @@ public class BattleZoneEntity : NetworkBehaviour
         _boardManager = BoardManager.Instance;
     }
 
+    private void CheckTargetable(EffectTarget target)
+    {
+        // TODO: check if this is targetable for target types
+        // Any, AnyPlayer, Creature, Technology, Card
+        if(target == EffectTarget.Any){
+            IsTargetable = true;
+        } else if (target == EffectTarget.AnyPlayer) {
+            if(gameObject.GetComponent<PlayerEntity>() != null) IsTargetable = true;
+        } else if (target == EffectTarget.Creature){
+            if(gameObject.GetComponent<CreatureEntity>() != null) IsTargetable = true;
+        } else if (target == EffectTarget.Technology){
+            if(gameObject.GetComponent<TechnologyEntity>() != null) IsTargetable = true;
+        }
+    }
+
     [Server]
     public void TakesDamage(int value, bool deathtouch){
         if (deathtouch){ 
@@ -104,7 +113,12 @@ public class BattleZoneEntity : NetworkBehaviour
         }
         Health -= value;
     }
-    private void Die() => _boardManager.EntityDies(this);
+    private void Die(){
+        // Somehow NetworkServer.Destroy(this) destroys the GO but does not call OnDestroy(),
+        // Thus, do it here manually to prevent null references when events are triggered
+        UnsubscribeEvents();
+        _boardManager.EntityDies(this);
+    } 
 
     [ClientRpc]
     private void RpcSetHealth(int value)=> _entityUI.SetHealth(value);
@@ -131,7 +145,8 @@ public class BattleZoneEntity : NetworkBehaviour
     #region UI Target Arrows
     private void ResetEntityUI()
     {
-        if(!(cardType == CardType.Player)) _entityUI.DisableHighlight();
+        // print($"{Title} : Resetting entity UI");
+        if(cardType != CardType.Player) _entityUI.DisableHighlight();
     }
     [ClientRpc]
     public void RpcSetCombatHighlight() => _entityUI.Highlight(true, SorsColors.creatureClashing);
@@ -143,9 +158,18 @@ public class BattleZoneEntity : NetworkBehaviour
     public void RpcResetAfterTarget() => targetArrowHandler.RemoveArrow(false);
     #endregion
 
+    public void SetPlayerUI(PlayerUI playerUI) => _playerUI = playerUI;
+
+    private void UnsubscribeEvents() => OnDestroy();
+
     private void OnDestroy()
     {
-        CombatManager.OnCombatStateChanged -= RpcCombatStateChanged;
-        DropZoneManager.OnResetEntityUI -= ResetEntityUI;
+        print($"Destroying {Title}");
+        DropZoneManager.OnTargetEntities -= CheckTargetable;
+        if (cardType != CardType.Player){
+            print("Destroying entity UI");
+            CombatManager.OnCombatStateChanged -= RpcCombatStateChanged;
+            DropZoneManager.OnResetEntityUI -= ResetEntityUI;
+        }
     }
 }
