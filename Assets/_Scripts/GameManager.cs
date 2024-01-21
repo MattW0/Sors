@@ -3,10 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using Unity.Collections;
 using Mirror;
 using Random = UnityEngine.Random;
-using SorsGameState;
 
 public class GameManager : NetworkBehaviour {
     
@@ -87,7 +85,8 @@ public class GameManager : NetworkBehaviour {
         LoadCards();
     }
 
-    private void LoadCards(){
+    private void LoadCards()
+    {
         _moneySprites = Resources.LoadAll<Sprite>("Sprites/Money/");
         startEntities = Resources.LoadAll<ScriptableCard>("Cards/_StartCards/");
 
@@ -105,8 +104,8 @@ public class GameManager : NetworkBehaviour {
 
     #region Setup
     
-    public void GameSetup(GameOptions options){
-
+    public void GameSetup(GameOptions options)
+    {
         _turnManager = TurnManager.Instance;
         _boardManager = BoardManager.Instance;
         _kingdom = Kingdom.Instance;
@@ -127,12 +126,12 @@ public class GameManager : NetworkBehaviour {
             OnGameStart?.Invoke(_gameOptions);
         } else {
             // Start game from state file
-            LoadGameState(options.StateFile);
+            gameObject.GetComponent<GameStateLoader>().LoadGameState(options.StateFile);
         }
     }
 
     private void InitPlayers(){
-
+        
         var playerManagers = FindObjectsOfType<PlayerManager>();
         foreach (var player in playerManagers)
         {
@@ -160,22 +159,24 @@ public class GameManager : NetworkBehaviour {
         }
     }
 
-    private void KingdomSetup(){
+    private void KingdomSetup()
+    {
         _kingdom.RpcSetPlayer();
-        
-        // Money: right now only paper money
+
+        // Money
         var moneyCards = new CardInfo[_nbMoneyTiles];
         for (var i = 0; i < _nbMoneyTiles; i++) moneyCards[i] = new CardInfo(moneyCardsDb[i]);
         _kingdom.RpcSetMoneyTiles(moneyCards);
 
+        // Technologies
         var technologies = new CardInfo[_nbTechnologyTiles];
         for (var i = 0; i < _nbTechnologyTiles; i++) technologies[i] = GetNewTechnologyFromDb();
         _kingdom.RpcSetTechnologyTiles(technologies);
 
-        // Recruit Creatures
+        // Creatures
         var creatures = new CardInfo[_nbCreatureTiles];
         for (var i = 0; i < _nbCreatureTiles; i++) creatures[i] = GetNewCreatureFromDb();
-        _kingdom.RpcSetRecruitTiles(creatures);
+        _kingdom.RpcSetCreatureTiles(creatures);
     }
 
     private void SpawnPlayerDeck(PlayerManager player)
@@ -197,137 +198,8 @@ public class GameManager : NetworkBehaviour {
 
     #endregion
 
-    #region Game State Loading
-
-    private void LoadGameState(string fileName)
-    {
-        print($"Loading game state from file: {fileName}");
-        
-        var stateFile = Resources.Load<TextAsset>("GameStates/" + fileName);
-        var state = JsonUtility.FromJson<GameState>(stateFile.text);
-
-        // TODO: Load specific kingdom from state file
-        KingdomSetup();
-        PlayerSetupFromFile(state.players);
-    }
-
-    private void PlayerSetupFromFile(Player[] playerData)
-    {
-        Player host = new Player();
-        Player client = new Player();
-
-        foreach (var p in playerData){
-            if (p.isHost) host = p;
-            else client = p;
-        }
-
-        Dictionary<PlayerManager, Cards> playerCards = new();
-        Dictionary<PlayerManager, Entities> playerEntities = new();
-        foreach (var player in players.Keys)
-        {
-            // p has player info and game state 
-            Player p = new Player();
-            if(player.isLocalPlayer) p = host;
-            else p = client;
-
-            playerCards.Add(player, p.cards);
-            playerEntities.Add(player, p.entities);
-        }
-
-        StartCoroutine(SpawningFromFile(playerCards, playerEntities));
-    }
-
-    private IEnumerator SpawningFromFile(Dictionary<PlayerManager, Cards> playerCards, Dictionary<PlayerManager, Entities> playerEntities)
-    {
-        foreach(var (player, cards) in playerCards){
-            StartCoroutine(SpawnCardsFromFile(player, cards));
-
-            yield return new WaitForSeconds(SorsTimings.waitForSpawnFromFile);
-            // yield return new WaitForSeconds(0.1f);
-
-            StartCoroutine(SpawnEntitiesFromFile(player, playerEntities[player]));
-        }
-
-        yield return new WaitForSeconds(SorsTimings.waitForSpawnFromFile / 3f);
-        // yield return new WaitForSeconds(0.1f);
-
-        OnGameStart?.Invoke(_gameOptions);
-    }
-
-    private IEnumerator SpawnCardsFromFile(PlayerManager p, Cards cards)
-    {
-        List<GameObject> cardList = new();
-        foreach(var c in cards.handCards){
-            var scriptableCard = Resources.Load<ScriptableCard>(c);
-            cardList.Add(SpawnCardAndAddToCollection(p, scriptableCard, CardLocation.Hand));
-        }
-        p.RpcShowSpawnedCards(cardList, CardLocation.Hand, true);
-        cardList.Clear();
-
-        yield return new WaitForSeconds(SorsTimings.waitForSpawnFromFile / 3f);
-
-        foreach(var c in cards.deckCards){
-            var scriptableCard = Resources.Load<ScriptableCard>(c);
-            cardList.Add(SpawnCardAndAddToCollection(p, scriptableCard, CardLocation.Deck));
-        }
-        p.RpcShowSpawnedCards(cardList, CardLocation.Deck, true);
-        cardList.Clear();
-
-        yield return new WaitForSeconds(SorsTimings.waitForSpawnFromFile / 3f);
-
-        foreach(var c in cards.discardCards){
-            var scriptableCard = Resources.Load<ScriptableCard>(c);
-            cardList.Add(SpawnCardAndAddToCollection(p, scriptableCard, CardLocation.Discard));
-        }
-        p.RpcShowSpawnedCards(cardList, CardLocation.Discard, true);
-
-        yield return new WaitForSeconds(SorsTimings.waitForSpawnFromFile / 3f);
-    }
-
-    private IEnumerator SpawnEntitiesFromFile(PlayerManager p, Entities entities)
-    {
-        var entitiesDict = new Dictionary<GameObject, BattleZoneEntity>();
-
-        foreach(var e in entities.creatures){
-            var scriptableCard = Resources.Load<ScriptableCard>(e.scriptableCard);
-            var cardObject = SpawnCardAndAddToCollection(p, scriptableCard, CardLocation.PlayZone);
-            
-            // Wait for card initialization
-            yield return new WaitForSeconds(0.01f);
-            var entity = SpawnFieldEntity(p, cardObject);
-
-            // Wait for entity initialization
-            yield return new WaitForSeconds(0.01f);
-            entity.Health = e.health;
-            entity.GetComponent<CreatureEntity>().Attack = e.attack;
-            // entity.GetComponent<CreatureEntity>().SetDefense(e.defense);
-
-            entitiesDict.Add(cardObject, entity);
-        }
-
-        foreach(var e in entities.technologies){
-            var scriptableCard = Resources.Load<ScriptableCard>(e.scriptableCard);
-            var cardObject = SpawnCardAndAddToCollection(p, scriptableCard, CardLocation.PlayZone);
-            
-            // Wait for card initialization
-            yield return new WaitForSeconds(0.01f);
-            var entity = SpawnFieldEntity(p, cardObject);
-            
-            // Wait for entity initialization
-            yield return new WaitForSeconds(0.01f);
-            entity.Health = e.health;
-
-            entitiesDict.Add(cardObject, entity);
-        }
-
-        p.RpcShowSpawnedCards(entitiesDict.Keys.ToList(), CardLocation.PlayZone, true);
-        _boardManager.PlayEntities(entitiesDict);
-    }
-
-    #endregion
-
     #region Spawning
-    private GameObject SpawnCardAndAddToCollection(PlayerManager player, ScriptableCard scriptableCard, CardLocation destination)
+    public GameObject SpawnCardAndAddToCollection(PlayerManager player, ScriptableCard scriptableCard, CardLocation destination)
     {
         // print($"Spawning card {scriptableCard.title}, type : {scriptableCard.type}");
 
@@ -353,10 +225,10 @@ public class GameManager : NetworkBehaviour {
         return cardObject;
     }
 
-    public void PlayerGainMoney(PlayerManager player, CardInfo cardInfo)
+    public void PlayerGainMoney(PlayerManager player, CardInfo card)
     {
         // using hash as index for currency scriptable objects
-        var scriptableCard = Resources.Load<ScriptableCard>("Cards/MoneyCards/" + cardInfo.hash + "_" + cardInfo.title);
+        var scriptableCard = Resources.Load<ScriptableCard>("Cards/MoneyCards/" + card.hash + "_" + card.title);
         ResolveCardGain(player, scriptableCard);
     }
 
@@ -399,25 +271,9 @@ public class GameManager : NetworkBehaviour {
     }
 
     private void AddCardToPlayerCollection(PlayerManager owner, CardInfo cardInfo, CardLocation destination){
-        
-        switch (destination)
-        {
-            case CardLocation.Deck:
-                owner.deck.Add(cardInfo);
-                break;
-            case CardLocation.Discard:
-                owner.discard.Add(cardInfo);
-                break;
-            case CardLocation.Hand:
-                owner.hand.Add(cardInfo);
-                owner.RpcUpdateHandCards(CardsCache[cardInfo.goID], true);
-                break;
-            case CardLocation.PlayZone:
-                // When loading game state
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(destination), destination, null);
-        }
+        if (destination == CardLocation.Deck) owner.deck.Add(cardInfo);
+        else if(destination == CardLocation.Discard) owner.discard.Add(cardInfo);
+        else if(destination == CardLocation.Hand) owner.hand.Add(cardInfo);
     }
 
     public BattleZoneEntity SpawnFieldEntity(PlayerManager owner, GameObject card)
@@ -472,7 +328,9 @@ public class GameManager : NetworkBehaviour {
     #endregion
 
     #region Utils
-    private CardInfo GetNewTechnologyFromDb()
+    public void StartGame() => OnGameStart?.Invoke(_gameOptions);
+
+    public CardInfo GetNewTechnologyFromDb()
     {
         if(_availableTechnologyIds.Count == 0){
             // Random order of ids -> pop first element for random card

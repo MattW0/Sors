@@ -9,9 +9,10 @@ public class ScriptableCard : ScriptableObject
 {
     [Header("General Properties")]
     public string hash;
+    public string resourceName;
     public CardType type;
-    public int cost;
     public string title;
+    public int cost;
     public bool isStartCard;
 
     [Header("Enitity properties")]
@@ -22,7 +23,7 @@ public class ScriptableCard : ScriptableObject
     [Header("Money properties")]
     public int moneyValue;
 
-    [Header("Special Effects")]
+    [Header("Abilities")]
     public List<Ability> abilities;
 
     [Header("Creature properties")]

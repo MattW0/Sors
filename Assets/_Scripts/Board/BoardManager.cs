@@ -35,8 +35,6 @@ public class BoardManager : NetworkBehaviour
         _gameManager = GameManager.Instance;
         _combatManager = CombatManager.Instance;
         _dropZone = DropZoneManager.Instance;
-
-        // GameManager.OnGameStart += PrepareGameStateFile;
     }
 
     public void PlayEntities(Dictionary<GameObject, BattleZoneEntity> entities) 
@@ -55,11 +53,18 @@ public class BoardManager : NetworkBehaviour
 
     #region Effects
 
-    public void FindTargets(BattleZoneEntity entity, EffectTarget target)
+    public void PlayerStartSelectTarget(BattleZoneEntity entity, Ability ability)
     {
-        print($"Player {entity.Owner.PlayerName} - looking for target: {target}");
-        _dropZone.TargetEntitiesAreTargetable(entity.Owner.connectionToClient, target);
+        var owner = entity.Owner;
+
+        // Target rpc let triggering player choose
+        owner.TargetPlayerStartChooseTarget();
+        entity.TargetSpawnTargetArrow(owner.connectionToClient);
+
+        _dropZone.RpcEntitiesAreTargetable(ability.target);
     }
+
+    public void ResetTargeting() => _dropZone.RpcResetTargeting();
 
     #endregion
 
@@ -114,7 +119,7 @@ public class BoardManager : NetworkBehaviour
     }
     #endregion
 
-    public void BoardCleanUp(bool endOfTurn)
+    public void BoardCleanUp(List<CardInfo>[] scriptableTiles, bool endOfTurn)
     {    
         ClearDeadEntities();
         _dropZone.DestroyTargetArrows();
@@ -122,7 +127,7 @@ public class BoardManager : NetworkBehaviour
         if(endOfTurn){
             _dropZone.TechnologiesLooseHealth();
             ClearDeadEntities();
-            if(isServer) SaveGameState();
+            if(isServer) SaveGameState(scriptableTiles);
         }
     }
 
@@ -139,6 +144,10 @@ public class BoardManager : NetworkBehaviour
             dead.Owner.discard.Add(cardObject.GetComponent<CardStats>().cardInfo);
             dead.Owner.RpcMoveCard(cardObject, CardLocation.PlayZone, CardLocation.Discard);
 
+            // Somehow NetworkServer.Destroy(this) destroys the GO but does not call OnDestroy(),
+            // Thus, do it here manually to prevent null references when events are triggered
+            dead.RpcUnsubscribeEvents();
+
             _entitiesObjectsCache.Remove(dead);
             NetworkServer.Destroy(dead.gameObject);
         }
@@ -146,21 +155,24 @@ public class BoardManager : NetworkBehaviour
     }
 
     [Server]
-    public void PrepareGameStateFile()
+    public void PrepareGameStateFile(List<CardInfo>[] scriptableTiles)
     {
         _gameState = new GameState(_gameManager.players.Count);
+
         int i = 0;
         foreach (var player in _gameManager.players.Keys){
             _gameState.players[i] = new Player(player.PlayerName, player.isLocalPlayer);
             i++;
         }
 
-        SaveGameState();
+        SaveGameState(scriptableTiles);
     }
 
     [Server]
-    private void SaveGameState()
+    private void SaveGameState(List<CardInfo>[] scriptableTiles)
     {
+        _gameState.market.SaveMarketState(scriptableTiles);
+
         int i = 0;
         foreach(var player in _gameManager.players.Keys){
             _gameState.players[i].SavePlayerState(player);

@@ -3267,8 +3267,6 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
-  _playerEntity: {fileID: 0}
-  _opponentEntity: {fileID: 0}
   _hostCreatures: []
   _clientCreatures: []
   _hostTechnologies: []
@@ -8812,6 +8810,7 @@ GameObject:
   - component: {fileID: 806438201}
   - component: {fileID: 806438202}
   - component: {fileID: 806438203}
+  - component: {fileID: 806438204}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -8910,6 +8909,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   reloadJson: 0
+--- !u!114 &806438204
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 806438199}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e1a7a13aad6a4643956f3aa5960a03a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &810261397
 GameObject:
   m_ObjectHideFlags: 0

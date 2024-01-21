@@ -54,7 +54,7 @@ public class Kingdom : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcSetRecruitTiles(CardInfo[] creatureTilesInfo){   
+    public void RpcSetCreatureTiles(CardInfo[] creatureTilesInfo){   
         for (var i = 0; i < creatureTilesInfo.Length; i++) 
             creatureTiles[i].SetTile(creatureTilesInfo[i]);
     }
@@ -164,4 +164,18 @@ public class Kingdom : NetworkBehaviour
     }
 
     public void MaxButton() => _ui.MaxButton();
+
+    public List<CardInfo>[] GetTileInfos(){
+
+        var scriptableTiles = new List<CardInfo>[3];
+        scriptableTiles[0] = new List<CardInfo>();
+        scriptableTiles[1] = new List<CardInfo>();
+        scriptableTiles[2] = new List<CardInfo>();
+
+        foreach (var tile in moneyTiles) scriptableTiles[0].Add(tile.cardInfo);
+        foreach (var tile in technologyTiles) scriptableTiles[1].Add(tile.cardInfo);
+        foreach (var tile in creatureTiles) scriptableTiles[2].Add(tile.cardInfo);
+
+        return scriptableTiles;
+    }
 }

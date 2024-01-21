@@ -55,9 +55,8 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
         if(!_isTargetable) return;
 
         var clicker = PlayerManager.GetLocalPlayer();
-        if (!(clicker.PlayerIsChoosingAttack || clicker.PlayerIsChoosingTarget)) return;
-
-        clicker.PlayerChoosesTargetToAttack(_playerEntity);
+        if (clicker.PlayerIsChoosingAttack) clicker.PlayerChoosesTargetToAttack(_playerEntity);
+        else if (clicker.PlayerIsChoosingTarget) clicker.PlayerChoosesEntityTarget(_playerEntity);
     }
 
     public void TargetHighlight(bool targetable, bool isPlayer){

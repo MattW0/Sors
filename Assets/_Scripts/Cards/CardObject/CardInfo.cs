@@ -8,6 +8,7 @@ public struct CardInfo : IEquatable<CardInfo>
 {
     public int goID;
     public string hash;
+    public string resourceName;
     public CardType type;
     public bool isStartCard;
     public string title;
@@ -31,6 +32,7 @@ public struct CardInfo : IEquatable<CardInfo>
         goID = gameObjectID;
 
         hash = card.hash;
+        resourceName = card.resourceName;
         type = card.type;
         title = card.title;
         isStartCard = card.isStartCard;

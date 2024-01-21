@@ -9,6 +9,7 @@ public class CardEffectsHandler : NetworkBehaviour
 {
     public static CardEffectsHandler Instance { get; private set; }
     private TurnManager _turnManager;
+    private BoardManager _boardManager;
     private PlayerInterfaceManager _playerInterfaceManager;
     private Dictionary<BattleZoneEntity, Ability> _abilityQueue = new();
     public bool QueueResolving { get; private set; }
@@ -28,6 +29,7 @@ public class CardEffectsHandler : NetworkBehaviour
 
     private void Start(){
         _turnManager = TurnManager.Instance;
+        _boardManager = BoardManager.Instance;
         _playerInterfaceManager = PlayerInterfaceManager.Instance;
     }
 
@@ -147,8 +149,11 @@ public class CardEffectsHandler : NetworkBehaviour
         while(!_continue) {
             yield return new WaitForSeconds(0.1f);
         }
+
+        yield return new WaitForSeconds(SorsTimings.effectExecution);
         _continue = false;
         _abilityResolving = false;
+        _boardManager.ResetTargeting();
     }
 
     private bool CanContinueWithoutPlayerInput(BattleZoneEntity entity, Ability ability)
@@ -174,7 +179,7 @@ public class CardEffectsHandler : NetworkBehaviour
         // Else we need input from player and set _continue to true after receiving it
         print($"NEED PLAYER INPUT: " + ability.ToString());
         _abilitySource = entity;
-        _turnManager.PlayerStartSelectTarget(entity, ability);
+        _boardManager.PlayerStartSelectTarget(entity, ability);
         
         return false;
     }

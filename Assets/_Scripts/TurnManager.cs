@@ -112,7 +112,7 @@ public class TurnManager : NetworkBehaviour
         _skipCardDrawAnimations = gameOptions.SkipCardSpawnAnimations;
 
         // StateFile is NOT null or empty if we load from a file eg. state.json
-        StartCoroutine(DrawInitialHand(gameOptions.InitialHandSize, ! string.IsNullOrEmpty(gameOptions.StateFile)));
+        StartCoroutine(DrawInitialHand(gameOptions.InitialHandSize, true, ! string.IsNullOrEmpty(gameOptions.StateFile)));
     }
 
     private void SetupInstances(GameOptions gameOptions)
@@ -147,7 +147,7 @@ public class TurnManager : NetworkBehaviour
         PlayerManager.OnCashChanged += PlayerCashChanged;
     }
 
-    private IEnumerator DrawInitialHand(int initialHandSize, bool isLoadedFromFile)
+    private IEnumerator DrawInitialHand(int initialHandSize, bool saveGameState, bool isLoadedFromFile)
     {
         float waitForSpawn = _skipCardDrawAnimations ? 0.5f : 4f;
         yield return new WaitForSeconds(waitForSpawn);
@@ -161,8 +161,8 @@ public class TurnManager : NetworkBehaviour
             }
             yield return new WaitForSeconds(SorsTimings.wait);
         }
-        
-        _boardManager.PrepareGameStateFile();
+
+        if(saveGameState) _boardManager.PrepareGameStateFile(_kingdom.GetTileInfos());        
         UpdateTurnState(TurnState.PhaseSelection);
     }
 
@@ -426,7 +426,7 @@ public class TurnManager : NetworkBehaviour
         // Reset
         var playAnotherCard = false;
         _readyPlayers.Clear();
-        _boardManager.BoardCleanUp(false);
+        _boardManager.BoardCleanUp(_kingdom.GetTileInfos(), false);
 
         // Check if plays are still possible and if not, add player to _readyPlayers
         foreach (var player in _gameManager.players.Keys)
@@ -609,20 +609,7 @@ public class TurnManager : NetworkBehaviour
         UpdateTurnState(TurnState.NextPhase);
     }
     #endregion
-
-    #region PlayerInputs
-
-    public void PlayerStartSelectTarget(BattleZoneEntity entity, Ability ability)
-    {
-        var owner = entity.Owner;
-        _boardManager.FindTargets(entity, ability.target);
-        
-        entity.TargetSpawnTargetArrow(owner.connectionToClient);
-        owner.TargetPlayerStartChooseTarget();
-    }
-
-    #endregion
-
+    
     #region EndPhase
     private void CleanUp()
     {
@@ -639,7 +626,7 @@ public class TurnManager : NetworkBehaviour
 
     private IEnumerator CleanUpIntermission()
     {
-        _boardManager.BoardCleanUp(true);
+        _boardManager.BoardCleanUp(_kingdom.GetTileInfos(), true);
         OnPhaseChanged?.Invoke(TurnState.CleanUp);
         PlayersStatsResetAndDiscardMoney(endOfTurn: true);
 

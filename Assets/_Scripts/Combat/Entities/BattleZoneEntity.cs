@@ -94,14 +94,17 @@ public class BattleZoneEntity : NetworkBehaviour
     {
         // TODO: check if this is targetable for target types
         // Any, AnyPlayer, Creature, Technology, Card
-        if(target == EffectTarget.Any){
-            IsTargetable = true;
-        } else if (target == EffectTarget.AnyPlayer) {
+        
+        if(target == EffectTarget.None) IsTargetable = false;
+        else if(target == EffectTarget.Entity) IsTargetable = true;
+        else if (target == EffectTarget.AnyPlayer) {
             if(gameObject.GetComponent<PlayerEntity>() != null) IsTargetable = true;
         } else if (target == EffectTarget.Creature){
             if(gameObject.GetComponent<CreatureEntity>() != null) IsTargetable = true;
         } else if (target == EffectTarget.Technology){
             if(gameObject.GetComponent<TechnologyEntity>() != null) IsTargetable = true;
+        } else if (target == EffectTarget.Any){
+            // TODO: Remove this ?
         }
     }
 
@@ -114,11 +117,9 @@ public class BattleZoneEntity : NetworkBehaviour
         Health -= value;
     }
     private void Die(){
-        // Somehow NetworkServer.Destroy(this) destroys the GO but does not call OnDestroy(),
-        // Thus, do it here manually to prevent null references when events are triggered
-        UnsubscribeEvents();
+        
         _boardManager.EntityDies(this);
-    } 
+    }
 
     [ClientRpc]
     private void RpcSetHealth(int value)=> _entityUI.SetHealth(value);
@@ -130,7 +131,10 @@ public class BattleZoneEntity : NetworkBehaviour
     [ClientRpc]
     private void RpcSetPoints(int value)=> _entityUI.SetPoints(value);
     [ClientRpc]
-    public void RpcEffectHighlight(bool value) => _entityUI.Highlight(value, SorsColors.effectTriggerHighlight);
+    public void RpcEffectHighlight(bool value) {
+        print("Showing effect target highlight");
+        _entityUI.Highlight(value, SorsColors.effectTriggerHighlight);   
+    }
 
     [ClientRpc]
     public virtual void RpcCombatStateChanged(CombatState newState){
@@ -160,7 +164,7 @@ public class BattleZoneEntity : NetworkBehaviour
 
     public void SetPlayerUI(PlayerUI playerUI) => _playerUI = playerUI;
 
-    private void UnsubscribeEvents() => OnDestroy();
+    [ClientRpc] public void RpcUnsubscribeEvents() => OnDestroy();
 
     private void OnDestroy()
     {

@@ -245,6 +245,15 @@ public class PlayerManager : NetworkBehaviour
 
     [ClientRpc]
     public void RpcShowSpawnedCards(List<GameObject> cards, CardLocation destination, bool fromFile) => StartCoroutine(_cardMover.ShowSpawnedCards(cards, isOwned, destination, fromFile));
+    [TargetRpc]
+    public void TargetSetHandCards(NetworkConnection conn, List<GameObject> handCards){
+        var cardStats = new List<CardStats>();
+        foreach(var c in handCards){
+            cardStats.Add(c.GetComponent<CardStats>());
+        }
+
+        _handManager.SetHandCards(cardStats);  
+    } 
 
     [Command]
     public void CmdPlayMoneyCard(GameObject card, CardInfo cardInfo)

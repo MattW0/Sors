@@ -11,10 +11,12 @@ public class GameState
 {
     public int turn;
     public string fileName;
+    public Market market;
     public Player[] players;
 
     public GameState(int playerCount) 
     {
+        market = new Market();
         players = new Player[playerCount];
         // Create fileName from current time
         fileName = DateTime.Now.ToString("yyyy-MM-dd--HH-mm-ss") + "_0.json";
@@ -22,6 +24,7 @@ public class GameState
 
     public GameState(int playerCount, string fileName)
     {
+        market = new Market();
         players = new Player[playerCount];
         this.fileName = fileName;
     }
@@ -34,7 +37,60 @@ public class GameState
         
         // convert GameState with all player data to json format, creating a new file in the resources folder
         var json = JsonUtility.ToJson(this);
-        File.WriteAllText(Application.dataPath + "/Resources/GameStates/" + fileName, json);
+        File.WriteAllText(Application.dataPath + "/Resources/GameStates/Auto/" + fileName, json);
+    }
+
+    public static List<string> CardInfosToScriptablePathStrings(List<CardInfo> cards)
+    {    
+        List<string> scriptableCardPaths = new List<string>();
+        foreach(var card in cards) scriptableCardPaths.Add(GetScriptableObjectPath(card));
+        
+        return scriptableCardPaths;
+    }
+
+    public static string GetScriptableObjectPath(CardInfo card)
+    {
+        string path = "Cards/";
+
+        if (card.isStartCard) {
+            path += "_StartCards/";
+        } else {
+            if(card.type == CardType.Creature) path += "CreatureCards/";
+            else if(card.type == CardType.Technology) path += "TechnologyCards/";
+            else if(card.type == CardType.Money) path += "MoneyCards/";
+        }
+
+        path += card.resourceName;
+        return path;
+    }
+}
+
+[System.Serializable]
+public class Market
+{
+    public List<string> money;
+    public List<string> technologies;
+    public List<string> creatures;
+
+    public Market() 
+    {
+        money = new List<string>();
+        technologies = new List<string>();
+        creatures = new List<string>();
+    }
+
+    public Market(List<string> money, List<string> technologies, List<string> creatures)
+    {
+        this.money = money;
+        this.technologies = technologies;
+        this.creatures = creatures;
+    }
+
+    public void SaveMarketState(List<CardInfo>[] market)
+    {
+        money = GameState.CardInfosToScriptablePathStrings(market[0]);
+        technologies = GameState.CardInfosToScriptablePathStrings(market[1]);
+        creatures = GameState.CardInfosToScriptablePathStrings(market[2]);
     }
 }
 
@@ -60,9 +116,9 @@ public class Player
     public void SavePlayerState(PlayerManager player)
     {
         health = player.Health;
-        cards.CardInfosToScriptablePathStrings(CardLocation.Deck, player.deck);
-        cards.CardInfosToScriptablePathStrings(CardLocation.Hand, player.hand);
-        cards.CardInfosToScriptablePathStrings(CardLocation.Discard, player.discard);
+        cards.deckCards = GameState.CardInfosToScriptablePathStrings(player.deck);
+        cards.handCards = GameState.CardInfosToScriptablePathStrings(player.hand);
+        cards.discardCards = GameState.CardInfosToScriptablePathStrings(player.discard);
     }
 }
 
@@ -86,19 +142,19 @@ public class Entity
     public int health;
     public int attack;
 
+    // For technologies
+    public Entity(CardInfo card, int h)
+    {
+        scriptableCard = GameState.GetScriptableObjectPath(card);
+        health = h;
+    }
+
     // For creatures
     public Entity(CardInfo card, int h, int a)
     {
-        scriptableCard = Cards.GetScriptableObjectPath(card);
+        scriptableCard = GameState.GetScriptableObjectPath(card);
         health = h;
         attack = a;
-    }
-
-    // For entities
-    public Entity(CardInfo card, int h)
-    {
-        scriptableCard = Cards.GetScriptableObjectPath(card);
-        health = h;
     }
 }
 
@@ -114,42 +170,6 @@ public class Cards : Dictionary<string, List<string>>
         handCards = new List<string>();
         deckCards = new List<string>();
         discardCards = new List<string>();
-    }
-
-    public void CardInfosToScriptablePathStrings(CardLocation location, List<CardInfo> cards)
-    {    
-        List<string> scriptableCardPaths = new List<string>();
-        foreach(var card in cards) scriptableCardPaths.Add(GetScriptableObjectPath(card));
-        
-        switch(location){
-            case CardLocation.Hand:
-                handCards = scriptableCardPaths;
-                break;
-            case CardLocation.Deck:
-                deckCards = scriptableCardPaths;
-                break;
-            case CardLocation.Discard:
-                discardCards = scriptableCardPaths;
-                break;
-            default:
-                break;
-        }
-    }
-
-    public static string GetScriptableObjectPath(CardInfo card)
-    {
-        string path = "Cards/";
-
-        if (card.isStartCard) {
-            path += "_StartCards/";
-        } else {
-            if(card.type == CardType.Creature) path += "CreatureCards/";
-            else if(card.type == CardType.Technology) path += "TechnologyCards/";
-            else if(card.type == CardType.Money) path += "MoneyCards/" + card.hash + "_";
-        }
-
-        path += card.title;
-        return path;
     }
 }
 

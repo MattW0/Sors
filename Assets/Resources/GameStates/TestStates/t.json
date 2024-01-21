@@ -1,7 +1,31 @@
 {
-    "market": [
-
-    ],
+    "market": {
+        "money": [
+            "Cards/MoneyCards/1_PaperMoney",
+            "Cards/MoneyCards/2_OldArtifacts",
+            "Cards/MoneyCards/3_Electron"
+        ],
+        "technologies": [
+            "Cards/TechnologyCards/TurnDraw",
+            "Cards/TechnologyCards/LaserBeam",
+            "Cards/TechnologyCards/LifeGain",
+            "Cards/TechnologyCards/EtbDraw",
+            "Cards/TechnologyCards/CreatureReduction",
+            "Cards/TechnologyCards/Damage",
+            "Cards/TechnologyCards/RecruitMoney",
+            "Cards/TechnologyCards/InventMoney"
+        ],
+        "creatures": [
+            "Cards/CreatureCards/EmotionalDamage",
+            "Cards/CreatureCards/DiniMueter",
+            "Cards/CreatureCards/DiniMueter",
+            "Cards/CreatureCards/EmotionalDamage",
+            "Cards/CreatureCards/DiniMueter",
+            "Cards/CreatureCards/EmotionalDamage",
+            "Cards/CreatureCards/DiniMueter",
+            "Cards/CreatureCards/EmotionalDamage"
+        ]
+    },
     "players": [
         {
             "playerName": "Host",
@@ -30,7 +54,7 @@
             "cards": {
                 "handCards": [
                     "Cards/MoneyCards/3_Electron",
-                    "Cards/MoneyCards/1_Paper Money",
+                    "Cards/MoneyCards/1_PaperMoney",
                     "Cards/CreatureCards/EmotionalDamage",
                     "Cards/TechnologyCards/Damage",
                     "Cards/_StartCards/DmgCreature",
@@ -41,7 +65,7 @@
                     "Cards/MoneyCards/3_Electron"
                 ],
                 "discardCards": [
-                    "Cards/MoneyCards/1_Paper Money",
+                    "Cards/MoneyCards/1_PaperMoney",
                     "Cards/MoneyCards/3_Electron"
                 ]
             }
@@ -70,21 +94,21 @@
             },
             "cards": {
                 "handCards": [
-                    "Cards/MoneyCards/1_Paper Money",
-                    "Cards/MoneyCards/1_Paper Money",
-                    "Cards/MoneyCards/1_Paper Money",
-                    "Cards/MoneyCards/1_Paper Money",
-                    "Cards/MoneyCards/1_Paper Money"
+                    "Cards/MoneyCards/1_PaperMoney",
+                    "Cards/MoneyCards/1_PaperMoney",
+                    "Cards/MoneyCards/1_PaperMoney",
+                    "Cards/MoneyCards/1_PaperMoney",
+                    "Cards/MoneyCards/1_PaperMoney"
                 ],
                 "deckCards": [
-                    "Cards/MoneyCards/1_Paper Money",
-                    "Cards/MoneyCards/1_Paper Money"
+                    "Cards/MoneyCards/1_PaperMoney",
+                    "Cards/MoneyCards/1_PaperMoney"
                 ],
                 "discardCards": [
-                    "Cards/MoneyCards/1_Paper Money",
-                    "Cards/MoneyCards/1_Paper Money",
-                    "Cards/MoneyCards/1_Paper Money",
-                    "Cards/MoneyCards/1_Paper Money"
+                    "Cards/MoneyCards/1_PaperMoney",
+                    "Cards/MoneyCards/1_PaperMoney",
+                    "Cards/MoneyCards/1_PaperMoney",
+                    "Cards/MoneyCards/1_PaperMoney"
                 ]
             }
         }

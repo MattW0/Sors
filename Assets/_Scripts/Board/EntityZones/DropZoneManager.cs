@@ -71,14 +71,16 @@ public class DropZoneManager : NetworkBehaviour
 
     #endregion
 
-    [TargetRpc]
-    public void TargetEntitiesAreTargetable(NetworkConnection conn, EffectTarget target)
+    [ClientRpc]
+    public void RpcEntitiesAreTargetable(EffectTarget target)
     {
         // TODO: Expand for different possible effect targets and standard combat targeting
         print("targets count: " + entityZones.GetAllEntities().Count);
         OnTargetEntities?.Invoke(target);
-        // RpcMakeEntitiesTargetable(owner, target);
     }
+
+    [ClientRpc]
+    public void RpcResetTargeting() => OnTargetEntities?.Invoke(EffectTarget.None);
 
     #region Attackers
 
