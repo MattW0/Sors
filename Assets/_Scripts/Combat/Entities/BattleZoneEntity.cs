@@ -132,7 +132,7 @@ public class BattleZoneEntity : NetworkBehaviour
     private void RpcSetPoints(int value)=> _entityUI.SetPoints(value);
     [ClientRpc]
     public void RpcEffectHighlight(bool value) {
-        print("Showing effect target highlight");
+        // print("Showing effect target highlight");
         _entityUI.Highlight(value, SorsColors.effectTriggerHighlight);   
     }
 

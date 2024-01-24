@@ -111,6 +111,9 @@ public class TurnManager : NetworkBehaviour
         _nbPlayers = gameOptions.NumberPlayers;
         _skipCardDrawAnimations = gameOptions.SkipCardSpawnAnimations;
 
+        // TODO: Create menu option where saveStateFile is a bool option
+        // How to do this with built version -> currently only working in editor environment !
+
         // StateFile is NOT null or empty if we load from a file eg. state.json
         StartCoroutine(DrawInitialHand(gameOptions.InitialHandSize, true, ! string.IsNullOrEmpty(gameOptions.StateFile)));
     }
@@ -152,13 +155,16 @@ public class TurnManager : NetworkBehaviour
         float waitForSpawn = _skipCardDrawAnimations ? 0.5f : 4f;
         yield return new WaitForSeconds(waitForSpawn);
 
+        _playerInterfaceManager.RpcLog($" Starting Game ", LogType.Standard);
         // Dont want ETB triggers for entities from game state and only draw initial hand in normal game start 
         if(isLoadedFromFile) _cardEffectsHandler.ClearAbilitiesQueue();
         else {
             foreach(var player in _gameManager.players.Keys) {
                 player.deck.Shuffle();
                 player.DrawInitialHand(initialHandSize);
+
             }
+            _playerInterfaceManager.RpcLog($" Wait for seconds : {SorsTimings.wait} ", LogType.Standard);
             yield return new WaitForSeconds(SorsTimings.wait);
         }
 
@@ -626,6 +632,7 @@ public class TurnManager : NetworkBehaviour
 
     private IEnumerator CleanUpIntermission()
     {
+        // TODO: Should not use _kingdom here but access it from _boardManager directly
         _boardManager.BoardCleanUp(_kingdom.GetTileInfos(), true);
         OnPhaseChanged?.Invoke(TurnState.CleanUp);
         PlayersStatsResetAndDiscardMoney(endOfTurn: true);

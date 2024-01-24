@@ -115,7 +115,7 @@ public class PlayerManager : NetworkBehaviour
 
     #region GameSetup
 
-    public override void OnStartClient() => base.OnStartClient();
+    // public override void OnStartClient() => base.OnStartClient();
 
     [ClientRpc]
     public void RpcInitPlayer()

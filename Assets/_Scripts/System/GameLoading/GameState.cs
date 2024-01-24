@@ -9,24 +9,63 @@ namespace SorsGameState
 {
 public class GameState
 {
-    public int turn;
     public string fileName;
+    public int turn;
     public Market market;
     public Player[] players;
+    private string _dataDirPath = Application.persistentDataPath;
+    private const string _testStatesDir = "TestStates";
 
     public GameState(int playerCount) 
     {
-        market = new Market();
-        players = new Player[playerCount];
         // Create fileName from current time
         fileName = DateTime.Now.ToString("yyyy-MM-dd--HH-mm-ss") + "_0.json";
+
+        market = new Market();
+        players = new Player[playerCount];
     }
 
     public GameState(int playerCount, string fileName)
     {
+        this.fileName = fileName + ".json";
+
         market = new Market();
         players = new Player[playerCount];
-        this.fileName = fileName;
+    }
+
+    public GameState LoadState()
+    {
+        var dirPath = _dataDirPath;
+        // check if file does not start with time stamp -> load test state
+        if(!Regex.IsMatch(fileName, @"^\d{4}-\d{2}-\d{2}--\d{2}-\d{2}-\d{2}"))
+        {
+            dirPath = Path.Combine(_dataDirPath, _testStatesDir);
+        }
+        var fullPath = Path.Combine(dirPath, fileName);
+
+        GameState state = null;
+        if(File.Exists(fullPath))
+        {
+            try
+            {
+                string dataToLoad = "";
+                using (FileStream stream = new FileStream(fullPath, FileMode.Open))
+                {
+                    using (StreamReader reader = new StreamReader(stream))
+                    {
+                        dataToLoad = reader.ReadToEnd();
+                    }
+                }
+
+                state = JsonUtility.FromJson<GameState>(dataToLoad);
+            }
+            catch
+            {
+                Debug.LogError($"GameState: Could not load game state from file: {fullPath}");
+            }
+        }
+
+        return state;
     }
 
     public void SaveState(int turnNumber)
@@ -34,10 +73,30 @@ public class GameState
         turn = turnNumber;
         // Replace _X with _turnNumber, where X is the last turn number
         fileName = Regex.Replace(fileName, @"_\d+", "_" + turnNumber.ToString());
-        
-        // convert GameState with all player data to json format, creating a new file in the resources folder
-        var json = JsonUtility.ToJson(this);
-        File.WriteAllText(Application.dataPath + "/Resources/GameStates/Auto/" + fileName, json);
+        var fullPath = Path.Combine(_dataDirPath, fileName);
+
+        try
+        {
+            // Create directory if it does not exist
+            Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+
+            // convert GameState with all player data to json format
+            var json = JsonUtility.ToJson(this, true);
+
+            using(FileStream stream = new FileStream(fullPath, FileMode.Create))
+            {
+                using(StreamWriter writer = new StreamWriter(stream))
+                {
+                    writer.Write(json);
+                }
+            }
+        }
+        catch
+        {
+            Debug.LogError($"GameState: Could not save game state to file: {fullPath}");
+        }
+
+        // File.WriteAllText(Application.dataPath + "/Resources/GameStates/Auto/" + fileName, json);
     }
 
     public static List<string> CardInfosToScriptablePathStrings(List<CardInfo> cards)

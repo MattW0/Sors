@@ -9,23 +9,17 @@ public class GameStateLoader : MonoBehaviour
     private GameManager _gameManager;
 
     public void LoadGameState(string fileName)
-    {        
-        TextAsset stateFile = null;
-        try{
-            print($"Loading game state from file: {fileName}");
-            if(fileName == "t") stateFile = Resources.Load<TextAsset>("GameStates/TestStates/" + fileName);
-            else stateFile = Resources.Load<TextAsset>("GameStates/Auto/" + fileName);
-        }
-        catch
-        {
-            print($"GameStateLoader: Could not load game state file: {fileName}");
+    {
+        _gameManager = GameManager.Instance;
+
+        var gameState = new GameState(_gameManager.players.Count, fileName).LoadState();
+        if(gameState == null)
+        { 
+            print("Error loading game state");
             return;
         }
-
-        _gameManager = GameManager.Instance;
-        var state = JsonUtility.FromJson<GameState>(stateFile.text);
-        PlayerSetupFromFile(state.players);
-        LoadKingdomFromFile(state.market);
+        PlayerSetupFromFile(gameState.players);
+        LoadKingdomFromFile(gameState.market);
     }
 
     private void PlayerSetupFromFile(Player[] playerData)

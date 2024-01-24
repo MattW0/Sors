@@ -35,11 +35,10 @@ public class SorsNetworkManager : NetworkManager
             yield return new WaitForSeconds(SorsTimings.wait);
         }
 
-        yield return new WaitForSeconds(0.1f);        
-        StartGame();
-    }
-
-    private void StartGame(){
+        if(gameOptions.NumberPlayers == 1){
+            CreatePlayerObject("Opponent");
+        }
+        yield return new WaitForSeconds(SorsTimings.wait);
         OnAllPlayersReady?.Invoke(gameOptions);
     }
 
@@ -57,12 +56,7 @@ public class SorsNetworkManager : NetworkManager
 
     void OnCreateCharacter(NetworkConnectionToClient conn, CreatePlayerMessage message)
     {
-        print("Creating player " + message.name);
-        GameObject playerObject = Instantiate(playerPrefab);
-
-        PlayerManager player = playerObject.GetComponent<PlayerManager>();
-        player.PlayerName = message.name;
-
+        var playerObject = CreatePlayerObject(message.name);
         // call this to use this gameobject as the primary controller
         NetworkServer.AddPlayerForConnection(conn, playerObject);
     }
@@ -79,6 +73,18 @@ public class SorsNetworkManager : NetworkManager
         _playerNameBuffer = playerName;
         if (isHost) _manager.StartHost();
         else _manager.StartClient();
+    }
+
+    private GameObject CreatePlayerObject(string playerName)
+    {
+        print("Creating player " + playerName);
+        GameObject playerObject = Instantiate(playerPrefab);
+        playerObject.name = playerName;
+
+        PlayerManager player = playerObject.GetComponent<PlayerManager>();
+        // player.PlayerName = playerName;
+        
+        return playerObject;
     }
 
     #region Host Options

@@ -114,8 +114,9 @@ public class GameManager : NetworkBehaviour {
         print(" --- Game starting --- \n" + options.ToString());
         _gameOptions = options;
 
-        isSinglePlayer = options.NumberPlayers == 1;
         initialHandSize = options.FullHand ? initialDeckSize : initialHandSize;
+        isSinglePlayer = options.NumberPlayers == 1;
+        // if(isSinglePlayer) new GameObject("SinglePlayerOpponent").AddComponent<PlayerManager>();
 
         InitPlayers();
 
@@ -130,16 +131,18 @@ public class GameManager : NetworkBehaviour {
         }
     }
 
-    private void InitPlayers(){
-        
+    private void InitPlayers()
+    {
         var playerManagers = FindObjectsOfType<PlayerManager>();
         foreach (var player in playerManagers)
         {
-            players.Add(player, player.GetComponent<NetworkIdentity>());
             player.RpcInitPlayer();
 
+            if(player == null) continue;
+
+            players.Add(player, player.GetComponent<NetworkIdentity>());
             // Player stats
-            player.PlayerName = player.PlayerName; // To update info in network
+            player.PlayerName = player.gameObject.name; // To update info in network
             player.Health = startHealth;
             player.Score = startScore;
             
