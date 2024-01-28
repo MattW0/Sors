@@ -10,7 +10,6 @@ public class PhasePanelUI : MonoBehaviour
     public static PhasePanelUI Instance { get; private set; }
 
     [Header("Player Settings")]
-    private int _nbPlayers;
     [SerializeField] private float playerChoiceInactiveAlpha = 0.3f;
     [SerializeField] private float fadeDuration = 1f;
 
@@ -30,9 +29,8 @@ public class PhasePanelUI : MonoBehaviour
         progressBarHighlight.color = SorsColors.phaseHighlight;
     }
 
-    public void PrepareUI(int nbPlayers){
-        _nbPlayers = nbPlayers;
-
+    public void PrepareUI()
+    {
         // Reset cleanup highlight and start at phase selection (index 0)
         _oldHighlight = phaseHighlights[^1];
         UpdatePhaseHighlight(0);

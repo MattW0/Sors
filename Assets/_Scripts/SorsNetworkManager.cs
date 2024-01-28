@@ -8,14 +8,13 @@ public class SorsNetworkManager : NetworkManager
 {
     private NetworkManager _manager;
     private string _playerNameBuffer;
-    private string[] _networkAddresses = new string[2] {"localhost", "192.168.1.170"};
-    public static GameOptions gameOptions = new GameOptions(2, 1, true, false, "192.168.1.170", "", 4);
+    private GameOptions _gameOptions;
     public static event Action<GameOptions> OnAllPlayersReady;
 
     public override void Awake(){
         base.Awake();
         _manager = GetComponent<NetworkManager>();
-        InputField.OnNetworkAdressUpdate += UpdateNetworkAddress;
+        GameOptionsMenu.OnUpdateNetworkAddress += UpdateNetworkAddress;
     }
 
     public override void OnStartServer(){
@@ -25,22 +24,27 @@ public class SorsNetworkManager : NetworkManager
 
     public override void OnStartHost(){
         base.OnStartHost();
-        print("Host Started");
+
+        _gameOptions = GameOptionsMenu.gameOptions;
         StartCoroutine(WaitingForPlayers());
     }
 
     private IEnumerator WaitingForPlayers(){
-        while (NetworkServer.connections.Count < gameOptions.NumberPlayers){
-            print("Waiting for players...");
-            yield return new WaitForSeconds(SorsTimings.wait);
-        }
 
-        if(gameOptions.NumberPlayers == 1){
+        if(_gameOptions.SinglePlayer){
             var opponent = CreatePlayerObject("Opponent");
             opponent.GetComponent<PlayerManager>().isAI = true;
         }
+        else
+        {
+            while (NetworkServer.connections.Count < 2){
+                print("Waiting for opponent...");
+                yield return new WaitForSeconds(SorsTimings.wait);
+            }
+        }
+
         yield return new WaitForSeconds(SorsTimings.wait);
-        OnAllPlayersReady?.Invoke(gameOptions);
+        OnAllPlayersReady?.Invoke(_gameOptions);
     }
 
     public override void OnClientConnect()
@@ -78,35 +82,20 @@ public class SorsNetworkManager : NetworkManager
 
     private GameObject CreatePlayerObject(string playerName)
     {
-        print("Creating player " + playerName);
         GameObject playerObject = Instantiate(playerPrefab);
         NetworkServer.Spawn(playerObject);
 
         playerObject.name = playerName;
-        // playerObject.GetComponent<PlayerManager>().PlayerName = playerName;
         
         return playerObject;
     }
 
-    #region Host Options
-    public static void SetNumberPlayers(int numberPlayers) => gameOptions.NumberPlayers = numberPlayers + 1;
-    public static void SetNumberPhases(int numberPhases) => gameOptions.NumberPhases = numberPhases + 1;
-    public static void SetFullHand(bool drawAll){
-        gameOptions.FullHand = drawAll;
-        gameOptions.InitialHandSize = drawAll ? 10 : 4;
-    } 
-    public static void SetSpawnimations(bool b) => gameOptions.SkipCardSpawnAnimations = b;
-    public static void SetStateFile(string stateFile) => gameOptions.StateFile = stateFile;
-    private void UpdateNetworkAddress(string networkAddress){
-        _manager.networkAddress = networkAddress;
-        gameOptions.NetworkAddress = networkAddress;
-    }
+    private void UpdateNetworkAddress(string address) => _manager.networkAddress = address;
 
-    #endregion
-
-    public override void OnDestroy() {
+    public override void OnDestroy()
+    {
         base.OnDestroy();
-        InputField.OnNetworkAdressUpdate -= UpdateNetworkAddress;
+        GameOptionsMenu.OnUpdateNetworkAddress -= UpdateNetworkAddress;
     }
 }
 

@@ -11,20 +11,18 @@ public class InputField : MonoBehaviour
     
     private void Start()
     {
-        inputField.text = (option == GameOption.NetworkAddress) ? "localhost" : "";
+        // inputField.text = (option == GameOption.NetworkAddress) ? "localhost" : "";
         inputField.onEndEdit.AddListener(delegate { UpdateTextBox(); });
         UpdateTextBox();
     }
  
     public void UpdateTextBox()
-    {
-        // if (inputField.text.Length < 1) return;
-        
+    {        
         var text = inputField.text.ToString();
         inputField.text = text;
         selection.text = text;
 
-        if(option == GameOption.NetworkAddress) OnNetworkAdressUpdate?.Invoke(text);
-        else if(option == GameOption.StateFile) SorsNetworkManager.SetStateFile(text);
+        if(option == GameOption.NetworkAddress) GameOptionsMenu.SetNetworkAddress(text);
+        else if(option == GameOption.StateFile) GameOptionsMenu.SetStateFile(text);
     }
 }

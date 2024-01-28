@@ -34,9 +34,9 @@ public class PhasePanel : NetworkBehaviour
 
     #region Prepare and Phase Selection
     [ClientRpc]
-    public void RpcPreparePhasePanel(int nbPlayers, int nbPhases, bool skipAnimations){
+    public void RpcPreparePhasePanel(int nbPhases, bool skipAnimations){
         _phasePanelUI = PhasePanelUI.Instance;
-        _phasePanelUI.PrepareUI(nbPlayers);
+        _phasePanelUI.PrepareUI();
         _turnScreenOverlay = TurnScreenOverlay.Instance;
 
         _nbPhasesToChose = nbPhases;

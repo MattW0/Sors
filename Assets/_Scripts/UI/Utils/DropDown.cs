@@ -12,7 +12,7 @@ public class DropDown : MonoBehaviour
     {
         dropdown.onValueChanged.AddListener(delegate { UpdateDropDown(); });
 
-        // To get initial setting to network manager
+        // To get pre-set values from design time 
         UpdateDropDown();
     }
 
@@ -20,7 +20,6 @@ public class DropDown : MonoBehaviour
     {
         var value = dropdown.value;
 
-        if(option == GameOption.NumberPlayers) SorsNetworkManager.SetNumberPlayers(value);
-        else if(option == GameOption.NumberPhases) SorsNetworkManager.SetNumberPhases(value);
+        if(option == GameOption.NumberPhases) GameOptionsMenu.SetNumberPhases(value);
     }
 }

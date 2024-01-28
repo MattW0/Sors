@@ -108,14 +108,13 @@ public class TurnManager : NetworkBehaviour
 
         VariablesCaching(gameOptions);
 
-        _nbPlayers = gameOptions.NumberPlayers;
+        _nbPlayers = gameOptions.SinglePlayer ? 1 : 2;
         _skipCardDrawAnimations = gameOptions.SkipCardSpawnAnimations;
 
         // TODO: Create menu option where saveStateFile is a bool option
-        // How to do this with built version -> currently only working in editor environment !
 
         // StateFile is NOT null or empty if we load from a file eg. state.json
-        StartCoroutine(DrawInitialHand(gameOptions.InitialHandSize, true, ! string.IsNullOrEmpty(gameOptions.StateFile)));
+        StartCoroutine(DrawInitialHand(gameOptions.InitialHandSize, gameOptions.SaveStates, ! string.IsNullOrEmpty(gameOptions.StateFile)));
     }
 
     private void SetupInstances(GameOptions gameOptions)
@@ -131,7 +130,7 @@ public class TurnManager : NetworkBehaviour
         _cardCollectionPanel = HandInteractionPanel.Instance;
         _cardCollectionPanel.RpcPrepareCardCollectionPanel(_gameManager.nbDiscard);
         _phasePanel = PhasePanel.Instance;
-        _phasePanel.RpcPreparePhasePanel(gameOptions.NumberPlayers, gameOptions.NumberPhases, gameOptions.SkipCardSpawnAnimations);
+        _phasePanel.RpcPreparePhasePanel(gameOptions.NumberPhases, gameOptions.SkipCardSpawnAnimations);
         _prevailPanel = PrevailPanel.Instance;
         _prevailPanel.RpcPreparePrevailPanel(_gameManager.prevailOptionsToChoose, _gameManager.prevailExtraOptions);
     }

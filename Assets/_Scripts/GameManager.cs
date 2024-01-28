@@ -115,8 +115,7 @@ public class GameManager : NetworkBehaviour {
         _gameOptions = options;
 
         initialHandSize = options.FullHand ? initialDeckSize : initialHandSize;
-        isSinglePlayer = options.NumberPlayers == 1;
-        // if(isSinglePlayer) new GameObject("SinglePlayerOpponent").AddComponent<PlayerManager>();
+        isSinglePlayer = options.SinglePlayer;
 
         InitPlayers();
 
