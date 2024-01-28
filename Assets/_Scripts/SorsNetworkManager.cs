@@ -36,7 +36,8 @@ public class SorsNetworkManager : NetworkManager
         }
 
         if(gameOptions.NumberPlayers == 1){
-            CreatePlayerObject("Opponent");
+            var opponent = CreatePlayerObject("Opponent");
+            opponent.GetComponent<PlayerManager>().isAI = true;
         }
         yield return new WaitForSeconds(SorsTimings.wait);
         OnAllPlayersReady?.Invoke(gameOptions);
@@ -79,10 +80,10 @@ public class SorsNetworkManager : NetworkManager
     {
         print("Creating player " + playerName);
         GameObject playerObject = Instantiate(playerPrefab);
-        playerObject.name = playerName;
+        NetworkServer.Spawn(playerObject);
 
-        PlayerManager player = playerObject.GetComponent<PlayerManager>();
-        // player.PlayerName = playerName;
+        playerObject.name = playerName;
+        // playerObject.GetComponent<PlayerManager>().PlayerName = playerName;
         
         return playerObject;
     }

@@ -7,14 +7,8 @@ using System.Linq;
 
 public class PlayerManager : NetworkBehaviour
 {
-
-    [SyncVar, SerializeField] private string playerName;
-    public string PlayerName
-    {
-        get => playerName;
-        set => SetPlayerName(value);
-    }
-
+    public bool isAI;
+    
     [Header("Entities")]
     private TurnManager _turnManager;
     private CombatManager _combatManager;
@@ -26,9 +20,8 @@ public class PlayerManager : NetworkBehaviour
     [Header("Game State")]
     public List<Phase> chosenPhases = new();
     public List<PrevailOption> chosenPrevailOptions = new();
-    // private Dictionary<CardLocation, List<GameObject>> _spawnedCards = new();
     private List<GameObject> _selectedCards = new();
-    public Dictionary<GameObject, CardInfo> moneyCards = new();
+    public Dictionary<GameObject, CardInfo> moneyCardsInPlay = new();
 
     public bool PlayerIsChoosingTarget { get; private set; }
     public bool PlayerIsChoosingAttack { get; private set; }
@@ -40,35 +33,37 @@ public class PlayerManager : NetworkBehaviour
     private BattleZoneEntity _entity;
     public static event Action<PlayerManager, int> OnCashChanged;
 
-    // public CardCollection cards;
-
-    [Header("CardCollections")]
+    [Header("Card Collections")]
     public readonly CardCollection deck = new();
     public readonly CardCollection hand = new();
     public readonly CardCollection discard = new();
     public readonly CardCollection money = new();
 
     [Header("Game Stats")]
+    [SyncVar, SerializeField] private string playerName;
+    public string PlayerName
+    {
+        get => playerName;
+        set => SetPlayerName(value);
+    }
+
     private int _health;
     public int Health
     {
         get => _health;
         set => SetHealthValue(value);
     }
-    public PlayerManager Owner { get; }
 
-    [Server]
-    public void TakesDamage(int value, bool deathtouch){
-        Health -= value;
-    }
+    // Why is this here? Overriding some BZE properties/functions ? Dafuq
 
-    public void Die() {}
-
-    public void RpcInitializeEntity(PlayerManager owner, PlayerManager opponent, CardInfo cardInfo) {}
-
-    public string Title { get; set; }
-    public CardType cardType { get; }
-
+    // [Server]
+    // public void TakesDamage(int value, bool deathtouch){
+    //     Health -= value;
+    // }
+    // public void Die() {}
+    // public void RpcInitializeEntity(PlayerManager owner, PlayerManager opponent, CardInfo cardInfo) {}
+    // public string Title { get; set; }
+    // public CardType cardType { get; }
 
     private int _score;
     public int Score
@@ -259,7 +254,7 @@ public class PlayerManager : NetworkBehaviour
     public void CmdPlayMoneyCard(GameObject card, CardInfo cardInfo)
     {
         Cash += cardInfo.moneyValue;
-        moneyCards.Add(card, cardInfo);
+        moneyCardsInPlay.Add(card, cardInfo);
 
         // TargetMoveMoneyCard(connectionToClient, card, false, false);
         RemoveHandCard(cardInfo);
@@ -269,19 +264,19 @@ public class PlayerManager : NetworkBehaviour
     [Command]
     public void CmdUndoPlayMoney()
     {
-        if (moneyCards.Count == 0 || Cash <= 0) return;
+        if (moneyCardsInPlay.Count == 0 || Cash <= 0) return;
         ReturnMoneyToHand(true);
     }
 
     [Server]
     public void ReturnMoneyToHand(bool isUndo)
     {
-        // print($"ReturnMoneyToHand : {moneyCards.Count} cards");
+        // print($"ReturnMoneyToHand : {moneyCardsInPlay.Count} cards");
 
         // Don't allow to return already spent money
         var totalMoneyBack = 0;
         var cardsToReturn = new Dictionary<GameObject, CardInfo>();
-        foreach (var (card, info) in moneyCards)
+        foreach (var (card, info) in moneyCardsInPlay)
         {
             if (totalMoneyBack + info.moneyValue > Cash) continue;
 
@@ -293,7 +288,7 @@ public class PlayerManager : NetworkBehaviour
         // Return to hand
         foreach (var (card, info) in cardsToReturn)
         {
-            moneyCards.Remove(card);
+            moneyCardsInPlay.Remove(card);
             Cash -= info.moneyValue;
             hand.Add(info);
             RpcReturnMoneyCardToHand(card);
@@ -306,16 +301,16 @@ public class PlayerManager : NetworkBehaviour
     [Server]
     private void DiscardMoneyCards()
     {
-        if (moneyCards.Count == 0) return;
+        if (moneyCardsInPlay.Count == 0) return;
 
-        foreach (var card in moneyCards.Keys)
+        foreach (var card in moneyCardsInPlay.Keys)
         {
-            var cardInfo = moneyCards[card];
+            var cardInfo = moneyCardsInPlay[card];
             RpcDiscardMoneyCard(card);
             discard.Add(cardInfo);
         }
 
-        moneyCards.Clear();
+        moneyCardsInPlay.Clear();
     }
 
     #endregion Cards

@@ -138,11 +138,10 @@ public class GameManager : NetworkBehaviour {
         {
             player.RpcInitPlayer();
 
-            if(player == null) continue;
-
-            players.Add(player, player.GetComponent<NetworkIdentity>());
+            if(!player.isAI) players.Add(player, player.GetComponent<NetworkIdentity>());
+            
             // Player stats
-            player.PlayerName = player.gameObject.name; // To update info in network
+            player.PlayerName = player.gameObject.name; // Object name is set after instantiation in NetworkManager
             player.Health = startHealth;
             player.Score = startScore;
             
