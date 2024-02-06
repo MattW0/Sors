@@ -176,10 +176,19 @@ public class TurnManager : NetworkBehaviour
     {
         _gameManager.turnNumber++;
         _playerInterfaceManager.RpcLog($" ------------ Turn {_gameManager.turnNumber} ------------ ", LogType.TurnChange);
+        // For phase panel
         OnPhaseChanged?.Invoke(TurnState.PhaseSelection);
 
-        // Fix draw per turn
-        foreach (var player in _gameManager.players.Keys) player.DrawCards(_gameManager.fixCardDraw);
+        // Reset and draw per turn
+        foreach (var player in _gameManager.players.Keys) {
+            player.Buys = _gameManager.turnBuys;
+            player.Plays = _gameManager.turnPlays;
+
+            player.chosenPhases.Clear();
+            player.chosenPrevailOptions.Clear();
+
+            player.DrawCards(_gameManager.fixCardDraw);
+        }
 
         _phasePanel.RpcBeginPhaseSelection(_gameManager.turnNumber);
     }
@@ -211,10 +220,8 @@ public class TurnManager : NetworkBehaviour
             foreach (var phase in phases)
             {
                 // Player turn stats
-                if (phase == Phase.Invent) player.Invents++;
-                else if (phase == Phase.Develop) player.Develops++;
-                else if (phase == Phase.Deploy) player.Deploys++;
-                else if (phase == Phase.Recruit) player.Recruits++;
+                if (phase == Phase.Invent || phase == Phase.Recruit) player.Buys++;
+                else if (phase == Phase.Develop || phase == Phase.Deploy) player.Plays++;
             }
 
             // Show opponent choices in PhaseVisuals
@@ -317,10 +324,7 @@ public class TurnManager : NetworkBehaviour
 
     public void PlayerSelectedKingdomTile(PlayerManager player, CardInfo card, int cardCost)
     {
-
-        if (turnState == TurnState.Invent) player.Invents--;
-        else if (turnState == TurnState.Recruit) player.Recruits--;
-
+        player.Plays--;
         player.Cash -= cardCost;
 
         if (_selectedKingdomCards.ContainsKey(player))
@@ -329,8 +333,7 @@ public class TurnManager : NetworkBehaviour
             _selectedKingdomCards.Add(player, new List<CardInfo> { card });
 
         int actionsLeft = 0;
-        if (turnState == TurnState.Invent) actionsLeft = player.Invents;
-        else if (turnState == TurnState.Recruit) actionsLeft = player.Recruits;
+        actionsLeft = player.Plays;
         _kingdom.TargetResetKingdom(player.connectionToClient, actionsLeft);
 
         // Waiting for player to use remaining recruit actions
@@ -340,24 +343,23 @@ public class TurnManager : NetworkBehaviour
 
     private void KingdomSpawnAndReset()
     {
+        print($"Spawning {_selectedKingdomCards.Count} cards");
+
         foreach (var (owner, cards) in _selectedKingdomCards)
         {
             foreach (var cardInfo in cards)
             {
-                if (cardInfo.type == CardType.Creature)
-                {
-                    _gameManager.PlayerGainCreature(owner, cardInfo);
-
-                    var nextTile = _gameManager.GetNewCreatureFromDb();
-                    _kingdom.RpcReplaceRecruitTile(cardInfo.title, nextTile);
-                }
-                else if (cardInfo.type == CardType.Technology) _gameManager.PlayerGainTechnology(owner, cardInfo);
-                else if (cardInfo.type == CardType.Money) _gameManager.PlayerGainMoney(owner, cardInfo);
-                _playerInterfaceManager.RpcLog($"{owner.PlayerName} buys '{cardInfo.title}", LogType.CreatureBuy);
+                print($"{owner.PlayerName} buys '{cardInfo.title}'");
+                _playerInterfaceManager.RpcLog($"{owner.PlayerName} buys '{cardInfo.title}'", LogType.CreatureBuy);
+                _gameManager.PlayerGainCard(owner, cardInfo);
+                
+                if (cardInfo.type != CardType.Creature) continue;
+                var nextTile = _gameManager.GetNewCreatureFromDb();
+                _kingdom.RpcReplaceRecruitTile(cardInfo.title, nextTile);
             }
         }
 
-        PlayersStatsResetAndDiscardMoney(false);
+        PlayersStatsResetAndDiscardMoney();
         _kingdom.RpcEndKingdomPhase();
 
         UpdateTurnState(TurnState.NextPhase);
@@ -378,8 +380,7 @@ public class TurnManager : NetworkBehaviour
 
     public void PlayerPlaysCard(PlayerManager player, GameObject card)
     {
-        if (turnState == TurnState.Develop) player.Develops--;
-        else if (turnState == TurnState.Deploy) player.Deploys--;
+        player.Plays--;
         player.Cash -= card.GetComponent<CardStats>().cardInfo.cost;
 
         _selectedCards[player].Add(card);
@@ -388,8 +389,7 @@ public class TurnManager : NetworkBehaviour
 
     public void PlayerSkipsCardPlay(PlayerManager player)
     {
-        if (turnState == TurnState.Develop) player.Develops--;
-        else if (turnState == TurnState.Deploy) player.Deploys--;
+        player.Plays--;
         PlayerIsReady(player);
     }
 
@@ -429,23 +429,15 @@ public class TurnManager : NetworkBehaviour
     private void CheckPlayAnotherCard()
     {
         // Reset
-        var playAnotherCard = false;
         _readyPlayers.Clear();
         _boardManager.BoardCleanUp(_kingdom.GetTileInfos(), false);
 
         // Check if plays are still possible and if not, add player to _readyPlayers
+        var playAnotherCard = false;
         foreach (var player in _gameManager.players.Keys)
         {
-            if (turnState == TurnState.Develop)
-            {
-                if (player.Develops > 0) playAnotherCard = true;
-                else _readyPlayers.Add(player);
-            }
-            else if (turnState == TurnState.Deploy)
-            {
-                if (player.Deploys > 0) playAnotherCard = true;
-                else _readyPlayers.Add(player);
-            }
+            if (player.Plays > 0) playAnotherCard = true;
+            else _readyPlayers.Add(player);
         }
 
         if (playAnotherCard)
@@ -463,7 +455,7 @@ public class TurnManager : NetworkBehaviour
     {
         _cardCollectionPanel.RpcResetPanel();
         _boardManager.ShowHolders(false);
-        PlayersStatsResetAndDiscardMoney(false);
+        PlayersStatsResetAndDiscardMoney();
 
         UpdateTurnState(TurnState.NextPhase);
     }
@@ -634,7 +626,7 @@ public class TurnManager : NetworkBehaviour
         // TODO: Should not use _kingdom here but access it from _boardManager directly
         _boardManager.BoardCleanUp(_kingdom.GetTileInfos(), true);
         OnPhaseChanged?.Invoke(TurnState.CleanUp);
-        PlayersStatsResetAndDiscardMoney(endOfTurn: true);
+        PlayersStatsResetAndDiscardMoney();
 
         yield return new WaitForSeconds(SorsTimings.turnStateTransition);
 
@@ -695,9 +687,8 @@ public class TurnManager : NetworkBehaviour
                 FinishDiscard();
                 break;
             case TurnState.Invent or TurnState.Recruit:
+                player.Buys = 0;
                 KingdomSpawnAndReset();
-                if (turnState == TurnState.Invent) player.Invents = 0;
-                else if (turnState == TurnState.Recruit) player.Recruits = 0;
                 break;
             case TurnState.Develop or TurnState.Deploy:
                 PlayEntities();
@@ -732,7 +723,7 @@ public class TurnManager : NetworkBehaviour
         }
     }
 
-    private void PlayersStatsResetAndDiscardMoney(bool endOfTurn = false)
+    private void PlayersStatsResetAndDiscardMoney()
     {
         // _playerInterfaceManager.RpcLog("... Discarding money ...", LogType.Standard);
         _handManager.RpcHighlightMoney(false);
@@ -742,15 +733,6 @@ public class TurnManager : NetworkBehaviour
             // Returns unused money then discards the remaining cards
             player.ReturnMoneyToHand(false);
             player.Cash = 0;
-
-            if (!endOfTurn) continue;
-            player.Develops = _gameManager.turnDevelops;
-            player.Invents = _gameManager.turnInvents;
-            player.Deploys = _gameManager.turnDeploys;
-            player.Recruits = _gameManager.turnRecruits;
-
-            player.chosenPhases.Clear();
-            player.chosenPrevailOptions.Clear();
         }
     }
 

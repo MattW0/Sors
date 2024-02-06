@@ -38,10 +38,8 @@ public class GameManager : NetworkBehaviour {
     [SerializeField] public int phaseCardDraw = 2;
     [SerializeField] public int nbDiscard = 1;
     public int turnCash = 0;
-    public int turnInvents = 1; 
-    public int turnDevelops = 1; 
-    public int turnDeploys = 1; 
-    public int turnRecruits = 1;
+    public int turnBuys = 1;
+    public int turnPlays = 1;
     public int prevailOptionsToChoose = 1;
 
     [Header("Turn Boni")]
@@ -146,10 +144,8 @@ public class GameManager : NetworkBehaviour {
             
             // Turn stats
             player.Cash = turnCash;
-            player.Invents = turnInvents;
-            player.Develops = turnDevelops;
-            player.Deploys = turnDeploys;
-            player.Recruits = turnRecruits;
+            player.Buys = turnBuys;
+            player.Plays = turnPlays;
         }
 
         if(_gameOptions.SkipCardSpawnAnimations) {
@@ -226,28 +222,19 @@ public class GameManager : NetworkBehaviour {
         return cardObject;
     }
 
-    public void PlayerGainMoney(PlayerManager player, CardInfo card)
+    public void PlayerGainCard(PlayerManager player, CardInfo card)
     {
-        // using hash as index for currency scriptable objects
-        var scriptableCard = Resources.Load<ScriptableCard>("Cards/MoneyCards/" + card.hash + "_" + card.title);
-        ResolveCardGain(player, scriptableCard);
-    }
+        // Load scriptable
+        var pathPrefix = card.type switch {
+            CardType.Money => "Cards/MoneyCards/",
+            CardType.Creature => "Cards/CreatureCards/",
+            CardType.Technology => "Cards/TechnologyCards/",
+            _ => ""
+        };
+        var scriptableCard = Resources.Load<ScriptableCard>(pathPrefix + card.resourceName);
 
-    public void PlayerGainTechnology(PlayerManager player, CardInfo card)
-    {
-        var scriptableCard = Resources.Load<ScriptableCard>("Cards/TechnologyCards/" + card.title);
-        ResolveCardGain(player, scriptableCard);
-    }
-
-    public void PlayerGainCreature(PlayerManager player, CardInfo card)
-    {
-        var scriptableCard = Resources.Load<ScriptableCard>("Cards/CreatureCards/" + card.title);
-        ResolveCardGain(player, scriptableCard);
-    }
-
-    private void ResolveCardGain(PlayerManager player, ScriptableCard card)
-    {
-        var cardObject = SpawnCardAndAddToCollection(player, card, CardLocation.Discard);
+        // Resolve card gain
+        var cardObject = SpawnCardAndAddToCollection(player, scriptableCard, CardLocation.Discard);
         player.RpcShowSpawnedCard(cardObject, CardLocation.Discard);
     }
     

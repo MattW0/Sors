@@ -90,28 +90,22 @@ public class HandInteractionUI : MonoBehaviour
         }
     }
 
-    private void PlayCardInteraction(){
-
+    private void PlayCardInteraction()
+    {
         _playerHand.localPosition = _handPositionPlayCards;
 
-        int playerActionsLeft = 0;
-        string displayText = "";
-        if (_state == TurnState.Develop) {
-            playerActionsLeft = _localPlayer.Develops;
-            displayText = $"You may develop a card";
-        }
-        else if(_state == TurnState.Deploy) {
-            playerActionsLeft = _localPlayer.Deploys;
-            displayText = $"You may deploy a card";
-        }
-
-        if(playerActionsLeft <= 0){
+        if(_localPlayer.Plays <= 0){
             _buttons.SetActive(false);
             _waitingText.SetActive(true);
             _displayText.text = $"You can't play more cards";
         } else {
             _skipButton.SetActive(true);
-            _displayText.text = displayText;
+            if (_state == TurnState.Develop) {
+                _displayText.text = $"You may develop a card";
+            }
+            else if(_state == TurnState.Deploy) {
+                _displayText.text = $"You may deploy a card";
+            }
         }
     }
 

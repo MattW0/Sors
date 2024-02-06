@@ -17,10 +17,8 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
 
     [Header("Turn Stats")]
     [SerializeField] private TMP_Text turnCash;
-    [SerializeField] private TMP_Text turnInvents;
-    [SerializeField] private TMP_Text turnDevelops;
-    [SerializeField] private TMP_Text turnDeploys;
-    [SerializeField] private TMP_Text turnRecruits;
+    [SerializeField] private TMP_Text turnBuys;
+    [SerializeField] private TMP_Text turnPlays;
     [SerializeField] private Image highlight;
     private bool _isTargetable;
 
@@ -72,10 +70,8 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
     public void SetHealth(int value) => playerHealth.text = value.ToString();
     public void SetScore(int value) => playerScore.text = value.ToString();
     public void SetCash(int value) => turnCash.text = value.ToString();
-    public void SetInvents(int value) => turnInvents.text = value.ToString();
-    public void SetDevelops(int value) => turnDevelops.text = value.ToString();
-    public void SetDeploys(int value) => turnDeploys.text = value.ToString();
-    public void SetRecruits(int value) => turnRecruits.text = value.ToString();
+    public void SetBuys(int value) => turnBuys.text = value.ToString();
+    public void SetPlays(int value) => turnPlays.text = value.ToString();
 
     private void OnDestroy(){
         DropZoneManager.OnCombatStart -= StartCombat;

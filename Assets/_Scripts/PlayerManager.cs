@@ -54,7 +54,7 @@ public class PlayerManager : NetworkBehaviour
         set => SetHealthValue(value);
     }
 
-    // Why is this here? Overriding some BZE properties/functions ? Dafuq
+    // TODO: Why is this here? Overriding some BZE properties/functions ? Dafuq
 
     // [Server]
     // public void TakesDamage(int value, bool deathtouch){
@@ -80,32 +80,18 @@ public class PlayerManager : NetworkBehaviour
         set => SetMoneyValue(value); // Invoke OnCashChanged and update UI
     }
 
-    [SyncVar] private int _invents = 1;
-    public int Invents
+    [SyncVar] private int _buys = 1;
+    public int Buys
     {
-        get => _invents;
-        set => SetInventValue(value);
+        get => _buys;
+        set => SetBuyValue(value);
     }
-
-    [SyncVar] private int _develops = 1;
-    public int Develops
+    
+    [SyncVar] private int _plays = 1;
+    public int Plays
     {
-        get => _develops;
-        set => SetDevelopValue(value);
-    }
-
-    [SyncVar] private int _recruits = 1;
-    public int Recruits
-    {
-        get => _recruits;
-        set => SetRecruitValue(value);
-    }
-
-    [SyncVar] private int _deploys = 1;
-    public int Deploys
-    {
-        get => _deploys;
-        set => SetDeployValue(value);
+        get => _plays;
+        set => SetPlayValue(value);
     }
 
     #region GameSetup
@@ -134,10 +120,12 @@ public class PlayerManager : NetworkBehaviour
         _entity = GetComponent<BattleZoneEntity>();
         if(isOwned) {
             _entity.SetPlayerUI(_playerUI);
-            _playerUI.SetEntity(_entity, _playerUI.transform.position);
+            // Child 0 is the player stats BG
+            _playerUI.SetEntity(_entity, _playerUI.transform.GetChild(0).position);
         } else {
             _entity.SetPlayerUI(_opponentUI);
-            _opponentUI.SetEntity(_entity, _opponentUI.transform.position);
+            // Child 0 is the player stats BG
+            _opponentUI.SetEntity(_entity, _opponentUI.transform.GetChild(0).position);
         }
     }
 
@@ -522,75 +510,39 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Server]
-    private void SetInventValue(int value)
+    private void SetBuyValue(int value)
     {
-        _invents = value;
-        if (isServer) RpcUISetInventValue(value);
-        else CmdUISetInventValue(value);
+        _buys = value;
+        if (isServer) RpcSetBuyValue(value);
+        else CmdUISetBuyValue(value);
     }
 
     [Command]
-    private void CmdUISetInventValue(int value) => RpcUISetInventValue(value);
+    private void CmdUISetBuyValue(int value) => RpcSetBuyValue(value);
 
     [ClientRpc]
-    private void RpcUISetInventValue(int value)
+    private void RpcSetBuyValue(int value)
     {
-        if (isOwned) _playerUI.SetInvents(value);
-        else _opponentUI.SetInvents(value);
+        if (isOwned) _playerUI.SetBuys(value);
+        else _opponentUI.SetBuys(value);
     }
 
     [Server]
-    private void SetDevelopValue(int value)
+    private void SetPlayValue(int value)
     {
-        _develops = value;
-        if (isServer) RpcUISetDevelopValue(value);
-        else CmdUISetDevelopValue(value);
+        _plays = value;
+        if (isServer) RpcSetPlayValue(value);
+        else CmdUISetPlayValue(value);
     }
 
     [Command]
-    private void CmdUISetDevelopValue(int value) => RpcUISetDevelopValue(value);
+    private void CmdUISetPlayValue(int value) => RpcSetPlayValue(value);
 
     [ClientRpc]
-    private void RpcUISetDevelopValue(int value)
+    private void RpcSetPlayValue(int value)
     {
-        if (isOwned) _playerUI.SetDevelops(value);
-        else _opponentUI.SetDevelops(value);
-    }
-
-    [Server]
-    private void SetDeployValue(int value)
-    {
-        _deploys = value;
-        if (isServer) RpcSetDeployValue(value);
-        else CmdSetDeployValue(value);
-    }
-
-    [Command]
-    private void CmdSetDeployValue(int value) => RpcSetDeployValue(value);
-
-    [ClientRpc]
-    private void RpcSetDeployValue(int value)
-    {
-        if (isOwned) _playerUI.SetDeploys(value);
-        else _opponentUI.SetDeploys(value);
-    }
-
-    [Server]
-    private void SetRecruitValue(int value)
-    {
-        _recruits = value;
-        if (isServer) RpcUISetRecruitValue(value);
-        else CmdUISetRecruitValue(value);
-    }
-
-    [Command]
-    private void CmdUISetRecruitValue(int value) => RpcUISetRecruitValue(value);
-
-    [ClientRpc]
-    private void RpcUISetRecruitValue(int value)
-    {
-        if (isOwned) _playerUI.SetRecruits(value);
-        else _opponentUI.SetRecruits(value);
+        if (isOwned) _playerUI.SetPlays(value);
+        else _opponentUI.SetPlays(value);
     }
 
     #endregion UI

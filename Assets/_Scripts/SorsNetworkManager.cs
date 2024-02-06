@@ -31,19 +31,20 @@ public class SorsNetworkManager : NetworkManager
 
     private IEnumerator WaitingForPlayers(){
 
+        var numPlayers = _gameOptions.SinglePlayer ? 1 : 2;
+        while (NetworkServer.connections.Count < numPlayers){
+            print("Waiting for opponent...");
+            yield return new WaitForSeconds(SorsTimings.wait);
+        }
+
+        yield return new WaitForSeconds(SorsTimings.wait);
+
+        // Currently opponent entity hull that can be targeted
         if(_gameOptions.SinglePlayer){
             var opponent = CreatePlayerObject("Opponent");
             opponent.GetComponent<PlayerManager>().isAI = true;
         }
-        else
-        {
-            while (NetworkServer.connections.Count < 2){
-                print("Waiting for opponent...");
-                yield return new WaitForSeconds(SorsTimings.wait);
-            }
-        }
 
-        yield return new WaitForSeconds(SorsTimings.wait);
         OnAllPlayersReady?.Invoke(_gameOptions);
     }
 
@@ -82,7 +83,10 @@ public class SorsNetworkManager : NetworkManager
 
     private GameObject CreatePlayerObject(string playerName)
     {
+        print($"Creating player {playerName}...");
         GameObject playerObject = Instantiate(playerPrefab);
+
+        // spawn player object on server and all clients
         NetworkServer.Spawn(playerObject);
 
         playerObject.name = playerName;
