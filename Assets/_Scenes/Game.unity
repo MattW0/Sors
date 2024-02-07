@@ -9135,10 +9135,8 @@ MonoBehaviour:
   turnPlays: 1
   prevailOptionsToChoose: 1
   extraDraw: 2
-  kingdomPriceReduction: 1
-  developPriceReduction: 1
+  marketPriceReduction: 1
   prevailExtraOptions: 2
-  deployBonusDeploys: 1
   startEntities: []
   creatureCardsDb: []
   moneyCardsDb: []
@@ -30144,7 +30142,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a301709209da7854a92fb3bf6a6748ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _kingdom: {fileID: 2577432140939288401}
+  _market: {fileID: 0}
   maxView: {fileID: 3900333182579150345}
   _bg: {fileID: 6020898498883444018}
   _developPanel: {fileID: 112122164634328605}
@@ -35564,7 +35562,7 @@ GameObject:
   - component: {fileID: 5869802743317873161}
   - component: {fileID: 4051181949804687365}
   m_Layer: 5
-  m_Name: KingdomButton
+  m_Name: MarketButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -41084,7 +41082,7 @@ MonoBehaviour:
   _undoButton: {fileID: 1694847751335306320}
   _utilityButton: {fileID: 706010337771312316}
   _handButton: {fileID: 7330098765623640550}
-  _kingdomButton: {fileID: 4051181949804687365}
+  _marketButton: {fileID: 4051181949804687365}
 --- !u!114 &5435493117719320793
 MonoBehaviour:
   m_ObjectHideFlags: 0

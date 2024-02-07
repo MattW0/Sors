@@ -31,7 +31,7 @@ public static class SorsColors
     public static Color creatureClashing = new Color(150, 0, 0);
     public static Color creatureIdle = new Color(200, 200, 200);
 
-    // -- Kingdom Tiles --
+    // -- Market Tiles --
     public static Color tileSelectable = Color.green;
     public static Color tileSelected = Color.blue;
     public static Color tilePreviouslySelected = Color.yellow;

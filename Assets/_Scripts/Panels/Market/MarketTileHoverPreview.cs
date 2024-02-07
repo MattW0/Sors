@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class KingdomHoverPreview : MonoBehaviour
+public class MarketTileHoverPreview : MonoBehaviour
 {
     [SerializeField] private RectTransform previewWindow;
     [SerializeField] private GameObject _creatureDetailCard;

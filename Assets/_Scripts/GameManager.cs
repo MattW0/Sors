@@ -10,7 +10,7 @@ public class GameManager : NetworkBehaviour {
     
     public static GameManager Instance { get; private set; }
     private TurnManager _turnManager;
-    private Kingdom _kingdom;
+    private Market _market;
     private EndScreen _endScreen;
     private BoardManager _boardManager;
 
@@ -44,10 +44,8 @@ public class GameManager : NetworkBehaviour {
 
     [Header("Turn Boni")]
     public int extraDraw = 2;
-    public int kingdomPriceReduction = 1;
-    public int developPriceReduction = 1;
+    public int marketPriceReduction = 1;
     public int prevailExtraOptions = 2;
-    public int deployBonusDeploys = 1;
 
     [Header("Available cards")]
     public ScriptableCard[] startEntities;
@@ -106,7 +104,7 @@ public class GameManager : NetworkBehaviour {
     {
         _turnManager = TurnManager.Instance;
         _boardManager = BoardManager.Instance;
-        _kingdom = Kingdom.Instance;
+        _market = Market.Instance;
         _endScreen = EndScreen.Instance;
 
         print(" --- Game starting --- \n" + options.ToString());
@@ -119,7 +117,7 @@ public class GameManager : NetworkBehaviour {
 
         if(string.IsNullOrWhiteSpace(options.StateFile)){
             // Normal game setup
-            KingdomSetup();
+            MarketSetup();
             foreach (var player in players.Keys) SpawnPlayerDeck(player);
             OnGameStart?.Invoke(_gameOptions);
         } else {
@@ -156,24 +154,24 @@ public class GameManager : NetworkBehaviour {
         }
     }
 
-    private void KingdomSetup()
+    private void MarketSetup()
     {
-        _kingdom.RpcSetPlayer();
+        _market.RpcSetPlayer();
 
         // Money
         var moneyCards = new CardInfo[_nbMoneyTiles];
         for (var i = 0; i < _nbMoneyTiles; i++) moneyCards[i] = new CardInfo(moneyCardsDb[i]);
-        _kingdom.RpcSetMoneyTiles(moneyCards);
+        _market.RpcSetMoneyTiles(moneyCards);
 
         // Technologies
         var technologies = new CardInfo[_nbTechnologyTiles];
         for (var i = 0; i < _nbTechnologyTiles; i++) technologies[i] = GetNewTechnologyFromDb();
-        _kingdom.RpcSetTechnologyTiles(technologies);
+        _market.RpcSetTechnologyTiles(technologies);
 
         // Creatures
         var creatures = new CardInfo[_nbCreatureTiles];
         for (var i = 0; i < _nbCreatureTiles; i++) creatures[i] = GetNewCreatureFromDb();
-        _kingdom.RpcSetCreatureTiles(creatures);
+        _market.RpcSetCreatureTiles(creatures);
     }
 
     private void SpawnPlayerDeck(PlayerManager player)
@@ -346,7 +344,7 @@ public class GameManager : NetworkBehaviour {
         return new CardInfo(creatureCardsDb[id]);
     }
 
-    public void SetNumberOfKingdomTiles(int moneyTiles, int technologies, int creatures)
+    public void SetNumberOfMarketTiles(int moneyTiles, int technologies, int creatures)
     {
         _nbMoneyTiles = moneyTiles;
         _nbTechnologyTiles = technologies;

@@ -4,13 +4,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class KingdomUI : MonoBehaviour
+public class MarketUI : MonoBehaviour
 {
-
-    public static KingdomUI Instance { get; private set; }
-    [SerializeField] private Kingdom _kingdom;
-    
-    // UI
+    [SerializeField] private Market _market;
     [SerializeField] private GameObject maxView;
     [SerializeField] private Image _bg;
     [SerializeField] private GameObject _developPanel;
@@ -23,10 +19,9 @@ public class KingdomUI : MonoBehaviour
     [SerializeField] private GameObject _creatureDetailCard;
     [SerializeField] private GameObject _technologyDetailCard;
     [SerializeField] private GameObject _moneyDetailCard;
+    
     private void Awake()
     {
-        if (!Instance) Instance = this;
-
         maxView.SetActive(false);
         _creatureDetailCard.SetActive(false);
         _technologyDetailCard.SetActive(false);
@@ -35,12 +30,13 @@ public class KingdomUI : MonoBehaviour
 
     private void Start()
     {
-        _kingdom = Kingdom.Instance;
+        _market = Market.Instance;
         skip.interactable = false;
         MinButton();
     }
 
-    public void BeginPhase(Phase phase){
+    public void BeginPhase(Phase phase)
+    {
         MaxButton();
         skip.interactable = true;
         if(phase == Phase.Recruit) ShowCreaturePanel();
@@ -48,12 +44,6 @@ public class KingdomUI : MonoBehaviour
     }
 
     #region Selection
-
-    public void PreviewCard(CardInfo cardInfo){
-        // Spawn an overlay canvas at mouse location
-        print("Spawned preview card");
-
-    }
 
     public void SelectTile(CardInfo cardInfo){
 
@@ -89,13 +79,13 @@ public class KingdomUI : MonoBehaviour
     public void ConfirmButtonPressed(){
         _interactionButtons.SetActive(false);
         _waitingText.SetActive(true);
-        _kingdom.PlayerPressedButton(false);
+        _market.PlayerPressedButton(false);
     }
 
     public void SkipButtonPressed(){
         _interactionButtons.SetActive(false);
         _waitingText.SetActive(true);
-        _kingdom.PlayerPressedButton(true);
+        _market.PlayerPressedButton(true);
     }
 
     public void ResetInteractionButtons(){

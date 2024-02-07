@@ -3,12 +3,12 @@ using UnityEngine.EventSystems;
 using System.Collections;
 
 [System.Serializable]
-public class KingdomTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
+public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
-    private Kingdom _kingdom;
+    private Market _market;
     private CardZoomView _cardZoomView;
     public CardInfo cardInfo;
-    [SerializeField] private KingdomTileUI _ui;
+    [SerializeField] private MarketTileUI _ui;
     private int _cost;
     public int Cost{
         get => _cost;
@@ -33,7 +33,7 @@ public class KingdomTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
         set {
             _isSelected = value;
             if(value) {
-                _kingdom.PlayerSelectsTile(this);
+                _market.PlayerSelectsTile(this);
                 _ui.Highlight(true, SorsColors.tileSelected);
             } else {
                 _ui.Highlight(true, SorsColors.tileSelectable);
@@ -45,7 +45,7 @@ public class KingdomTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
     private bool _hovering;
 
     private void Awake(){
-        _kingdom = Kingdom.Instance;
+        _market = Market.Instance;
         _cardZoomView = CardZoomView.Instance;
     }
 
@@ -55,9 +55,9 @@ public class KingdomTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
         _ui.SetTileUI(card);
 
         if(card.type == CardType.Money || card.type == CardType.Technology){
-            Kingdom.OnDevelopPhaseEnded += EndDevelopPhase;
+            Market.OnDevelopPhaseEnded += EndDevelopPhase;
         } else if (card.type == CardType.Creature){
-            Kingdom.OnRecruitPhaseEnded += EndRecruitPhase;
+            Market.OnRecruitPhaseEnded += EndRecruitPhase;
         }
     }
 
@@ -73,12 +73,12 @@ public class KingdomTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
 
     private IEnumerator HoverPreviewWaitTimer(){
         yield return new WaitForSeconds(0.5f);
-        KingdomHoverPreview.OnHoverTile(cardInfo);
+        MarketTileHoverPreview.OnHoverTile(cardInfo);
     }
 
     public void OnPointerExit(PointerEventData eventData){
         StopAllCoroutines();
-        KingdomHoverPreview.OnHoverExit();
+        MarketTileHoverPreview.OnHoverExit();
     }
 
     public void OnPointerClick(PointerEventData eventData){
@@ -91,8 +91,8 @@ public class KingdomTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
 
         if (!_isInteractable) return;
 
-        // Reset highlight and preview in kingdom if 2nd click on selected tile
-        if(_isSelected) _kingdom.PlayerDeselectsTile();
+        // Reset highlight and preview in market if 2nd click on selected tile
+        if(_isSelected) _market.PlayerDeselectsTile();
         IsSelected = !_isSelected;
     }
 
@@ -121,7 +121,7 @@ public class KingdomTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
     }
 
     private void OnDestroy(){
-        Kingdom.OnDevelopPhaseEnded -= EndDevelopPhase;
-        Kingdom.OnRecruitPhaseEnded -= EndRecruitPhase;
+        Market.OnDevelopPhaseEnded -= EndDevelopPhase;
+        Market.OnRecruitPhaseEnded -= EndRecruitPhase;
     }
 }

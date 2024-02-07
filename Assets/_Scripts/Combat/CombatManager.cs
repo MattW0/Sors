@@ -202,7 +202,7 @@ public class CombatManager : NetworkBehaviour
             // player takes damage from unblocked creatures
             var targetPlayer = attacker.Opponent;
             targetPlayer.Health -= attacker.Attack;
-            // _turnManager.PlayerHealthChanged(targetPlayer, attacker.Attack);
+            
             yield return new WaitForSeconds(SorsTimings.combatClash);
         }
         
@@ -268,7 +268,6 @@ public class CombatManager : NetworkBehaviour
 
         var targetPlayer = attacker.Opponent;
         targetPlayer.Health -= attacker.Attack - totalBlockerHealth;
-        // _turnManager.PlayerHealthChanged(targetPlayer, attacker.Attack - totalBlockerHealth);
     }
     #endregion
 

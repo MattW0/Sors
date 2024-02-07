@@ -19,7 +19,7 @@ public class GameStateLoader : MonoBehaviour
             return;
         }
         PlayerSetupFromFile(gameState.players);
-        LoadKingdomFromFile(gameState.market);
+        LoadMarketFromFile(gameState.market);
     }
 
     private void PlayerSetupFromFile(Player[] playerData)
@@ -139,27 +139,28 @@ public class GameStateLoader : MonoBehaviour
         BoardManager.Instance.PlayEntities(entitiesDict);
     }
 
-    private void LoadKingdomFromFile(Market market)
+    private void LoadMarketFromFile(SorsGameState.Market market)
     {
-        var _kingdom = Kingdom.Instance;
-        _kingdom.RpcSetPlayer();
+        // Get reference to the market object in the game
+        var _market = Market.Instance;
+        _market.RpcSetPlayer();
 
         // Money
         var moneyCards = new CardInfo[market.money.Count];
         for (var i = 0; i < market.money.Count; i++) 
             moneyCards[i] = new CardInfo(Resources.Load<ScriptableCard>(market.money[i]));
-        _kingdom.RpcSetMoneyTiles(moneyCards);
+        _market.RpcSetMoneyTiles(moneyCards);
 
         // Technologies
         var technologies = new CardInfo[market.technologies.Count];
         for (var i = 0; i < market.technologies.Count; i++)
             technologies[i] = new CardInfo(Resources.Load<ScriptableCard>(market.technologies[i]));
-        _kingdom.RpcSetTechnologyTiles(technologies);
+        _market.RpcSetTechnologyTiles(technologies);
 
         // Creatures
         var creatures = new CardInfo[market.creatures.Count];
         for (var i = 0; i < market.creatures.Count; i++)
             creatures[i] = new CardInfo(Resources.Load<ScriptableCard>(market.creatures[i]));
-        _kingdom.RpcSetCreatureTiles(creatures);
+        _market.RpcSetCreatureTiles(creatures);
     }
 }

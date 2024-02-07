@@ -12,11 +12,11 @@ public class TurnManager : NetworkBehaviour
 
     [Header("Entities")]
     private GameManager _gameManager;
-    private Kingdom _kingdom;
+    private Market _market;
     private HandInteractionPanel _cardCollectionPanel;
     private PhasePanel _phasePanel;
     private PrevailPanel _prevailPanel;
-    private PlayerInterfaceManager _playerInterfaceManager;
+    private PlayerInterfaceManager _logger;
     private Hand _handManager;
     private BoardManager _boardManager;
     private CardEffectsHandler _cardEffectsHandler;
@@ -34,7 +34,7 @@ public class TurnManager : NetworkBehaviour
     private bool _skipCardDrawAnimations;
 
     [Header("Helper Fields")]
-    private Dictionary<PlayerManager, List<CardInfo>> _selectedKingdomCards = new();
+    private Dictionary<PlayerManager, List<CardInfo>> _selectedMarketCards = new();
     private Dictionary<PlayerManager, List<GameObject>> _selectedCards = new();
 
     // Events
@@ -69,7 +69,7 @@ public class TurnManager : NetworkBehaviour
                 Discard();
                 break;
             case TurnState.Invent:
-                KingdomPhase();
+                MarketPhase();
                 break;
             case TurnState.Develop:
                 PlayCard();
@@ -78,7 +78,7 @@ public class TurnManager : NetworkBehaviour
                 Combat();
                 break;
             case TurnState.Recruit:
-                KingdomPhase();
+                MarketPhase();
                 break;
             case TurnState.Deploy:
                 PlayCard();
@@ -91,7 +91,7 @@ public class TurnManager : NetworkBehaviour
                 CleanUp();
                 break;
             case TurnState.Idle:
-                _playerInterfaceManager.RpcLog("Game finished", LogType.Standard);
+                _logger.RpcLog("Game finished", LogType.Standard);
                 break;
 
             default:
@@ -123,10 +123,10 @@ public class TurnManager : NetworkBehaviour
         _handManager = Hand.Instance;
         _boardManager = BoardManager.Instance;
         _cardEffectsHandler = CardEffectsHandler.Instance;
-        _kingdom = Kingdom.Instance;
-        _playerInterfaceManager = PlayerInterfaceManager.Instance;
+        _market = Market.Instance;
+        _logger = PlayerInterfaceManager.Instance;
 
-        // Panels with setup (GameManager handles kingdom setup)
+        // Panels with setup (GameManager handles market setup)
         _cardCollectionPanel = HandInteractionPanel.Instance;
         _cardCollectionPanel.RpcPrepareCardCollectionPanel(_gameManager.nbDiscard);
         _phasePanel = PhasePanel.Instance;
@@ -154,7 +154,7 @@ public class TurnManager : NetworkBehaviour
         float waitForSpawn = _skipCardDrawAnimations ? 0.5f : 4f;
         yield return new WaitForSeconds(waitForSpawn);
 
-        _playerInterfaceManager.RpcLog($" Starting Game ", LogType.Standard);
+        _logger.RpcLog($" Starting Game ", LogType.Standard);
         // Dont want ETB triggers for entities from game state and only draw initial hand in normal game start 
         if(isLoadedFromFile) _cardEffectsHandler.ClearAbilitiesQueue();
         else {
@@ -163,11 +163,11 @@ public class TurnManager : NetworkBehaviour
                 player.DrawInitialHand(initialHandSize);
 
             }
-            _playerInterfaceManager.RpcLog($" Wait for seconds : {SorsTimings.wait} ", LogType.Standard);
+            _logger.RpcLog($" Wait for seconds : {SorsTimings.wait} ", LogType.Standard);
             yield return new WaitForSeconds(SorsTimings.wait);
         }
 
-        if(saveGameState) _boardManager.PrepareGameStateFile(_kingdom.GetTileInfos());        
+        if(saveGameState) _boardManager.PrepareGameStateFile(_market.GetTileInfos());        
         UpdateTurnState(TurnState.PhaseSelection);
     }
 
@@ -175,7 +175,7 @@ public class TurnManager : NetworkBehaviour
     private void PhaseSelection()
     {
         _gameManager.turnNumber++;
-        _playerInterfaceManager.RpcLog($" ------------ Turn {_gameManager.turnNumber} ------------ ", LogType.TurnChange);
+        _logger.RpcLog($" ------------ Turn {_gameManager.turnNumber} ------------ ", LogType.TurnChange);
         // For phase panel
         OnPhaseChanged?.Invoke(TurnState.PhaseSelection);
 
@@ -213,7 +213,7 @@ public class TurnManager : NetworkBehaviour
         // Combat each round
         phasesToPlay.Add(Phase.Combat);
         phasesToPlay.Sort();
-        _playerInterfaceManager.RpcLog($"Phases to play: {string.Join(", ", phasesToPlay)}", LogType.Phase);
+        _logger.RpcLog($"Phases to play: {string.Join(", ", phasesToPlay)}", LogType.Phase);
 
         foreach (var (player, phases) in _playerPhaseChoices)
         {
@@ -250,7 +250,7 @@ public class TurnManager : NetworkBehaviour
     {
         // To update SM and Phase Panel
         Enum.TryParse(nextPhase.ToString(), out TurnState nextTurnState);
-        _playerInterfaceManager.RpcLog($"Turn changed to {nextTurnState}", LogType.Phase);
+        _logger.RpcLog($"Turn changed to {nextTurnState}", LogType.Phase);
 
         _cardEffectsHandler.CheckPhaseTriggers(nextPhase);
         while(_cardEffectsHandler.QueueResolving) yield return new WaitForSeconds(0.1f);
@@ -295,72 +295,69 @@ public class TurnManager : NetworkBehaviour
 
     #endregion
 
-    #region KingdomPase (Invent, Recruit)
-    private void KingdomPhase()
+    #region Market phases (Invent, Recruit)
+    private void MarketPhase()
     {
         // convert current turnState (TurnState enum) to Phase enum
         var phase = Phase.Recruit;
         if (turnState == TurnState.Invent) phase = Phase.Invent;
 
-        _selectedKingdomCards.Clear();
+        _selectedMarketCards.Clear();
         _handManager.RpcHighlightMoney(true);
-        _kingdom.RpcBeginPhase(phase);
+        _market.RpcBeginPhase(phase);
 
         foreach (var player in _gameManager.players.Keys)
         {
             if (player.chosenPhases.Contains(phase))
             {
-                _kingdom.TargetKingdomBonus(player.connectionToClient, _gameManager.kingdomPriceReduction);
-                _kingdom.TargetCheckPriceKingdomTile(player.connectionToClient, player.Cash);
+                _market.TargetMarketPhaseBonus(player.connectionToClient, _gameManager.marketPriceReduction);
+                _market.TargetCheckMarketPrices(player.connectionToClient, player.Cash);
             }
         }
     }
 
-    public void PlayerGetsKingdomBonus(PlayerManager player, CardType type, int amount)
+    public void PlayerGetsMarketBonus(PlayerManager player, CardType type, int amount)
     {
         // Public because EffectHandler can call this
-        _kingdom.TargetKingdomPriceReduction(player.connectionToClient, type, amount);
+        _market.TargetMarketPriceReduction(player.connectionToClient, type, amount);
     }
 
-    public void PlayerSelectedKingdomTile(PlayerManager player, CardInfo card, int cardCost)
+    public void PlayerConfirmBuy(PlayerManager player, CardInfo card, int cost)
     {
-        player.Plays--;
-        player.Cash -= cardCost;
+        player.Buys--;
+        player.Cash -= cost;
 
-        if (_selectedKingdomCards.ContainsKey(player))
-            _selectedKingdomCards[player].Add(card);
+        if (_selectedMarketCards.ContainsKey(player))
+            _selectedMarketCards[player].Add(card);
         else
-            _selectedKingdomCards.Add(player, new List<CardInfo> { card });
+            _selectedMarketCards.Add(player, new List<CardInfo> { card });
 
-        int actionsLeft = 0;
-        actionsLeft = player.Plays;
-        _kingdom.TargetResetKingdom(player.connectionToClient, actionsLeft);
-
-        // Waiting for player to use remaining recruit actions
-        if (actionsLeft > 0) return;
-        PlayerIsReady(player);
+        if (player.Buys > 0) _market.TargetResetMarket(player.connectionToClient, player.Buys);
+        else PlayerIsReady(player);
     }
 
-    private void KingdomSpawnAndReset()
+    private void MarketSpawnAndReset()
     {
-        print($"Spawning {_selectedKingdomCards.Count} cards");
+        print($"Spawning {_selectedMarketCards.Count} cards");
 
-        foreach (var (owner, cards) in _selectedKingdomCards)
+        foreach (var (owner, cards) in _selectedMarketCards)
         {
             foreach (var cardInfo in cards)
             {
                 print($"{owner.PlayerName} buys '{cardInfo.title}'");
-                _playerInterfaceManager.RpcLog($"{owner.PlayerName} buys '{cardInfo.title}'", LogType.CreatureBuy);
+                _logger.RpcLog($"{owner.PlayerName} buys '{cardInfo.title}'", LogType.CreatureBuy);
                 _gameManager.PlayerGainCard(owner, cardInfo);
                 
+                // Replace tile with intention to give more variation and a race to strong creatures
+                // TODO: Check if I should do this for technologies as well
                 if (cardInfo.type != CardType.Creature) continue;
                 var nextTile = _gameManager.GetNewCreatureFromDb();
-                _kingdom.RpcReplaceRecruitTile(cardInfo.title, nextTile);
+                _market.RpcReplaceRecruitTile(cardInfo.title, nextTile);
             }
         }
 
         PlayersStatsResetAndDiscardMoney();
-        _kingdom.RpcEndKingdomPhase();
+        _market.RpcEndMarketPhase();
 
         UpdateTurnState(TurnState.NextPhase);
     }
@@ -430,7 +427,7 @@ public class TurnManager : NetworkBehaviour
     {
         // Reset
         _readyPlayers.Clear();
-        _boardManager.BoardCleanUp(_kingdom.GetTileInfos(), false);
+        _boardManager.BoardCleanUp(_market.GetTileInfos(), false);
 
         // Check if plays are still possible and if not, add player to _readyPlayers
         var playAnotherCard = false;
@@ -623,8 +620,8 @@ public class TurnManager : NetworkBehaviour
 
     private IEnumerator CleanUpIntermission()
     {
-        // TODO: Should not use _kingdom here but access it from _boardManager directly
-        _boardManager.BoardCleanUp(_kingdom.GetTileInfos(), true);
+        // TODO: Should not use _market here but access it from _boardManager directly
+        _boardManager.BoardCleanUp(_market.GetTileInfos(), true);
         OnPhaseChanged?.Invoke(TurnState.CleanUp);
         PlayersStatsResetAndDiscardMoney();
 
@@ -687,8 +684,7 @@ public class TurnManager : NetworkBehaviour
                 FinishDiscard();
                 break;
             case TurnState.Invent or TurnState.Recruit:
-                player.Buys = 0;
-                KingdomSpawnAndReset();
+                MarketSpawnAndReset();
                 break;
             case TurnState.Develop or TurnState.Deploy:
                 PlayEntities();
@@ -707,15 +703,12 @@ public class TurnManager : NetworkBehaviour
         }
     }
 
-    // TODO: CHeck logic with game state loading. Move to gameManager?
-    // public void PlayerHealthChanged(PlayerManager player, int amount) => _playerHealth[player] -= amount;
-
     private void PlayerCashChanged(PlayerManager player, int newAmount)
     {
         switch (turnState)
         {
             case TurnState.Invent or TurnState.Recruit:
-                _kingdom.TargetCheckPriceKingdomTile(player.connectionToClient, newAmount);
+                _market.TargetCheckMarketPrices(player.connectionToClient, newAmount);
                 break;
             case TurnState.Develop or TurnState.Deploy:
                 _cardCollectionPanel.TargetCheckPlayability(player.connectionToClient, newAmount);
@@ -725,7 +718,7 @@ public class TurnManager : NetworkBehaviour
 
     private void PlayersStatsResetAndDiscardMoney()
     {
-        // _playerInterfaceManager.RpcLog("... Discarding money ...", LogType.Standard);
+        // _logger.RpcLog("... Discarding money ...", LogType.Standard);
         _handManager.RpcHighlightMoney(false);
 
         foreach (var player in _gameManager.players.Keys)
@@ -740,7 +733,7 @@ public class TurnManager : NetworkBehaviour
     { // experimental
         _handManager.RpcHighlightMoney(false);
         _cardCollectionPanel.RpcResetPanel();
-        _kingdom.RpcEndKingdomPhase();
+        _market.RpcEndMarketPhase();
         _boardManager.ShowHolders(false);
 
         combatManager.CombatCleanUp(true);

@@ -8,12 +8,12 @@ public class PlayerInterfaceButtons : MonoBehaviour
 {
     public static PlayerInterfaceButtons Instance { get; private set; }
     private PlayerManager _player;
-    private Kingdom _kingdom;
+    private Market _market;
     private HandInteractionPanel _cardCollectionPanel;
     [SerializeField] private Button _undoButton;
     [SerializeField] private Button _utilityButton;
     [SerializeField] private Button _handButton;
-    [SerializeField] private Button _kingdomButton;
+    [SerializeField] private Button _marketButton;
 
     // private bool _isOpen = false;
 
@@ -23,7 +23,7 @@ public class PlayerInterfaceButtons : MonoBehaviour
     }
 
     private void Start(){
-        _kingdom = Kingdom.Instance;
+        _market = Market.Instance;
         _cardCollectionPanel = HandInteractionPanel.Instance;
 
         _player = PlayerManager.GetLocalPlayer();
@@ -31,7 +31,7 @@ public class PlayerInterfaceButtons : MonoBehaviour
 
         // Add event listeners to the buttons
         _handButton.onClick.AddListener(OnHandButtonPressed);
-        _kingdomButton.onClick.AddListener(OnKingdomButtonPressed);
+        _marketButton.onClick.AddListener(OnMarketButtonPressed);
         _utilityButton.onClick.AddListener(OnUtilityButtonPressed);
         _undoButton.onClick.AddListener(OnUndoButtonPressed);
     }
@@ -40,8 +40,8 @@ public class PlayerInterfaceButtons : MonoBehaviour
         _cardCollectionPanel.ToggleView();
     }
 
-    public void OnKingdomButtonPressed(){
-        _kingdom.MaxButton();
+    public void OnMarketButtonPressed(){
+        _market.MaxButton();
     }
     
     public void OnUtilityButtonPressed(){

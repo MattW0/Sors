@@ -54,17 +54,6 @@ public class PlayerManager : NetworkBehaviour
         set => SetHealthValue(value);
     }
 
-    // TODO: Why is this here? Overriding some BZE properties/functions ? Dafuq
-
-    // [Server]
-    // public void TakesDamage(int value, bool deathtouch){
-    //     Health -= value;
-    // }
-    // public void Die() {}
-    // public void RpcInitializeEntity(PlayerManager owner, PlayerManager opponent, CardInfo cardInfo) {}
-    // public string Title { get; set; }
-    // public CardType cardType { get; }
-
     private int _score;
     public int Score
     {
@@ -244,7 +233,6 @@ public class PlayerManager : NetworkBehaviour
         Cash += cardInfo.moneyValue;
         moneyCardsInPlay.Add(card, cardInfo);
 
-        // TargetMoveMoneyCard(connectionToClient, card, false, false);
         RemoveHandCard(cardInfo);
         RpcPlayMoney(card);
     }
@@ -343,10 +331,10 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Command]
-    public void CmdSelectKingdomTile(CardInfo card, int cost) => _turnManager.PlayerSelectedKingdomTile(this, card, cost);
+    public void CmdConfirmBuy(CardInfo card, int cost) => _turnManager.PlayerConfirmBuy(this, card, cost);
 
     [Command]
-    public void CmdSkipKingdomBuy() => _turnManager.PlayerIsReady(this);
+    public void CmdSkipBuy() => _turnManager.PlayerIsReady(this);
 
     [Command]
     public void CmdPrevailSelection(List<PrevailOption> options)

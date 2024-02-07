@@ -136,6 +136,7 @@ public class CardEffectsHandler : NetworkBehaviour
     {
         print($"Resolving ability : " + ability.ToString());
         
+        // 1) Wait for player input if needed
         entity.RpcEffectHighlight(true);
         yield return new WaitForSeconds(SorsTimings.effectTrigger);
 
@@ -145,13 +146,14 @@ public class CardEffectsHandler : NetworkBehaviour
         }
         _continue = false;
 
+        // 2) Effect animation
         StartCoroutine(ExecuteEffect(entity, ability));
         while(!_continue) {
             yield return new WaitForSeconds(0.1f);
         }
+        _continue = false;
 
         yield return new WaitForSeconds(SorsTimings.effectExecution);
-        _continue = false;
         _abilityResolving = false;
         _boardManager.ResetTargeting();
     }
@@ -234,7 +236,7 @@ public class CardEffectsHandler : NetworkBehaviour
         var cardType = (CardType)Enum.Parse(typeof(CardType), ability.target.ToString());
         var reduction = ability.amount;
 
-        _turnManager.PlayerGetsKingdomBonus(entity.Owner, cardType, reduction);
+        _turnManager.PlayerGetsMarketBonus(entity.Owner, cardType, reduction);
     }
 
     private void HandleMoneyGain(BattleZoneEntity entity, Ability ability){

@@ -4,21 +4,21 @@ using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
 
-public class Kingdom : NetworkBehaviour
+public class Market : NetworkBehaviour
 {
-    public static Kingdom Instance { get; private set; }
+    public static Market Instance { get; private set; }
     [SerializeField] private GameManager _gameManager;
     private PlayerManager _player;
     private Phase _currentPhase;
 
-    [SerializeField] private KingdomUI _ui;
-    [SerializeField] private KingdomTile[] moneyTiles;
-    [SerializeField] private KingdomTile[] technologyTiles;
-    [SerializeField] private KingdomTile[] creatureTiles;
+    [SerializeField] private MarketUI _ui;
+    [SerializeField] private MarketTile[] moneyTiles;
+    [SerializeField] private MarketTile[] technologyTiles;
+    [SerializeField] private MarketTile[] creatureTiles;
     [SerializeField] private GameObject moneyGrid;
     [SerializeField] private GameObject developmentsGrid;
     [SerializeField] private GameObject creaturesGrid;
-    private KingdomTile _selectedTile;
+    private MarketTile _selectedTile;
 
     public static event Action OnDevelopPhaseEnded;
     public static event Action OnRecruitPhaseEnded;
@@ -28,11 +28,11 @@ public class Kingdom : NetworkBehaviour
     }
 
     private void Start(){
-        moneyTiles = moneyGrid.GetComponentsInChildren<KingdomTile>();
-        technologyTiles = developmentsGrid.GetComponentsInChildren<KingdomTile>();
-        creatureTiles = creaturesGrid.GetComponentsInChildren<KingdomTile>();
+        moneyTiles = moneyGrid.GetComponentsInChildren<MarketTile>();
+        technologyTiles = developmentsGrid.GetComponentsInChildren<MarketTile>();
+        creatureTiles = creaturesGrid.GetComponentsInChildren<MarketTile>();
 
-        _gameManager.SetNumberOfKingdomTiles(moneyTiles.Length, technologyTiles.Length, creatureTiles.Length);
+        _gameManager.SetNumberOfMarketTiles(moneyTiles.Length, technologyTiles.Length, creatureTiles.Length);
     }
 
     #region Setup
@@ -68,7 +68,7 @@ public class Kingdom : NetworkBehaviour
 
     #region Tile Cost
     [TargetRpc]
-    public void TargetKingdomBonus(NetworkConnection target, int priceReduction){
+    public void TargetMarketPhaseBonus(NetworkConnection target, int priceReduction){
         if (_currentPhase == Phase.Invent){
             foreach(var tile in moneyTiles) tile.SetBonus(priceReduction);
             foreach(var tile in technologyTiles) tile.SetBonus(priceReduction);
@@ -78,18 +78,18 @@ public class Kingdom : NetworkBehaviour
     }
 
     [TargetRpc]
-    public void TargetKingdomPriceReduction(NetworkConnection target, CardType type, int priceReduction){
+    public void TargetMarketPriceReduction(NetworkConnection target, CardType type, int priceReduction){
         if (type == CardType.Money){
             foreach(var tile in moneyTiles) tile.SetBonus(priceReduction);
         } else if (type == CardType.Technology){
             foreach(var tile in technologyTiles) tile.SetBonus(priceReduction);
-        } else if (_currentPhase == Phase.Recruit){
+        } else if (type == CardType.Creature){
             foreach(var tile in creatureTiles) tile.SetBonus(priceReduction);
         }
     }
 
     [TargetRpc]
-    public void TargetCheckPriceKingdomTile(NetworkConnection target, int playerCash){
+    public void TargetCheckMarketPrices(NetworkConnection target, int playerCash){
         if (_currentPhase == Phase.Invent){
             foreach(var tile in moneyTiles) tile.Interactable = playerCash >= tile.Cost;
             foreach (var tile in technologyTiles) tile.Interactable = playerCash >= tile.Cost;
@@ -99,10 +99,10 @@ public class Kingdom : NetworkBehaviour
     }
     #endregion
     
-    public void PreviewCard(CardInfo cardInfo) => _ui.PreviewCard(cardInfo);
-    public void PlayerSelectsTile(KingdomTile tile){
+    public void PlayerSelectsTile(MarketTile tile)
+    {
         PlayerDeselectsTile();
-        
+
         _selectedTile = tile;
         _ui.SelectTile(tile.cardInfo);
 
@@ -122,9 +122,8 @@ public class Kingdom : NetworkBehaviour
 
     #region Reset and EoP
     [TargetRpc]
-    public void TargetResetKingdom(NetworkConnection target, int actionsLeft){
-        if (actionsLeft <= 0) return;
-
+    public void TargetResetMarket(NetworkConnection target, int actionsLeft)
+    {
         _selectedTile.HasBeenChosen();
         PlayerDeselectsTile();
         _ui.ResetInteractionButtons();
@@ -141,7 +140,7 @@ public class Kingdom : NetworkBehaviour
     }
     
     [ClientRpc]
-    public void RpcEndKingdomPhase(){
+    public void RpcEndMarketPhase(){
         _ui.EndPhase();
         OnDevelopPhaseEnded?.Invoke();
     }
@@ -155,11 +154,12 @@ public class Kingdom : NetworkBehaviour
 
     public void PlayerPressedButton(bool skip){
         if(skip) {
-            _player.CmdSkipKingdomBuy();
+            _player.CmdSkipBuy();
             return;
         }
         
-        if(_selectedTile) _player.CmdSelectKingdomTile(_selectedTile.cardInfo, _selectedTile.Cost);
+        // Need the cost here as market bonus are not reflected in cardInfo itself
+        if(_selectedTile) _player.CmdConfirmBuy(_selectedTile.cardInfo, _selectedTile.Cost);
         else print("ERROR: No tile selected");
     }
 
