@@ -137,12 +137,19 @@ public class TurnManager : NetworkBehaviour
 
     private void VariablesCaching(GameOptions gameOptions)
     {
+        var msg = "";
         foreach (var player in _gameManager.players.Keys)
         {
             _playerPhaseChoices.Add(player, new Phase[gameOptions.NumberPhases]);
             _playerPrevailOptions.Add(player, new List<PrevailOption>());
             _selectedCards.Add(player, new List<GameObject>());
+
+            if (string.IsNullOrWhiteSpace(msg)) msg += $"{player.PlayerName}";
+            else msg += $"vs. {player.PlayerName}";
         }
+        if (_gameManager.isSinglePlayer) msg += "vs. Computer";
+        _logger.RpcLog(msg, LogType.Standard);
+
         // reverse order of _playerPhaseChoices to have host first
         _playerPhaseChoices = _playerPhaseChoices.Reverse().ToDictionary(x => x.Key, x => x.Value);
         _playerPrevailOptions = _playerPrevailOptions.Reverse().ToDictionary(x => x.Key, x => x.Value);
@@ -154,16 +161,13 @@ public class TurnManager : NetworkBehaviour
         float waitForSpawn = _skipCardDrawAnimations ? 0.5f : 4f;
         yield return new WaitForSeconds(waitForSpawn);
 
-        _logger.RpcLog($" Starting Game ", LogType.Standard);
         // Dont want ETB triggers for entities from game state and only draw initial hand in normal game start 
         if(isLoadedFromFile) _cardEffectsHandler.ClearAbilitiesQueue();
         else {
             foreach(var player in _gameManager.players.Keys) {
                 player.deck.Shuffle();
                 player.DrawInitialHand(initialHandSize);
-
             }
-            _logger.RpcLog($" Wait for seconds : {SorsTimings.wait} ", LogType.Standard);
             yield return new WaitForSeconds(SorsTimings.wait);
         }
 
@@ -213,7 +217,10 @@ public class TurnManager : NetworkBehaviour
         // Combat each round
         phasesToPlay.Add(Phase.Combat);
         phasesToPlay.Sort();
-        _logger.RpcLog($"Phases to play: {string.Join(", ", phasesToPlay)}", LogType.Phase);
+
+        var msg = $"Phases to play:\n";
+        for (int i = 0; i < phasesToPlay.Count; i++) msg += $"- {phasesToPlay[i]}\n";
+        _logger.RpcLog(msg, LogType.Phase);
 
         foreach (var (player, phases) in _playerPhaseChoices)
         {
@@ -250,7 +257,7 @@ public class TurnManager : NetworkBehaviour
     {
         // To update SM and Phase Panel
         Enum.TryParse(nextPhase.ToString(), out TurnState nextTurnState);
-        _logger.RpcLog($"Turn changed to {nextTurnState}", LogType.Phase);
+        _logger.RpcLog($"------- {nextTurnState} -------", LogType.Phase);
 
         _cardEffectsHandler.CheckPhaseTriggers(nextPhase);
         while(_cardEffectsHandler.QueueResolving) yield return new WaitForSeconds(0.1f);

@@ -8,6 +8,9 @@ public class PlayerInterfaceManager : NetworkBehaviour
     public static PlayerInterfaceManager Instance { get; private set; }
     [SerializeField] private Logger _logger;
     private PlayerInterfaceButtons _buttons;
+
+    public LogType lineType;
+    public bool printLine;
     
     
     private void Awake()
@@ -15,6 +18,15 @@ public class PlayerInterfaceManager : NetworkBehaviour
         if (!Instance) Instance = this;
         
         GameManager.OnGameStart += RpcPrepareUIs;
+    }
+
+    void Update()
+    {
+        if(!printLine) return;
+        printLine = false;
+
+        var messageColor = GetColor(lineType);
+        _logger.Log($"<color={messageColor}>This is test message</color>");
     }
 
     [ClientRpc]
@@ -29,18 +41,11 @@ public class PlayerInterfaceManager : NetworkBehaviour
         _logger.Log($"<color={messageColor}>{message}</color>");
     }
 
-    // public static void Log(string message, LogType type){
-    //     var messageColor = GetColor(type);
-    //     _logger.Log($"<color={messageColor}>{message}</color>");
-    // }
-
-
-    // static does not work
     private string GetColor(LogType type){
         var messageColor = type switch{
             LogType.EffectTrigger => SorsColors.effectTrigger,
             LogType.TurnChange => SorsColors.turnChange,
-            LogType.Phase => SorsColors.phase,
+            LogType.Phase => SorsColors.detail,
             LogType.CreatureBuy => SorsColors.creatureBuy,
             LogType.Combat => SorsColors.combat,
             LogType.CombatDamage => SorsColors.combatDamage,

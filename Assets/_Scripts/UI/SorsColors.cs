@@ -8,7 +8,8 @@ public static class SorsColors
     public static Color opponent = new Color(0f, 0.08f, 0.54f);
 
     // -- UI --
-    public static Color neutral_dark = new Color(0.05f, 0.05f, 0.05f);
+    public static Color neutral = new Color(0.15f, 0.15f, 0.16f);
+    public static Color neutralDark = new Color(0.1f, 0.1f, 0.12f);
 
     // -- Play Board --
     public static Color creature = new Color(0.34f, 0f, 0f);
@@ -47,11 +48,11 @@ public static class SorsColors
     public static Color trashHighlight = Color.red;
 
     // -- Log Messages --
-    public static string standardLog = "#000000";
-    public static string effectTrigger = "#1118BA";
-    public static string turnChange = "#000142";
-    public static string phase = "#383838";
-    public static string creatureBuy = "#4f2d00";
+    public static string standardLog = "#999999";
+    public static string detail = "#666666";
+    public static string effectTrigger = "#FFFFFF";
+    public static string turnChange = "#CCCCCC";
+    public static string creatureBuy = "#DDDD80";
     public static string combat = "#420028";
     public static string combatDamage = combat;
     public static string combatClash = combat;
@@ -78,4 +79,5 @@ public enum ColorType : byte
     PrevailOption,
     Player,
     Opponent,
+    NeutralDark
 }

@@ -7,7 +7,6 @@ public class InputField : MonoBehaviour
     [SerializeField] private TMP_InputField inputField;
     [SerializeField] private TMP_Text selection;
     [SerializeField] private GameOption option;
-    public static event Action<string> OnNetworkAdressUpdate; 
     
     private void Start()
     {
