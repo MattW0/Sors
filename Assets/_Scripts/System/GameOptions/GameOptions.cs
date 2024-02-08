@@ -13,6 +13,29 @@ public struct GameOptions
     public bool SaveStates { get; set; }
     public int InitialHandSize { get; set; }
 
+    // Player stats
+    public int startHealth;
+    public int startScore;
+
+    // Initial Deck
+    public int initialDeckSize;
+    public int initialEntities;
+
+    // Default turn recources
+    public int turnCardDraw;
+    public int turnCash;
+    public int turnBuys;
+    public int turnPlays;
+    public int turnPrevails;
+
+    // Phase Boni
+    public int phaseDiscard;
+    public int extraDraw;
+    public int extraCash;
+    public int extraBuys;
+    public int extraPlays;
+    public int extraPrevails;
+
     public GameOptions(string address, int numPhases, bool singlePlayer, bool fullHand, bool skipSpawnimations, string stateFile, bool saveStates, int initialHandSize)
     {
         NetworkAddress = address;
@@ -23,6 +46,29 @@ public struct GameOptions
         StateFile = stateFile;
         InitialHandSize = initialHandSize;
         SaveStates = saveStates;
+
+        // Player stats
+        startHealth = 10;
+        startScore = 0;
+
+        // Initial Deck
+        initialDeckSize = 10;
+        initialEntities = 4;
+
+        // Default turn recources
+        turnCardDraw = 2;
+        turnCash = 0;
+        turnBuys = 0;
+        turnPlays = 0;
+        turnPrevails = 0;
+        phaseDiscard = 1;
+
+        // Phase Boni
+        extraDraw = 2;
+        extraBuys = 1;
+        extraPlays = 1;
+        extraCash = 3;
+        extraPrevails = 2;
     }
 
     public override string ToString()
@@ -44,5 +90,8 @@ public enum GameOption : byte
 {
     NumberPhases,
     NetworkAddress,
-    StateFile
+    StateFile,
+    SinglePlayer,
+    FullHand,
+    SkipCardSpawnAnimations,
 }

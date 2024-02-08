@@ -9,6 +9,7 @@ using System;
 public class PrevailPanel : NetworkBehaviour
 {
     public static PrevailPanel Instance { get; private set; }
+    private PlayerManager _player;
     private List<PrevailOption> _selectedOptions = new();
     private int _nbOptionsToChose;  // Set once from game manager setting
     private int _nbBonusOptions;
@@ -25,12 +26,10 @@ public class PrevailPanel : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcPreparePrevailPanel(int nbOptionsToChose, int nbBonusOptions)
+    public void RpcPreparePrevailPanel()
     {
-        _nbOptionsToChose = nbOptionsToChose;
-        _nbBonusOptions = nbBonusOptions;
+        _player = PlayerManager.GetLocalPlayer();
         instructions.text = "Choose up to " + _nbOptionsThisTurn.ToString();
-
         maxView.SetActive(false);
     }
 
@@ -40,10 +39,7 @@ public class PrevailPanel : NetworkBehaviour
         maxView.SetActive(true);
         confirm.interactable = true;
 
-        _nbOptionsThisTurn = _nbOptionsToChose;
-        if(bonus) _nbOptionsThisTurn += _nbBonusOptions;
-
-        instructions.text = "Choose up to " + _nbOptionsThisTurn.ToString();
+        instructions.text = "Choose up to " + _player.Prevails.ToString();
     }
 
     public bool Increment(PrevailOption option)

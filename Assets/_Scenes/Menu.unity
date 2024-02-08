@@ -1076,8 +1076,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 270482318}
-  - component: {fileID: 270482319}
   - component: {fileID: 270482320}
+  - component: {fileID: 270482319}
   m_Layer: 0
   m_Name: Menu UI
   m_TagString: Untagged
@@ -4091,6 +4091,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1249549977}
   - component: {fileID: 1249549978}
+  - component: {fileID: 1249549979}
   m_Layer: 5
   m_Name: Toggle
   m_TagString: Untagged
@@ -4165,20 +4166,21 @@ MonoBehaviour:
   m_Group: {fileID: 0}
   onValueChanged:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 270482320}
-        m_TargetAssemblyTypeName: GameOptionsMenu, Assembly-CSharp
-        m_MethodName: SetSpawnimations
-        m_Mode: 6
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 1
-        m_CallState: 2
+      m_Calls: []
   m_IsOn: 1
+--- !u!114 &1249549979
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1249549976}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49a257c21f6712145a76503a5946fdb5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  option: 5
 --- !u!1 &1255680154
 GameObject:
   m_ObjectHideFlags: 0
@@ -4517,6 +4519,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1453484915}
   - component: {fileID: 1453484916}
+  - component: {fileID: 1453484917}
   m_Layer: 5
   m_Name: Toggle
   m_TagString: Untagged
@@ -4591,20 +4594,21 @@ MonoBehaviour:
   m_Group: {fileID: 0}
   onValueChanged:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 270482320}
-        m_TargetAssemblyTypeName: GameOptionsMenu, Assembly-CSharp
-        m_MethodName: SetSinglePlayer
-        m_Mode: 6
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 1
-        m_CallState: 2
+      m_Calls: []
   m_IsOn: 0
+--- !u!114 &1453484917
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1453484914}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49a257c21f6712145a76503a5946fdb5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  option: 3
 --- !u!1 &1514932119
 GameObject:
   m_ObjectHideFlags: 0
@@ -6147,6 +6151,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1852711881}
   - component: {fileID: 1852711882}
+  - component: {fileID: 1852711883}
   m_Layer: 5
   m_Name: Toggle
   m_TagString: Untagged
@@ -6221,20 +6226,21 @@ MonoBehaviour:
   m_Group: {fileID: 0}
   onValueChanged:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 270482320}
-        m_TargetAssemblyTypeName: GameOptionsMenu, Assembly-CSharp
-        m_MethodName: SetFullHand
-        m_Mode: 6
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 1
-        m_CallState: 2
+      m_Calls: []
   m_IsOn: 0
+--- !u!114 &1852711883
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1852711880}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49a257c21f6712145a76503a5946fdb5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  option: 4
 --- !u!1 &1869616628
 GameObject:
   m_ObjectHideFlags: 0

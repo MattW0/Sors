@@ -16,6 +16,7 @@ public class PlayerManager : NetworkBehaviour
     private CardMover _cardMover;
     private Hand _handManager;
     private PhasePanelUI _phaseVisualsUI;
+    private PlayerInterfaceManager _logger;
 
     [Header("Game State")]
     public List<Phase> chosenPhases = new();
@@ -83,6 +84,14 @@ public class PlayerManager : NetworkBehaviour
         set => SetPlayValue(value);
     }
 
+    // Do the same for Prevails
+    [SyncVar] private int _prevails;
+    public int Prevails
+    {
+        get => _prevails;
+        set => SetPrevailValue(value);
+    }
+
     #region GameSetup
 
     // public override void OnStartClient() => base.OnStartClient();
@@ -100,6 +109,7 @@ public class PlayerManager : NetworkBehaviour
         _turnManager = TurnManager.Instance;
         _combatManager = CombatManager.Instance;
         _cardEffectsHandler = CardEffectsHandler.Instance;
+        _logger = PlayerInterfaceManager.Instance;
     }
 
     private void EntityAndUISetup(){
@@ -200,7 +210,7 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Command]
-    public void CmdSkipCardPlay() => _turnManager.PlayerSkipsCardPlay(this);    
+    public void CmdSkipCardPlay() => _turnManager.PlayerSkipsCardPlay(this);
 
     [ClientRpc]
     public void RpcMoveCard(GameObject card, CardLocation from, CardLocation to)
@@ -327,6 +337,8 @@ public class PlayerManager : NetworkBehaviour
             RemoveHandCard(cardInfo);
             discard.Add(cardInfo);
             RpcMoveCard(card, CardLocation.Hand, CardLocation.Discard);
+
+            _logger.RpcLog($"{PlayerName} discards {cardInfo.title}", LogType.Standard);
         }
     }
 
@@ -334,7 +346,7 @@ public class PlayerManager : NetworkBehaviour
     public void CmdConfirmBuy(CardInfo card, int cost) => _turnManager.PlayerConfirmBuy(this, card, cost);
 
     [Command]
-    public void CmdSkipBuy() => _turnManager.PlayerIsReady(this);
+    public void CmdSkipBuy() => _turnManager.PlayerSkipsBuy(this);
 
     [Command]
     public void CmdPrevailSelection(List<PrevailOption> options)
@@ -532,6 +544,28 @@ public class PlayerManager : NetworkBehaviour
         if (isOwned) _playerUI.SetPlays(value);
         else _opponentUI.SetPlays(value);
     }
+
+    // Same for prevail
+
+    [Server]
+    private void SetPrevailValue(int value)
+    {
+        _prevails = value;
+        if (isServer) RpcSetPrevailValue(value);
+        else CmdUISetPrevailValue(value);
+    }
+
+    [Command]
+    private void CmdUISetPrevailValue(int value) => RpcSetPrevailValue(value);
+
+    [ClientRpc]
+    private void RpcSetPrevailValue(int value)
+    {
+        if (isOwned) _playerUI.SetPrevails(value);
+        else _opponentUI.SetPrevails(value);
+    }
+
+
 
     #endregion UI
 

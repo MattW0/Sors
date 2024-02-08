@@ -4079,6 +4079,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: OpponentInfo
       objectReference: {fileID: 0}
+    - target: {fileID: 6856961310067477065, guid: 8e5e3894c7dc5f4409b433a80bdb2ca5, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6856961310067477065, guid: 8e5e3894c7dc5f4409b433a80bdb2ca5, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6856961310067477065, guid: 8e5e3894c7dc5f4409b433a80bdb2ca5, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6856961310067477065, guid: 8e5e3894c7dc5f4409b433a80bdb2ca5, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6856961310067477065, guid: 8e5e3894c7dc5f4409b433a80bdb2ca5, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7155473105116715630, guid: 8e5e3894c7dc5f4409b433a80bdb2ca5, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -9120,23 +9140,8 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0.1
-  turnNumber: 0
   isSinglePlayer: 0
-  initialDeckSize: 10
-  initialEntities: 5
-  initialHandSize: 4
-  startHealth: 10
-  startScore: 0
-  fixCardDraw: 2
-  phaseCardDraw: 2
-  nbDiscard: 1
-  turnCash: 0
-  turnBuys: 1
-  turnPlays: 1
-  prevailOptionsToChoose: 1
-  extraDraw: 2
-  marketPriceReduction: 1
-  prevailExtraOptions: 2
+  turnNumber: 0
   startEntities: []
   creatureCardsDb: []
   moneyCardsDb: []
@@ -56278,6 +56283,26 @@ PrefabInstance:
     - target: {fileID: 6856611238222140626, guid: 8e5e3894c7dc5f4409b433a80bdb2ca5, type: 3}
       propertyPath: m_Name
       value: PlayerInfo
+      objectReference: {fileID: 0}
+    - target: {fileID: 6856961310067477065, guid: 8e5e3894c7dc5f4409b433a80bdb2ca5, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6856961310067477065, guid: 8e5e3894c7dc5f4409b433a80bdb2ca5, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6856961310067477065, guid: 8e5e3894c7dc5f4409b433a80bdb2ca5, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6856961310067477065, guid: 8e5e3894c7dc5f4409b433a80bdb2ca5, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6856961310067477065, guid: 8e5e3894c7dc5f4409b433a80bdb2ca5, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7155473105116715630, guid: 8e5e3894c7dc5f4409b433a80bdb2ca5, type: 3}
       propertyPath: m_AnchorMax.y

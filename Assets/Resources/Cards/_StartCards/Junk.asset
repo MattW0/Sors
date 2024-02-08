@@ -10,24 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 26c270d0a29eb0a4bbcc4f0c6bba43a7, type: 3}
-  m_Name: B
+  m_Name: Junk
   m_EditorClassIdentifier: 
-  hash: B
-  resourceName: B
+  hash: Junk
+  resourceName: Junk
   type: 2
-  title: B
-  cost: 2
+  title: Junk
+  cost: 1
   isStartCard: 1
-  health: 2
+  health: 3
   attack: 0
   points: 0
   moneyValue: 0
-  abilities:
-  - trigger: 5
-    effect: 1
-    target: 0
-    amount: 1
+  abilities: []
   keywordAbilities: 
   relationsTexts: []
-  description: At the beginning of combat, draw a card
+  description: This is goddamn useless
   image: {fileID: 0}

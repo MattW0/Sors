@@ -120,7 +120,7 @@ public class BoardManager : NetworkBehaviour
     #endregion
 
     public void BoardCleanUp(List<CardInfo>[] scriptableTiles, bool endOfTurn)
-    {    
+    {
         ClearDeadEntities();
         _dropZone.DestroyTargetArrows();
 

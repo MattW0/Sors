@@ -15,37 +15,13 @@ public class GameManager : NetworkBehaviour {
     private BoardManager _boardManager;
 
     private GameOptions _gameOptions;
+    public bool isSinglePlayer = false;
     public static event Action<GameOptions> OnGameStart;
 
     [Header("Game state")]
     [SyncVar] public int turnNumber;
     public Dictionary<PlayerManager, NetworkIdentity> players = new();
     private List<PlayerManager> _loosingPlayers = new();
-
-    [Header("Game start settings")]
-    public bool isSinglePlayer = false;
-    [SerializeField] private int initialDeckSize = 10;
-    [SerializeField] private int initialEntities = 5;
-    [SerializeField] private int initialHandSize = 6;
-    public int startHealth = 10;
-    public int startScore = 0;
-    private int _nbMoneyTiles;
-    private int _nbTechnologyTiles;
-    private int _nbCreatureTiles;
-
-    [Header("Turn specifics")]
-    [SerializeField] public int fixCardDraw = 2;
-    [SerializeField] public int phaseCardDraw = 2;
-    [SerializeField] public int nbDiscard = 1;
-    public int turnCash = 0;
-    public int turnBuys = 1;
-    public int turnPlays = 1;
-    public int prevailOptionsToChoose = 1;
-
-    [Header("Turn Boni")]
-    public int extraDraw = 2;
-    public int marketPriceReduction = 1;
-    public int prevailExtraOptions = 2;
 
     [Header("Available cards")]
     public ScriptableCard[] startEntities;
@@ -55,6 +31,9 @@ public class GameManager : NetworkBehaviour {
     private List<int> _availableCreatureIds = new();
     private List<int> _availableTechnologyIds = new();
     private Sprite[] _moneySprites;
+    private int _nbMoneyTiles;
+    private int _nbTechnologyTiles;
+    private int _nbCreatureTiles;
     
     [Header("Prefabs")]
     [SerializeField] private GameObject creatureCardPrefab;
@@ -110,7 +89,7 @@ public class GameManager : NetworkBehaviour {
         print(" --- Game starting --- \n" + options.ToString());
         _gameOptions = options;
 
-        initialHandSize = options.FullHand ? initialDeckSize : initialHandSize;
+        // initialHandSize = options.FullHand ? _gameOptions.initialDeckSize : _gameOptions.InitialHandSize;
         isSinglePlayer = options.SinglePlayer;
 
         InitPlayers();
@@ -137,13 +116,13 @@ public class GameManager : NetworkBehaviour {
             
             // Player stats
             player.PlayerName = player.gameObject.name; // Object name is set after instantiation in NetworkManager
-            player.Health = startHealth;
-            player.Score = startScore;
+            player.Health = _gameOptions.startHealth;
+            player.Score = _gameOptions.startScore;
             
             // Turn stats
-            player.Cash = turnCash;
-            player.Buys = turnBuys;
-            player.Plays = turnPlays;
+            player.Cash = _gameOptions.turnCash;
+            player.Buys = _gameOptions.turnBuys;
+            player.Plays = _gameOptions.turnPlays;
         }
 
         if(_gameOptions.SkipCardSpawnAnimations) {
@@ -178,12 +157,12 @@ public class GameManager : NetworkBehaviour {
     {
         List<GameObject> startCards = new();
         // Only paper money currently
-        for (var i = 0; i < initialDeckSize - initialEntities; i++){
+        for (var i = 0; i < _gameOptions.initialDeckSize - _gameOptions.initialEntities; i++){
             var scriptableCard = moneyCardsDb[0];
             startCards.Add(SpawnCardAndAddToCollection(player, scriptableCard, CardLocation.Deck));
         }
 
-        for (var i = 0; i < initialEntities; i++){
+        for (var i = 0; i < _gameOptions.initialEntities; i++){
             var scriptableCard = startEntities[i];
             startCards.Add(SpawnCardAndAddToCollection(player, scriptableCard, CardLocation.Deck));
         }

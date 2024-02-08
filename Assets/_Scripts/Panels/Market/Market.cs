@@ -67,15 +67,17 @@ public class Market : NetworkBehaviour
     #endregion
 
     #region Tile Cost
-    [TargetRpc]
-    public void TargetMarketPhaseBonus(NetworkConnection target, int priceReduction){
-        if (_currentPhase == Phase.Invent){
-            foreach(var tile in moneyTiles) tile.SetBonus(priceReduction);
-            foreach(var tile in technologyTiles) tile.SetBonus(priceReduction);
-        } else if (_currentPhase == Phase.Recruit){
-            foreach(var tile in creatureTiles) tile.SetBonus(priceReduction);
-        }
-    }
+
+    // Removed because changed phase bonus
+    // [TargetRpc]
+    // public void TargetMarketPhaseBonus(NetworkConnection target, int priceReduction){
+    //     if (_currentPhase == Phase.Invent){
+    //         foreach(var tile in moneyTiles) tile.SetBonus(priceReduction);
+    //         foreach(var tile in technologyTiles) tile.SetBonus(priceReduction);
+    //     } else if (_currentPhase == Phase.Recruit){
+    //         foreach(var tile in creatureTiles) tile.SetBonus(priceReduction);
+    //     }
+    // }
 
     [TargetRpc]
     public void TargetMarketPriceReduction(NetworkConnection target, CardType type, int priceReduction){
@@ -130,13 +132,19 @@ public class Market : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcReplaceRecruitTile(string oldTitle, CardInfo newCardInfo){
-        foreach (var tile in creatureTiles){
-            if (tile.cardInfo.title != oldTitle) continue;
+    public void RpcReplaceRecruitTile(string oldTitle, CardInfo newCardInfo)
+    {
+        // TODO: Implement
+        MaxButton();
+        var nextTile = _gameManager.GetNewCreatureFromDb();
 
-            tile.SetTile(newCardInfo);
-            break;
-        }
+        // TODO: Update
+        // foreach (var tile in creatureTiles){
+        //     if (tile.cardInfo.title != oldTitle) continue;
+
+        //     tile.SetTile(newCardInfo);
+        //     break;
+        // }
     }
     
     [ClientRpc]
@@ -163,6 +171,11 @@ public class Market : NetworkBehaviour
         else print("ERROR: No tile selected");
     }
 
+    [ClientRpc]
+    public void RpcMinButton() => _ui.MinButton();
+
+    [ClientRpc]
+    public void RpcMaxButton() => _ui.MaxButton();
     public void MaxButton() => _ui.MaxButton();
 
     public List<CardInfo>[] GetTileInfos(){
