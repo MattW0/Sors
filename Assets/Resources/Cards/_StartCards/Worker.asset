@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26c270d0a29eb0a4bbcc4f0c6bba43a7, type: 3}
   m_Name: Worker
   m_EditorClassIdentifier: 
+  isStartCard: 1
   hash: Worker
   resourceName: Worker
   type: 0
   title: Worker
   cost: 2
-  isStartCard: 1
   health: 1
   attack: 1
   points: 0
@@ -27,7 +27,6 @@ MonoBehaviour:
     effect: 1
     target: 0
     amount: 1
-  keywordAbilities: 
+  keywordAbilities: 00000000
   relationsTexts: []
   description: When 'Worker' enters the battlefield, draw a card
-  image: {fileID: 0}

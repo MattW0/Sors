@@ -17,7 +17,7 @@ Players start with a deck of 10 cards. During gameplay, you improve the deck by 
 <figure>
     <img src="Images/initialDeck.PNG"
          alt="TurnPhases">
-    <figcaption>The initial Deck: 6 <i>Money</i> cards: 6 x <i>Paper Money</i>, 2 <i>Technology</i> cards: <i>Junk</i> and <i>Clue</i>, 2 <i>Creature</i> cards: <i>Peasant</i> and <i>Worker</i></figcaption>
+    <figcaption>The initial Deck: 6 <i>Money</i> cards: 6 x <i>Paper Money</i>, 2 <i>Technology</i> cards: <i>Junk</i> and <i>Clue</i>, 2 <i>Creature</i> cards: <i>Thug</i> and <i>Worker</i></figcaption>
 </figure>
 
 ##### Cards and Entities

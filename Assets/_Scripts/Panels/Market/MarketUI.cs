@@ -8,7 +8,6 @@ public class MarketUI : MonoBehaviour
 {
     [SerializeField] private Market _market;
     [SerializeField] private GameObject maxView;
-    [SerializeField] private Image _bg;
     [SerializeField] private GameObject _developPanel;
     [SerializeField] private GameObject _recruitPanel;
     [SerializeField] private GameObject _interactionButtons;
@@ -97,14 +96,12 @@ public class MarketUI : MonoBehaviour
     private void ShowTechnologyPanel(){
         _developPanel.SetActive(true);
         _recruitPanel.SetActive(false);
-        _bg.color = SorsColors.technology;
         _switchBtnText.text = "Creatures";
     }
 
     private void ShowCreaturePanel(){
         _developPanel.SetActive(false);
         _recruitPanel.SetActive(true);
-        _bg.color = SorsColors.creature;
         _switchBtnText.text = "Techs";
     }
 

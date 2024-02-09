@@ -8,8 +8,9 @@ public static class SorsColors
     public static Color opponent = new Color(0f, 0.08f, 0.54f);
 
     // -- UI --
-    public static Color neutral = new Color(0.15f, 0.15f, 0.16f);
     public static Color neutralDark = new Color(0.1f, 0.1f, 0.12f);
+    public static Color neutral = new Color(0.15f, 0.15f, 0.16f);
+    public static Color neutralLight = new Color(0.25f, 0.25f, 0.28f);
 
     // -- Play Board --
     public static Color creature = new Color(0.34f, 0f, 0f);
@@ -79,5 +80,6 @@ public enum ColorType : byte
     PrevailOption,
     Player,
     Opponent,
-    NeutralDark
+    NeutralDark,
+    NeutralLight
 }

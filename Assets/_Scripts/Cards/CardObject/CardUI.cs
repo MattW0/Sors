@@ -8,16 +8,22 @@ using System.Linq;
 
 public class CardUI : MonoBehaviour
 {
+    [Header("General Card Properties")]
     [SerializeField] private TMP_Text _title;
-    [SerializeField] private TMP_Text _description;
-    [SerializeField] private TMP_Text _keywords;
     [SerializeField] private TMP_Text _cost;
-    [SerializeField] private TMP_Text _attack;
     [SerializeField] private TMP_Text _health;
-    [SerializeField] private TMP_Text _points;
-    [SerializeField] private TMP_Text _moneyValue;
+    [SerializeField] private TMP_Text _description;
     [SerializeField] private Image _image;
     [SerializeField] private Image _highlight;    
+
+    [Header("Card Type Specific")]
+    [SerializeField] private TMP_Text _attack;
+    [SerializeField] private TMP_Text _points;
+    [SerializeField] private TMP_Text _moneyValue;
+    [SerializeField] private TMP_Text _keywordsText;
+    [SerializeField] private GameObject _keywordsBox;
+
+    [Header("UI Elements")]
     [SerializeField] private GameObject _front;
     [SerializeField] private GameObject _creatureUi;
     [SerializeField] private GameObject _moneyUi;
@@ -41,9 +47,12 @@ public class CardUI : MonoBehaviour
         _description.text = cardInfo.description;
 
         if (cardInfo.type == CardType.Creature){
-            _attack.text = cardInfo.attack.ToString();
-            _keywords.text = string.Join(", ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
             _creatureUi.SetActive(true);
+            _attack.text = cardInfo.attack.ToString();
+            if(cardInfo.keywordAbilities.Count > 0)
+                _keywordsText.text = string.Join(", ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
+            else
+                _keywordsBox.SetActive(false);
         } else if (cardInfo.type == CardType.Technology) {
             _points.text = cardInfo.points.ToString();
         }

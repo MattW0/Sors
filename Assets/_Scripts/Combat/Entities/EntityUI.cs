@@ -17,7 +17,8 @@ public class EntityUI : MonoBehaviour, IPointerClickHandler
     [SerializeField] private TMP_Text points;
 
     [Header("Body")]
-    [SerializeField] private TMP_Text keywords;
+    [SerializeField] private GameObject keywordsBox;
+    [SerializeField] private TMP_Text keywordsText;
     [SerializeField] private TMP_Text description;
     [SerializeField] private Image _image;
 
@@ -38,7 +39,12 @@ public class EntityUI : MonoBehaviour, IPointerClickHandler
 
         if(cardInfo.type == CardType.Creature){
             attack.text = cardInfo.attack.ToString();
-            keywords.text = string.Join(", ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
+            if(cardInfo.keywordAbilities.Count > 0){
+                keywordsBox.SetActive(true);
+                keywordsText.text = string.Join(", ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
+            } else {
+                keywordsBox.SetActive(false);
+            }
         } else if (cardInfo.type == CardType.Technology){
             points.text = cardInfo.points.ToString();
         }

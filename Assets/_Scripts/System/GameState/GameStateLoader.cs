@@ -115,7 +115,6 @@ public class GameStateLoader : MonoBehaviour
             yield return new WaitForSeconds(0.01f);
             entity.Health = e.health;
             entity.GetComponent<CreatureEntity>().Attack = e.attack;
-            // entity.GetComponent<CreatureEntity>().SetDefense(e.defense);
 
             entitiesDict.Add(cardObject, entity);
         }

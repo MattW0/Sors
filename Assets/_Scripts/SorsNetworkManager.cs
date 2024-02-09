@@ -83,7 +83,7 @@ public class SorsNetworkManager : NetworkManager
 
     private GameObject CreatePlayerObject(string playerName)
     {
-        print($"Creating player {playerName}...");
+        print($"Creating player {playerName}");
         GameObject playerObject = Instantiate(playerPrefab);
 
         // spawn player object on server and all clients

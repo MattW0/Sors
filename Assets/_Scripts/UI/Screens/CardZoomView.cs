@@ -6,7 +6,7 @@ public class CardZoomView : MonoBehaviour, IPointerClickHandler
     public static CardZoomView Instance { get; private set; }
     [SerializeField] private GameObject _cardZoomView;
     [SerializeField] private GameObject _cardHolder;
-    private Vector3 _cardHolderOffset = new Vector3(-400f, 0f, 0f);
+    [SerializeField] private Vector3 _cardHolderOffset;
 
     [Header("Prefabs")]
     [SerializeField] private GameObject _moneyDetailCard;
@@ -69,7 +69,6 @@ public class CardZoomView : MonoBehaviour, IPointerClickHandler
     public void Close(){
         _cardHolder.transform.localPosition = Vector3.zero;
         _cardZoomView.SetActive(false);
-
         _openedCardObject.SetActive(false);
         // is null if money card
         if(_openedEntityObject) _openedEntityObject.SetActive(false);

@@ -458,7 +458,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 31d9558935d505246bcd50518031ca9e, type: 3}
+  m_Sprite: {fileID: 21300000, guid: b7dbaa18d989e3741a605bda78ccf3ad, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1296,10 +1296,10 @@ MonoBehaviour:
   syncInterval: 0.1
   cardInfo:
     goID: 0
+    isStartCard: 0
     hash: 
     resourceName: 
     type: 0
-    isStartCard: 0
     title: 
     description: 
     cost: 0
@@ -1309,6 +1309,8 @@ MonoBehaviour:
     moneyValue: 0
     abilities: []
     keywordAbilities: 
+    cardSpritePath: 
+    entitySpritePath: 
 --- !u!114 &1662656646801267718
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1322,15 +1324,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _title: {fileID: 7196564867689549168}
-  _description: {fileID: 411265824569140634}
-  _keywords: {fileID: 0}
   _cost: {fileID: 3548967704764983626}
-  _attack: {fileID: 3495054210160948786}
   _health: {fileID: 8982384794511490829}
-  _points: {fileID: 5682639332516483045}
-  _moneyValue: {fileID: 0}
+  _description: {fileID: 411265824569140634}
   _image: {fileID: 2266157713585857682}
   _highlight: {fileID: 6942316134712413200}
+  _attack: {fileID: 3495054210160948786}
+  _points: {fileID: 5682639332516483045}
+  _moneyValue: {fileID: 0}
+  _keywordsText: {fileID: 6664406608741554747}
+  _keywordsBox: {fileID: 4338904254981525111}
   _front: {fileID: 1965346598283185727}
   _creatureUi: {fileID: 8993847580205264523}
   _moneyUi: {fileID: 3749662679023146322}

@@ -6,14 +6,18 @@ using TMPro;
 public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler {
 
     [Header("Card Stats")]
-    [SerializeField] private TMP_Text _title;
+    [SerializeField] private GameObject _titleBox;
+    [SerializeField] private TMP_Text _titleText;
     [SerializeField] private TMP_Text _cost;
-    [SerializeField] private TMP_Text _attack;
     [SerializeField] private TMP_Text _health;
+    [SerializeField] private TMP_Text _description;
+
+    [Header("Card Specifics")]
     [SerializeField] private TMP_Text _points;
     [SerializeField] private TMP_Text _moneyValue;
-    [SerializeField] private TMP_Text _description;
-    [SerializeField] private TMP_Text _keywords;
+    [SerializeField] private TMP_Text _attack;
+    [SerializeField] private GameObject _keywordsBox;
+    [SerializeField] private TMP_Text _keywordsText;
 
     [Header("Card UI")]
     public bool enableFocus = true;
@@ -22,9 +26,11 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     private Canvas _tempCanvas;
     private GraphicRaycaster _tempRaycaster;
     private TurnState _state;
+    private Vector3 NO_KEYWORDS_TITLE_POSITION = new(0f, -45f, 0f);
+    private Vector3 YES_KEYWORDS_TITLE_POSITION = new(0f, -15f, 0f);
     
     public void SetCardUI(CardInfo cardInfo){
-        _title.text = cardInfo.title;
+        _titleText.text = cardInfo.title;
         _cost.text = cardInfo.cost.ToString();
         _image.sprite = Resources.Load<Sprite>(cardInfo.cardSpritePath);
 
@@ -41,7 +47,14 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 
         if (cardInfo.type == CardType.Creature) {
             _attack.text = cardInfo.attack.ToString();
-            _keywords.text = string.Join(", ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
+            if(cardInfo.keywordAbilities.Count > 0){
+                _keywordsBox.SetActive(true);
+                _keywordsText.text = string.Join(", ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
+                _titleBox.transform.localPosition = YES_KEYWORDS_TITLE_POSITION;
+            } else {
+                _keywordsBox.SetActive(false);
+                _titleBox.transform.localPosition = NO_KEYWORDS_TITLE_POSITION;
+            }
         }
     }
 

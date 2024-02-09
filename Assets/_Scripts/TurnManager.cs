@@ -494,7 +494,11 @@ public class TurnManager : NetworkBehaviour
         _boardManager.BoardCleanUp(_market.GetTileInfos(), false);
 
         // Add each player that skipped to _readyPlayers
-        foreach (var player in _skippedPlayers) _readyPlayers.Add(player);
+        foreach (var player in _gameManager.players.Keys) 
+        {
+            if (_skippedPlayers.Contains(player)) _readyPlayers.Add(player);
+            else if (player.Plays == 0) _readyPlayers.Add(player);
+        }
 
         // Play another card if not all players have skipped
         if (_readyPlayers.Count != _gameManager.players.Count) {
