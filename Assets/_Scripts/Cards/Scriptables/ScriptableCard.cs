@@ -8,14 +8,14 @@ using UnityEditor;
 public class ScriptableCard : ScriptableObject
 {
     [Header("General Properties")]
+    public bool isStartCard;
     public string hash;
     public string resourceName;
+    
+    [Header("Card properties")]
     public CardType type;
     public string title;
     public int cost;
-    public bool isStartCard;
-
-    [Header("Enitity properties")]
     public int health;
     public int attack;
     public int points;
@@ -32,7 +32,6 @@ public class ScriptableCard : ScriptableObject
 
     [Header("Card Display Data")]
     public string description;
-    public Sprite image;
 
     static Dictionary<string, ScriptableCard> _cache;
     public static Dictionary<string, ScriptableCard> Cache

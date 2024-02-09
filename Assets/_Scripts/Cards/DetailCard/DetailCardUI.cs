@@ -26,10 +26,10 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     public void SetCardUI(CardInfo cardInfo){
         _title.text = cardInfo.title;
         _cost.text = cardInfo.cost.ToString();
-        
+        _image.sprite = Resources.Load<Sprite>(cardInfo.cardSpritePath);
+
         // Money
         if (cardInfo.type == CardType.Money) {
-            _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Money/" + cardInfo.title);
             _moneyValue.text = cardInfo.moneyValue.ToString();
             return;
         }
@@ -39,15 +39,10 @@ public class DetailCardUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         _points.text = cardInfo.points.ToString();
         _description.text = cardInfo.description;
 
-        if (cardInfo.type == CardType.Technology) {
-            _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Technology/technology");
-        } else {
-            _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Creature/creature");
+        if (cardInfo.type == CardType.Creature) {
             _attack.text = cardInfo.attack.ToString();
             _keywords.text = string.Join(", ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
         }
-        
-        return;
     }
 
     public void SetCardState(TurnState state) {

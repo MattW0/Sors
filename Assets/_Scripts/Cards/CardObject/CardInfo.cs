@@ -2,19 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using UnityEngine.UI;
 
 [System.Serializable]
 public struct CardInfo : IEquatable<CardInfo>
 {
     public int goID;
+    public bool isStartCard;
     public string hash;
     public string resourceName;
+    [Header("General stats")]
     public CardType type;
-    public bool isStartCard;
     public string title;
     public string description;
-
-    [Header("General stats")]
     public int cost;
     public int health;
     public int attack;
@@ -27,15 +27,21 @@ public struct CardInfo : IEquatable<CardInfo>
     [Header("Creature properties")]
     public List<Keywords> keywordAbilities;
 
+    [Header("Sprites")]
+    public string cardSpritePath;
+    public string entitySpritePath;
+
     public CardInfo(ScriptableCard card, int gameObjectID = -1)
     {
         goID = gameObjectID;
 
+        isStartCard = card.isStartCard;
         hash = card.hash;
         resourceName = card.resourceName;
         type = card.type;
         title = card.title;
-        isStartCard = card.isStartCard;
+        cardSpritePath = $"Sprites/Cards/{type.ToString()}/{resourceName}/c";
+        entitySpritePath = $"Sprites/Cards/{type.ToString()}/{resourceName}/e";
 
         description = card.description;
         cost = card.cost;

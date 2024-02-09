@@ -11,6 +11,7 @@ public class EntityUI : MonoBehaviour, IPointerClickHandler
     [Header("Entity Stats")]
     private CardInfo _cardInfo;
     [SerializeField] private TMP_Text title;
+    [SerializeField] private TMP_Text cost;
     [SerializeField] private TMP_Text health;
     [SerializeField] private TMP_Text attack;
     [SerializeField] private TMP_Text points;
@@ -18,6 +19,7 @@ public class EntityUI : MonoBehaviour, IPointerClickHandler
     [Header("Body")]
     [SerializeField] private TMP_Text keywords;
     [SerializeField] private TMP_Text description;
+    [SerializeField] private Image _image;
 
     private void Start(){
         _cardZoomView = CardZoomView.Instance;
@@ -28,8 +30,11 @@ public class EntityUI : MonoBehaviour, IPointerClickHandler
 
         // Set card stats
         title.text = cardInfo.title;
+        cost.text = cardInfo.cost.ToString();
         health.text = cardInfo.health.ToString();
         description.text = cardInfo.description;
+
+        _image.sprite = Resources.Load<Sprite>(cardInfo.entitySpritePath);
 
         if(cardInfo.type == CardType.Creature){
             attack.text = cardInfo.attack.ToString();
@@ -46,6 +51,7 @@ public class EntityUI : MonoBehaviour, IPointerClickHandler
         _cardZoomView.ZoomCard(_cardInfo);
     }
 
+    public void SetCost(int newValue) => cost.text = newValue.ToString();
     public void SetHealth(int newValue) => health.text = newValue.ToString();
     public void SetAttack(int newValue) => attack.text = newValue.ToString();
     public void SetPoints(int newValue) => points.text = newValue.ToString();

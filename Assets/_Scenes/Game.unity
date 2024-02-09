@@ -21821,9 +21821,13 @@ PrefabInstance:
       propertyPath: m_Name
       value: Develop
       objectReference: {fileID: 0}
+    - target: {fileID: 864114742451860089, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1649771190437801638, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_text
-      value: +1 Develop, Technologies cost 1 less to play.
+      value: +1 Play \n +3 Cash
       objectReference: {fileID: 0}
     - target: {fileID: 1715703789836488561, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_text
@@ -22051,7 +22055,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7892607716301520720, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_text
-      value: +1 Develop
+      value: +1 Play
       objectReference: {fileID: 0}
     - target: {fileID: 8561790675743861653, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_Sprite
@@ -25034,7 +25038,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1649771190437801638, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_text
-      value: +1 Invent, +3 cash.
+      value: +1 Buy \n Technologies cost 1 less
       objectReference: {fileID: 0}
     - target: {fileID: 1715703789836488561, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_text
@@ -25208,10 +25212,6 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5211830695085277639, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
-      propertyPath: m_Layer
-      value: 5
-      objectReference: {fileID: 0}
     - target: {fileID: 5595660816452249132, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -25270,7 +25270,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7892607716301520720, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_text
-      value: +1 Invent
+      value: +1 Buy
       objectReference: {fileID: 0}
     - target: {fileID: 8285960995410979958, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_Layer
@@ -34394,9 +34394,13 @@ PrefabInstance:
       propertyPath: m_Name
       value: Deploy
       objectReference: {fileID: 0}
+    - target: {fileID: 864114742451860089, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1649771190437801638, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_text
-      value: +1 Deploy, Creatures cost 1 less to play.
+      value: +1 Play\n +3 Cash
       objectReference: {fileID: 0}
     - target: {fileID: 1715703789836488561, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_text
@@ -34624,7 +34628,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7892607716301520720, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_text
-      value: +1 Deploy
+      value: +1 Play
       objectReference: {fileID: 0}
     - target: {fileID: 8561790675743861653, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_Sprite
@@ -36077,6 +36081,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Draw
       objectReference: {fileID: 0}
+    - target: {fileID: 864114742451860089, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1649771190437801638, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
+      propertyPath: m_text
+      value: 'Instead: \n +4 Cards, discard 1 '
+      objectReference: {fileID: 0}
+    - target: {fileID: 1649771190437801638, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 2031511396819864486, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -36208,6 +36224,30 @@ PrefabInstance:
     - target: {fileID: 5595660816452249132, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6449700166780747095, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6449700166780747095, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6449700166780747095, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7716964400968829026, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7892607716301520720, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
+      propertyPath: m_text
+      value: +2 Cards, discard 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7892607716301520720, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
@@ -53081,9 +53121,13 @@ PrefabInstance:
       propertyPath: m_Name
       value: Recruit
       objectReference: {fileID: 0}
+    - target: {fileID: 864114742451860089, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1649771190437801638, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_text
-      value: '+1 Recruit, +3 Cash '
+      value: +1 Buy\n Creatures cost 1 less
       objectReference: {fileID: 0}
     - target: {fileID: 1715703789836488561, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_text
@@ -53311,7 +53355,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7892607716301520720, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_text
-      value: +1 Recruit
+      value: +1 Buy
       objectReference: {fileID: 0}
     - target: {fileID: 8561790675743861653, guid: cec0fce2d8d7c5748a7b7c7e2f286770, type: 3}
       propertyPath: m_Sprite

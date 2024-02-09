@@ -25,29 +25,28 @@ public class CardUI : MonoBehaviour
 
     public void SetCardUI(CardInfo cardInfo){
 
+        HighlightReset();
         _title.text = cardInfo.title;
         _cost.text = cardInfo.cost.ToString();
-        
-        if (cardInfo.type == CardType.Creature){
-            _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Creature/creature");
-            _attack.text = cardInfo.attack.ToString();
-            _health.text = cardInfo.health.ToString();
-            _points.text = cardInfo.points.ToString();
-            _description.text = cardInfo.description;
-            _keywords.text = string.Join(", ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
-            _creatureUi.SetActive(true);
-        } else if (cardInfo.type == CardType.Money) {
-            _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Money/" + cardInfo.title);
+        _image.sprite = Resources.Load<Sprite>(cardInfo.cardSpritePath);
+
+        if (cardInfo.type == CardType.Money) {
             _moneyValue.text = cardInfo.moneyValue.ToString();
             _moneyUi.SetActive(true);
-        } else if (cardInfo.type == CardType.Technology) {
-            _image.sprite = Resources.Load<Sprite>("Sprites/Cards/Technology/technology");
-            _points.text = cardInfo.points.ToString();
-            _health.text = cardInfo.health.ToString();
-            _description.text = cardInfo.description;
+            return;
         }
 
-        HighlightReset();
+        // Entity properties
+        _health.text = cardInfo.health.ToString();
+        _description.text = cardInfo.description;
+
+        if (cardInfo.type == CardType.Creature){
+            _attack.text = cardInfo.attack.ToString();
+            _keywords.text = string.Join(", ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
+            _creatureUi.SetActive(true);
+        } else if (cardInfo.type == CardType.Technology) {
+            _points.text = cardInfo.points.ToString();
+        }
     }
 
     public void CardBackUp(){

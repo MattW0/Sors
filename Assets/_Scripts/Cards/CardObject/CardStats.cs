@@ -25,8 +25,8 @@ public class CardStats : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcSetCardStats(CardInfo card){
-
+    public void RpcSetCardStats(CardInfo card)
+    {
         // Will be set active by cardMover, once card is spawned correctly in UI
         gameObject.SetActive(false);
 
