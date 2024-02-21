@@ -69,7 +69,6 @@ public class MarketTileHoverPreview : MonoBehaviour
         if(endWidth > Screen.width) anchor.x -= endWidth - Screen.width;
         if(endHeight < 0f) anchor.y -= endHeight;
 
-        print($"Anchor: {anchor}, endWidth: {endWidth}, endHeight: {endHeight}");
         previewWindow.position = anchor;
     }
 }

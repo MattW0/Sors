@@ -10,7 +10,6 @@ public class PhasePanelUI : MonoBehaviour
     public static PhasePanelUI Instance { get; private set; }
 
     [Header("Player Settings")]
-    [SerializeField] private float playerChoiceInactiveAlpha = 0.3f;
     [SerializeField] private float fadeDuration = 1f;
 
     [Header("Progress Bar")]

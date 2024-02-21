@@ -129,7 +129,7 @@ public class TurnManager : NetworkBehaviour
         _cardCollectionPanel = HandInteractionPanel.Instance;
         _cardCollectionPanel.RpcPrepareCardCollectionPanel(gameOptions.phaseDiscard);
         _phasePanel = PhasePanel.Instance;
-        _phasePanel.RpcPreparePhasePanel(gameOptions.NumberPhases, gameOptions.SkipCardSpawnAnimations);
+        _phasePanel.RpcPreparePhasePanel(gameOptions.NumberPhases);
         _prevailPanel = PrevailPanel.Instance;
         _prevailPanel.RpcPreparePrevailPanel();
     }

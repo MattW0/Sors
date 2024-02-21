@@ -1,30 +1,28 @@
 using System;
 using UnityEngine;
 using TMPro;
-using Mirror;
 
-public class Chat : NetworkBehaviour {
-    
+public class Chat : MonoBehaviour 
+{
     [SerializeField] private TMP_InputField inputField;
     [SerializeField] private TMP_Text chatLog;
 
-    private static event Action<string> onMessageSent;
+    private PlayerInterfaceManager _manager;
 
-    public override void OnStartServer() {
-        gameObject.SetActive(false); 
-        return;
+    private void Start() {
+        gameObject.SetActive(false);
 
-        NetworkIdentity networkIdentity = GetComponent<NetworkIdentity>();
-        networkIdentity.AssignClientAuthority(connectionToClient);
-
-        onMessageSent += HandleNewMessage;
+        _manager = PlayerInterfaceManager.Instance;
+        PlayerInterfaceManager.OnChatMessageSent += HandleNewMessage;
     }
 
-    [ClientCallback]
-    private void OnDestroy() {
-        if (!isOwned) return;
+    private void Update()
+    {
+        if (string.IsNullOrWhiteSpace(inputField.text)) return;
+        if (!Input.GetKeyDown(KeyCode.Return)) return;
 
-        onMessageSent -= HandleNewMessage;
+        _manager.Send(inputField.text);
+        inputField.text = string.Empty;
     }
 
     private void HandleNewMessage(string message) {
@@ -32,23 +30,11 @@ public class Chat : NetworkBehaviour {
         print("message: " + message);
     }
 
-    [Client]
-    public void Send(string message) {
-        // if (!Input.GetKeyDown(KeyCode.Return)) return;
-        // if (string.IsNullOrWhiteSpace(message)) return;
-
-        CmdSendMessage(message);
-        
-        inputField.text = string.Empty;
+    public void ToggleChat() {
+        gameObject.SetActive(!gameObject.activeSelf);
     }
 
-    [Command]
-    private void CmdSendMessage(string message) {
-        RpcHandleMessage($"[{connectionToClient.connectionId}]: {message}");
-    }
-
-    [ClientRpc]
-    private void RpcHandleMessage(string message) {
-        onMessageSent?.Invoke(message);
+    private void OnDestroy() {
+        PlayerInterfaceManager.OnChatMessageSent -= HandleNewMessage;
     }
 }

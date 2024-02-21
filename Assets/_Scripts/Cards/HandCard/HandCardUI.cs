@@ -8,10 +8,9 @@ using System.Linq;
 
 public class HandCardUI : CardUI
 {
-    public GameObject _front;
+    [SerializeField] private GameObject _front;
 
-    public override void SetCardUI(CardInfo cardInfo){
-        base.SetCardUI(cardInfo);
+    private void Awake(){
         HighlightReset();
     }
 

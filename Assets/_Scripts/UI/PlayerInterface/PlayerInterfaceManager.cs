@@ -1,3 +1,4 @@
+using System;
 using Mirror;
 using UnityEngine;
 using System.Collections.Generic;
@@ -7,11 +8,12 @@ public class PlayerInterfaceManager : NetworkBehaviour
 {
     public static PlayerInterfaceManager Instance { get; private set; }
     [SerializeField] private Logger _logger;
-    private PlayerInterfaceButtons _buttons;
+    [SerializeField] private Chat _chat;
+    public static event Action<string> OnChatMessageSent;
 
-    public LogType lineType;
-    public bool printLine;
-    
+    private PlayerManager _player;
+    private Market _market;
+    private HandInteractionPanel _cardCollectionPanel;
     
     private void Awake()
     {
@@ -20,56 +22,44 @@ public class PlayerInterfaceManager : NetworkBehaviour
         GameManager.OnGameStart += RpcPrepareUIs;
     }
 
-    void Update()
-    {
-        if(!printLine) return;
-        printLine = false;
-
-        var messageColor = GetColor(lineType);
-        _logger.Log($"<color={messageColor}>This is test message</color>");
-    }
-
     [ClientRpc]
     private void RpcPrepareUIs(GameOptions gameOptions){
-        _buttons = PlayerInterfaceButtons.Instance;
+
+        NetworkIdentity networkIdentity = GetComponent<NetworkIdentity>();
+        if(connectionToClient != null) networkIdentity.AssignClientAuthority(connectionToClient);
+
+        _market = Market.Instance;
+        _cardCollectionPanel = HandInteractionPanel.Instance;
+
+        _player = PlayerManager.GetLocalPlayer();
+        if(!_player.isServer) gameObject.GetComponent<PlayerInterfaceButtons>().DisableUtilityButton();
     }
 
     [ClientRpc]
-    public void RpcLog(string message, LogType type){
-        
-        var messageColor = GetColor(type);
-        _logger.Log($"<color={messageColor}>{message}</color>");
+    public void RpcLog(string message, LogType type) => _logger.Log(message, type);
+    
+    [Client]
+    public void Send(string message) {
+        CmdSendMessage(message);
     }
 
-    private string GetColor(LogType type){
-        var messageColor = type switch{
-            LogType.EffectTrigger => SorsColors.effectTrigger,
-            LogType.TurnChange => SorsColors.turnChange,
-            LogType.Phase => SorsColors.detail,
-            LogType.CreatureBuy => SorsColors.creatureBuy,
-            LogType.Combat => SorsColors.combat,
-            LogType.CombatDamage => SorsColors.combatDamage,
-            LogType.CombatClash => SorsColors.combatClash,
-            LogType.Standard => SorsColors.standardLog,
-            _ => SorsColors.standardLog
-        };
-
-        return messageColor;
+    [Command(requiresAuthority = false)]
+    private void CmdSendMessage(string message) {
+        RpcHandleMessage($"[{connectionToClient.connectionId}]: {message}");
     }
+
+    [ClientRpc]
+    private void RpcHandleMessage(string message) {
+        OnChatMessageSent?.Invoke(message);
+    }
+    
+    public void OpenCardCollectionView() => _cardCollectionPanel.ToggleView();
+    public void OpenMarketView() => _market.MaxButton();
+    public void ForceEndTurn() => _player.ForceEndTurn();
+    public void Undo() => _player.CmdUndoPlayMoney();
+    public void OpenChat() => _chat.ToggleChat();
 
     private void OnDestroy(){
         GameManager.OnGameStart -= RpcPrepareUIs;
     }
-}
-
-public enum LogType : byte
-{
-    Standard,
-    EffectTrigger,
-    TurnChange,
-    Phase,
-    CreatureBuy,
-    Combat,
-    CombatDamage,
-    CombatClash
 }

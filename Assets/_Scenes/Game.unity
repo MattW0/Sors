@@ -15169,7 +15169,6 @@ RectTransform:
   m_Children:
   - {fileID: 3192152505771221446}
   - {fileID: 7629642219686915517}
-  - {fileID: 5075357110223886680}
   m_Father: {fileID: 1753289324823442043}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -19002,8 +19001,7 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   _logger: {fileID: 4294117939368581581}
-  lineType: 0
-  printLine: 0
+  _chat: {fileID: 1909957181611626891}
 --- !u!1 &2003897311
 GameObject:
   m_ObjectHideFlags: 0
@@ -21462,7 +21460,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 6651203447361837524}
   m_OnClick:
     m_PersistentCalls:
@@ -24074,6 +24072,7 @@ RectTransform:
   m_Children:
   - {fileID: 2085237887806070446}
   - {fileID: 1399148809}
+  - {fileID: 5075357110223886680}
   m_Father: {fileID: 6822816930630696410}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -24616,7 +24615,7 @@ GameObject:
   - component: {fileID: 1909957181459645340}
   - component: {fileID: 1909957181459645341}
   m_Layer: 5
-  m_Name: Text Area
+  m_Name: TextArea
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -24667,6 +24666,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1909957181611626890}
+  - component: {fileID: 1909957181611626891}
   m_Layer: 5
   m_Name: Chat
   m_TagString: Untagged
@@ -24697,6 +24697,20 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 25}
   m_SizeDelta: {x: 0, y: -50}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1909957181611626891
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1909957181611626889}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16622d63b5c6db14f9c7f3220bc45162, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  inputField: {fileID: 1909957181688969365}
+  chatLog: {fileID: 1909957181823484620}
 --- !u!1 &1909957181688969363
 GameObject:
   m_ObjectHideFlags: 0
@@ -24710,7 +24724,7 @@ GameObject:
   - component: {fileID: 1909957181688969366}
   - component: {fileID: 1909957181688969365}
   m_Layer: 5
-  m_Name: Input Text
+  m_Name: InputField
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -25053,7 +25067,7 @@ GameObject:
   - component: {fileID: 1909957181823484621}
   - component: {fileID: 1909957181823484620}
   m_Layer: 5
-  m_Name: Log Text
+  m_Name: ChatText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -25278,10 +25292,10 @@ RectTransform:
   m_Father: {fileID: 5967076760328111732}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 62.5, y: -25}
+  m_SizeDelta: {x: 105, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1980291711764693515
 CanvasRenderer:
@@ -29605,6 +29619,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   logText: {fileID: 2428494597573332484}
   scrollRect: {fileID: 9182542324893608447}
+  lineType: 0
+  printLine: 0
 --- !u!222 &4312503117076803824
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -31514,18 +31530,6 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: LogChatManager, Assembly-CSharp
-        m_MethodName: DisplayLog
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: LogChatManager, Assembly-CSharp
         m_MethodName: 
         m_Mode: 1
         m_Arguments:
@@ -31574,13 +31578,13 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5916312716187615542}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.000024390041}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 252309293}
   - {fileID: 1197047063}
-  m_Father: {fileID: 1399148809}
+  m_Father: {fileID: 1753289324823442043}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
@@ -32393,7 +32397,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e29f368259f27474aac8cdd69352a338, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerChoiceInactiveAlpha: 0.3
   fadeDuration: 1
   progressBar: {fileID: 4358999200581128184}
   progressBarHighlight: {fileID: 66546057}
@@ -32586,22 +32589,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -406}
   m_SizeDelta: {x: 300, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &5434541857704051036
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5916312716187615542}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 42f7d97fc19c4fb4c9121c78d83ebef0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _undoButton: {fileID: 1694847751335306320}
-  _utilityButton: {fileID: 706010337771312316}
-  _handButton: {fileID: 7330098765623640550}
-  _marketButton: {fileID: 4051181949804687365}
 --- !u!114 &5435493117719320793
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -33730,7 +33717,6 @@ GameObject:
   - component: {fileID: 5075357110223886680}
   - component: {fileID: 4971765137932326158}
   - component: {fileID: 6024605385608574913}
-  - component: {fileID: 5434541857704051036}
   - component: {fileID: 6024605385608574914}
   m_Layer: 5
   m_Name: GameButtons
@@ -35050,7 +35036,7 @@ GameObject:
   - component: {fileID: 5861246466128971170}
   - component: {fileID: 7629642219686915518}
   m_Layer: 0
-  m_Name: OverlayTurnScreen
+  m_Name: TurnScreenOverlay
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -37602,6 +37588,7 @@ MonoBehaviour:
   _selectedPhases: 
   attack: {fileID: 5306569513780226074}
   block: {fileID: 4475277061426929672}
+  _turnScreenOverlay: {fileID: 7629642219686915518}
   confirmPhaseSelection: {fileID: 131472858}
   turnText: {fileID: 7813877224071648167}
   actionDescriptionText: {fileID: 1062364148208177395}
@@ -37642,7 +37629,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &7473027867188297829
 RectTransform:
   m_ObjectHideFlags: 0
@@ -39483,6 +39470,7 @@ GameObject:
   - component: {fileID: 8518550044836330316}
   - component: {fileID: 8518550044836330318}
   - component: {fileID: 1999045899}
+  - component: {fileID: 8518550044836330319}
   m_Layer: 5
   m_Name: Interface
   m_TagString: Untagged
@@ -39528,6 +39516,23 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 503
+--- !u!114 &8518550044836330319
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8518550044836330315}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42f7d97fc19c4fb4c9121c78d83ebef0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _handButton: {fileID: 7330098765623640550}
+  _marketButton: {fileID: 4051181949804687365}
+  _utilityButton: {fileID: 706010337771312316}
+  _undoButton: {fileID: 1694847751335306320}
+  _chatButton: {fileID: 715009246469000023}
 --- !u!224 &8549952198508335849
 RectTransform:
   m_ObjectHideFlags: 0
@@ -41436,7 +41441,7 @@ MonoBehaviour:
   m_BlockingObjects: 0
   m_BlockingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 503
 --- !u!1 &9093768623011106832
 GameObject:
   m_ObjectHideFlags: 0

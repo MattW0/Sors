@@ -6,13 +6,8 @@ using TMPro;
 
 public class TurnScreenOverlay : MonoBehaviour
 {
-    public static TurnScreenOverlay Instance { get; private set; }
     [SerializeField] private TMP_Text overlayTurnText;
     [SerializeField] private Image overlayImage;
-
-    private void Awake(){
-        if(!Instance) Instance = this;
-    }
 
     public void UpdateTurnScreen(int currentTurn){
         overlayTurnText.text = "Turn " + currentTurn.ToString();
