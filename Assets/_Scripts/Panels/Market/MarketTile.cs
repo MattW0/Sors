@@ -52,7 +52,7 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     public void SetTile(CardInfo card){
         cardInfo = card;
         Cost = card.cost;
-        _ui.SetTileUI(card);
+        _ui.SetCardUI(card);
 
         if(card.type == CardType.Money || card.type == CardType.Technology){
             Market.OnDevelopPhaseEnded += EndDevelopPhase;

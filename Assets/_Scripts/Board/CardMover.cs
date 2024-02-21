@@ -46,7 +46,7 @@ public class CardMover : MonoBehaviour
     }
 
     private void FlipCard(GameObject card, bool hasAuthority, CardLocation to){
-        var cardUI = card.GetComponent<CardUI>();
+        var cardUI = card.GetComponent<HandCardUI>();
         if(to == CardLocation.Discard 
             || to == CardLocation.MoneyZone 
             || to == CardLocation.Trash
@@ -132,7 +132,7 @@ public class CardMover : MonoBehaviour
     private void InitSpawnedCard(GameObject card, bool hasAuthority, CardLocation destination, bool fromFile=false)
     {    
         card.transform.localScale = Vector3.one;
-        if(!fromFile && hasAuthority) card.GetComponent<CardUI>().CardFrontUp();
+        if(!fromFile && hasAuthority) card.GetComponent<HandCardUI>().CardFrontUp();
 
         if(hasAuthority){
             playerCardSpawn.Add(card);

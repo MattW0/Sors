@@ -5,7 +5,7 @@ public class CardStats : NetworkBehaviour
 {
     public PlayerManager owner { get; private set; }
     public CardInfo cardInfo;
-    private CardUI _cardUI;
+    private HandCardUI _cardUI;
 
     private bool _interactable;
     public bool IsInteractable { 
@@ -21,7 +21,7 @@ public class CardStats : NetworkBehaviour
         var networkIdentity = NetworkClient.connection.identity;
         owner = networkIdentity.GetComponent<PlayerManager>();
         
-        _cardUI = gameObject.GetComponent<CardUI>();
+        _cardUI = gameObject.GetComponent<HandCardUI>();
     }
 
     [ClientRpc]

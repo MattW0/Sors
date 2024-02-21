@@ -8,16 +8,17 @@ public class MarketTileHoverPreview : MonoBehaviour
     [SerializeField] private GameObject _creatureDetailCard;
     [SerializeField] private GameObject _technologyDetailCard;
     [SerializeField] private GameObject _moneyDetailCard;
-
-    // _offset = absolute position of preview window + half of its size
-    // TODO: Is not proper yet
-    private Vector3 _offset = new Vector3(940f, 520f, 0f);
-    private const float viewHeight = 440f;
-    private const float viewWidth = 280f;
+    private Vector3 _offset = new Vector3(10f, -10f, 0f);
+    private float _viewHeight;
+    private float _viewWidth;
 
     public static Action<CardInfo> OnHoverTile;
     public static Action OnHoverExit;
 
+    private void Awake(){
+        _viewHeight = previewWindow.rect.height;
+        _viewWidth = previewWindow.rect.width;
+    }
 
     private void OnEnable(){
         OnHoverTile += ShowPreview;
@@ -61,13 +62,14 @@ public class MarketTileHoverPreview : MonoBehaviour
     }
 
     private void SetViewPosition(){
-        var anchor = Input.mousePosition;
+        var anchor = Input.mousePosition + _offset;
 
-        var endWidth = anchor.x + viewWidth;
-        var endHeight = anchor.y + viewHeight;
+        var endWidth = anchor.x + _viewWidth;
+        var endHeight = anchor.y - _viewHeight;
         if(endWidth > Screen.width) anchor.x -= endWidth - Screen.width;
-        if(endHeight > Screen.height) anchor.y -= endHeight - Screen.height;
+        if(endHeight < 0f) anchor.y -= endHeight;
 
-        previewWindow.localPosition = anchor - _offset;
+        print($"Anchor: {anchor}, endWidth: {endWidth}, endHeight: {endHeight}");
+        previewWindow.position = anchor;
     }
 }

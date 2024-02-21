@@ -1,20 +1,19 @@
-using System.Globalization;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
-using System.Linq;
+using UnityEngine.UI;
 
 public class CardUI : MonoBehaviour
 {
     [Header("General Card Properties")]
-    [SerializeField] private TMP_Text _title;
+    [SerializeField] private TMP_Text _titleText;
     [SerializeField] private TMP_Text _cost;
+    public int Cost { 
+        get => int.Parse(_cost.text); 
+        set => _cost.text = value.ToString();
+    }
     [SerializeField] private TMP_Text _health;
     [SerializeField] private TMP_Text _description;
     [SerializeField] private Image _image;
-    [SerializeField] private Image _highlight;    
 
     [Header("Card Type Specific")]
     [SerializeField] private TMP_Text _attack;
@@ -24,21 +23,18 @@ public class CardUI : MonoBehaviour
     [SerializeField] private GameObject _keywordsBox;
 
     [Header("UI Elements")]
-    [SerializeField] private GameObject _front;
-    [SerializeField] private GameObject _creatureUi;
-    [SerializeField] private GameObject _moneyUi;
-    [SerializeField] private Image _border;
+    public Image highlight;
+    public GameObject titleBox;
+    private Vector3 YES_KEYWORDS_TITLE_POSITION = new(0f, -15f, 0f);
 
-    public void SetCardUI(CardInfo cardInfo){
-
-        HighlightReset();
-        _title.text = cardInfo.title;
+    public virtual void SetCardUI(CardInfo cardInfo)
+    {
+        _titleText.text = cardInfo.title;
         _cost.text = cardInfo.cost.ToString();
         _image.sprite = Resources.Load<Sprite>(cardInfo.cardSpritePath);
 
         if (cardInfo.type == CardType.Money) {
             _moneyValue.text = cardInfo.moneyValue.ToString();
-            _moneyUi.SetActive(true);
             return;
         }
 
@@ -47,35 +43,16 @@ public class CardUI : MonoBehaviour
         _description.text = cardInfo.description;
 
         if (cardInfo.type == CardType.Creature){
-            _creatureUi.SetActive(true);
             _attack.text = cardInfo.attack.ToString();
-            if(cardInfo.keywordAbilities.Count > 0)
+            if(cardInfo.keywordAbilities.Count > 0){
+                _keywordsBox.SetActive(true);
                 _keywordsText.text = string.Join(", ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
-            else
+                titleBox.transform.localPosition = YES_KEYWORDS_TITLE_POSITION;
+            } else { 
                 _keywordsBox.SetActive(false);
+            }
         } else if (cardInfo.type == CardType.Technology) {
             _points.text = cardInfo.points.ToString();
         }
-    }
-
-    public void CardBackUp(){
-        _front.SetActive(false);
-        // _border.enabled = false;
-    }
-    public void CardFrontUp(){
-        _front.SetActive(true);
-        // _border.enabled = true;
-    }
-
-    public void Highlight(bool active, Color color){
-        // if(!_highlight) return;
-
-        _highlight.color = color;
-        _highlight.enabled = active;
-    }
-    
-    private void HighlightReset(){
-        _highlight.color = SorsColors.standardHighlight;
-        _highlight.enabled = false;
     }
 }
