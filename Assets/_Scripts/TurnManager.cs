@@ -298,7 +298,11 @@ public class TurnManager : NetworkBehaviour
     {
         // convert current turnState (TurnState enum) to Phase enum
         var phase = Phase.Recruit;
-        if (turnState == TurnState.Invent) phase = Phase.Invent;
+        var cardType = CardType.Creature;
+        if (turnState == TurnState.Invent){
+            phase = Phase.Invent;
+            cardType = CardType.Technology;
+        } 
 
         _handManager.RpcHighlightMoney(true);
         _market.RpcBeginPhase(phase);
@@ -312,9 +316,8 @@ public class TurnManager : NetworkBehaviour
             if (player.chosenPhases.Contains(phase))
             {
                 player.Buys++;
-                player.Cash += _gameOptions.extraCash;
+                PlayerGetsMarketBonus(player, cardType, _gameOptions.marketPriceReduction);
 
-                // _market.TargetMarketPhaseBonus(player.connectionToClient, _gameOptions.marketPriceReduction);
                 _market.TargetCheckMarketPrices(player.connectionToClient, player.Cash);
             }
         }
@@ -357,6 +360,7 @@ public class TurnManager : NetworkBehaviour
             _gameManager.PlayerGainCard(owner, card);
         }
 
+        _selectedMarketCards.Clear();
         StartCoroutine(BuyCardsIntermission());
     }
 
@@ -425,7 +429,8 @@ public class TurnManager : NetworkBehaviour
 
             // If player selected Develop or Deploy, they get bonus Plays
             if (player.chosenPhases.Contains(phase)){
-                if (phase == Phase.Develop || phase == Phase.Deploy) player.Plays += _gameOptions.extraPlays;
+                player.Plays += _gameOptions.extraPlays;
+                player.Cash += _gameOptions.extraCash;
             }
         }
         
@@ -709,7 +714,8 @@ public class TurnManager : NetworkBehaviour
             else if (turnState == TurnState.Deploy) cards = cards.Where(card => card.type == CardType.Creature).ToList();
 
             var cardObjects = GameManager.CardInfosToGameObjects(cards);
-            _cardCollectionPanel.TargetShowCardCollection(player.connectionToClient, turnState, cardObjects, cards);
+            // Need plays here because clients can't access that number
+            _cardCollectionPanel.TargetShowCardCollection(player.connectionToClient, turnState, cardObjects, cards, player.Plays);
 
             // Reevaluating money in play to highlight playable cards after reset
             if (turnState == TurnState.Develop || turnState == TurnState.Deploy)

@@ -330,6 +330,17 @@ PrefabInstance:
     m_RemovedComponents:
     - {fileID: 6163234686391447415, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
+--- !u!114 &744247480074657914 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3176159294192201739, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
+  m_PrefabInstance: {fileID: 2758425286859411569}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2744354461364302012}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b560d62525800ec4db7de62658fef819, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2744354461364302012 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 23084215047643341, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
@@ -350,7 +361,7 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0.1
-  _entityUI: {fileID: 5284543431838378506}
+  _entityUI: {fileID: 744247480074657914}
   _playerUI: {fileID: 0}
   cardType: 2
   _health: 0
@@ -358,17 +369,6 @@ MonoBehaviour:
   targetArrowHandler: {fileID: 0}
   attackerArrowHandler: {fileID: 0}
   blockerArrowHandler: {fileID: 0}
---- !u!114 &5284543431838378506 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8003351115639585403, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
-  m_PrefabInstance: {fileID: 2758425286859411569}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2744354461364302012}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aba4e48fc24ff7d42b4a1cab8679fa1f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &6077006085268490378 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8219696012871407867, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}

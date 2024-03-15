@@ -160,16 +160,14 @@ public class Market : NetworkBehaviour
     }
     #endregion
 
-    public void PlayerPressedButton(bool skip){
-        if(skip) {
-            _player.CmdSkipBuy();
-            return;
-        }
-        
+    public void PlayerPressedConfirmButton()
+    {        
         // Need the cost here as market bonus are not reflected in cardInfo itself
         if(_selectedTile) _player.CmdConfirmBuy(_selectedTile.cardInfo, _selectedTile.Cost);
         else print("ERROR: No tile selected");
     }
+
+    public void PlayerPressedSkipButton() => _player.CmdSkipBuy();
 
     [ClientRpc]
     public void RpcMinButton() => _ui.MinButton();

@@ -3,76 +3,67 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class EntityUI : MonoBehaviour, IPointerClickHandler
+public class EntityUI : MonoBehaviour
 {
-    private CardZoomView _cardZoomView;
-    [SerializeField] private Image effectHighlight;
+    public CardInfo CardInfo { get ; private set; }
 
     [Header("Entity Stats")]
-    private CardInfo _cardInfo;
-    [SerializeField] private TMP_Text title;
-    [SerializeField] private TMP_Text cost;
-    [SerializeField] private TMP_Text health;
-    [SerializeField] private TMP_Text attack;
-    [SerializeField] private TMP_Text points;
+    [SerializeField] private TMP_Text _title;
+    [SerializeField] private TMP_Text _cost;
+    [SerializeField] private TMP_Text _health;
+    [SerializeField] private TMP_Text _attack;
+    [SerializeField] private TMP_Text _points;
+    [SerializeField] private TMP_Text _value;
 
     [Header("Body")]
-    [SerializeField] private GameObject keywordsBox;
-    [SerializeField] private TMP_Text keywordsText;
-    [SerializeField] private TMP_Text description;
     [SerializeField] private Image _image;
-
-    private void Start(){
-        _cardZoomView = CardZoomView.Instance;
-    }
+    [SerializeField] private Image _highlight;
+    [SerializeField] private GameObject _keywordsBox;
+    [SerializeField] private TMP_Text _keywordsText;
+    [SerializeField] private TMP_Text _description;
 
     public void SetEntityUI(CardInfo cardInfo){
-        _cardInfo = cardInfo;
+        CardInfo = cardInfo;
 
         // Set card stats
-        title.text = cardInfo.title;
-        cost.text = cardInfo.cost.ToString();
-        health.text = cardInfo.health.ToString();
-        description.text = cardInfo.description;
+        _title.text = cardInfo.title;
+        _cost.text = cardInfo.cost.ToString();
+        _health.text = cardInfo.health.ToString();
+        _description.text = cardInfo.description;
 
         _image.sprite = Resources.Load<Sprite>(cardInfo.entitySpritePath);
 
         if(cardInfo.type == CardType.Creature){
-            attack.text = cardInfo.attack.ToString();
+            _attack.text = cardInfo.attack.ToString();
             if(cardInfo.keywordAbilities.Count > 0){
-                keywordsBox.SetActive(true);
-                keywordsText.text = string.Join(", ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
+                _keywordsBox.SetActive(true);
+                _keywordsText.text = string.Join(", ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
             } else {
-                keywordsBox.SetActive(false);
+                _keywordsBox.SetActive(false);
             }
         } else if (cardInfo.type == CardType.Technology){
-            points.text = cardInfo.points.ToString();
+            _points.text = cardInfo.points.ToString();
+        } else if (cardInfo.type == CardType.Money){
+            _value.text = cardInfo.moneyValue.ToString();
         }
     }
 
-    public void OnPointerClick(PointerEventData eventData) {
-        // Right click to zoom only
-        if (eventData.button != PointerEventData.InputButton.Right) return;
-        
-        _cardZoomView.ZoomCard(_cardInfo);
-    }
-
-    public void SetCost(int newValue) => cost.text = newValue.ToString();
-    public void SetHealth(int newValue) => health.text = newValue.ToString();
-    public void SetAttack(int newValue) => attack.text = newValue.ToString();
-    public void SetPoints(int newValue) => points.text = newValue.ToString();
+    public void SetCost(int newValue) => _cost.text = newValue.ToString();
+    public void SetHealth(int newValue) => _health.text = newValue.ToString();
+    public void SetAttack(int newValue) => _attack.text = newValue.ToString();
+    public void SetPoints(int newValue) => _points.text = newValue.ToString();
 
     public void Highlight(bool enabled, Color color)
     {
-        if(effectHighlight == null) return;
+        if(_highlight == null) return;
 
-        effectHighlight.enabled = enabled;
-        effectHighlight.color = color;
+        _highlight.enabled = enabled;
+        _highlight.color = color;
     }
     public void DisableHighlight()
     {
-        if(effectHighlight == null) return;
+        if(_highlight == null) return;
 
-        effectHighlight.enabled = false;
+        _highlight.enabled = false;
     } 
 }

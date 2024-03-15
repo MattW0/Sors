@@ -23,12 +23,12 @@ A turn of *Sors* has 9 phases, 3 of which are mandatory and 6 are optional. At t
 | Phase    | Optional | Effect | Bonus |  Steps
 | -------- | ------- | ------- | ------- | -------
 | **Phase Selection** | :x: | +2 Cards, choose 2 phases for this turn | - |  2  
-| **Card Draw** | :heavy_check_mark: | +2 Cards, discard 1 | Instead: +4 Cards, discard 1 | 2
+| **Card Draw** | :heavy_check_mark: | +2 Cards, discard 1 | +2 Cards | 2
 | **Invent** | :heavy_check_mark: | Buy Technologies from the market | +1 Buy, Technologies cost 1 less | 1+
-| **Develop** | :heavy_check_mark: | Play Technologies | +1 Play, +3 Cash | 1+
+| **Develop** | :heavy_check_mark: | Play Technologies | +1 Play, +2 Cash | 1+
 | **Combat** | :x: | Creatures may deal damgage (Attack step) and block opposing Attackers (Defend step) | - | 4
 | **Recruit** | :heavy_check_mark: | Buy Creatures from the market | +1 Buy, Creatures cost 1 less | 1+
-| **Deploy** | :heavy_check_mark: | Play Creatures | +1 Play, +3 Cash | 1+
+| **Deploy** | :heavy_check_mark: | Play Creatures | +1 Play, +2 Cash | 1+
 | **Prevail** | :heavy_check_mark: | +1 Prevail | +2 Prevail | 1-4
 | **Clean Up** | :x: | The board resets and players get ready for the next turn. | - | 1  
 
@@ -39,24 +39,29 @@ A turn of *Sors* has 9 phases, 3 of which are mandatory and 6 are optional. At t
 </figure>
 
 #### Cards and Entities
-When you play _Technologies_ and _Creatures_ from your hand, they become **Entities** on the **Battlefield**. A _Card_ and the corresponding _Entity_ are coupled and share the same stats amongst **Cost**, **Health**, **Abilities**, a title and a description. While on the _Battlefield_, _Entities_ may have their stats changed, for example when taking damage. This does not change the stats of the corresponding _Card_. Similarly, a card in your hand may have different stats temporarily.
+When you play technologies and creatures from your hand, they become **Entities** on the **Battlefield**. Entities only exist on the battlefield. A card and the corresponding entity are coupled and share the same base stats amongst **Cost**, **Health**, **Abilities**, a title and a description. Money cards do not have an equivalent entity but have a **Value**, producing that amount of cash when you play them. The stats of a card may vary temporarily due to the a phase bonus or abilities. Similary, entities may have their stats changed, for example when taking damage. This does not change the stats of the corresponding card. Many abilities only trigger while the entity is on the battlefield, although there may be exceptions (TODO: ADD REF).
 
-An _Entity_ **dies** when its _Health_ reaches zero. Then, the _Entity_ is **destroyed** (ie. it leaves the _Battlefield_) and the corresponding _Card_ moves to your discard pile. A _Creature's_ **Attack** determines how much damage it deals to other _Entities_ during _Combat_. _Creatures_ may also have **Traits** that influence how that damage is dealt (TODO: ADD REF). Technologies on the other hand have a **Points** value, that doesn't do shit rn TODO.
-
-To buy a card, you spend a _Buy_ and pay an amount of _Cash_ equal to that card's _Cost_. Playing _Technologies_ and _Creatures_ also requires you to pay that cost and uses a _Play_.  Playing a _Money_ card is a special action and does not require to spend a _Play_ (you can play unlimited _Money_ cards from your hand). _Money_ cards do not have an equivalent _Entity_ but have a **Value**, producing that amount of _Cash_ when you play them. The _Cost_ of a card may vary temporarily due to the a phase bonus or _Abilities_.
+An entity **dies** when its health reaches zero. Then, it leaves the battlefield and the corresponding card moves to your discard pile. A creature's **Attack** determines how much damage it deals to other entities during Combat. Creatures may also have **Traits** that influence how that damage is dealt (TODO: ADD REF). Technologies on the other hand have a **Points** value, that doesn't do shit rn TODO. 
 
 <figure>
     <img src="Images/CardsEntities.PNG"
          alt="CardsEntities">
-    <figcaption> Stats of <i>Cards</i> determine what you get from playing them. The top row shows an example card of each type (<i>Money</i>, <i>Creature</i> and <i>Technology</i>) and the bottom row shows the equivalent <i>Entities</i> and how they look on the <i>Battlefield</i>. </figcaption>
+    <figcaption> Stats of cards determine what you get from playing them. The top row shows an example card of each type (Money, Creature and Technology) and the bottom row shows the corresponding entities and how they look on the battlefield. </figcaption>
 </figure>
 
 #### The Board
-You can only play cards from your **Hand**. _Money_ cards move to the **Money Zone** and are **discarded** at the end of each phase. If you have unspent _Cash_ and if possible, the corresponding _Money_ cards are returned to your hand. To play a _Technology_ or _Creature_ card, you have to spend a _Play_. Doing so moves the card to the **Play Zone** and creates the corresponding _Entity_ on the _Battlefield_. Cards in the _Play Zone_ can't be interacted with and stay there until the corresponding _Entity_ dies. Once that happens, the _Entity_ leaves the _Battlefield_ and the card moves to your **Discard** pile. You draw cards from your **Deck**, moving them to your _Hand_. Whenever you attempt to draw, but your _Deck_ is empty, you shuffle your _Discard_ pile and move all these cards to your _Deck_. If you still can't draw more cards, you skip that draw instead.
+You can only play cards from your **Hand**. Money cards move to the **Money Zone** and are **discarded** at the end of each phase. At the end of phases, if you have unspent cash and if possible, money cards are returned to your hand. To play a technology or creature card, you have to spend a _Play_. Doing so moves the card to the **Play Zone** and creates the corresponding entity on the _Battlefield_. Cards in the _Play Zone_ can't be interacted with and stay there until the corresponding entity dies. Once that happens, the entity is destroyed and the card moves to your **Discard** pile. You draw cards from your **Deck**, moving them to your _Hand_. Whenever you attempt to draw, but your _Deck_ is empty, you shuffle your _Discard_ pile, move these cards to your _Deck_ and continue drawing. If you still can't draw more cards, you skip that draw instead.
+
+The _Battlefield_ consists of two zones for creature and technology entities. Each zone has six slots for entities, meaning that you can have up to six creatures and up to six technologies in play simultaneously.
+
+
 
 #### The Phases in detail
 >**1. Phase Selection**
 > Each player draws 2 cards and then chooses 2 phases. Ability trigger: "At the beginning of the turn"
+
+>**3. Invent**
+>To buy a card, you spend a _Buy_ and pay an amount of _Cash_ equal to that card's _Cost_. Playing _Technologies_ and _Creatures_ also requires you to pay that cost and uses a _Play_.  Playing a money card is a special action and does not require to spend a _Play_ (you can play unlimited money cards from your hand).
 
 ##### Combat
 

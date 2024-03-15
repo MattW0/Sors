@@ -70,27 +70,32 @@ public class MarketUI : MonoBehaviour
     #endregion
 
     #region Buttons and UI
-    public void SwitchButtonPressed(){
-        if(_developPanel.activeSelf) ShowCreaturePanel();
-        else ShowTechnologyPanel();
-    }
     
     public void ConfirmButtonPressed(){
         _interactionButtons.SetActive(false);
         _waitingText.SetActive(true);
-        _market.PlayerPressedButton(false);
+
+        // Market lets local player make command to server
+        _market.PlayerPressedConfirmButton();
     }
 
     public void SkipButtonPressed(){
         _interactionButtons.SetActive(false);
         _waitingText.SetActive(true);
-        _market.PlayerPressedButton(true);
+        
+        // Market lets local player make command to server
+        _market.PlayerPressedSkipButton();
     }
 
     public void ResetInteractionButtons(){
         _interactionButtons.SetActive(true);
         confirm.interactable = false;
         _waitingText.SetActive(false);
+    }
+
+    public void SwitchButtonPressed(){
+        if(_developPanel.activeSelf) ShowCreaturePanel();
+        else ShowTechnologyPanel();
     }
 
     private void ShowTechnologyPanel(){

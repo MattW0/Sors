@@ -13,15 +13,15 @@ public class CardSpawner : MonoBehaviour
     [SerializeField] private Transform _gridChosen;
     // private GameObject _currentGrid;
 
-    public List<DetailCard> SpawnDetailCardObjects(List<CardInfo> cards, TurnState turnState){
-
+    public List<DetailCard> SpawnDetailCardObjects(List<CardInfo> cards, TurnState turnState)
+    {
         var detailCards = new List<DetailCard>();
         foreach (var cardInfo in cards){
             var detailCardObject = cardInfo.type switch{
-            CardType.Creature => Instantiate(_creatureDetailCardPrefab) as GameObject,
-            CardType.Technology => Instantiate(_technologyDetailCardPrefab) as GameObject,
-            CardType.Money => Instantiate(_moneyDetailCardPrefab) as GameObject,
-            _ => throw new System.Exception("Card type not found")
+                CardType.Creature => Instantiate(_creatureDetailCardPrefab) as GameObject,
+                CardType.Technology => Instantiate(_technologyDetailCardPrefab) as GameObject,
+                CardType.Money => Instantiate(_moneyDetailCardPrefab) as GameObject,
+                _ => throw new System.Exception("Card type not found")
             };
 
             detailCardObject.transform.SetParent(_gridAll, false);

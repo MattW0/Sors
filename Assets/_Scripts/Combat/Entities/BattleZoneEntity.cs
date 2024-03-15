@@ -11,7 +11,7 @@ public class BattleZoneEntity : NetworkBehaviour
     public PlayerManager Owner { get; private set; }
     public PlayerManager Opponent { get; private set; }
     public string Title { get; private set; }
-    [SerializeField] private EntityUI _entityUI;
+    [SerializeField] private BattleZoneEntityUI _entityUI;
     [SerializeField] private PlayerUI _playerUI;
 
     [field: Header("Stats")]
@@ -51,9 +51,9 @@ public class BattleZoneEntity : NetworkBehaviour
         }
     }
 
-    public TargetArrowHandler targetArrowHandler;
-    public AttackerArrowHandler attackerArrowHandler;
-    public BlockerArrowHandler blockerArrowHandler;
+    [HideInInspector] public TargetArrowHandler targetArrowHandler;
+    [HideInInspector] public AttackerArrowHandler attackerArrowHandler;
+    [HideInInspector] public BlockerArrowHandler blockerArrowHandler;
 
 
     private void Awake(){

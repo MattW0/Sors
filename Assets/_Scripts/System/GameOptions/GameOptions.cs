@@ -31,10 +31,11 @@ public struct GameOptions
     // Phase Boni
     public int phaseDiscard;
     public int extraDraw;
-    public int extraCash;
     public int extraBuys;
     public int extraPlays;
     public int extraPrevails;
+    public int extraCash;
+    public int marketPriceReduction;
 
     public GameOptions(string address, int numPhases, bool singlePlayer, bool fullHand, bool skipSpawnimations, string stateFile, bool saveStates, int initialHandSize)
     {
@@ -67,8 +68,10 @@ public struct GameOptions
         extraDraw = 2;
         extraBuys = 1;
         extraPlays = 1;
-        extraCash = 3;
         extraPrevails = 2;
+
+        extraCash = 2;
+        marketPriceReduction = 1;
     }
 
     public override string ToString()

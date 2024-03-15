@@ -7,10 +7,6 @@ public class CardUI : MonoBehaviour
     [Header("General Card Properties")]
     [SerializeField] private TMP_Text _titleText;
     [SerializeField] private TMP_Text _cost;
-    public int Cost { 
-        get => int.Parse(_cost.text); 
-        set => _cost.text = value.ToString();
-    }
     [SerializeField] private TMP_Text _health;
     [SerializeField] private TMP_Text _description;
     [SerializeField] private Image _image;
@@ -21,6 +17,12 @@ public class CardUI : MonoBehaviour
     [SerializeField] private TMP_Text _moneyValue;
     [SerializeField] private TMP_Text _keywordsText;
     [SerializeField] private GameObject _keywordsBox;
+
+    // Could use properites for public access
+    // public int Cost { 
+    //     get => int.Parse(_cost.text); 
+    //     set => _cost.text = value.ToString();
+    // }
 
     [Header("UI Elements")]
     public Image highlight;

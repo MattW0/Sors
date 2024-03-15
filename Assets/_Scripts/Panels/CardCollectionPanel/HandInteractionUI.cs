@@ -59,7 +59,7 @@ public class HandInteractionUI : MonoBehaviour
         else InteractionBegin(TurnState.Trash);
     }
 
-    public void InteractionBegin(TurnState state){
+    public void InteractionBegin(TurnState state, int numberPlays = 0){
         _view.SetActive(true);
         StartHandInteractionUI();
 
@@ -67,7 +67,7 @@ public class HandInteractionUI : MonoBehaviour
         switch (_state){
             case TurnState.Develop or TurnState.Deploy:
                 _collectionTitle.text = "Hand";
-                PlayCardInteraction();
+                PlayCardInteraction(numberPlays);
                 break;
             case TurnState.Discard:
                 _collectionTitle.text = "Hand";
@@ -90,11 +90,11 @@ public class HandInteractionUI : MonoBehaviour
         }
     }
 
-    private void PlayCardInteraction()
+    private void PlayCardInteraction(int numberPlays)
     {
         _playerHand.localPosition = _handPositionPlayCards;
 
-        if(_localPlayer.Plays <= 0){
+        if(numberPlays <= 0){
             _buttons.SetActive(false);
             _waitingText.SetActive(true);
             _displayText.text = $"You can't play more cards";
@@ -109,8 +109,8 @@ public class HandInteractionUI : MonoBehaviour
         }
     }
 
-    public void OnConfirmButtonPressed(){
-
+    public void OnConfirmButtonPressed()
+    {
         if (_state == TurnState.Discard) _handInteractionPanel.ConfirmDiscard();
         else if (_state == TurnState.CardIntoHand || _state == TurnState.Trash) 
             _handInteractionPanel.ConfirmPrevailCardSelection();

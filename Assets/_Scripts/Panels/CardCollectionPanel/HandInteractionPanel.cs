@@ -29,9 +29,9 @@ public class HandInteractionPanel : NetworkBehaviour
 
     [TargetRpc]
     public void TargetShowCardCollection(NetworkConnection target, TurnState turnState, 
-                                         List<GameObject> cardObjects, List<CardInfo> cardInfos)
+                                         List<GameObject> cardObjects, List<CardInfo> cardInfos, int numberPlays)
     {
-        _ui.InteractionBegin(turnState);
+        _ui.InteractionBegin(turnState, numberPlays);
 
         // caching hand cards gameobjects
         for(var i=0; i<cardInfos.Count; i++) _cache.Add(cardInfos[i], cardObjects[i]);
