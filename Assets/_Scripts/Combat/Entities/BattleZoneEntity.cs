@@ -116,8 +116,8 @@ public class BattleZoneEntity : NetworkBehaviour
         }
         Health -= value;
     }
-    private void Die(){
-        
+    private void Die()
+    {
         _boardManager.EntityDies(this);
     }
 
@@ -164,16 +164,15 @@ public class BattleZoneEntity : NetworkBehaviour
 
     public void SetPlayerUI(PlayerUI playerUI) => _playerUI = playerUI;
 
-    [ClientRpc] public void RpcUnsubscribeEvents() => OnDestroy();
-
-    private void OnDestroy()
+    [ClientRpc] public void RpcUnsubscribeEvents() => UnsubscribeEvents();
+    public void UnsubscribeEvents()
     {
-        print($"Destroying {Title}");
+        // print($"Destroying {Title}");
         DropZoneManager.OnTargetEntities -= CheckTargetable;
-        if (cardType != CardType.Player){
-            print("Destroying entity UI");
-            CombatManager.OnCombatStateChanged -= RpcCombatStateChanged;
-            DropZoneManager.OnResetEntityUI -= ResetEntityUI;
-        }
+        if (cardType == CardType.Player) return;
+
+        CombatManager.OnCombatStateChanged -= RpcCombatStateChanged;
+        DropZoneManager.OnResetEntityUI -= ResetEntityUI;
     }
+    private void OnDestroy() => UnsubscribeEvents();
 }

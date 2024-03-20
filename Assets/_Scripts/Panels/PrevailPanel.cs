@@ -34,12 +34,13 @@ public class PrevailPanel : NetworkBehaviour
     }
 
     [TargetRpc]
-    public void TargetBeginPrevailPhase(NetworkConnection conn, bool bonus)
+    public void TargetBeginPrevailPhase(NetworkConnection conn, int nbOptions)
     {
         maxView.SetActive(true);
         confirm.interactable = true;
+        _nbOptionsThisTurn = nbOptions;
 
-        instructions.text = "Choose up to " + _player.Prevails.ToString();
+        instructions.text = "Choose up to " + _nbOptionsThisTurn.ToString();
     }
 
     public bool Increment(PrevailOption option)

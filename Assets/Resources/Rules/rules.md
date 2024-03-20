@@ -9,7 +9,7 @@ The first who reduces thier opponent's life total to zero wins the game! You bui
 ---
 ### How To
 #### Initial deck and resources
-Players start with a deck of 10 cards. During gameplay, you improve the deck by buying **Creature** cards and **Technology** cards using **Buys**. You can later play these cards using **Plays**. Buying and playing cards costs money, which you pay with **Cash** earned by playing **Money** cards. _Cash_, _Buys_, _Plays_ and **Prevails** are resources you gain during a turn. _Prevails_ grant you special actions as described in TODO: ADD REF. All resources empty during _Clean Up_ or, in other words, they are set to 0 at the end of the turn. For example, at the beginning of the phase _Invent_ you get _+1 Buy_, which allows you to buy 1 _Technology_ or 1 _Creature_ during this turn.
+Players start with a deck of 10 cards. During gameplay, you improve your deck by buying **Creature** cards and **Technology** cards using **Buys**. You can later play these cards using **Plays**. Buying and playing cards costs money, which you pay with **Cash** earned by playing **Money** cards. _Cash_, _Buys_, _Plays_ and **Prevails** are resources you gain during a turn. _Prevails_ grant you special actions as described in TODO: ADD REF. All resources empty during _Clean Up_ or, in other words, they are set to 0 at the end of the turn. Cash also empties at the end of each phase. For example, at the beginning of the phase _Invent_ you get _+1 Buy_, which allows you to buy one Technology or one Creature during this turn.
 
 <figure>
     <img src="Images/initialDeck.PNG"
@@ -18,7 +18,7 @@ Players start with a deck of 10 cards. During gameplay, you improve the deck by 
 </figure>
 
 #### The Phases
-A turn of *Sors* has 9 phases, 3 of which are mandatory and 6 are optional. At the beginning of the turn, players choose 2 out of the 6 optional phases. Both players play ALL phases that ANY player picked. At the beginning of a phase, each player gets an effect described in the table below. Additionally, everyone who picked an optional phase, also gets the bonus at the beginning of that phase. Most phases are split into distinct steps, more to those detail later (TODO: Add ref). The phases are played in the following order, skipping the optional ones that NEITHER player has picked:
+A turn of _Sors_ has nine phases, three of which are mandatory and six are optional. At the beginning of the turn, players choose two out of the six optional phases. Both players always play all mandatory phases and, in addition, ALL phases that ANY player picked. At the beginning of a phase, each player gets an effect described in the table below. Everyone who picked an optional phase, also gets the bonus at the beginning of that phase. Most phases are split into distinct steps, more to those detail later (TODO: Add ref). The phases are played in the following order, skipping the optional ones that NEITHER player has picked:
 
 | Phase    | Optional | Effect | Bonus |  Steps
 | -------- | ------- | ------- | ------- | -------
@@ -35,24 +35,32 @@ A turn of *Sors* has 9 phases, 3 of which are mandatory and 6 are optional. At t
 <figure>
     <img src="Images/phases.PNG"
          alt="TurnPhases">
-    <figcaption>At the beginning of the turn, each player picks 2 of the 6 optional phases. The phases <i>Phase Selection</i>, <i>Combat</i> and <i>Clean Up</i> happen every turn.</figcaption>
+    <figcaption>At the beginning of the turn, each player picks two of the six optional phases. The phases <i>Phase Selection</i>, <i>Combat</i> and <i>Clean Up</i> happen every turn.</figcaption>
 </figure>
 
 #### Cards and Entities
-When you play technologies and creatures from your hand, they become **Entities** on the **Battlefield**. Entities only exist on the battlefield. A card and the corresponding entity are coupled and share the same base stats amongst **Cost**, **Health**, **Abilities**, a title and a description. Money cards do not have an equivalent entity but have a **Value**, producing that amount of cash when you play them. The stats of a card may vary temporarily due to the a phase bonus or abilities. Similary, entities may have their stats changed, for example when taking damage. This does not change the stats of the corresponding card. Many abilities only trigger while the entity is on the battlefield, although there may be exceptions (TODO: ADD REF).
+When you play Technologies and Creatures from your hand, they become **Entities** on the **Battlefield**. Entities only exist on the Battlefield. A card and the corresponding entity are coupled and share the same base stats amongst **Cost**, **Health**, **Abilities**, a title and a description. Money cards do not have an equivalent entity but have a **Value**, producing that amount of cash when you play them. The stats of a card may vary temporarily due to a phase bonus or abilities. Similary, entities may have their stats changed, for example when taking damage. This does not change the base stats of the corresponding card. Many abilities only trigger while the entity is on the Battlefield, although there are exceptions (TODO: ADD REF).
 
-An entity **dies** when its health reaches zero. Then, it leaves the battlefield and the corresponding card moves to your discard pile. A creature's **Attack** determines how much damage it deals to other entities during Combat. Creatures may also have **Traits** that influence how that damage is dealt (TODO: ADD REF). Technologies on the other hand have a **Points** value, that doesn't do shit rn TODO. 
+An entity **dies** when its health reaches zero. Then, it leaves the Battlefield and the corresponding card moves to your discard pile. A Creature's **Attack** determines how much damage it deals to other entities during _Combat_. Creatures may also have **Traits** that influence how that damage is dealt (TODO: ADD REF). Technologies on the other hand have a **Points** value, that doesn't do shit rn TODO. 
 
 <figure>
     <img src="Images/CardsEntities.PNG"
          alt="CardsEntities">
-    <figcaption> Stats of cards determine what you get from playing them. The top row shows an example card of each type (Money, Creature and Technology) and the bottom row shows the corresponding entities and how they look on the battlefield. </figcaption>
+    <figcaption> Stats of cards determine what you get from playing them. The top row shows an example card of each type (Money, Creature and Technology) and the bottom row shows the corresponding entities and how they look on the Battlefield. </figcaption>
 </figure>
 
 #### The Board
-You can only play cards from your **Hand**. Money cards move to the **Money Zone** and are **discarded** at the end of each phase. At the end of phases, if you have unspent cash and if possible, money cards are returned to your hand. To play a technology or creature card, you have to spend a _Play_. Doing so moves the card to the **Play Zone** and creates the corresponding entity on the _Battlefield_. Cards in the _Play Zone_ can't be interacted with and stay there until the corresponding entity dies. Once that happens, the entity is destroyed and the card moves to your **Discard** pile. You draw cards from your **Deck**, moving them to your _Hand_. Whenever you attempt to draw, but your _Deck_ is empty, you shuffle your _Discard_ pile, move these cards to your _Deck_ and continue drawing. If you still can't draw more cards, you skip that draw instead.
+To play a Technology or Creature card, you have to spend a _Play_. Doing so moves the card to the **Play Zone** and creates the corresponding entity on the Battlefield. It consists of two zones with six slots for Creature and Technology entities respectively. This means that you can have up to six Creatures and up to six Technologies in play simultaneously. Cards in the _Play Zone_ can't be interacted with and stay there until the corresponding entity dies. Once that happens, the entity is destroyed and the card moves to your **Discard** pile.
 
-The _Battlefield_ consists of two zones for creature and technology entities. Each zone has six slots for entities, meaning that you can have up to six creatures and up to six technologies in play simultaneously.
+You can only play cards from your **Hand**. Money cards move to the **Money Zone** and are discarded at the end of each phase. If you have unspent cash and if the difference allows it, Money cards are returned to your hand. You draw cards from your **Deck**, moving them to your _Hand_. Whenever you attempt to draw, but your _Deck_ is empty, you shuffle your _Discard_ pile, move these cards to your _Deck_ and continue drawing. If you still can't draw more cards, you skip that draw instead. As a special action, you can trash cards from you _Hand_. Doing so moves the cards to the **Trash** zone, which normally can't be interacted with. The _Trash_ zone is the only one shared between both players.
+
+The **Player/Opponent Stats** shows your and your opponent's stats, including the player name, current **Life Total**, **Points** and all resources gathered during the turn.
+
+<figure>
+    <img src="Images/board.PNG"
+         alt="Board">
+    <figcaption> The board and various zones where cards can be. Entities only exist on the Battlefield. Your opponent has the same zones but not all are visible.</figcaption>
+</figure>
 
 
 
@@ -65,7 +73,7 @@ The _Battlefield_ consists of two zones for creature and technology entities. Ea
 
 ##### Combat
 
-During _Combat_ you can **attack** your opponent and/or their _Technologies_ with your _Creatures_ on the _Battlefield_. In an additional step, you choose how to **block** opposing _Creatures_ with your own _Creatures_.
+During _Combat_ you can **attack** your opponent and/or their Technologies with your Creatures on the Battlefield. In an additional step, you choose how to **block** you opponent's attacking Creatures with your own.
 
 ##### Abilities and Traits
-Entities (Creatures and Technologies) on the battlefield
+Cards and entities have abilities. Only creatures may also have traits.

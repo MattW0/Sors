@@ -120,9 +120,10 @@ public class GameManager : NetworkBehaviour {
             player.Score = _gameOptions.startScore;
             
             // Turn stats
-            player.Cash = _gameOptions.turnCash;
-            player.Buys = _gameOptions.turnBuys;
-            player.Plays = _gameOptions.turnPlays;
+            player.Cash = 0;
+            player.Buys = 0;
+            player.Plays = 0;
+            player.Prevails = 0;
         }
 
         if(_gameOptions.SkipCardSpawnAnimations) {

@@ -108,6 +108,10 @@ public class BoardManager : NetworkBehaviour
 
         print($"{entity.Title} dies");
         _deadEntities.Add(entity);
+
+        // Somehow NetworkServer.Destroy(this) destroys the GO but does not call OnDestroy(),
+        // Thus, do it here manually to prevent null references when events are triggered
+        entity.RpcUnsubscribeEvents();
     }
 
     private void CombatCleanUp()
@@ -144,10 +148,7 @@ public class BoardManager : NetworkBehaviour
             dead.Owner.discard.Add(cardObject.GetComponent<CardStats>().cardInfo);
             dead.Owner.RpcMoveCard(cardObject, CardLocation.PlayZone, CardLocation.Discard);
 
-            // Somehow NetworkServer.Destroy(this) destroys the GO but does not call OnDestroy(),
-            // Thus, do it here manually to prevent null references when events are triggered
-            dead.RpcUnsubscribeEvents();
-
+            dead.UnsubscribeEvents();
             _entitiesObjectsCache.Remove(dead);
             NetworkServer.Destroy(dead.gameObject);
         }

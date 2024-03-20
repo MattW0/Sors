@@ -171,7 +171,7 @@ public class TurnManager : NetworkBehaviour
             yield return new WaitForSeconds(SorsTimings.wait);
         }
 
-        if(_gameOptions.SaveStates) _boardManager.PrepareGameStateFile(_market.GetTileInfos());        
+        if(_gameOptions.SaveStates) _boardManager.PrepareGameStateFile(_market.GetTileInfos());
         UpdateTurnState(TurnState.PhaseSelection);
     }
 
@@ -185,14 +185,10 @@ public class TurnManager : NetworkBehaviour
 
         // Reset and draw per turn
         foreach (var player in _gameManager.players.Keys) {
-            player.Buys = _gameOptions.turnBuys;
-            player.Plays = _gameOptions.turnPlays;
-            player.Prevails = _gameOptions.turnPrevails;
-
             player.chosenPhases.Clear();
             player.chosenPrevailOptions.Clear();
 
-            player.DrawCards(_gameOptions.turnCardDraw);
+            player.DrawCards(_gameOptions.cardDraw);
         }
 
         _phasePanel.RpcBeginPhaseSelection(_gameManager.turnNumber);
@@ -264,7 +260,7 @@ public class TurnManager : NetworkBehaviour
     {
         foreach (var player in _gameManager.players.Keys)
         {
-            var nbCardDraw = _gameOptions.turnCardDraw;
+            var nbCardDraw = _gameOptions.cardDraw;
             if (player.chosenPhases.Contains(Phase.Draw)) nbCardDraw += _gameOptions.extraDraw;
 
             player.DrawCards(nbCardDraw);
@@ -310,12 +306,12 @@ public class TurnManager : NetworkBehaviour
         foreach (var player in _gameManager.players.Keys)
         {
             // Each player gets +1 Buy
-            player.Buys++;
+            player.Buys += _gameOptions.buys;
 
             // If player selected Invent or Recruit, they get the market bonus
             if (player.chosenPhases.Contains(phase))
             {
-                player.Buys++;
+                player.Buys += _gameOptions.extraBuys;
                 PlayerGetsMarketBonus(player, cardType, _gameOptions.marketPriceReduction);
 
                 _market.TargetCheckMarketPrices(player.connectionToClient, player.Cash);
@@ -405,7 +401,7 @@ public class TurnManager : NetworkBehaviour
 
     private void FinishBuyCard()
     {
-        PlayersStatsResetAndDiscardMoney();
+        PlayersDiscardMoney();
         _market.RpcEndMarketPhase();
 
         UpdateTurnState(TurnState.NextPhase);
@@ -425,7 +421,7 @@ public class TurnManager : NetworkBehaviour
         foreach(var player in _gameManager.players.Keys) 
         {
             // Each player gets +1 Play
-            player.Plays++;
+            player.Plays += _gameOptions.plays;
 
             // If player selected Develop or Deploy, they get bonus Plays
             if (player.chosenPhases.Contains(phase)){
@@ -518,7 +514,7 @@ public class TurnManager : NetworkBehaviour
     {
         _cardCollectionPanel.RpcResetPanel();
         _boardManager.ShowHolders(false);
-        PlayersStatsResetAndDiscardMoney();
+        PlayersDiscardMoney();
 
         UpdateTurnState(TurnState.NextPhase);
     }
@@ -533,8 +529,11 @@ public class TurnManager : NetworkBehaviour
     {
         foreach (var player in _gameManager.players.Keys)
         {
-            // Starts phase on clients individually with 2nd argument = true for the bonus
-            _prevailPanel.TargetBeginPrevailPhase(player.connectionToClient, player.chosenPhases.Contains(Phase.Prevail));
+            int nbOptions = _gameOptions.prevails;
+            if (player.chosenPhases.Contains(Phase.Prevail)) nbOptions += _gameOptions.extraPrevails;
+
+            player.Prevails += nbOptions;
+            _prevailPanel.TargetBeginPrevailPhase(player.connectionToClient, nbOptions);
         }
     }
 
@@ -677,7 +676,8 @@ public class TurnManager : NetworkBehaviour
         // TODO: Should not use _market here but access it from _boardManager directly
         _boardManager.BoardCleanUp(_market.GetTileInfos(), true);
         OnPhaseChanged?.Invoke(TurnState.CleanUp);
-        PlayersStatsResetAndDiscardMoney();
+        PlayersDiscardMoney();
+        PlayersEmptyResources();
 
         yield return new WaitForSeconds(SorsTimings.turnStateTransition);
 
@@ -770,7 +770,7 @@ public class TurnManager : NetworkBehaviour
         }
     }
 
-    private void PlayersStatsResetAndDiscardMoney()
+    private void PlayersDiscardMoney()
     {
         // _logger.RpcLog("... Discarding money ...", LogType.Standard);
         _handManager.RpcHighlightMoney(false);
@@ -780,6 +780,16 @@ public class TurnManager : NetworkBehaviour
             // Returns unused money then discards the remaining cards
             player.ReturnMoneyToHand(false);
             player.Cash = 0;
+        }
+    }
+
+    private void PlayersEmptyResources()
+    {
+        foreach (var player in _gameManager.players.Keys)
+        {
+            player.Buys = 0;
+            player.Plays = 0;
+            player.Prevails = 0;
         }
     }
 

@@ -136,10 +136,10 @@ public class CardMover : MonoBehaviour
 
         if(hasAuthority){
             playerCardSpawn.Add(card);
-            playerCardSpawn.updatePosition = true;
+            playerCardSpawn.UpdatePosition = true;
         } else {
             opponentCardSpawn.Add(card);
-            opponentCardSpawn.updatePosition = true;
+            opponentCardSpawn.UpdatePosition = true;
         }
         card.SetActive(true);
     }

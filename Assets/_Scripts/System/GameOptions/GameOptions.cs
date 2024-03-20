@@ -22,11 +22,10 @@ public struct GameOptions
     public int initialEntities;
 
     // Default turn recources
-    public int turnCardDraw;
-    public int turnCash;
-    public int turnBuys;
-    public int turnPlays;
-    public int turnPrevails;
+    public int cardDraw;
+    public int buys;
+    public int plays;
+    public int prevails;
 
     // Phase Boni
     public int phaseDiscard;
@@ -57,11 +56,10 @@ public struct GameOptions
         initialEntities = 4;
 
         // Default turn recources
-        turnCardDraw = 2;
-        turnCash = 0;
-        turnBuys = 0;
-        turnPlays = 0;
-        turnPrevails = 0;
+        cardDraw = 2;
+        buys = 1;
+        plays = 1;
+        prevails = 1;
         phaseDiscard = 1;
 
         // Phase Boni
@@ -69,7 +67,6 @@ public struct GameOptions
         extraBuys = 1;
         extraPlays = 1;
         extraPrevails = 2;
-
         extraCash = 2;
         marketPriceReduction = 1;
     }
