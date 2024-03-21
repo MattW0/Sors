@@ -20,8 +20,7 @@ public class Market : NetworkBehaviour
     [SerializeField] private GameObject creaturesGrid;
     private MarketTile _selectedTile;
 
-    public static event Action OnDevelopPhaseEnded;
-    public static event Action OnRecruitPhaseEnded;
+    public static event Action OnMarketPhaseEnded;
 
     private void Awake(){
         if (Instance == null) Instance = this;
@@ -150,13 +149,7 @@ public class Market : NetworkBehaviour
     [ClientRpc]
     public void RpcEndMarketPhase(){
         _ui.EndPhase();
-        OnDevelopPhaseEnded?.Invoke();
-    }
-
-    [ClientRpc]
-    public void RpcEndRecruit(){
-        _ui.EndPhase();
-        OnRecruitPhaseEnded?.Invoke();
+        OnMarketPhaseEnded?.Invoke();
     }
     #endregion
 

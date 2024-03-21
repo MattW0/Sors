@@ -38,7 +38,7 @@ public class CardEffectsHandler : NetworkBehaviour
         yield return new WaitForSeconds(0.1f);
         foreach (var entity in entities){
 
-            // print($"Entity is played : {entity.Title}");
+            print($"Entity is played : {entity.Title}");
 
             List<Ability> abilities = entity.CardInfo.abilities;
             if (abilities == null || abilities.Count == 0) continue;
@@ -48,7 +48,7 @@ public class CardEffectsHandler : NetworkBehaviour
                 // Triggers and effects have the same index and a 1-1 relation
                 var trigger = ability.trigger;
 
-                // Dont add the relation to the dict as it resolves immediately
+                // Dont add ETBs to the dict as it resolves immediately and only once
                 if (trigger == Trigger.When_enters_the_battlefield){
                     AddAbilityToQueue(entity, ability);
                     continue;
@@ -58,7 +58,7 @@ public class CardEffectsHandler : NetworkBehaviour
 
                 // Beginning of phase triggers
                 var phase = TriggerToPhase(trigger);
-                // print($"New phase trigger: {trigger} in phase {phase}");
+                print($"New phase trigger: {trigger} in phase {phase}");
                 if (phase != Phase.None && !_phaseTriggers.Contains(phase))
                     _phaseTriggers.Add(phase);
             }
@@ -72,9 +72,9 @@ public class CardEffectsHandler : NetworkBehaviour
         // TurnManager waits for this to be false
         QueueResolving = true;
 
-        // print("Current phases that trigger");
-        // foreach(var p in _phaseTriggers)
-        //     print(p);
+        print($"Checking for phase {phase} triggers");
+        foreach(var p in _phaseTriggers)
+            print(p);
 
         // We only search for abilities if the current phase triggers at least one effect
         if (!_phaseTriggers.Contains(phase)){
@@ -271,6 +271,7 @@ public class CardEffectsHandler : NetworkBehaviour
     private Phase TriggerToPhase(Trigger trigger){
         Phase phase = trigger switch
         {
+            Trigger.Beginning_Turn => Phase.PhaseSelection,
             Trigger.Beginning_Draw => Phase.Draw,
             Trigger.Beginning_Invent => Phase.Invent,
             Trigger.Beginning_Develop => Phase.Develop,
@@ -278,6 +279,7 @@ public class CardEffectsHandler : NetworkBehaviour
             Trigger.Beginning_Recruit => Phase.Recruit,
             Trigger.Beginning_Deploy => Phase.Deploy,
             Trigger.Beginning_Prevail => Phase.Prevail,
+            Trigger.Beginning_CleanUp => Phase.CleanUp,
             _ => Phase.None
         };
 
@@ -287,6 +289,7 @@ public class CardEffectsHandler : NetworkBehaviour
     private Trigger PhaseToTrigger(Phase phase){
         Trigger trigger = phase switch
         {
+            Phase.PhaseSelection => Trigger.Beginning_Turn,
             Phase.Draw => Trigger.Beginning_Draw,
             Phase.Invent => Trigger.Beginning_Invent,
             Phase.Develop => Trigger.Beginning_Develop,
@@ -294,6 +297,7 @@ public class CardEffectsHandler : NetworkBehaviour
             Phase.Recruit => Trigger.Beginning_Recruit,
             Phase.Deploy => Trigger.Beginning_Deploy,
             Phase.Prevail => Trigger.Beginning_Prevail,
+            Phase.CleanUp => Trigger.Beginning_CleanUp,
             _ => Trigger.None
         };
 

@@ -226,15 +226,15 @@ public class TurnManager : NetworkBehaviour
 
     private void NextPhase()
     {
+        var nextPhase = Phase.None;
         if (phasesToPlay.Count == 0)
         {
-            UpdateTurnState(TurnState.CleanUp);
-            return;
+            nextPhase = Phase.CleanUp;
+        } else {
+            nextPhase = phasesToPlay[0];
+            phasesToPlay.RemoveAt(0);
+            _readyPlayers.Clear();
         }
-
-        _readyPlayers.Clear();
-        var nextPhase = phasesToPlay[0];
-        phasesToPlay.RemoveAt(0);
 
         StartCoroutine(CheckNextPhaseTriggers(nextPhase));
     }
@@ -245,6 +245,7 @@ public class TurnManager : NetworkBehaviour
         Enum.TryParse(nextPhase.ToString(), out TurnState nextTurnState);
         _logger.RpcLog($"------- {nextTurnState} -------", LogType.Phase);
 
+        // Waiting for all triggers to have resolved
         _cardEffectsHandler.CheckPhaseTriggers(nextPhase);
         while(_cardEffectsHandler.QueueResolving) yield return new WaitForSeconds(0.1f);
 
@@ -676,12 +677,12 @@ public class TurnManager : NetworkBehaviour
         // TODO: Should not use _market here but access it from _boardManager directly
         _boardManager.BoardCleanUp(_market.GetTileInfos(), true);
         OnPhaseChanged?.Invoke(TurnState.CleanUp);
-        PlayersDiscardMoney();
-        PlayersEmptyResources();
+
+        StartCoroutine(CheckNextPhaseTriggers(Phase.PhaseSelection));
 
         yield return new WaitForSeconds(SorsTimings.turnStateTransition);
-
-        UpdateTurnState(TurnState.PhaseSelection);
+        PlayersDiscardMoney();
+        PlayersEmptyResources();
     }
 
     private bool GameEnds()
@@ -835,6 +836,7 @@ public enum TurnState : byte
 
 public enum Phase : byte
 {
+    PhaseSelection,
     Draw,
     Invent,
     Develop,
@@ -842,5 +844,6 @@ public enum Phase : byte
     Recruit,
     Deploy,
     Prevail,
+    CleanUp,
     None,
 }

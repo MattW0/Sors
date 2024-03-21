@@ -53,12 +53,8 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         cardInfo = card;
         Cost = card.cost;
         _ui.SetEntityUI(card);
-
-        if(card.type == CardType.Money || card.type == CardType.Technology){
-            Market.OnDevelopPhaseEnded += EndDevelopPhase;
-        } else if (card.type == CardType.Creature){
-            Market.OnRecruitPhaseEnded += EndRecruitPhase;
-        }
+        
+        Market.OnMarketPhaseEnded += EndMarketPhase;
     }
 
     public void SetBonus(int priceReduction){
@@ -109,8 +105,7 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         _ui.Highlight(true, SorsColors.tilePreviouslySelected);
     }
     
-    private void EndDevelopPhase() => ResetTile();
-    private void EndRecruitPhase() => ResetTile();
+    private void EndMarketPhase() => ResetTile();
     private void ResetTile(){
         Interactable = false;
         _isSelected = false;
@@ -121,7 +116,6 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     }
 
     private void OnDestroy(){
-        Market.OnDevelopPhaseEnded -= EndDevelopPhase;
-        Market.OnRecruitPhaseEnded -= EndRecruitPhase;
+        Market.OnMarketPhaseEnded -= EndMarketPhase;
     }
 }

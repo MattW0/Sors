@@ -41,11 +41,6 @@ public class HandInteractionPanel : NetworkBehaviour
     }
 
     #region States
-    [ClientRpc]
-    public void RpcBeginState(TurnState state){
-        
-    }
-
     [TargetRpc]
     public void TargetBeginPrevailSelection(NetworkConnection conn, TurnState turnState, int nbCardsToTrash){
         foreach(var card in _detailCards) card.SetCardState(turnState);
