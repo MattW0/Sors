@@ -29,10 +29,12 @@ public class Logger : MonoBehaviour
             LogType.EffectTrigger => SorsColors.effectTrigger,
             LogType.TurnChange => SorsColors.turnChange,
             LogType.Phase => SorsColors.detail,
-            LogType.CreatureBuy => SorsColors.creatureBuy,
+            LogType.Buy => SorsColors.buy,
+            LogType.Play => SorsColors.play,
             LogType.Combat => SorsColors.combat,
-            LogType.CombatDamage => SorsColors.combatDamage,
-            LogType.CombatClash => SorsColors.combatClash,
+            LogType.CombatAttacker => SorsColors.combatAttacker,
+            LogType.CombatBlocker => SorsColors.combatBlocker,
+            LogType.CombatClash => SorsColors.ColorToHex(SorsColors.creatureClashing),
             LogType.Standard => SorsColors.standardLog,
             _ => SorsColors.standardLog
         };
@@ -47,8 +49,10 @@ public enum LogType : byte
     EffectTrigger,
     TurnChange,
     Phase,
-    CreatureBuy,
+    Buy,
+    Play,
     Combat,
-    CombatDamage,
+    CombatAttacker,
+    CombatBlocker,
     CombatClash
 }

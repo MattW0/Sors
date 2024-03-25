@@ -37,6 +37,21 @@ public class PlayerInterfaceManager : NetworkBehaviour
 
     [ClientRpc]
     public void RpcLog(string message, LogType type) => _logger.Log(message, type);
+    [ClientRpc]
+    public void RpcLogGameStart(List<string> playerNames)
+    {
+        var msg = "--- Game Setup ---\n";
+
+        if (playerNames.Count == 1)  msg += $"{playerNames[0]} vs Computer\n";
+        else msg += $"{playerNames[0]} vs {playerNames[1]}\n";
+
+        _logger.Log(msg, LogType.Standard);
+    }
+
+    [ClientRpc]
+    public void RpcPlayCards(List<BattleZoneEntity> entities){
+        foreach (var e in entities) _logger.Log($"{e.Owner.PlayerName} plays {e.Title}", LogType.Play);
+    }
     
     [Client]
     public void Send(string message) {

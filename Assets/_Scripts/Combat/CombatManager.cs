@@ -38,17 +38,17 @@ public class CombatManager : NetworkBehaviour
             case CombatState.Idle:
                 break;
             case CombatState.Attackers:
-                _playerInterfaceManager.RpcLog(" --- Starting Combat --- ", LogType.Combat);
+                // _playerInterfaceManager.RpcLog(" --- Starting Combat --- ", LogType.Combat);
                 break;
             case CombatState.Blockers:
-                _playerInterfaceManager.RpcLog("   - Attackers declared", LogType.Combat);
+                _playerInterfaceManager.RpcLog(" - Attackers declared", LogType.Standard);
                 break;
             case CombatState.Damage:
-                _playerInterfaceManager.RpcLog("   - Blockers declared", LogType.Combat);
+                _playerInterfaceManager.RpcLog(" - Blockers declared", LogType.Standard);
                 ResolveDamage();
                 break;
             case CombatState.CleanUp:
-                _playerInterfaceManager.RpcLog(" --- Combat ends --- ", LogType.Combat);
+                _playerInterfaceManager.RpcLog(" - Combat ends - ", LogType.Standard);
                 StartCoroutine(CombatCleanUp(false));
                 break;
             default:
@@ -80,16 +80,14 @@ public class CombatManager : NetworkBehaviour
 
     public void PlayerDeclaredAttackers(PlayerManager player)
     {
-        // print($"Player {player.PlayerName} declared attackers");
         _readyPlayers.Add(player);
         if (_readyPlayers.Count != _gameManager.players.Count) return;
         _readyPlayers.Clear();
 
-        _playerInterfaceManager.RpcLog(" --- Attackers Declared ---", LogType.Standard);
         foreach(var (a, t) in _attackerTarget)
         {
             a.RpcDeclaredAttack(t);
-            _playerInterfaceManager.RpcLog($"  - {a.Title} attacks {t.Title}", LogType.Standard);
+            _playerInterfaceManager.RpcLog($"  - {a.Title} attacks {t.Title}", LogType.CombatAttacker);
         }
 
         UpdateCombatState(CombatState.Blockers);
@@ -114,11 +112,10 @@ public class CombatManager : NetworkBehaviour
         if (_readyPlayers.Count != _gameManager.players.Count) return;
         _readyPlayers.Clear();
 
-        _playerInterfaceManager.RpcLog(" --- Blockers Declared ---", LogType.Standard);
         foreach (var (b, a) in _blockerAttacker)
         {
             b.RpcDeclaredBlock(a);
-            _playerInterfaceManager.RpcLog($"  - {b.Title} blocks {a.Title}", LogType.Standard);
+            _playerInterfaceManager.RpcLog($"  - {b.Title} blocks {a.Title}", LogType.CombatBlocker);
         }
         UpdateCombatState(CombatState.Damage);
     }
@@ -169,13 +166,12 @@ public class CombatManager : NetworkBehaviour
 
         var playerAttackers = new List<CreatureEntity>();
         foreach(var (a, t) in _attackerTarget){
-            _playerInterfaceManager.RpcLog($"{a.Title} attacks {t.Title}", LogType.CombatClash);
-
             if(t.cardType == CardType.Player){
                 playerAttackers.Add(a);
                 continue;
             }
 
+            _playerInterfaceManager.RpcLog($"{a.Title} deals {a.Attack} damage to {t.Title}", LogType.CombatClash);
             a.RpcSetCombatHighlight();
             t.RpcSetCombatHighlight(); 
             EntityTakesDamage(a, t);
@@ -197,7 +193,7 @@ public class CombatManager : NetworkBehaviour
 
         foreach (var attacker in playerAttackers){
             attacker.RpcSetCombatHighlight();
-            _playerInterfaceManager.RpcLog($"{attacker.Title} deals {attacker.Attack} damage", LogType.CombatDamage);
+            _playerInterfaceManager.RpcLog($"{attacker.Title} deals {attacker.Attack} damage to {attacker.Opponent.PlayerName}", LogType.CombatClash);
 
             // player takes damage from unblocked creatures
             var targetPlayer = attacker.Opponent;

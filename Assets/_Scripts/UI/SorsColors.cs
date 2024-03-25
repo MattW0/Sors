@@ -53,18 +53,23 @@ public static class SorsColors
     public static string detail = "#666666";
     public static string effectTrigger = "#FFFFFF";
     public static string turnChange = "#CCCCCC";
-    public static string creatureBuy = "#DDDD80";
-    public static string combat = "#420028";
-    public static string combatDamage = combat;
-    public static string combatClash = combat;
+    public static string buy = "#DDDD80";
+    public static string play = "#8080FF";
+    public static string combat = "#FF8080";
+    public static string combatAttacker = "#AA6060";
+    public static string combatBlocker = "#6060AA";
 
-    public static Color GetColor(string hexColor){
+    public static Color HexToColor(string hexColor){
         ColorUtility.TryParseHtmlString(hexColor, out Color color);
         return color;
     }
+
+    public static string ColorToHex(Color color){
+        return "#" + ColorUtility.ToHtmlStringRGB(color);
+    }
 }
 
-
+// Never change order of these
 public enum ColorType : byte
 {
     Creature,

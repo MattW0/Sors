@@ -136,18 +136,15 @@ public class TurnManager : NetworkBehaviour
 
     private void VariablesCaching(GameOptions gameOptions)
     {
-        var msg = "";
+        var playerNames = new List<string>();
         foreach (var player in _gameManager.players.Keys)
         {
             _playerPhaseChoices.Add(player, new Phase[gameOptions.NumberPhases]);
             _playerPrevailOptions.Add(player, new List<PrevailOption>());
             _selectedCards.Add(player, new List<GameObject>());
-
-            if (string.IsNullOrWhiteSpace(msg)) msg += $"{player.PlayerName}";
-            else msg += $"vs. {player.PlayerName}";
+            playerNames.Add(player.PlayerName);
         }
-        if (_gameManager.isSinglePlayer) msg += "vs. Computer";
-        _logger.RpcLog(msg, LogType.Standard);
+        _logger.RpcLogGameStart(playerNames);
 
         // reverse order of _playerPhaseChoices to have host first
         _playerPhaseChoices = _playerPhaseChoices.Reverse().ToDictionary(x => x.Key, x => x.Value);
@@ -179,7 +176,7 @@ public class TurnManager : NetworkBehaviour
     private void PhaseSelection()
     {
         _gameManager.turnNumber++;
-        _logger.RpcLog($" ------------ Turn {_gameManager.turnNumber} ------------ ", LogType.TurnChange);
+        _logger.RpcLog($" -------------- Turn {_gameManager.turnNumber} -------------- ", LogType.TurnChange);
         // For phase panel
         OnPhaseChanged?.Invoke(TurnState.PhaseSelection);
 
@@ -212,8 +209,8 @@ public class TurnManager : NetworkBehaviour
         phasesToPlay.Add(Phase.Combat);
         phasesToPlay.Sort();
 
-        var msg = $"Phases to play:\n";
-        for (int i = 0; i < phasesToPlay.Count; i++) msg += $"- {phasesToPlay[i]}\n";
+        var msg = $"Phases to play:";
+        for (int i = 0; i < phasesToPlay.Count; i++) msg += $"\n- {phasesToPlay[i]}";
         _logger.RpcLog(msg, LogType.Phase);
 
         foreach (var (player, phases) in _playerPhaseChoices)
@@ -352,8 +349,8 @@ public class TurnManager : NetworkBehaviour
         {
             if (card.title == null) continue;
 
-            print($"{owner.PlayerName} buys '{card.title}'");
-            _logger.RpcLog($"{owner.PlayerName} buys '{card.title}'", LogType.CreatureBuy);
+            // print($"{owner.PlayerName} buys '{card.title}'");
+            _logger.RpcLog($"{owner.PlayerName} buys '{card.title}'", LogType.Buy);
             _gameManager.PlayerGainCard(owner, card);
         }
 
@@ -467,6 +464,7 @@ public class TurnManager : NetworkBehaviour
 
         // Keeps track of card <-> entity relation
         _boardManager.PlayEntities(entities);
+        _logger.RpcPlayCards(entities.Values.ToList());
 
         // Skip waiting for entity ability checks
         if (entities.Count == 0){
