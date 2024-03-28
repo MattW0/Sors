@@ -111,7 +111,6 @@ public class GameManager : NetworkBehaviour {
         foreach (var player in playerManagers)
         {
             player.RpcInitPlayer();
-
             if(!player.isAI) players.Add(player, player.GetComponent<NetworkIdentity>());
             
             // Player stats

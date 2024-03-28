@@ -13,6 +13,7 @@ public class BattleZoneEntity : NetworkBehaviour
     public string Title { get; private set; }
     [SerializeField] private BattleZoneEntityUI _entityUI;
     [SerializeField] private PlayerUI _playerUI;
+    private PlayerManager _player;
 
     [field: Header("Stats")]
     public CardType cardType;
@@ -24,9 +25,13 @@ public class BattleZoneEntity : NetworkBehaviour
         set
         {
             _health = value;
+            // TODO: How to combine player health with entity health ???
+            // BUG: ability causes no player damage 
             if(cardType == CardType.Player) return;
-            RpcSetHealth(_health);
-            if (_health <= 0) Die();
+            else {
+                RpcSetHealth(_health);
+                if (_health <= 0) Die();
+            }
         }
     }
 
@@ -64,6 +69,8 @@ public class BattleZoneEntity : NetworkBehaviour
         if (cardType != CardType.Player){
             CombatManager.OnCombatStateChanged += RpcCombatStateChanged;
             DropZoneManager.OnResetEntityUI += ResetEntityUI;
+        } else {
+            _player = GetComponent<PlayerManager>();
         }
     }
 
@@ -109,13 +116,20 @@ public class BattleZoneEntity : NetworkBehaviour
     }
 
     [Server]
-    public void TakesDamage(int value, bool deathtouch){
+    public void EntityTakesDamage(int value, bool deathtouch){
+
+        if (cardType == CardType.Player){
+            _player.Health -= value;
+            return;
+        }
+
         if (deathtouch){ 
             Health = 0;
             return;
         }
-        Health -= value;
+        Health = Mathf.Min(0, Health - value);
     }
+
     private void Die()
     {
         _boardManager.EntityDies(this);
@@ -153,7 +167,11 @@ public class BattleZoneEntity : NetworkBehaviour
         if(cardType != CardType.Player) _entityUI.DisableHighlight();
     }
     [ClientRpc]
-    public void RpcSetCombatHighlight() => _entityUI.Highlight(true, SorsColors.creatureClashing);
+    public void RpcSetCombatHighlight()
+    {
+        if (cardType != CardType.Player) _entityUI.Highlight(true, SorsColors.combatClash);
+        else _playerUI.Highlight(true, SorsColors.combatClash);
+    } 
     [TargetRpc]
     public void TargetSpawnTargetArrow(NetworkConnection target) => targetArrowHandler.SpawnArrow();
     [ClientRpc]
@@ -162,6 +180,7 @@ public class BattleZoneEntity : NetworkBehaviour
     public void RpcResetAfterTarget() => targetArrowHandler.RemoveArrow(false);
     #endregion
 
+    // Need this for player UI highlights : attackable, targetable, ...
     public void SetPlayerUI(PlayerUI playerUI) => _playerUI = playerUI;
 
     [ClientRpc] public void RpcUnsubscribeEvents() => UnsubscribeEvents();
@@ -173,6 +192,20 @@ public class BattleZoneEntity : NetworkBehaviour
 
         CombatManager.OnCombatStateChanged -= RpcCombatStateChanged;
         DropZoneManager.OnResetEntityUI -= ResetEntityUI;
+    }
+
+    public bool Equals(BattleZoneEntity e)
+    {
+        if (e is null) return false;
+
+        // Optimization for a common success case.
+        if (GameObject.ReferenceEquals(this, e)) return true;
+
+        // If run-time types are not exactly the same, return false.
+        if (this.GetType() != e.GetType()) return false;
+
+        // Return true if the fields match.
+        return (gameObject.GetInstanceID() == e.gameObject.GetInstanceID());
     }
     private void OnDestroy() => UnsubscribeEvents();
 }

@@ -34,7 +34,7 @@ public class Logger : MonoBehaviour
             LogType.Combat => SorsColors.combat,
             LogType.CombatAttacker => SorsColors.combatAttacker,
             LogType.CombatBlocker => SorsColors.combatBlocker,
-            LogType.CombatClash => SorsColors.ColorToHex(SorsColors.creatureClashing),
+            LogType.CombatClash => SorsColors.ColorToHex(SorsColors.combatClash),
             LogType.Standard => SorsColors.standardLog,
             _ => SorsColors.standardLog
         };

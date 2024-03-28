@@ -30,7 +30,7 @@ public static class SorsColors
     public static Color creatureHighlight = Color.green;
     public static Color creatureAttacking = new Color(200, 80, 50);
     public static Color creatureBlocking = new Color(0, 101, 138);
-    public static Color creatureClashing = new Color(150, 0, 0);
+    public static Color combatClash = new Color(150, 0, 0);
     public static Color creatureIdle = new Color(200, 200, 200);
 
     // -- Market Tiles --

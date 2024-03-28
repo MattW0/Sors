@@ -38,7 +38,7 @@ public class CardEffectsHandler : NetworkBehaviour
         yield return new WaitForSeconds(0.1f);
         foreach (var entity in entities){
 
-            print($"Entity is played : {entity.Title}");
+            // print($"Entity is played : {entity.Title}");
 
             List<Ability> abilities = entity.CardInfo.abilities;
             if (abilities == null || abilities.Count == 0) continue;
@@ -72,9 +72,9 @@ public class CardEffectsHandler : NetworkBehaviour
         // TurnManager waits for this to be false
         QueueResolving = true;
 
-        print($"Checking for phase {phase} triggers");
-        foreach(var p in _phaseTriggers)
-            print(p);
+        // print($"Checking for phase {phase} triggers");
+        // foreach(var p in _phaseTriggers)
+        //     print(p);
 
         // We only search for abilities if the current phase triggers at least one effect
         if (!_phaseTriggers.Contains(phase)){
@@ -106,7 +106,7 @@ public class CardEffectsHandler : NetworkBehaviour
 
     private void AddAbilityToQueue(BattleZoneEntity entity, Ability ability){
         _playerInterfaceManager.RpcLog($"'{entity.Title}': {ability.trigger} -> {ability.effect}", LogType.EffectTrigger);
-        print($"'{entity.Title}': {ability.trigger} -> {ability.effect}");
+        // print($"'{entity.Title}': {ability.trigger} -> {ability.effect}");
         _abilityQueue.Add(entity, ability);
     }
 
@@ -134,7 +134,7 @@ public class CardEffectsHandler : NetworkBehaviour
 
     private IEnumerator ResolveAbility(BattleZoneEntity entity, Ability ability)
     {
-        print($"Resolving ability : " + ability.ToString());
+        print($"Resolving {entity.Title} ability : " + ability.ToString());
         
         // 1) Wait for player input if needed
         entity.RpcEffectHighlight(true);
@@ -155,7 +155,7 @@ public class CardEffectsHandler : NetworkBehaviour
 
         yield return new WaitForSeconds(SorsTimings.effectExecution);
         _abilityResolving = false;
-        _boardManager.ResetTargeting();
+        // _boardManager.ResetTargeting();
     }
 
     private bool CanContinueWithoutPlayerInput(BattleZoneEntity entity, Ability ability)
@@ -187,6 +187,8 @@ public class CardEffectsHandler : NetworkBehaviour
     }
 
     public void PlayerChoosesTargetEntity(BattleZoneEntity target){
+        _boardManager.ResetTargeting();
+
         _abilityTarget = target;
         _abilitySource.RpcDeclaredTarget(_abilityTarget);
 
@@ -244,6 +246,13 @@ public class CardEffectsHandler : NetworkBehaviour
     }
 
     private void HandleDamage(BattleZoneEntity entity, Ability ability){       
+        // With target
+        if(_abilityTarget) {
+            // TODO: This needs clean-up together with how player and entity health are linked
+            _abilityTarget.EntityTakesDamage(ability.amount, entity.CardInfo.keywordAbilities.Contains(Keywords.Deathtouch));
+            return;
+        }
+
         // Without target
         if(ability.target == EffectTarget.Opponent){
             if(!entity.Opponent){ // For single player
@@ -257,8 +266,6 @@ public class CardEffectsHandler : NetworkBehaviour
             entity.Health -= ability.amount;
         }
 
-        // With target
-        if(_abilityTarget) _abilityTarget.Health -= ability.amount;
     }
 
     private void HandleLifeGain(BattleZoneEntity entity, Ability ability){

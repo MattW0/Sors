@@ -37,13 +37,13 @@ public struct Ability
     public override string ToString()
     {
         if (amount == 0 && target == EffectTarget.None)
-            return "Ability: " + trigger.ToString() + " -> " + effect.ToString();
+            return trigger.ToString() + " -> " + effect.ToString();
         else if (amount == 0)
-            return "Ability: " + trigger.ToString() + " -> " + effect.ToString() + " to " + amount.ToString();
+            return trigger.ToString() + " -> " + effect.ToString() + " to " + amount.ToString();
         else if (target == EffectTarget.None)
-            return "Ability: " + trigger.ToString() + " -> " + effect.ToString() + ", " + amount.ToString();
+            return trigger.ToString() + " -> " + effect.ToString() + ", " + amount.ToString();
         else
-            return "Ability: " + trigger.ToString() + " -> " + effect.ToString() + " to " + target.ToString() + ", " + amount.ToString();
+            return trigger.ToString() + " -> " + effect.ToString() + " to " + target.ToString() + ", " + amount.ToString();
     }
 
     public override bool Equals(object obj)

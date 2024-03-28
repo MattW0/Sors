@@ -58,15 +58,29 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
         else if (clicker.PlayerIsChoosingTarget) clicker.PlayerChoosesEntityTarget(_playerEntity);
     }
 
-    public void TargetHighlight(bool targetable, bool isPlayer){
+    public void TargetHighlight(bool targetable, bool isOwned)
+    {
         _isTargetable = targetable;
 
         if(targetable) highlight.color = SorsColors.targetColor;
-        else {
-            if(isPlayer) highlight.color = SorsColors.player;
-            else highlight.color = SorsColors.opponent;
-        }
+        else ResetHighlight(isOwned);
     }
+
+    public void Highlight(bool enabled, Color color)
+    {
+        // TODO: Reset this after combat
+        if(highlight == null) return;
+
+        highlight.enabled = enabled;
+        highlight.color = color;
+    }
+
+    private void ResetHighlight(bool isOwned)
+    {
+        if(isOwned) highlight.color = SorsColors.player;
+        else highlight.color = SorsColors.opponent;
+    }
+
     public void SetName(string name) => playerName.text = name;
     public void SetHealth(int value) => playerHealth.text = value.ToString();
     public void SetScore(int value) => playerScore.text = value.ToString();

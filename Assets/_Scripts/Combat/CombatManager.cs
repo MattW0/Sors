@@ -130,33 +130,34 @@ public class CombatManager : NetworkBehaviour
 
     private IEnumerator Blocks()
     {
-        print($"Blocked creatures : {_blockerAttacker.Count}");
         if (_blockerAttacker.Count == 0){
             StartCoroutine(Unblocked());
             yield break;
         }
 
-        print($"Unlocked creatures pre blocks : {_attackerTarget.Count}");
-        int totalBlockerHealth = 0;
-        CreatureEntity aPrev = null;
+        CreatureEntity prevA = _blockerAttacker.First().Value;
+        int excessDamage = int.MinValue;
         foreach(var (b, a) in _blockerAttacker){
-            _playerInterfaceManager.RpcLog($"Clashing creatures: {a.Title} vs {b.Title}", LogType.CombatClash);
-
-            // Changing group of blockers
-            if(a != aPrev){
-                CheckTrample(a, totalBlockerHealth);
-                totalBlockerHealth = 0;
+            // In the same blocker group -> Do normal damage
+            if (!prevA.Equals(a)) {
+                if(DealTrampleDamage(prevA, excessDamage)) yield return new WaitForSeconds(SorsTimings.combatClash);
+                excessDamage = int.MinValue;
+                _attackerTarget.Remove(prevA);
             }
+            prevA = a;
 
             a.RpcSetCombatHighlight();
             b.RpcSetCombatHighlight();
-            CombatClash(a, b);
-
-            totalBlockerHealth += b.Health;
-            _attackerTarget.Remove(a);
+            if (excessDamage == int.MinValue) excessDamage = CombatClash(a, b, a.Attack);
+            else excessDamage = CombatClash(a, b, excessDamage);
 
             yield return new WaitForSeconds(SorsTimings.combatClash);
         }
+
+        if (DealTrampleDamage(prevA, excessDamage))
+            yield return new WaitForSeconds(SorsTimings.combatClash);
+        _attackerTarget.Remove(prevA);
+
         StartCoroutine(Unblocked());
     }
 
@@ -164,108 +165,74 @@ public class CombatManager : NetworkBehaviour
     {
         print($"Unblocked creatures after blocks : {_attackerTarget.Count}");
 
-        var playerAttackers = new List<CreatureEntity>();
         foreach(var (a, t) in _attackerTarget){
-            if(t.cardType == CardType.Player){
-                playerAttackers.Add(a);
-                continue;
-            }
 
-            _playerInterfaceManager.RpcLog($"{a.Title} deals {a.Attack} damage to {t.Title}", LogType.CombatClash);
             a.RpcSetCombatHighlight();
             t.RpcSetCombatHighlight(); 
-            EntityTakesDamage(a, t);
 
-            yield return new WaitForSeconds(SorsTimings.combatClash);
+            EntityDealsDamage(a, t, a.Attack);
+
+            yield return new WaitForSeconds(SorsTimings.combatClash+1f);
         }
 
-        print($"Creatures attacking player(s) : {playerAttackers.Count}");
-        StartCoroutine(PlayerDamage(playerAttackers));
-    }
-
-    private IEnumerator PlayerDamage(List<CreatureEntity> playerAttackers)
-    {
-        // Skip if in single-player (for debugging)
-        if (_gameManager.isSinglePlayer){
-            UpdateCombatState(CombatState.CleanUp);
-            yield break;
-        }
-
-        foreach (var attacker in playerAttackers){
-            attacker.RpcSetCombatHighlight();
-            _playerInterfaceManager.RpcLog($"{attacker.Title} deals {attacker.Attack} damage to {attacker.Opponent.PlayerName}", LogType.CombatClash);
-
-            // player takes damage from unblocked creatures
-            var targetPlayer = attacker.Opponent;
-            targetPlayer.Health -= attacker.Attack;
-            
-            yield return new WaitForSeconds(SorsTimings.combatClash);
-        }
-        
         UpdateCombatState(CombatState.CleanUp);
-    }   
+    }
     #endregion
 
     #region Dealing Damage
 
-    private void EntityTakesDamage(CreatureEntity attacker, BattleZoneEntity entity)
+    // Calculate the outcome of a combat clash between two creature entities, considering their keywords and attack damage. Returns the remaining attack damage after the clash.
+    private int CombatClash(CreatureEntity attacker, CreatureEntity blocker, int attackDamage)
     {
-        var attackerKw = attacker.GetKeywords();
-        entity.TakesDamage(attacker.Attack, attackerKw.Contains(Keywords.Deathtouch));
-    }
-
-    private void CombatClash(CreatureEntity attacker, CreatureEntity blocker){
-
-        var firstStrike = CheckFirststrike(attacker, blocker);
-        if (firstStrike) return; // Damage already happens in CheckFirstStrike
-
+        print($"CombatClash: {attacker.Title} vs {blocker.Title} with {attackDamage} damage");
         var attackerKw = attacker.GetKeywords();
         var blockerKw = blocker.GetKeywords();
+        var blockerHealth = blocker.Health;
 
-        blocker.TakesDamage(attacker.Attack, attackerKw.Contains(Keywords.Deathtouch));
-        attacker.TakesDamage(blocker.Attack, blockerKw.Contains(Keywords.Deathtouch));
-    }
-
-    private bool CheckFirststrike(CreatureEntity attacker, CreatureEntity blocker)
-    {
-        var attackerKw = attacker.GetKeywords();
-        var blockerKw = blocker.GetKeywords();
-
-        // XOR: return if none or both have first strike
+        // XOR: Neither or both have first strike
         if( ! attackerKw.Contains(Keywords.First_Strike)
-            ^ blockerKw.Contains(Keywords.First_Strike)){
-            return false;
+            ^ blockerKw.Contains(Keywords.First_Strike))
+        {
+            EntityDealsDamage(attacker, blocker, attackDamage);
+            EntityDealsDamage(blocker, attacker, blocker.Attack);
         }
 
-        // Attacker has first strike
+        // Only attacker has first strike, need to track trample
         if (attackerKw.Contains(Keywords.First_Strike))
         {
-            blocker.TakesDamage(attacker.Attack, attackerKw.Contains(Keywords.Deathtouch));
-            if(blocker.Health > 0) attacker.TakesDamage(blocker.Attack, blockerKw.Contains(Keywords.Deathtouch));
-            return true;
+            EntityDealsDamage(attacker, blocker, attackDamage);
+            if(blocker.Health > 0) EntityDealsDamage(blocker, attacker, blocker.Attack);
         }
-        
 
+        // Only blocker has first strike
         if (blockerKw.Contains(Keywords.First_Strike))
         {
-            attacker.TakesDamage(blocker.Attack, blockerKw.Contains(Keywords.Deathtouch));
-            if(attacker.Health > 0) blocker.TakesDamage(attacker.Attack, attackerKw.Contains(Keywords.Deathtouch));
-            return true;
+            EntityDealsDamage(blocker, attacker, blocker.Attack);
+            if(attacker.Health > 0) EntityDealsDamage(attacker, blocker, attackDamage);
         }
 
-        return false;
+        print ($"Remaining damage: {attackDamage - blockerHealth}");
+        return attackDamage - blockerHealth;
     }
 
-    private void CheckTrample(CreatureEntity attacker, int totalBlockerHealth )
+    private bool DealTrampleDamage(CreatureEntity attacker, int excessDamage)
     {
-        var attackerKw = attacker.GetKeywords();
-        if (attacker.Health <= 0 || !attackerKw.Contains(Keywords.Trample)) 
-            return;
+        if (!attacker.GetKeywords().Contains(Keywords.Trample)) return false;
+        print($"Trample of {attacker.Title} with {excessDamage} excess damage");
 
-        var targetPlayer = attacker.Opponent;
-        targetPlayer.Health -= attacker.Attack - totalBlockerHealth;
+        var target = _attackerTarget[attacker];
+
+        target.RpcSetCombatHighlight();
+        EntityDealsDamage(attacker, target, excessDamage);
+
+        return true;
     }
     #endregion
+
+    public void EntityDealsDamage(CreatureEntity a, BattleZoneEntity t, int damage){
+        _playerInterfaceManager.RpcLog($"{a.Title} deals {damage - t.Health} damage to {t.Title}", LogType.CombatClash);
+        t.EntityTakesDamage(damage, a.GetKeywords().Contains(Keywords.Deathtouch));
+    }
 
     public IEnumerator CombatCleanUp(bool forced)
     {

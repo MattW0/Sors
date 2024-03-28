@@ -20,11 +20,12 @@ public class PlayerInterfaceButtons : MonoBehaviour
         _undoButton.onClick.AddListener(OnUndoButtonPressed);
         _chatButton.onClick.AddListener(OnChatButtonPressed);
     }
-    public void DisableUtilityButton() => _utilityButton.interactable = false;
     public void OnHandButtonPressed() => _manager.OpenCardCollectionView();
     public void OnMarketButtonPressed() => _manager.OpenMarketView();
     public void OnUtilityButtonPressed() => _manager.ForceEndTurn();
+    public void DisableUtilityButton() => _utilityButton.interactable = false;
     public void OnUndoButtonPressed() => _manager.Undo();
+    public void UndoButtonEnabled(bool b) => _undoButton.interactable = b;
     public void OnChatButtonPressed() => _manager.OpenChat();
 }
 

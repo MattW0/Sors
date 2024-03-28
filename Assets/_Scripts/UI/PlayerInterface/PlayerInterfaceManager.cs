@@ -3,12 +3,13 @@ using Mirror;
 using UnityEngine;
 using System.Collections.Generic;
 
-
+[RequireComponent(typeof(PlayerInterfaceButtons))]
 public class PlayerInterfaceManager : NetworkBehaviour
 {
     public static PlayerInterfaceManager Instance { get; private set; }
     [SerializeField] private Logger _logger;
     [SerializeField] private Chat _chat;
+    private PlayerInterfaceButtons _buttons;
     public static event Action<string> OnChatMessageSent;
 
     private PlayerManager _player;
@@ -19,6 +20,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
     {
         if (!Instance) Instance = this;
         
+        _buttons = GetComponent<PlayerInterfaceButtons>();
         GameManager.OnGameStart += RpcPrepareUIs;
     }
 
@@ -34,6 +36,13 @@ public class PlayerInterfaceManager : NetworkBehaviour
         _player = PlayerManager.GetLocalPlayer();
         if(!_player.isServer) gameObject.GetComponent<PlayerInterfaceButtons>().DisableUtilityButton();
     }
+
+    [ClientRpc]
+    public void RpcUndoButtonEnabled(bool b) => _buttons.UndoButtonEnabled(b);
+
+    [TargetRpc]
+    public void TargetUndoButtonEnabled(NetworkConnection conn, bool b) => _buttons.UndoButtonEnabled(b);
+    public void UndoButtonEnabled(bool b) => _buttons.UndoButtonEnabled(b);
 
     [ClientRpc]
     public void RpcLog(string message, LogType type) => _logger.Log(message, type);

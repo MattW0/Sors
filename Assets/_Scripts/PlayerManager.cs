@@ -16,7 +16,7 @@ public class PlayerManager : NetworkBehaviour
     private CardMover _cardMover;
     private Hand _handManager;
     private PhasePanelUI _phaseVisualsUI;
-    private PlayerInterfaceManager _logger;
+    private PlayerInterfaceManager _playerInterface;
 
     [Header("Game State")]
     public List<Phase> chosenPhases = new();
@@ -28,7 +28,7 @@ public class PlayerManager : NetworkBehaviour
     public bool PlayerIsChoosingAttack { get; private set; }
     public bool PlayerIsChoosingBlock { get; private set; }
     private List<CreatureEntity> _attackers = new();
-    private List<CreatureEntity> _blockers = new();
+        private List<CreatureEntity> _blockers = new();
     private PlayerUI _playerUI;
     private PlayerUI _opponentUI;
     private BattleZoneEntity _entity;
@@ -84,7 +84,6 @@ public class PlayerManager : NetworkBehaviour
         set => SetPlayValue(value);
     }
 
-    // Do the same for Prevails
     [SyncVar] private int _prevails;
     public int Prevails
     {
@@ -94,14 +93,13 @@ public class PlayerManager : NetworkBehaviour
 
     #region GameSetup
 
-    // public override void OnStartClient() => base.OnStartClient();
-
     [ClientRpc]
     public void RpcInitPlayer()
     {
         _handManager = Hand.Instance;
         _cardMover = CardMover.Instance;
         _phaseVisualsUI = PhasePanelUI.Instance;
+        _playerInterface = PlayerInterfaceManager.Instance;
 
         EntityAndUISetup();
 
@@ -109,10 +107,10 @@ public class PlayerManager : NetworkBehaviour
         _turnManager = TurnManager.Instance;
         _combatManager = CombatManager.Instance;
         _cardEffectsHandler = CardEffectsHandler.Instance;
-        _logger = PlayerInterfaceManager.Instance;
     }
 
     private void EntityAndUISetup(){
+        // TODO: Check if playerUI logic needs to be here or if it can be done in PlayerUI class
         _playerUI = GameObject.Find("PlayerInfo").GetComponent<PlayerUI>();
         _opponentUI = GameObject.Find("OpponentInfo").GetComponent<PlayerUI>();
         
@@ -142,15 +140,6 @@ public class PlayerManager : NetworkBehaviour
         }
     }
     #endregion GameSetup
-
-    #region GameEnd
-
-    public void RpcGameIsDraw(int health)
-    {
-
-    }
-
-    #endregion
 
     #region Cards
 
@@ -338,7 +327,7 @@ public class PlayerManager : NetworkBehaviour
             discard.Add(cardInfo);
             RpcMoveCard(card, CardLocation.Hand, CardLocation.Discard);
 
-            _logger.RpcLog($"{PlayerName} discards {cardInfo.title}", LogType.Standard);
+            _playerInterface.RpcLog($"{PlayerName} discards {cardInfo.title}", LogType.Standard);
         }
     }
 
@@ -447,7 +436,6 @@ public class PlayerManager : NetworkBehaviour
     private void CmdPlayerChoosesTargetEntity(BattleZoneEntity target) => _cardEffectsHandler.PlayerChoosesTargetEntity(target);
 
     #endregion
-
 
     #region UI
 
@@ -575,11 +563,6 @@ public class PlayerManager : NetworkBehaviour
     {
         var networkIdentity = NetworkClient.connection.identity;
         return networkIdentity.GetComponent<PlayerManager>();
-    }
-
-    [ClientRpc]
-    public void RpcUpdateHandCards(GameObject card, bool addingCard){
-        _handManager.UpdateHandCardList(card, addingCard);
     }
 
     [ClientRpc]

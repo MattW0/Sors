@@ -61,7 +61,7 @@ public class BoardManager : NetworkBehaviour
         owner.TargetPlayerStartChooseTarget();
         entity.TargetSpawnTargetArrow(owner.connectionToClient);
 
-        _dropZone.RpcEntitiesAreTargetable(ability.target);
+        _dropZone.TargetEntitiesAreTargetable(owner.connectionToClient, ability.target);
     }
 
     public void ResetTargeting() => _dropZone.RpcResetTargeting();

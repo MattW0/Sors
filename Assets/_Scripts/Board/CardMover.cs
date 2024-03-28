@@ -132,7 +132,7 @@ public class CardMover : MonoBehaviour
     private void InitSpawnedCard(GameObject card, bool hasAuthority, CardLocation destination, bool fromFile=false)
     {    
         card.transform.localScale = Vector3.one;
-        if(!fromFile && hasAuthority) card.GetComponent<HandCardUI>().CardFrontUp();
+        if(!fromFile) card.GetComponent<HandCardUI>().CardFrontUp();
 
         if(hasAuthority){
             playerCardSpawn.Add(card);

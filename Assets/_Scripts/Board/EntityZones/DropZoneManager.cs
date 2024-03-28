@@ -71,8 +71,8 @@ public class DropZoneManager : NetworkBehaviour
 
     #endregion
 
-    [ClientRpc]
-    public void RpcEntitiesAreTargetable(EffectTarget target)
+    [TargetRpc]
+    public void TargetEntitiesAreTargetable(NetworkConnection conn, EffectTarget target)
     {
         // TODO: Expand for different possible effect targets and standard combat targeting
         print("targets count: " + entityZones.GetAllEntities().Count);

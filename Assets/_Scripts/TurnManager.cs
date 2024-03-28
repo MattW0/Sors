@@ -361,10 +361,10 @@ public class TurnManager : NetworkBehaviour
     private IEnumerator BuyCardsIntermission()
     {
         _market.RpcMinButton();
-        // Waiting for Entities abilities (ETB) being tracked 
-        yield return new WaitForSeconds(SorsTimings.wait);
+        // Waiting for CardMover to move cards to discard, should end before money is discarded
+        yield return new WaitForSeconds(SorsTimings.showSpawnedCard + SorsTimings.cardMoveTime);
 
-        // Waiting for CEH to set QueueResolving to false
+        // Waiting for Entities abilities (ETB) being tracked (CEH sets QueueResolving to false)
         StartCoroutine(_cardEffectsHandler.StartResolvingQueue());
         while (_cardEffectsHandler.QueueResolving) 
             yield return new WaitForSeconds(0.1f);
@@ -374,7 +374,7 @@ public class TurnManager : NetworkBehaviour
 
     private void CheckBuyAnotherCard()
     {
-        // Reset abilities and dead entities
+        // Reset abilities and dead entities, needs market tiles for game state saving
         _boardManager.BoardCleanUp(_market.GetTileInfos(), false);
 
         // Add each player that skipped to _readyPlayers
@@ -385,16 +385,17 @@ public class TurnManager : NetworkBehaviour
         }
 
         // Play another card if not all players have skipped
-        if (_readyPlayers.Count != _gameManager.players.Count) {
-            _market.RpcMaxButton();
-            // Replace tile with intention to give more variation and a race to strong creatures
-            // TODO: Check if I should do this for technologies as well
-            // TODO: How to replace tiles for both players?
-            // TODO: Or only do this in FinishBuyCard?
-            // _market.RpcReplaceRecruitTile(card.title, nextTile);
-        } else {
+        if (_readyPlayers.Count == _gameManager.players.Count) {
             FinishBuyCard();
+            return;
         }
+
+        _market.RpcMaxButton();
+        // Replace tile with intention to give more variation and a race to strong creatures
+        // TODO: Check if I should do this for technologies as well
+        // TODO: How to replace tiles for both players?
+        // TODO: Or only do this in FinishBuyCard?
+        // _market.RpcReplaceRecruitTile(card.title, nextTile);
     }
 
     private void FinishBuyCard()
