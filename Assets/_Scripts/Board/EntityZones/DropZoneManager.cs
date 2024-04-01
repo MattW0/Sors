@@ -75,7 +75,11 @@ public class DropZoneManager : NetworkBehaviour
     public void TargetEntitiesAreTargetable(NetworkConnection conn, EffectTarget target)
     {
         // TODO: Expand for different possible effect targets and standard combat targeting
-        print("targets count: " + entityZones.GetAllEntities().Count);
+
+        var e = entityZones.GetAllEntities();
+        var nbTargets = e.Count;
+        print("targets count: " + nbTargets);
+        if (nbTargets == 0)
         OnTargetEntities?.Invoke(target);
     }
 

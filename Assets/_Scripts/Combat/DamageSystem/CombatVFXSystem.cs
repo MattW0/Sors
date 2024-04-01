@@ -3,16 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Threading.Tasks;
 using DG.Tweening;
+using Mirror;
 
 
-public class CombatVFXSystem : MonoBehaviour
+public class CombatVFXSystem : NetworkBehaviour
 {
     public static CombatVFXSystem Instance { get; private set; }
     public GameObject attackVFXPrefab;
     public GameObject damageVFXPrefab;
-    public float damageTime = 10f;
-    public float attackTime = 3f;
     public bool IsDone { get; set; }
+    private ParticleSystem _damageVFX;
+    private ParticleSystem _attackVFX;
 
     private void Awake()
     {
@@ -24,33 +25,37 @@ public class CombatVFXSystem : MonoBehaviour
     {
         // Instantiate and set active false
         attackVFXPrefab.SetActive(false);
-        damageVFXPrefab.SetActive(false);
-    }
-    public IEnumerator PlayDamage(Vector3 position, int damage)
-    {
-        damageVFXPrefab.transform.position = position;
-        damageVFXPrefab.SetActive(true);
-
-        yield return new WaitForSeconds(damageTime);
-
-        damageVFXPrefab.SetActive(false);
+        _attackVFX = attackVFXPrefab.GetComponent<ParticleSystem>();
+        _damageVFX = damageVFXPrefab.GetComponent<ParticleSystem>();
     }
 
-    public void PlayAttack(Transform start, Transform end)
+    [ClientRpc]
+    public void RpcPlayDamage(BattleZoneEntity entity, int damage)
     {
-        attackVFXPrefab.transform.position = start.position;
+        damageVFXPrefab.transform.position = entity.gameObject.transform.position;
+        _damageVFX.Play();
+        damageVFXPrefab.transform.DORotate(Vector3.zero, SorsTimings.damageTime).OnComplete(() => _damageVFX.Stop());
+    }
 
-        var rotation = Quaternion.LookRotation(end.position - start.position);
-        attackVFXPrefab.transform.rotation = rotation;
+    [ClientRpc]
+    public void RpcPlayAttack(BattleZoneEntity source, BattleZoneEntity target)
+    {
+        var sourcePosition = source.gameObject.transform.position;
+        attackVFXPrefab.transform.position = sourcePosition;
+
+        var tartgetPosition = target.gameObject.transform.position;
+        var dir = Quaternion.LookRotation(tartgetPosition - sourcePosition).eulerAngles;
+        attackVFXPrefab.transform.localRotation = Quaternion.Euler(dir.x, dir.y - 90f, dir.z);
 
         attackVFXPrefab.SetActive(true);
+        _attackVFX.Play();
 
         attackVFXPrefab.transform
-            .DOMove(end.position, attackTime)
-            .SetEase(Ease.InOutCubic)
-            .OnComplete(() => attackVFXPrefab.SetActive(false));
-
-        // yield return new WaitForSeconds(attackTime);
-
+            .DOMove(tartgetPosition, SorsTimings.attackTime)
+            .SetEase(Ease.InCubic)
+            .OnComplete(() =>  {
+                _attackVFX.Stop();
+                attackVFXPrefab.SetActive(false);
+            });
     }
 }

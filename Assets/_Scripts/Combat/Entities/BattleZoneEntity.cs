@@ -69,8 +69,6 @@ public class BattleZoneEntity : NetworkBehaviour
         if (cardType != CardType.Player){
             CombatManager.OnCombatStateChanged += RpcCombatStateChanged;
             DropZoneManager.OnResetEntityUI += ResetEntityUI;
-        } else {
-            _player = GetComponent<PlayerManager>();
         }
     }
 
@@ -127,7 +125,7 @@ public class BattleZoneEntity : NetworkBehaviour
             Health = 0;
             return;
         }
-        Health = Mathf.Min(0, Health - value);
+        Health = Mathf.Max(0, Health - value);
     }
 
     private void Die()
@@ -154,10 +152,6 @@ public class BattleZoneEntity : NetworkBehaviour
     public virtual void RpcCombatStateChanged(CombatState newState){
         targetArrowHandler.CombatStateChanged(newState);
         attackerArrowHandler.CombatStateChanged(newState);
-
-        // if(newState == CombatState.Attackers && cardType == CardType.Technology || cardType == CardType.Player){
-        //     attackerArrowHandler.SpawnArrow();
-        // }
     }
     
     #region UI Target Arrows
@@ -181,8 +175,15 @@ public class BattleZoneEntity : NetworkBehaviour
     #endregion
 
     // Need this for player UI highlights : attackable, targetable, ...
-    public void SetPlayerUI(PlayerUI playerUI) => _playerUI = playerUI;
+    public void SetPlayer(string title, PlayerUI playerUI)
+    {
+        Title = title;
+        _playerUI = playerUI;
+        _player = GetComponent<PlayerManager>();
+    } 
 
+    // Somehow NetworkServer.Destroy(this) destroys the GO but does not call OnDestroy(),
+    // Thus, do it here manually to prevent null references when events are triggered
     [ClientRpc] public void RpcUnsubscribeEvents() => UnsubscribeEvents();
     public void UnsubscribeEvents()
     {

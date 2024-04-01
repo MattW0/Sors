@@ -27,6 +27,11 @@ public static class SorsTimings
     public static float overlayScreenFadeTime = 0.5f;
 	public static float cardPileRearrangement = 0.5f;
 
+    // VFX
+    
+    public static float damageTime = 1f;
+    public static float attackTime = 0.5f;
+
     public static void SkipCardSpawnAnimations(){
         waitForSpawnFromFile = 0.01f;
         spawnCard = 0.01f;

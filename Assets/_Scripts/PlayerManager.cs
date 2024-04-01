@@ -116,11 +116,11 @@ public class PlayerManager : NetworkBehaviour
         
         _entity = GetComponent<BattleZoneEntity>();
         if(isOwned) {
-            _entity.SetPlayerUI(_playerUI);
+            _entity.SetPlayer(PlayerName, _playerUI);
             // Child 0 is the player stats BG
             _playerUI.SetEntity(_entity, _playerUI.transform.GetChild(0).position);
         } else {
-            _entity.SetPlayerUI(_opponentUI);
+            _entity.SetPlayer(PlayerName, _opponentUI);
             // Child 0 is the player stats BG
             _opponentUI.SetEntity(_entity, _opponentUI.transform.GetChild(0).position);
         }

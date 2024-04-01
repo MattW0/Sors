@@ -6,61 +6,93 @@ using System;
 
 public class CombatClash
 {
-    private CombatVFXSystem _combatVFXSystem = CombatVFXSystem.Instance;
-    private Transform _source;
-    private Transform _target;
+    public CreatureEntity _source;
+    public BattleZoneEntity _target;
     private int _damageFromSource;
     private int _damageFromTarget;
-    private bool _isClash;
-
+    public bool IsClash { get; private set; }
     public bool IsDone { get; private set; }
+    private CombatVFXSystem _combatVFXSystem;
 
     // Need to pass attack damage for trample and _target groups
-    public CombatClash(CreatureEntity a, CreatureEntity b, int aDmg, int bDmg)
+    public CombatClash(CreatureEntity attacker, CreatureEntity blocker, int aDmg, int bDmg)
     {
-        _source = a.gameObject.transform;
-        _target = b.gameObject.transform;
+        _source = attacker;
+        _target = blocker;
         _damageFromSource = aDmg;
         _damageFromTarget = bDmg;
 
-        _isClash = true;
+        IsClash = EvaluateFirstStrike(attacker, blocker, aDmg, bDmg);
+        _combatVFXSystem = CombatVFXSystem.Instance;
     }
 
-    public CombatClash(CreatureEntity a, BattleZoneEntity t, int aDmg, int bDmg = 0)
+    public CombatClash(CreatureEntity a, BattleZoneEntity t, int aDmg)
     {
-        _source = a.gameObject.transform;
-        _target = t.gameObject.transform;
+        _source = a;
+        _target = t;
         _damageFromSource = aDmg;
+        _combatVFXSystem = CombatVFXSystem.Instance;
     }
 
-    public IEnumerator Execute() 
+    public IEnumerator Execute()
     {
+        // Debug.Log($"Attack Animation : {_source.gameObject.transform.position} -> {_target.gameObject.transform.position}");
+        _combatVFXSystem.RpcPlayAttack(_source, _target);
+        yield return new WaitForSeconds(SorsTimings.attackTime);
 
-        // yield return _combatVFXSystem.PlayAttackCR(_source, _target);
-        Debug.Log($"Attack Animation : {_source.position} -> {_target.position}");
-        _combatVFXSystem.PlayAttack(_source, _target);
-        yield return new WaitForSeconds(2f);
+        // Debug.Log($"Damage Animation at {_target.gameObject.transform.position} with {_damageFromSource} damage");
+        _combatVFXSystem.RpcPlayDamage(_target, _damageFromSource);
+        // yield return new WaitForSeconds(SorsTimings.damageTime);
+        _target.EntityTakesDamage(_damageFromSource, _source.GetKeywords().Contains(Keywords.Deathtouch));
 
-        Debug.Log($"Damage Animation at {_target.position} with {_damageFromSource} damage");
-        yield return _combatVFXSystem.PlayDamage(_target.position, _damageFromSource);
-        yield return new WaitForSeconds(0.5f);
-
-        if (_isClash)
+        if (IsClash)
         {
-            Debug.Log($"Attack Animation : {_source.position} -> {_target.position}");
-            _combatVFXSystem.PlayAttack(_source, _target);
-            yield return new WaitForSeconds(2f);
+            // Debug.Log($"Attack Animation : {_source.position} -> {_target.position}");
+            _combatVFXSystem.RpcPlayAttack(_target, _source);
+            yield return new WaitForSeconds(SorsTimings.attackTime);
 
-            Debug.Log($"Damage Animation at {_source} with {_damageFromTarget} damage");
-            yield return _combatVFXSystem.PlayDamage(_source.position, _damageFromTarget);
-            yield return new WaitForSeconds(0.5f);
+            // Debug.Log($"Damage Animation at {_source} with {_damageFromTarget} damage");
+            _combatVFXSystem.RpcPlayDamage(_source, _damageFromSource);
+            // yield return new WaitForSeconds(0.1f);
+            _source.Health -= _damageFromTarget;
         }
         
         IsDone = true;
     }
 
+    private bool EvaluateFirstStrike(CreatureEntity attacker, CreatureEntity blocker, int attackDamage, int blockDamage)
+    {
+        var attackerKw = attacker.GetKeywords();
+        var blockerKw = blocker.GetKeywords();
+
+        // XOR: Neither or both have first strike
+        if( ! attackerKw.Contains(Keywords.First_Strike)
+            ^ blockerKw.Contains(Keywords.First_Strike))
+                return true;
+
+        // Only attacker has first strike, need to track trample
+        if (attackerKw.Contains(Keywords.First_Strike) 
+            && blocker.Health - attackDamage > 0) 
+                return true;
+
+        // Only blocker has first strike
+        if (blockerKw.Contains(Keywords.First_Strike)
+            && attacker.Health - blockDamage > 0)
+                return true;
+
+        return false;
+    }
+
     public override string ToString()
     {
-        return $"CombatClash: {_source.name} vs {_target.name} with {_damageFromSource} damage\nIsDone: {IsDone}";
+        var log = "";
+        if(IsClash) {
+            log += $"{_source.Title} -> {_target.Title} : {_damageFromSource}.\n";
+            log += $"{_target.Title} -> {_source.Title} : {_damageFromTarget}";
+        } else {
+            log = $"{_source.Title} -> {_target.Title} : {_damageFromSource}.";
+        }
+
+        return log;
     }
 }
