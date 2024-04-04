@@ -195,18 +195,15 @@ public class BattleZoneEntity : NetworkBehaviour
         DropZoneManager.OnResetEntityUI -= ResetEntityUI;
     }
 
-    public bool Equals(BattleZoneEntity e)
+    public bool Equals(BattleZoneEntity other)
     {
-        if (e is null) return false;
+        if (other == null) return false;
 
         // Optimization for a common success case.
-        if (GameObject.ReferenceEquals(this, e)) return true;
-
-        // If run-time types are not exactly the same, return false.
-        if (this.GetType() != e.GetType()) return false;
+        if (GameObject.ReferenceEquals(this, other)) return true;
 
         // Return true if the fields match.
-        return (gameObject.GetInstanceID() == e.gameObject.GetInstanceID());
+        return (gameObject.GetInstanceID() == other.gameObject.GetInstanceID());
     }
     private void OnDestroy() => UnsubscribeEvents();
 }

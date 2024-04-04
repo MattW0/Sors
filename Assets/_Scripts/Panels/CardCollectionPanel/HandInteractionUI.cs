@@ -90,6 +90,29 @@ public class HandInteractionUI : MonoBehaviour
         }
     }
 
+    public void ViewCardCollection(CardLocation cardCollectionType, bool ownsCollection)
+    {
+        _view.SetActive(true);
+
+        var text = ownsCollection ? "" : "Opponent ";
+        switch(cardCollectionType){
+            case CardLocation.Deck:
+                text += "Deck";
+                break;
+            case CardLocation.Discard:
+                text += "Discard";
+                break;
+            case CardLocation.Hand:
+                text += "Hand";
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(cardCollectionType), cardCollectionType, null);
+        }
+
+        _collectionTitle.text = text;
+        _fullViewImage.enabled = true;
+    }
+
     private void PlayCardInteraction(int numberPlays)
     {
         _playerHand.localPosition = _handPositionPlayCards;

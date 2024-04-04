@@ -40,6 +40,15 @@ public class HandInteractionPanel : NetworkBehaviour
         _detailCards.AddRange(detailCards);
     }
 
+    [TargetRpc]
+    public void TargetOpenCardCollection(NetworkConnection target, List<CardInfo> cards, CardLocation collectionType, bool ownsCollection)
+    {
+        _ui.ViewCardCollection(collectionType, ownsCollection);
+
+        var detailCards = _cardSpawner.SpawnDetailCardObjects(cards, TurnState.Idle);
+        _detailCards.AddRange(detailCards);
+    }
+
     #region States
     [TargetRpc]
     public void TargetBeginPrevailSelection(NetworkConnection conn, TurnState turnState, int nbCardsToTrash){

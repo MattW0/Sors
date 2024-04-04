@@ -34,7 +34,7 @@ public class GameStateLoader : MonoBehaviour
 
         Dictionary<PlayerManager, Cards> playerCards = new();
         Dictionary<PlayerManager, Entities> playerEntities = new();
-        foreach (var player in _gameManager.players.Keys)
+        foreach (var player in _gameManager.players.Values)
         {
             // p has player info and game state 
             Player p = new Player();

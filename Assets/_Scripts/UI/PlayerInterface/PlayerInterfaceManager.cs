@@ -58,24 +58,32 @@ public class PlayerInterfaceManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcPlayCards(List<BattleZoneEntity> entities){
+    public void RpcLogPlayingCards(List<BattleZoneEntity> entities){
         foreach (var e in entities) _logger.Log($"{e.Owner.PlayerName} plays {e.Title}", LogType.Play);
     }
+
+    [Server]
+    public void OpenCardCollection(NetworkConnection conn, List<CardInfo> cards, CardLocation collectionType, bool isOwned)
+    {
+        _cardCollectionPanel.TargetOpenCardCollection(conn, cards, collectionType, isOwned);
+    }
     
-    [Client]
-    public void Send(string message) {
-        CmdSendMessage(message);
-    }
+    // TODO: Chat
 
-    [Command(requiresAuthority = false)]
-    private void CmdSendMessage(string message) {
-        RpcHandleMessage($"[{connectionToClient.connectionId}]: {message}");
-    }
+    // [Client]
+    // public void Send(string message) {
+    //     CmdSendMessage(message);
+    // }
 
-    [ClientRpc]
-    private void RpcHandleMessage(string message) {
-        OnChatMessageSent?.Invoke(message);
-    }
+    // [Command(requiresAuthority = false)]
+    // private void CmdSendMessage(string message) {
+    //     RpcHandleMessage($"[{connectionToClient.connectionId}]: {message}");
+    // }
+
+    // [ClientRpc]
+    // private void RpcHandleMessage(string message) {
+    //     OnChatMessageSent?.Invoke(message);
+    // }
     
     public void OpenCardCollectionView() => _cardCollectionPanel.ToggleView();
     public void OpenMarketView() => _market.MaxButton();

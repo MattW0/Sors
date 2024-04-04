@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 
 [System.Serializable]
-public class CardCollection : List<CardInfo> {
-
-    public List<CardInfo> _cards;
+public class CardCollection : List<CardInfo> 
+{
+    // public List<CardInfo> cards;
 
     // constructor
-    public CardCollection(){
-        _cards = new List<CardInfo>();
+    public CardCollection()
+    {
+        // cards = new List<CardInfo>();
     }
 
     public void Shuffle(){
@@ -23,5 +24,10 @@ public class CardCollection : List<CardInfo> {
             n--;
             (this[k], this[n]) = (this[n], this[k]);
         }
+    }
+
+    public override string ToString()
+    {
+        return Count.ToString() + " cards";
     }
 }

@@ -20,7 +20,7 @@ public class GameManager : NetworkBehaviour {
 
     [Header("Game state")]
     [SyncVar] public int turnNumber;
-    public Dictionary<PlayerManager, NetworkIdentity> players = new();
+    public Dictionary<NetworkIdentity, PlayerManager> players = new();
     private List<PlayerManager> _loosingPlayers = new();
 
     [Header("Available cards")]
@@ -97,7 +97,7 @@ public class GameManager : NetworkBehaviour {
         if(string.IsNullOrWhiteSpace(options.StateFile)){
             // Normal game setup
             MarketSetup();
-            foreach (var player in players.Keys) SpawnPlayerDeck(player);
+            foreach (var player in players.Values) SpawnPlayerDeck(player);
             OnGameStart?.Invoke(_gameOptions);
         } else {
             // Start game from state file
@@ -111,7 +111,7 @@ public class GameManager : NetworkBehaviour {
         foreach (var player in playerManagers)
         {
             player.RpcInitPlayer();
-            if(!player.isAI) players.Add(player, player.GetComponent<NetworkIdentity>());
+            if(!player.isAI) players.Add(player.GetComponent<NetworkIdentity>(), player);
             
             // Player stats
             player.PlayerName = player.gameObject.name; // Object name is set after instantiation in NetworkManager
@@ -222,7 +222,7 @@ public class GameManager : NetworkBehaviour {
         CardsCache.Add(instanceID, cardObject);
 
         NetworkServer.Spawn(cardObject, connectionToClient);
-        cardObject.GetComponent<NetworkIdentity>().AssignClientAuthority(players[owner].connectionToClient);
+        cardObject.GetComponent<NetworkIdentity>().AssignClientAuthority(owner.connectionToClient);
 
         return instanceID;
     }
@@ -255,7 +255,7 @@ public class GameManager : NetworkBehaviour {
         
         // Assign authority
         NetworkServer.Spawn(entityObject, connectionToClient);
-        entityObject.GetComponent<NetworkIdentity>().AssignClientAuthority(players[owner].connectionToClient);
+        entityObject.GetComponent<NetworkIdentity>().AssignClientAuthority(owner.connectionToClient);
         var entity = entityObject.GetComponent<BattleZoneEntity>();
 
         // Intitialize entity on clients
@@ -274,7 +274,7 @@ public class GameManager : NetworkBehaviour {
 
     public void EndGame()
     {
-        foreach (var player in players.Keys)
+        foreach (var player in players.Values)
         {
             var health = player.Health;
             _endScreen.RpcSetFinalScore(player, health, 0);
@@ -335,7 +335,7 @@ public class GameManager : NetworkBehaviour {
 
     public PlayerManager GetOpponent(PlayerManager player)
     {
-        return players.Keys.FirstOrDefault(p => p != player);
+        return players.Values.FirstOrDefault(p => p != player);
     }
     #endregion
 

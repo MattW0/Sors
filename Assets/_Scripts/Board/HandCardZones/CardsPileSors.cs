@@ -17,7 +17,7 @@ public class CardsPileSors : MonoBehaviour
 			#endif
 		}
 	}
-	[SerializeField] private CardLocation pileType;
+	public CardLocation pileType;
 	public float height = 0.5f;
 	public float width = 1f;
 	private float _defaultHandWidth = 400f;

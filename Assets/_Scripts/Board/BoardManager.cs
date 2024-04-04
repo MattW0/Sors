@@ -87,14 +87,14 @@ public class BoardManager : NetworkBehaviour
         else if (state == CombatState.CleanUp) CombatCleanUp();
     }
 
-    private void DeclareAttackers() => _dropZone.StartDeclareAttackers(_gameManager.players.Keys.ToList());
+    private void DeclareAttackers() => _dropZone.StartDeclareAttackers(_gameManager.players.Values.ToList());
     public void AttackersDeclared(PlayerManager player)
     {
         DisableReadyButton(player);
         _combatManager.PlayerDeclaredAttackers(player);
     }
     
-    private void DeclareBlockers() => _dropZone.StartDeclareBlockers(_gameManager.players.Keys.ToList());
+    private void DeclareBlockers() => _dropZone.StartDeclareBlockers(_gameManager.players.Values.ToList());
     public void BlockersDeclared(PlayerManager player)
     {
         DisableReadyButton(player);
@@ -161,7 +161,7 @@ public class BoardManager : NetworkBehaviour
         _gameState = new GameState(_gameManager.players.Count);
 
         int i = 0;
-        foreach (var player in _gameManager.players.Keys){
+        foreach (var player in _gameManager.players.Values){
             _gameState.players[i] = new Player(player.PlayerName, player.isLocalPlayer);
             i++;
         }
@@ -175,7 +175,7 @@ public class BoardManager : NetworkBehaviour
         _gameState.market.SaveMarketState(scriptableTiles);
 
         int i = 0;
-        foreach(var player in _gameManager.players.Keys){
+        foreach(var player in _gameManager.players.Values){
             _gameState.players[i].SavePlayerState(player);
             
             var (creatures, technologies) = _dropZone.GetPlayerEntities(player);
@@ -213,7 +213,7 @@ public class BoardManager : NetworkBehaviour
     public void ShowHolders(bool active)
     {
         if(active) { 
-            var turnState = TurnManager.GetTurnState();
+            var turnState = TurnManager.TurnState;
             _dropZone.RpcHighlightCardHolders(turnState);
         } else {
             _dropZone.RpcResetHolders();

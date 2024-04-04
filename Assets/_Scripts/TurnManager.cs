@@ -24,20 +24,20 @@ public class TurnManager : NetworkBehaviour
 
     [field: Header("Game state")]
     [SerializeField] private TurnState turnState;
-    public static TurnState GetTurnState() => Instance.turnState;
-    public List<Phase> phasesToPlay;
-    private Dictionary<PlayerManager, Phase[]> _playerPhaseChoices = new();
-    private List<PrevailOption> _prevailOptionsToPlay = new();
-    private Dictionary<PlayerManager, List<PrevailOption>> _playerPrevailOptions = new();
-    private List<PlayerManager> _readyPlayers = new();
-    private List<PlayerManager> _skippedPlayers = new();
+    public static TurnState TurnState { get; private set; }
+    private GameOptions _gameOptions;
     private int _nbPlayers;
     private bool _skipCardDrawAnimations;
 
     [Header("Helper Fields")]
-    private GameOptions _gameOptions;
+    private List<PlayerManager> _readyPlayers = new();
+    private List<PlayerManager> _skippedPlayers = new();
+    private Dictionary<PlayerManager, Phase[]> _playerPhaseChoices = new();
+    private List<Phase> _phasesToPlay = new();
     private Dictionary<PlayerManager, CardInfo> _selectedMarketCards = new();
     private Dictionary<PlayerManager, List<GameObject>> _selectedCards = new();
+    private Dictionary<PlayerManager, List<PrevailOption>> _playerPrevailOptions = new();
+    private List<PrevailOption> _prevailOptionsToPlay = new();
 
     // Events
     public static event Action<TurnState> OnPhaseChanged;
@@ -137,7 +137,7 @@ public class TurnManager : NetworkBehaviour
     private void VariablesCaching(GameOptions gameOptions)
     {
         var playerNames = new List<string>();
-        foreach (var player in _gameManager.players.Keys)
+        foreach (var player in _gameManager.players.Values)
         {
             _playerPhaseChoices.Add(player, new Phase[gameOptions.NumberPhases]);
             _playerPrevailOptions.Add(player, new List<PrevailOption>());
@@ -161,7 +161,7 @@ public class TurnManager : NetworkBehaviour
         // Dont want ETB triggers for entities from game state and only draw initial hand in normal game start 
         if(! string.IsNullOrEmpty(_gameOptions.StateFile)) _cardEffectsHandler.ClearAbilitiesQueue();
         else {
-            foreach(var player in _gameManager.players.Keys) {
+            foreach(var player in _gameManager.players.Values) {
                 player.deck.Shuffle();
                 player.DrawInitialHand(_gameOptions.InitialHandSize);
             }
@@ -181,7 +181,7 @@ public class TurnManager : NetworkBehaviour
         OnPhaseChanged?.Invoke(TurnState.PhaseSelection);
 
         // Reset and draw per turn
-        foreach (var player in _gameManager.players.Keys) {
+        foreach (var player in _gameManager.players.Values) {
             player.chosenPhases.Clear();
             player.chosenPrevailOptions.Clear();
 
@@ -197,7 +197,7 @@ public class TurnManager : NetworkBehaviour
 
         foreach (var phase in phases)
         {
-            if (!phasesToPlay.Contains(phase)) phasesToPlay.Add(phase);
+            if (!_phasesToPlay.Contains(phase)) _phasesToPlay.Add(phase);
         }
 
         PlayerIsReady(player);
@@ -206,11 +206,11 @@ public class TurnManager : NetworkBehaviour
     private void FinishPhaseSelection()
     {
         // Combat each round
-        phasesToPlay.Add(Phase.Combat);
-        phasesToPlay.Sort();
+        _phasesToPlay.Add(Phase.Combat);
+        _phasesToPlay.Sort();
 
         var msg = $"Phases to play:";
-        for (int i = 0; i < phasesToPlay.Count; i++) msg += $"\n- {phasesToPlay[i]}";
+        for (int i = 0; i < _phasesToPlay.Count; i++) msg += $"\n- {_phasesToPlay[i]}";
         _logger.RpcLog(msg, LogType.Phase);
 
         foreach (var (player, phases) in _playerPhaseChoices)
@@ -224,12 +224,12 @@ public class TurnManager : NetworkBehaviour
     private void NextPhase()
     {
         var nextPhase = Phase.None;
-        if (phasesToPlay.Count == 0)
+        if (_phasesToPlay.Count == 0)
         {
             nextPhase = Phase.CleanUp;
         } else {
-            nextPhase = phasesToPlay[0];
-            phasesToPlay.RemoveAt(0);
+            nextPhase = _phasesToPlay[0];
+            _phasesToPlay.RemoveAt(0);
             _readyPlayers.Clear();
         }
 
@@ -256,7 +256,7 @@ public class TurnManager : NetworkBehaviour
 
     private void Draw()
     {
-        foreach (var player in _gameManager.players.Keys)
+        foreach (var player in _gameManager.players.Values)
         {
             var nbCardDraw = _gameOptions.cardDraw;
             if (player.chosenPhases.Contains(Phase.Draw)) nbCardDraw += _gameOptions.extraDraw;
@@ -276,7 +276,7 @@ public class TurnManager : NetworkBehaviour
 
     private void FinishDiscard()
     {
-        foreach (var player in _gameManager.players.Keys)
+        foreach (var player in _gameManager.players.Values)
         {
             player.DiscardSelection();
         }
@@ -301,7 +301,7 @@ public class TurnManager : NetworkBehaviour
         _handManager.RpcHighlightMoney(true);
         _market.RpcBeginPhase(phase);
 
-        foreach (var player in _gameManager.players.Keys)
+        foreach (var player in _gameManager.players.Values)
         {
             // Each player gets +1 Buy
             player.Buys += _gameOptions.buys;
@@ -378,7 +378,7 @@ public class TurnManager : NetworkBehaviour
         _boardManager.BoardCleanUp(_market.GetTileInfos(), false);
 
         // Add each player that skipped to _readyPlayers
-        foreach (var player in _gameManager.players.Keys) 
+        foreach (var player in _gameManager.players.Values) 
         {
             if (_skippedPlayers.Contains(player)) _readyPlayers.Add(player);
             else if (player.Buys == 0) _readyPlayers.Add(player);
@@ -417,7 +417,7 @@ public class TurnManager : NetworkBehaviour
         if (turnState == TurnState.Deploy) phase = Phase.Deploy;
 
         _boardManager.ShowHolders(true);
-        foreach(var player in _gameManager.players.Keys) 
+        foreach(var player in _gameManager.players.Values) 
         {
             // Each player gets +1 Play
             player.Plays += _gameOptions.plays;
@@ -465,7 +465,7 @@ public class TurnManager : NetworkBehaviour
 
         // Keeps track of card <-> entity relation
         _boardManager.PlayEntities(entities);
-        _logger.RpcPlayCards(entities.Values.ToList());
+        _logger.RpcLogPlayingCards(entities.Values.ToList());
 
         // Skip waiting for entity ability checks
         if (entities.Count == 0){
@@ -495,7 +495,7 @@ public class TurnManager : NetworkBehaviour
         _boardManager.BoardCleanUp(_market.GetTileInfos(), false);
 
         // Add each player that skipped to _readyPlayers
-        foreach (var player in _gameManager.players.Keys) 
+        foreach (var player in _gameManager.players.Values) 
         {
             if (_skippedPlayers.Contains(player)) _readyPlayers.Add(player);
             else if (player.Plays == 0) _readyPlayers.Add(player);
@@ -527,7 +527,7 @@ public class TurnManager : NetworkBehaviour
     #region Prevail
     private void Prevail()
     {
-        foreach (var player in _gameManager.players.Keys)
+        foreach (var player in _gameManager.players.Values)
         {
             int nbOptions = _gameOptions.prevails;
             if (player.chosenPhases.Contains(Phase.Prevail)) nbOptions += _gameOptions.extraPrevails;
@@ -687,7 +687,7 @@ public class TurnManager : NetworkBehaviour
     private bool GameEnds()
     {
         var gameEnds = false;
-        foreach (var (player, health) in _gameManager.players.Keys.Select(player => (player, player.Health)))
+        foreach (var (player, health) in _gameManager.players.Values.Select(player => (player, player.Health)))
         {
             if (health > 0) continue;
 
@@ -704,7 +704,7 @@ public class TurnManager : NetworkBehaviour
 
     private void ShowCardCollection()
     {
-        foreach (var player in _gameManager.players.Keys)
+        foreach (var player in _gameManager.players.Values)
         {
             List<CardInfo> cards = player.hand; // mostly will be the hand cards
 
@@ -775,7 +775,7 @@ public class TurnManager : NetworkBehaviour
         // _logger.RpcLog("... Discarding money ...", LogType.Standard);
         _handManager.RpcHighlightMoney(false);
 
-        foreach (var player in _gameManager.players.Keys)
+        foreach (var player in _gameManager.players.Values)
         {
             // Returns unused money then discards the remaining cards
             player.ReturnMoneyToHand(false);
@@ -785,7 +785,7 @@ public class TurnManager : NetworkBehaviour
 
     private void PlayersEmptyResources()
     {
-        foreach (var player in _gameManager.players.Keys)
+        foreach (var player in _gameManager.players.Values)
         {
             player.Buys = 0;
             player.Plays = 0;
@@ -806,6 +806,16 @@ public class TurnManager : NetworkBehaviour
         _prevailPanel.RpcReset();
 
         CleanUp();
+    }
+
+    public PlayerManager GetOpponentPlayer(PlayerManager player)
+    {
+        PlayerManager opponent = null;
+        foreach (var p in _gameManager.players.Values){
+            if (p == player) continue;
+            opponent = p;
+        }
+        return opponent;
     }
     #endregion
 

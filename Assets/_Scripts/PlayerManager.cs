@@ -28,7 +28,7 @@ public class PlayerManager : NetworkBehaviour
     public bool PlayerIsChoosingAttack { get; private set; }
     public bool PlayerIsChoosingBlock { get; private set; }
     private List<CreatureEntity> _attackers = new();
-        private List<CreatureEntity> _blockers = new();
+    private List<CreatureEntity> _blockers = new();
     private PlayerUI _playerUI;
     private PlayerUI _opponentUI;
     private BattleZoneEntity _entity;
@@ -99,11 +99,12 @@ public class PlayerManager : NetworkBehaviour
         _handManager = Hand.Instance;
         _cardMover = CardMover.Instance;
         _phaseVisualsUI = PhasePanelUI.Instance;
-        _playerInterface = PlayerInterfaceManager.Instance;
+        CardPileClick.OnLookAtCollection += LookAtCollection;
 
         EntityAndUISetup();
 
         if (!isServer) return;
+        _playerInterface = PlayerInterfaceManager.Instance;
         _turnManager = TurnManager.Instance;
         _combatManager = CombatManager.Instance;
         _cardEffectsHandler = CardEffectsHandler.Instance;
@@ -552,9 +553,6 @@ public class PlayerManager : NetworkBehaviour
         if (isOwned) _playerUI.SetPrevails(value);
         else _opponentUI.SetPrevails(value);
     }
-
-
-
     #endregion UI
 
     #region Utils
@@ -563,6 +561,12 @@ public class PlayerManager : NetworkBehaviour
     {
         var networkIdentity = NetworkClient.connection.identity;
         return networkIdentity.GetComponent<PlayerManager>();
+    }
+
+    [Server]
+    public static PlayerManager GetOpponentPlayer()
+    {
+        return new PlayerManager();
     }
 
     [ClientRpc]
@@ -593,30 +597,28 @@ public class PlayerManager : NetworkBehaviour
         hand.Remove(cardToRemove);
     }
 
-    public void PlayerPressedCombatButton()
-    {
-        if (isServer) PlayerPressedCombatButton(this);
-        else CmdPlayerPressedCombatButton(this);
-    }
-
+    public void PlayerPressedCombatButton() => CmdPlayerPressedCombatButton(this);
     [Command]
-    private void CmdPlayerPressedCombatButton(PlayerManager player) => PlayerPressedCombatButton(player);
+    private void CmdPlayerPressedCombatButton(PlayerManager player) => _combatManager.PlayerPressedReadyButton(player);
 
-    [Server]
-    private void PlayerPressedCombatButton(PlayerManager player) => _combatManager.PlayerPressedReadyButton(player);
+    private void LookAtCollection(CardLocation collectionType, bool ownsCollection)
+    {
+        // Only trigger from my own player object 
+        if (! isOwned) return;
 
-    // public void PlayerClickedCollectionViewButton() {
-    //     if (isServer) PlayerClickedCollectionViewButton(this);
-    //     else CmdPlayerClickedCollectionViewButton(this);
-    // }
+        // TODO: Expand this for other collections, needs CardPileClick with SorsCardsPile for that
+        CmdPlayerOpensCardCollection(this, collectionType, ownsCollection);
+    }
+    [Command]
+    private void CmdPlayerOpensCardCollection(PlayerManager player, CardLocation collectionType, bool ownsCollection)
+    {
+        var cards = player.discard;
+        print($"Player {player.playerName} opens collection {collectionType.ToString()}, owns collection {ownsCollection}");
 
-    // [Command]
-    // private void CmdPlayerClickedCollectionViewButton(PlayerManager player) => PlayerClickedCollectionViewButton(player);
+        if(! ownsCollection) cards = _turnManager.GetOpponentPlayer(player).discard; 
 
-    // [Server]
-    // private void PlayerClickedCollectionViewButton(PlayerManager player) {
-    //     _cardCollectionPanel.TargetShowCardCollection(player.connectionToClient, hand);
-    // }
+        _playerInterface.OpenCardCollection(player.connectionToClient, cards, collectionType, ownsCollection);
+    }
 
     [ClientRpc]
     public void RpcSkipCardSpawnAnimations() => SorsTimings.SkipCardSpawnAnimations();
@@ -625,4 +627,14 @@ public class PlayerManager : NetworkBehaviour
     public void ForceEndTurn() => _turnManager.ForceEndTurn();
 
     #endregion
+
+    public bool Equals(PlayerManager other)
+    {
+        if (other == null) return false;
+
+        // Optimization for a common success case.
+        if (ReferenceEquals(this, other)) return true;
+
+        return this.connectionToClient == other.connectionToClient;
+    }
 }
