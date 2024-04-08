@@ -79,7 +79,7 @@ public class DropZoneManager : NetworkBehaviour
         var e = entityZones.GetAllEntities();
         var nbTargets = e.Count;
         print("targets count: " + nbTargets);
-        if (nbTargets == 0)
+        // if (nbTargets == 0)
         OnTargetEntities?.Invoke(target);
     }
 

@@ -12,7 +12,7 @@ public class PlayerManager : NetworkBehaviour
     [Header("Entities")]
     private TurnManager _turnManager;
     private CombatManager _combatManager;
-    private CardEffectsHandler _cardEffectsHandler;
+    private AbilityQueue _abilityQueue;
     private CardMover _cardMover;
     private Hand _handManager;
     private PhasePanelUI _phaseVisualsUI;
@@ -107,7 +107,7 @@ public class PlayerManager : NetworkBehaviour
         _playerInterface = PlayerInterfaceManager.Instance;
         _turnManager = TurnManager.Instance;
         _combatManager = CombatManager.Instance;
-        _cardEffectsHandler = CardEffectsHandler.Instance;
+        _abilityQueue = AbilityQueue.Instance;
     }
 
     private void EntityAndUISetup(){
@@ -427,14 +427,14 @@ public class PlayerManager : NetworkBehaviour
 
     public void PlayerChoosesEntityTarget(BattleZoneEntity target)
     {
-        if (isServer) _cardEffectsHandler.PlayerChoosesTargetEntity(target);
+        if (isServer) _abilityQueue.PlayerChoosesAbilityTarget(target);
         else CmdPlayerChoosesTargetEntity(target);
 
         PlayerIsChoosingTarget = false;
     }
 
     [Command]
-    private void CmdPlayerChoosesTargetEntity(BattleZoneEntity target) => _cardEffectsHandler.PlayerChoosesTargetEntity(target);
+    private void CmdPlayerChoosesTargetEntity(BattleZoneEntity target) => _abilityQueue.PlayerChoosesAbilityTarget(target);
 
     #endregion
 
@@ -563,12 +563,6 @@ public class PlayerManager : NetworkBehaviour
         return networkIdentity.GetComponent<PlayerManager>();
     }
 
-    [Server]
-    public static PlayerManager GetOpponentPlayer()
-    {
-        return new PlayerManager();
-    }
-
     [ClientRpc]
     private void RpcPlayMoney(GameObject card)
     {
@@ -606,6 +600,9 @@ public class PlayerManager : NetworkBehaviour
         // Only trigger from my own player object 
         if (! isOwned) return;
 
+        // TODO: This triggers again when cardCollection is already open -> adding same cards again
+        // TODO: Need logic to close collection if cardCollection is already open, including when an actual hand interaction starts
+
         // TODO: Expand this for other collections, needs CardPileClick with SorsCardsPile for that
         CmdPlayerOpensCardCollection(this, collectionType, ownsCollection);
     }
@@ -626,8 +623,6 @@ public class PlayerManager : NetworkBehaviour
     [Server]
     public void ForceEndTurn() => _turnManager.ForceEndTurn();
 
-    #endregion
-
     public bool Equals(PlayerManager other)
     {
         if (other == null) return false;
@@ -637,4 +632,5 @@ public class PlayerManager : NetworkBehaviour
 
         return this.connectionToClient == other.connectionToClient;
     }
+    #endregion
 }

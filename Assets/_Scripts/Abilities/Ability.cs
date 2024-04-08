@@ -1,7 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 [System.Serializable]
 public struct Ability
 {
@@ -78,15 +74,15 @@ public enum Trigger
     
     // When triggers
     When_enters_the_battlefield = 20,
-    When_dies = 21,
-    When_attacks = 22,
-    When_blocks = 23,
-    When_gets_blocked = 24,
-    When_takes_damage = 25,
-    When_deals_damage = 26,
-    When_deals_combat_damage = 27,
-    When_deals_damage_to_a_player = 28,
-    When_becomes_a_target = 29,
+    // When_dies = 21,
+    // When_attacks = 22,
+    // When_blocks = 23,
+    // When_gets_blocked = 24,
+    // When_takes_damage = 25,
+    // When_deals_damage = 26,
+    // When_deals_combat_damage = 27,
+    // When_deals_damage_to_a_player = 28,
+    // When_becomes_a_target = 29,
 
     // Whenever triggers (reflexive) ?
 
@@ -98,7 +94,7 @@ public enum Effect
     CardDraw = 1,
     Damage = 5,
     LifeGain = 6,
-    Destroy = 7,
+    // Destroy = 7,
     MoneyGain = 10,
     PriceReduction = 11,
 }
@@ -114,5 +110,5 @@ public enum EffectTarget
     Entity = 8,
     Creature = 9,
     Technology = 10,
-    Card = 20,
+    // Card = 20,
 }

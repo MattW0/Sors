@@ -19,7 +19,7 @@ public class TurnManager : NetworkBehaviour
     private PlayerInterfaceManager _logger;
     private Hand _handManager;
     private BoardManager _boardManager;
-    private CardEffectsHandler _cardEffectsHandler;
+    private TriggerHandler _triggerHandler;
     [SerializeField] private CombatManager combatManager;
 
     [field: Header("Game state")]
@@ -121,7 +121,7 @@ public class TurnManager : NetworkBehaviour
         _gameManager = GameManager.Instance;
         _handManager = Hand.Instance;
         _boardManager = BoardManager.Instance;
-        _cardEffectsHandler = CardEffectsHandler.Instance;
+        _triggerHandler = TriggerHandler.Instance;
         _market = Market.Instance;
         _logger = PlayerInterfaceManager.Instance;
 
@@ -159,7 +159,7 @@ public class TurnManager : NetworkBehaviour
 
         // StateFile is NOT null or empty if we load from a file eg. state.json
         // Dont want ETB triggers for entities from game state and only draw initial hand in normal game start 
-        if(! string.IsNullOrEmpty(_gameOptions.StateFile)) _cardEffectsHandler.ClearAbilitiesQueue();
+        if(! string.IsNullOrEmpty(_gameOptions.StateFile)) _triggerHandler.ClearAbilitiesQueue();
         else {
             foreach(var player in _gameManager.players.Values) {
                 player.deck.Shuffle();
@@ -243,8 +243,8 @@ public class TurnManager : NetworkBehaviour
         _logger.RpcLog($"------- {nextTurnState} -------", LogType.Phase);
 
         // Waiting for all triggers to have resolved
-        _cardEffectsHandler.CheckPhaseTriggers(nextPhase);
-        while(_cardEffectsHandler.QueueResolving) yield return new WaitForSeconds(0.1f);
+        _triggerHandler.CheckPhaseTriggers(nextPhase);
+        while(_triggerHandler.QueueResolving) yield return new WaitForSeconds(0.1f);
 
         OnPhaseChanged?.Invoke(nextTurnState);
         UpdateTurnState(nextTurnState);
@@ -365,8 +365,8 @@ public class TurnManager : NetworkBehaviour
         yield return new WaitForSeconds(SorsTimings.showSpawnedCard + SorsTimings.cardMoveTime);
 
         // Waiting for Entities abilities (ETB) being tracked (CEH sets QueueResolving to false)
-        StartCoroutine(_cardEffectsHandler.StartResolvingQueue());
-        while (_cardEffectsHandler.QueueResolving) 
+        StartCoroutine(_triggerHandler.StartResolvingQueue());
+        while (_triggerHandler.QueueResolving) 
             yield return new WaitForSeconds(0.1f);
 
         CheckBuyAnotherCard();
@@ -482,8 +482,8 @@ public class TurnManager : NetworkBehaviour
         yield return new WaitForSeconds(SorsTimings.wait);
 
         // Waiting for CEH to set QueueResolving to false
-        StartCoroutine(_cardEffectsHandler.StartResolvingQueue());
-        while (_cardEffectsHandler.QueueResolving) 
+        StartCoroutine(_triggerHandler.StartResolvingQueue());
+        while (_triggerHandler.QueueResolving) 
             yield return new WaitForSeconds(0.1f);
 
         CheckPlayAnotherCard();

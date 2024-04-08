@@ -17,6 +17,7 @@ public class CardPileClick : MonoBehaviour, IPointerClickHandler, IPointerEnterH
     {
         _clickOverlayImage = GetComponent<Image>();
         _pileType = gameObject.transform.parent.GetComponent<CardsPileSors>().pileType;
+        _clickOverlayImage.CrossFadeAlpha(0f, 0.5f, false);
     }
 
     public void OnPointerClick(PointerEventData eventData)

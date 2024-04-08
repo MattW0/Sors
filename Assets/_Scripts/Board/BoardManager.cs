@@ -14,7 +14,7 @@ public class BoardManager : NetworkBehaviour
     private GameManager _gameManager;
     private CombatManager _combatManager;
     private DropZoneManager _dropZone;
-    [SerializeField] private CardEffectsHandler _cardEffectsHandler;
+    private TriggerHandler _triggerHandler;
     [SerializeField] private PhasePanel _phasePanel;
 
     // Entities, corresponding card object
@@ -35,6 +35,7 @@ public class BoardManager : NetworkBehaviour
         _gameManager = GameManager.Instance;
         _combatManager = CombatManager.Instance;
         _dropZone = DropZoneManager.Instance;
+        _triggerHandler = TriggerHandler.Instance;
     }
 
     public void PlayEntities(Dictionary<GameObject, BattleZoneEntity> entities) 
@@ -45,7 +46,7 @@ public class BoardManager : NetworkBehaviour
         }
 
         // Check for ETB and if phase start trigger gets added to phases being tracked
-        StartCoroutine(_cardEffectsHandler.CardsArePlayed(entities.Values.ToList()));
+        StartCoroutine(_triggerHandler.CardsArePlayed(entities.Values.ToList()));
 
         // Move entities to holders and card into played zone
         StartCoroutine(_dropZone.EntitiesEnterDropZone(entities));
@@ -141,7 +142,7 @@ public class BoardManager : NetworkBehaviour
         foreach (var dead in _deadEntities)
         {
             _dropZone.EntityLeavesPlayZone(dead);
-            _cardEffectsHandler.EntityDies(dead);
+            _triggerHandler.EntityDies(dead);
 
             // Move the card object to discard pile
             var cardObject = _entitiesObjectsCache[dead];
