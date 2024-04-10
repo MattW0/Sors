@@ -19,7 +19,7 @@ public class TurnManager : NetworkBehaviour
     private PlayerInterfaceManager _logger;
     private Hand _handManager;
     private BoardManager _boardManager;
-    private TriggerHandler _triggerHandler;
+    private AbilityQueue _abilityQueue;
     [SerializeField] private CombatManager combatManager;
 
     [field: Header("Game state")]
@@ -50,61 +50,6 @@ public class TurnManager : NetworkBehaviour
         GameManager.OnGameStart += Prepare;
     }
 
-    private void UpdateTurnState(TurnState newState)
-    {
-        turnState = newState;
-        _skippedPlayers.Clear();
-
-        switch (turnState)
-        {
-            // --- Preparation and transition ---
-            case TurnState.PhaseSelection:
-                PhaseSelection();
-                break;
-            case TurnState.NextPhase:
-                NextPhase();
-                break;
-            // --- Phases ---
-            case TurnState.Draw:
-                Draw();
-                break;
-            case TurnState.Discard:
-                Discard();
-                break;
-            case TurnState.Invent:
-                StartMarketPhase();
-                break;
-            case TurnState.Develop:
-                StartPlayCard();
-                break;
-            case TurnState.Combat:
-                Combat();
-                break;
-            case TurnState.Recruit:
-                StartMarketPhase();
-                break;
-            case TurnState.Deploy:
-                StartPlayCard();
-                break;
-            case TurnState.Prevail:
-                Prevail();
-                break;
-            // --- Win check and turn reset ---
-            case TurnState.CleanUp:
-                CleanUp();
-                break;
-            case TurnState.Idle:
-                _logger.RpcLog("Game finished", LogType.Standard);
-                break;
-
-            default:
-                print("<color=red>Invalid turn state</color>");
-                throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
-        }
-
-        _phasePanel.RpcChangeActionDescriptionText(turnState);
-    }
-
     private void Prepare(GameOptions gameOptions)
     {
         _nbPlayers = gameOptions.SinglePlayer ? 1 : 2;
@@ -121,7 +66,7 @@ public class TurnManager : NetworkBehaviour
         _gameManager = GameManager.Instance;
         _handManager = Hand.Instance;
         _boardManager = BoardManager.Instance;
-        _triggerHandler = TriggerHandler.Instance;
+        _abilityQueue = AbilityQueue.Instance;
         _market = Market.Instance;
         _logger = PlayerInterfaceManager.Instance;
 
@@ -159,7 +104,7 @@ public class TurnManager : NetworkBehaviour
 
         // StateFile is NOT null or empty if we load from a file eg. state.json
         // Dont want ETB triggers for entities from game state and only draw initial hand in normal game start 
-        if(! string.IsNullOrEmpty(_gameOptions.StateFile)) _triggerHandler.ClearAbilitiesQueue();
+        if(! string.IsNullOrEmpty(_gameOptions.StateFile)) _abilityQueue.ClearQueue();
         else {
             foreach(var player in _gameManager.players.Values) {
                 player.deck.Shuffle();
@@ -170,6 +115,9 @@ public class TurnManager : NetworkBehaviour
 
         if(_gameOptions.SaveStates) _boardManager.PrepareGameStateFile(_market.GetTileInfos());
         UpdateTurnState(TurnState.PhaseSelection);
+
+        // For phase panel
+        OnPhaseChanged?.Invoke(TurnState.PhaseSelection);
     }
 
     #region PhaseSelection
@@ -177,8 +125,6 @@ public class TurnManager : NetworkBehaviour
     {
         _gameManager.turnNumber++;
         _logger.RpcLog($" -------------- Turn {_gameManager.turnNumber} -------------- ", LogType.TurnChange);
-        // For phase panel
-        OnPhaseChanged?.Invoke(TurnState.PhaseSelection);
 
         // Reset and draw per turn
         foreach (var player in _gameManager.players.Values) {
@@ -224,30 +170,31 @@ public class TurnManager : NetworkBehaviour
     private void NextPhase()
     {
         var nextPhase = Phase.None;
-        if (_phasesToPlay.Count == 0)
-        {
-            nextPhase = Phase.CleanUp;
-        } else {
+        if (_phasesToPlay.Count == 0) nextPhase = Phase.CleanUp;
+        else {
             nextPhase = _phasesToPlay[0];
             _phasesToPlay.RemoveAt(0);
             _readyPlayers.Clear();
         }
 
-        StartCoroutine(CheckNextPhaseTriggers(nextPhase));
-    }
-
-    public IEnumerator CheckNextPhaseTriggers(Phase nextPhase)
-    {
         // To update SM and Phase Panel
         Enum.TryParse(nextPhase.ToString(), out TurnState nextTurnState);
         _logger.RpcLog($"------- {nextTurnState} -------", LogType.Phase);
+        OnPhaseChanged?.Invoke(nextTurnState);
+
+        StartCoroutine(CheckTriggers(nextTurnState));
+    }
+
+    // TODO: May want to combine this with other _abilityQueue resolution functions
+    public IEnumerator CheckTriggers(TurnState nextState)
+    {
+        // Wait for evaluation of triggers
+        yield return new WaitForSeconds(0.1f);
 
         // Waiting for all triggers to have resolved
-        _triggerHandler.CheckPhaseTriggers(nextPhase);
-        while(_triggerHandler.QueueResolving) yield return new WaitForSeconds(0.1f);
+        yield return _abilityQueue.Resolve();
 
-        OnPhaseChanged?.Invoke(nextTurnState);
-        UpdateTurnState(nextTurnState);
+        UpdateTurnState(nextState);
     }
 
     #endregion
@@ -365,9 +312,7 @@ public class TurnManager : NetworkBehaviour
         yield return new WaitForSeconds(SorsTimings.showSpawnedCard + SorsTimings.cardMoveTime);
 
         // Waiting for Entities abilities (ETB) being tracked (CEH sets QueueResolving to false)
-        StartCoroutine(_triggerHandler.StartResolvingQueue());
-        while (_triggerHandler.QueueResolving) 
-            yield return new WaitForSeconds(0.1f);
+        yield return _abilityQueue.Resolve();
 
         CheckBuyAnotherCard();
     }
@@ -482,9 +427,7 @@ public class TurnManager : NetworkBehaviour
         yield return new WaitForSeconds(SorsTimings.wait);
 
         // Waiting for CEH to set QueueResolving to false
-        StartCoroutine(_triggerHandler.StartResolvingQueue());
-        while (_triggerHandler.QueueResolving) 
-            yield return new WaitForSeconds(0.1f);
+        yield return _abilityQueue.Resolve();
 
         CheckPlayAnotherCard();
     }
@@ -667,21 +610,22 @@ public class TurnManager : NetworkBehaviour
             return;
         }
 
+        // TODO: Should not use _market here but access it from _boardManager directly
+        _boardManager.BoardCleanUp(_market.GetTileInfos(), true);
+
+        PlayersDiscardMoney();
+        PlayersEmptyResources();
         _readyPlayers.Clear();
+
+        OnPhaseChanged?.Invoke(TurnState.PhaseSelection);
         StartCoroutine(CleanUpIntermission());
     }
 
     private IEnumerator CleanUpIntermission()
     {
-        // TODO: Should not use _market here but access it from _boardManager directly
-        _boardManager.BoardCleanUp(_market.GetTileInfos(), true);
-        OnPhaseChanged?.Invoke(TurnState.CleanUp);
-
-        StartCoroutine(CheckNextPhaseTriggers(Phase.PhaseSelection));
-
         yield return new WaitForSeconds(SorsTimings.turnStateTransition);
-        PlayersDiscardMoney();
-        PlayersEmptyResources();
+
+        StartCoroutine(CheckTriggers(TurnState.PhaseSelection));
     }
 
     private bool GameEnds()
@@ -702,24 +646,59 @@ public class TurnManager : NetworkBehaviour
 
     #region HelperFunctions
 
-    private void ShowCardCollection()
+    private void UpdateTurnState(TurnState newState)
     {
-        foreach (var player in _gameManager.players.Values)
+        turnState = newState;
+        _skippedPlayers.Clear();
+
+        // TODO: Can probably combine this with OnPhaseChanged event
+        _phasePanel.RpcChangeActionDescriptionText(newState);
+
+        switch (newState)
         {
-            List<CardInfo> cards = player.hand; // mostly will be the hand cards
+            // --- Preparation and transition ---
+            case TurnState.PhaseSelection:
+                PhaseSelection();
+                break;
+            case TurnState.NextPhase:
+                NextPhase();
+                break;
+            // --- Phases ---
+            case TurnState.Draw:
+                Draw();
+                break;
+            case TurnState.Discard:
+                Discard();
+                break;
+            case TurnState.Invent:
+                StartMarketPhase();
+                break;
+            case TurnState.Develop:
+                StartPlayCard();
+                break;
+            case TurnState.Combat:
+                Combat();
+                break;
+            case TurnState.Recruit:
+                StartMarketPhase();
+                break;
+            case TurnState.Deploy:
+                StartPlayCard();
+                break;
+            case TurnState.Prevail:
+                Prevail();
+                break;
+            // --- Win check and turn reset ---
+            case TurnState.CleanUp:
+                CleanUp();
+                break;
+            case TurnState.Idle:
+                _logger.RpcLog("Game finished", LogType.Standard);
+                break;
 
-            // other / more specific options
-            if (turnState == TurnState.CardIntoHand) cards = player.discard;
-            else if (turnState == TurnState.Develop) cards = cards.Where(card => card.type == CardType.Technology).ToList();
-            else if (turnState == TurnState.Deploy) cards = cards.Where(card => card.type == CardType.Creature).ToList();
-
-            var cardObjects = GameManager.CardInfosToGameObjects(cards);
-            // Need plays here because clients can't access that number
-            _cardCollectionPanel.TargetShowCardCollection(player.connectionToClient, turnState, cardObjects, cards, player.Plays);
-
-            // Reevaluating money in play to highlight playable cards after reset
-            if (turnState == TurnState.Develop || turnState == TurnState.Deploy)
-                _cardCollectionPanel.TargetCheckPlayability(player.connectionToClient, player.Cash);
+            default:
+                print("<color=red>Invalid turn state</color>");
+                throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
         }
     }
 
@@ -793,6 +772,27 @@ public class TurnManager : NetworkBehaviour
         }
     }
 
+    private void ShowCardCollection()
+    {
+        foreach (var player in _gameManager.players.Values)
+        {
+            List<CardInfo> cards = player.hand; // mostly will be the hand cards
+
+            // other / more specific options
+            if (turnState == TurnState.CardIntoHand) cards = player.discard;
+            else if (turnState == TurnState.Develop) cards = cards.Where(card => card.type == CardType.Technology).ToList();
+            else if (turnState == TurnState.Deploy) cards = cards.Where(card => card.type == CardType.Creature).ToList();
+
+            var cardObjects = GameManager.CardInfosToGameObjects(cards);
+            // Need plays here because clients can't access that number
+            _cardCollectionPanel.TargetShowCardCollection(player.connectionToClient, turnState, cardObjects, cards, player.Plays);
+
+            // Reevaluating money in play to highlight playable cards after reset
+            if (turnState == TurnState.Develop || turnState == TurnState.Deploy)
+                _cardCollectionPanel.TargetCheckPlayability(player.connectionToClient, player.Cash);
+        }
+    }
+
     public void ForceEndTurn()
     { // experimental
         _handManager.RpcHighlightMoney(false);
@@ -840,7 +840,8 @@ public enum TurnState : byte
     Prevail,
     Trash,
     CardIntoHand,
-    CleanUp
+    CleanUp,
+    None,
 }
 
 public enum Phase : byte

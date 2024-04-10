@@ -9,15 +9,16 @@ public class TriggerHandler : NetworkBehaviour
 {
     public static TriggerHandler Instance { get; private set; }
     private AbilityQueue _abilityQueue;
-    public bool QueueResolving { get; private set; }
 
     [Header("Helper Fields")]
-    private List<Phase> _phaseTriggers = new(); // List to reduce number of searches on all entities and their triggers
+    private List<TurnState> _turnStateTriggers = new(); // List to reduce number of searches on all entities and their triggers
     private Dictionary<BattleZoneEntity, List<Ability>> _presentAbilities = new();
 
     private void Awake() {
         if (!Instance) Instance = this;
         _abilityQueue = GetComponent<AbilityQueue>();
+
+        TurnManager.OnPhaseChanged += CheckTurnStateTriggers;
     }
 
     public IEnumerator CardsArePlayed(List<BattleZoneEntity> entities)
@@ -43,10 +44,10 @@ public class TriggerHandler : NetworkBehaviour
                 presentAbilities.Add(ability);
 
                 // Beginning of phase triggers
-                var phase = TriggerToPhase(trigger);
-                if (phase != Phase.None && !_phaseTriggers.Contains(phase)){
-                    print($"New phase trigger: {trigger} in phase {phase}");
-                    _phaseTriggers.Add(phase);
+                var state = TriggerToTurnState(trigger);
+                if (state != TurnState.None && !_turnStateTriggers.Contains(state)){
+                    print($"New turn state trigger: {trigger} in state {state}");
+                    _turnStateTriggers.Add(state);
                 }
             }
 
@@ -54,82 +55,69 @@ public class TriggerHandler : NetworkBehaviour
         }
     }
 
-    public void CheckPhaseTriggers(Phase phase)
+    private void CheckTurnStateTriggers(TurnState state)
     {
-        // TurnManager waits for this to be false
-        QueueResolving = true;
-
         // We only search for abilities if the current phase triggers at least one effect
-        if (!_phaseTriggers.Contains(phase)){
-            QueueResolving = false;
-            return;
-        }
+        if (!_turnStateTriggers.Contains(state)) return;
 
         // TODO: Should probably rebuild this to not search ALL entities
         // Maybe create a dict for each trigger separately and add entities to it
         // Then get the corresponding effect from the entity
         // Also think about how to handle multiple effects on the same trigger
         // 1-many relations
-        var phaseTrigger = PhaseToTrigger(phase);
+        var phaseTrigger = TurnStateToTrigger(state);
         foreach (var entity in _presentAbilities.Keys){
             foreach (var ability in _presentAbilities[entity]){
                 if (ability.trigger == phaseTrigger) _abilityQueue.AddAbility(entity, ability);
             }
         }
-
-        // TODO: Verify if there is a better solution to sync the animation and _turnManager continuation
-        StartCoroutine(StartResolvingQueue());
-    }
-    
-    public IEnumerator StartResolvingQueue()
-    {
-        QueueResolving = true;
-        
-        yield return _abilityQueue.Resolve();
-
-        QueueResolving = false;
     }
 
     #region Helper Functions
     public void EntityDies(BattleZoneEntity entity) => _presentAbilities.Remove(entity);
-    public void ClearAbilitiesQueue() => _abilityQueue.ClearQueue();
-    
-    private Phase TriggerToPhase(Trigger trigger)
+
+    private TurnState TriggerToTurnState(Trigger trigger)
     {
-        Phase phase = trigger switch
+        // TODO: Extend triggers to more turn state changes (combat, prevail steps, ...)
+        TurnState state = trigger switch
         {
-            Trigger.Beginning_Turn => Phase.PhaseSelection,
-            Trigger.Beginning_Draw => Phase.Draw,
-            Trigger.Beginning_Invent => Phase.Invent,
-            Trigger.Beginning_Develop => Phase.Develop,
-            Trigger.Beginning_Combat => Phase.Combat,
-            Trigger.Beginning_Recruit => Phase.Recruit,
-            Trigger.Beginning_Deploy => Phase.Deploy,
-            Trigger.Beginning_Prevail => Phase.Prevail,
-            Trigger.Beginning_CleanUp => Phase.CleanUp,
-            _ => Phase.None
+            Trigger.Beginning_Turn => TurnState.PhaseSelection,
+            Trigger.Beginning_Draw => TurnState.Draw,
+            Trigger.Beginning_Invent => TurnState.Invent,
+            Trigger.Beginning_Develop => TurnState.Develop,
+            Trigger.Beginning_Combat => TurnState.Combat,
+            Trigger.Beginning_Recruit => TurnState.Recruit,
+            Trigger.Beginning_Deploy => TurnState.Deploy,
+            Trigger.Beginning_Prevail => TurnState.Prevail,
+            Trigger.Beginning_CleanUp => TurnState.CleanUp,
+            _ => TurnState.None
         };
 
-        return phase;
+        return state;
     }
 
-    private Trigger PhaseToTrigger(Phase phase)
+    private Trigger TurnStateToTrigger(TurnState state)
     {
-        Trigger trigger = phase switch
+        Trigger trigger = state switch
         {
-            Phase.PhaseSelection => Trigger.Beginning_Turn,
-            Phase.Draw => Trigger.Beginning_Draw,
-            Phase.Invent => Trigger.Beginning_Invent,
-            Phase.Develop => Trigger.Beginning_Develop,
-            Phase.Combat => Trigger.Beginning_Combat,
-            Phase.Recruit => Trigger.Beginning_Recruit,
-            Phase.Deploy => Trigger.Beginning_Deploy,
-            Phase.Prevail => Trigger.Beginning_Prevail,
-            Phase.CleanUp => Trigger.Beginning_CleanUp,
+            TurnState.PhaseSelection => Trigger.Beginning_Turn,
+            TurnState.Draw => Trigger.Beginning_Draw,
+            TurnState.Invent => Trigger.Beginning_Invent,
+            TurnState.Develop => Trigger.Beginning_Develop,
+            TurnState.Combat => Trigger.Beginning_Combat,
+            TurnState.Recruit => Trigger.Beginning_Recruit,
+            TurnState.Deploy => Trigger.Beginning_Deploy,
+            TurnState.Prevail => Trigger.Beginning_Prevail,
+            TurnState.CleanUp => Trigger.Beginning_CleanUp,
             _ => Trigger.None
         };
 
         return trigger;
+    }
+
+    private void Destroy()
+    {
+        TurnManager.OnPhaseChanged -= CheckTurnStateTriggers;
     }
     #endregion
 }

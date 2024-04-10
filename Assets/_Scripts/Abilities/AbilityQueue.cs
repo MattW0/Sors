@@ -41,10 +41,7 @@ public class AbilityQueue : MonoBehaviour
             _abilityResolving = true;
             
             // Waits for player input (with _continue) and when done sets _abilityResolving = true
-            StartCoroutine(ResolveAbility(entity, ability));
-            while(_abilityResolving) {
-                yield return new WaitForSeconds(0.1f);
-            }
+            yield return ResolveAbility(entity, ability);
 
             _abilitySource = null;
             _abilityTarget = null;
