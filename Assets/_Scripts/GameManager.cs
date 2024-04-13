@@ -259,7 +259,7 @@ public class GameManager : NetworkBehaviour {
         var entity = entityObject.GetComponent<BattleZoneEntity>();
 
         // Intitialize entity on clients
-        entity.RpcInitializeEntity(owner, GetOpponent(owner), cardInfo);
+        entity.RpcInitializeEntity(owner, cardInfo);
         
         return entity;
     }

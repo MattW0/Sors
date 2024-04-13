@@ -42,7 +42,7 @@ public class CombatClash
 
         // Debug.Log($"Damage Animation at {_target.gameObject.transform.position} with {_damageFromSource} damage");
         _combatVFXSystem.RpcPlayDamage(_target, _damageFromSource);
-        // yield return new WaitForSeconds(SorsTimings.damageTime);
+        yield return new WaitForSeconds(SorsTimings.damageTime);
         _target.EntityTakesDamage(_damageFromSource, _source.GetKeywords().Contains(Keywords.Deathtouch));
 
         if (IsClash)
@@ -53,7 +53,7 @@ public class CombatClash
 
             // Debug.Log($"Damage Animation at {_source} with {_damageFromTarget} damage");
             _combatVFXSystem.RpcPlayDamage(_source, _damageFromSource);
-            // yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(SorsTimings.damageTime);
             _source.Health -= _damageFromTarget;
         }
         

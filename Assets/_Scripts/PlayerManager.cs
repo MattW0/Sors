@@ -108,6 +108,8 @@ public class PlayerManager : NetworkBehaviour
         _turnManager = TurnManager.Instance;
         _combatManager = CombatManager.Instance;
         _abilityQueue = AbilityQueue.Instance;
+        _entity = GetComponent<BattleZoneEntity>();
+        print("Player Entitiy : " + _entity.Title);
     }
 
     private void EntityAndUISetup(){
@@ -115,15 +117,15 @@ public class PlayerManager : NetworkBehaviour
         _playerUI = GameObject.Find("PlayerInfo").GetComponent<PlayerUI>();
         _opponentUI = GameObject.Find("OpponentInfo").GetComponent<PlayerUI>();
         
-        _entity = GetComponent<BattleZoneEntity>();
+        var entity = GetComponent<BattleZoneEntity>();
         if(isOwned) {
-            _entity.SetPlayer(PlayerName, _playerUI);
+            entity.SetPlayer(PlayerName, _playerUI);
             // Child 0 is the player stats BG
-            _playerUI.SetEntity(_entity, _playerUI.transform.GetChild(0).position);
+            _playerUI.SetEntity(entity, _playerUI.transform.GetChild(0).position);
         } else {
-            _entity.SetPlayer(PlayerName, _opponentUI);
+            entity.SetPlayer(PlayerName, _opponentUI);
             // Child 0 is the player stats BG
-            _opponentUI.SetEntity(_entity, _opponentUI.transform.GetChild(0).position);
+            _opponentUI.SetEntity(entity, _opponentUI.transform.GetChild(0).position);
         }
     }
 
@@ -619,6 +621,8 @@ public class PlayerManager : NetworkBehaviour
 
     [ClientRpc]
     public void RpcSkipCardSpawnAnimations() => SorsTimings.SkipCardSpawnAnimations();
+    [Server]
+    internal BattleZoneEntity GetEntity() => _entity;
 
     [Server]
     public void ForceEndTurn() => _turnManager.ForceEndTurn();
@@ -632,5 +636,6 @@ public class PlayerManager : NetworkBehaviour
 
         return this.connectionToClient == other.connectionToClient;
     }
+
     #endregion
 }

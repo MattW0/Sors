@@ -320,7 +320,7 @@ public class TurnManager : NetworkBehaviour
     private void CheckBuyAnotherCard()
     {
         // Reset abilities and dead entities, needs market tiles for game state saving
-        _boardManager.BoardCleanUp(_market.GetTileInfos(), false);
+        _boardManager.BoardCleanUp();
 
         // Add each player that skipped to _readyPlayers
         foreach (var player in _gameManager.players.Values) 
@@ -435,7 +435,7 @@ public class TurnManager : NetworkBehaviour
     private void CheckPlayAnotherCard()
     {
         // Reset abilities and dead entities
-        _boardManager.BoardCleanUp(_market.GetTileInfos(), false);
+        _boardManager.BoardCleanUp();
 
         // Add each player that skipped to _readyPlayers
         foreach (var player in _gameManager.players.Values) 
@@ -611,7 +611,7 @@ public class TurnManager : NetworkBehaviour
         }
 
         // TODO: Should not use _market here but access it from _boardManager directly
-        _boardManager.BoardCleanUp(_market.GetTileInfos(), true);
+        _boardManager.BoardCleanUpEndOfTurn(_market.GetTileInfos());
 
         PlayersDiscardMoney();
         PlayersEmptyResources();

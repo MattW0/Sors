@@ -124,16 +124,19 @@ public class BoardManager : NetworkBehaviour
     }
     #endregion
 
-    public void BoardCleanUp(List<CardInfo>[] scriptableTiles, bool endOfTurn)
+    public void BoardCleanUp()
     {
         ClearDeadEntities();
         _dropZone.DestroyTargetArrows();
+    }
 
-        if(endOfTurn){
-            _dropZone.TechnologiesLooseHealth();
-            ClearDeadEntities();
-            if(isServer) SaveGameState(scriptableTiles);
-        }
+    public void BoardCleanUpEndOfTurn(List<CardInfo>[] scriptableTiles)
+    {
+        BoardCleanUp();
+
+        _dropZone.TechnologiesLooseHealth();
+        ClearDeadEntities();
+        if(isServer) SaveGameState(scriptableTiles);
     }
 
     public void ClearDeadEntities()

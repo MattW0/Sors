@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Threading.Tasks;
 using DG.Tweening;
 using Mirror;
 
@@ -9,53 +8,50 @@ using Mirror;
 public class CombatVFXSystem : NetworkBehaviour
 {
     public static CombatVFXSystem Instance { get; private set; }
-    public GameObject attackVFXPrefab;
-    public GameObject damageVFXPrefab;
-    public bool IsDone { get; set; }
-    private ParticleSystem _damageVFX;
-    private ParticleSystem _attackVFX;
+    public GameObject attackProjectilePrefab;
+    private ParticleSystem _attackProjectileVFX;
+    public GameObject attackHitPrefab;
+    private ParticleSystem _attackHitVFX;
 
     private void Awake()
     {
         if (!Instance) Instance = this;
-        print("Combat vfx system instantiated");
     }
 
     public void Start()
     {
-        // Instantiate and set active false
-        attackVFXPrefab.SetActive(false);
-        _attackVFX = attackVFXPrefab.GetComponent<ParticleSystem>();
-        _damageVFX = damageVFXPrefab.GetComponent<ParticleSystem>();
+        attackProjectilePrefab.SetActive(false);
+        _attackProjectileVFX = attackProjectilePrefab.GetComponent<ParticleSystem>();
+        _attackHitVFX = attackHitPrefab.GetComponent<ParticleSystem>();
     }
 
     [ClientRpc]
     public void RpcPlayDamage(BattleZoneEntity entity, int damage)
     {
-        damageVFXPrefab.transform.position = entity.gameObject.transform.position;
-        _damageVFX.Play();
-        damageVFXPrefab.transform.DORotate(Vector3.zero, SorsTimings.damageTime).OnComplete(() => _damageVFX.Stop());
+        attackHitPrefab.transform.position = entity.gameObject.transform.position;
+        _attackHitVFX.Play();
+        attackHitPrefab.transform.DORotate(Vector3.zero, SorsTimings.damageTime).OnComplete(() => _attackHitVFX.Stop());
     }
 
     [ClientRpc]
     public void RpcPlayAttack(BattleZoneEntity source, BattleZoneEntity target)
     {
         var sourcePosition = source.gameObject.transform.position;
-        attackVFXPrefab.transform.position = sourcePosition;
+        attackProjectilePrefab.transform.position = sourcePosition;
 
         var tartgetPosition = target.gameObject.transform.position;
         var dir = Quaternion.LookRotation(tartgetPosition - sourcePosition).eulerAngles;
-        attackVFXPrefab.transform.localRotation = Quaternion.Euler(dir.x, dir.y - 90f, dir.z);
+        attackProjectilePrefab.transform.localRotation = Quaternion.Euler(dir.x, dir.y - 90f, dir.z);
 
-        attackVFXPrefab.SetActive(true);
-        _attackVFX.Play();
+        attackProjectilePrefab.SetActive(true);
+        _attackProjectileVFX.Play();
 
-        attackVFXPrefab.transform
+        attackProjectilePrefab.transform
             .DOMove(tartgetPosition, SorsTimings.attackTime)
             .SetEase(Ease.InCubic)
             .OnComplete(() =>  {
-                _attackVFX.Stop();
-                attackVFXPrefab.SetActive(false);
+                _attackProjectileVFX.Stop();
+                attackProjectilePrefab.SetActive(false);
             });
     }
 }

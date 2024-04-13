@@ -9,11 +9,9 @@ public class BattleZoneEntity : NetworkBehaviour
 {
     private BoardManager _boardManager;
     public PlayerManager Owner { get; private set; }
-    public PlayerManager Opponent { get; private set; }
     public string Title { get; private set; }
     [SerializeField] private BattleZoneEntityUI _entityUI;
     [SerializeField] private PlayerUI _playerUI;
-    private PlayerManager _player;
 
     [field: Header("Stats")]
     public CardType cardType;
@@ -73,14 +71,13 @@ public class BattleZoneEntity : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcInitializeEntity(PlayerManager owner, PlayerManager opponent, CardInfo cardInfo)
+    public void RpcInitializeEntity(PlayerManager owner, CardInfo cardInfo)
     {
         // Will be set active by cardMover, once entity is spawned correctly in UI
         gameObject.SetActive(false);
 
         CardInfo = cardInfo;
         Owner = owner;
-        Opponent = opponent;
 
         Title = cardInfo.title;
         cardType = cardInfo.type;
@@ -117,7 +114,7 @@ public class BattleZoneEntity : NetworkBehaviour
     public void EntityTakesDamage(int value, bool deathtouch){
 
         if (cardType == CardType.Player){
-            _player.Health -= value;
+            Owner.Health -= value;
             return;
         }
 
@@ -179,7 +176,7 @@ public class BattleZoneEntity : NetworkBehaviour
     {
         Title = title;
         _playerUI = playerUI;
-        _player = GetComponent<PlayerManager>();
+        Owner = GetComponent<PlayerManager>();
     } 
 
     // Somehow NetworkServer.Destroy(this) destroys the GO but does not call OnDestroy(),
@@ -194,6 +191,7 @@ public class BattleZoneEntity : NetworkBehaviour
         CombatManager.OnCombatStateChanged -= RpcCombatStateChanged;
         DropZoneManager.OnResetEntityUI -= ResetEntityUI;
     }
+    private void OnDestroy() => UnsubscribeEvents();
 
     public bool Equals(BattleZoneEntity other)
     {
@@ -205,5 +203,4 @@ public class BattleZoneEntity : NetworkBehaviour
         // Return true if the fields match.
         return (gameObject.GetInstanceID() == other.gameObject.GetInstanceID());
     }
-    private void OnDestroy() => UnsubscribeEvents();
 }
