@@ -111,6 +111,8 @@ public class GameManager : NetworkBehaviour {
         foreach (var player in playerManagers)
         {
             player.RpcInitPlayer();
+
+            // TODO: Most things break if we actually want an AI opponent
             if(!player.isAI) players.Add(player.GetComponent<NetworkIdentity>(), player);
             
             // Player stats

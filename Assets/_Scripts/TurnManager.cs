@@ -311,7 +311,7 @@ public class TurnManager : NetworkBehaviour
         // Waiting for CardMover to move cards to discard, should end before money is discarded
         yield return new WaitForSeconds(SorsTimings.showSpawnedCard + SorsTimings.cardMoveTime);
 
-        // Waiting for Entities abilities (ETB) being tracked (CEH sets QueueResolving to false)
+        // Waiting for AbilityQueue to finish resolving Buy triggers
         yield return _abilityQueue.Resolve();
 
         CheckBuyAnotherCard();
@@ -426,7 +426,7 @@ public class TurnManager : NetworkBehaviour
         // Waiting for Entities abilities (ETB) being tracked 
         yield return new WaitForSeconds(SorsTimings.wait);
 
-        // Waiting for CEH to set QueueResolving to false
+        // Waiting for AbilityQueue to finish resolving ETB triggers
         yield return _abilityQueue.Resolve();
 
         CheckPlayAnotherCard();
@@ -810,10 +810,15 @@ public class TurnManager : NetworkBehaviour
 
     public PlayerManager GetOpponentPlayer(PlayerManager player)
     {
+        var players =  _gameManager.players.Values.ToArray();
+        if (_gameOptions.SinglePlayer){
+            players = FindObjectsOfType<PlayerManager>();
+        }
         PlayerManager opponent = null;
-        foreach (var p in _gameManager.players.Values){
+        foreach (var p in players){
             if (p == player) continue;
             opponent = p;
+            break;
         }
         return opponent;
     }

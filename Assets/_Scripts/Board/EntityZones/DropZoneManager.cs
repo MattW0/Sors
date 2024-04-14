@@ -95,6 +95,7 @@ public class DropZoneManager : NetworkBehaviour
         {
             // Auto-skip : Local player has no creatures
             if (entityZones.GetCreatures(player.isLocalPlayer).Count == 0) PlayerFinishedChoosingAttackers(player);
+            // else if (player.isAI) PlayerFinishedChoosingAttackers(player);
             else TargetDeclareAttackers(player.connectionToClient);
         }
     }

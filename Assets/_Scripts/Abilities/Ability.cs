@@ -34,12 +34,12 @@ public struct Ability
     {
         if (amount == 0 && target == EffectTarget.None)
             return trigger.ToString() + " -> " + effect.ToString();
-        else if (amount == 0)
-            return trigger.ToString() + " -> " + effect.ToString() + " to " + amount.ToString();
         else if (target == EffectTarget.None)
-            return trigger.ToString() + " -> " + effect.ToString() + ", " + amount.ToString();
+            return trigger.ToString() + " -> " + amount.ToString() + " " + effect.ToString(); 
+        else if (amount == 0)
+            return trigger.ToString() + " -> " + effect.ToString() + " to " + target.ToString();
         else
-            return trigger.ToString() + " -> " + effect.ToString() + " to " + target.ToString() + ", " + amount.ToString();
+            return trigger.ToString() + " -> " + amount.ToString() + " " + effect.ToString() + " to " + target.ToString();
     }
 
     public override bool Equals(object obj)

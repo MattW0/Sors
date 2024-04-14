@@ -26,7 +26,7 @@ public class AbilityQueue : MonoBehaviour
     // Or should this be on entity and then added to queue from externally ?
     public void AddAbility(BattleZoneEntity entity, Ability ability)
     {
-        _playerInterfaceManager.RpcLog($"'{entity.Title}' triggers: {ability.trigger} -> {ability.effect}", LogType.EffectTrigger);
+        _playerInterfaceManager.RpcLog($"'{entity.Title}' triggers: {ability.ToString()}", LogType.EffectTrigger);
         _queue.Add(entity, ability);
     }
 
@@ -34,16 +34,17 @@ public class AbilityQueue : MonoBehaviour
     {
         foreach(var (entity, ability) in _queue){
             _effectHandler.SetSource(entity, ability);
+            entity.RpcEffectHighlight(true);
 
             // May need to wait for player to declare target -> set _abilityTarget
             yield return EvaluateAbilityTarget(entity, ability);
 
-            print("Start executing effect");
-
             // Execute effect
             yield return _effectHandler.Execute();
+            entity.RpcEffectHighlight(false);
 
-            print("Reset effect");
+            // Wait some more to prevent too early clean-up (destroying dead entities)
+            yield return new WaitForSeconds(0.1f);
 
             // Destroy dead entities and target arrows
             _boardManager.BoardCleanUp();
@@ -56,7 +57,6 @@ public class AbilityQueue : MonoBehaviour
     {
         print($"Evaluate target for {entity.Title} ability : " + ability.ToString());
         
-        entity.RpcEffectHighlight(true);
         yield return new WaitForSeconds(SorsTimings.effectTrigger);
 
         // Wait for player input if needed

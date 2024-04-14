@@ -79,7 +79,7 @@ public class AbilitiesVFXSystem : NetworkBehaviour
     [ClientRpc]
     public void RpcPlayHit(BattleZoneEntity target, Effect effect)
     {
-        print("RpcPlayHit");
+        print($"RpcPlayHit - Target: {target.Title} Effect: " + effect);
         var (hitPrefab, hitVFX) = effect switch
         {
             Effect.Damage => (damageHitPrefab, _damageHitVFX),
