@@ -51,6 +51,10 @@ public class DropZoneManager : NetworkBehaviour
             yield return new WaitForSeconds(SorsTimings.showSpawnedEntity);
             entityZones.RpcMoveEntityToHolder(entity);
             owner.RpcMoveCard(card, CardLocation.EntitySpawn, CardLocation.PlayZone);
+
+            // Score points on ETB if card is a Technology
+            if (entity.CardInfo.type == CardType.Technology) 
+                entity.Owner.Score += entity.GetComponent<TechnologyEntity>().Points;
         }
     }
 
@@ -61,6 +65,8 @@ public class DropZoneManager : NetworkBehaviour
         {
             var technology = entity.GetComponent<TechnologyEntity>();
             entityZones.RemoveTechnology(technology, entity.Owner.isLocalPlayer);
+
+            technology.Owner.Score -= technology.Points;
         }
         else if (entity.cardType == CardType.Creature)
         {

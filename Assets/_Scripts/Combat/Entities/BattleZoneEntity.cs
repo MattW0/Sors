@@ -33,17 +33,6 @@ public class BattleZoneEntity : NetworkBehaviour
         }
     }
 
-    [SerializeField] private int _points;
-    private int Points
-    {
-        get => _points;
-        set
-        {
-            _points = value;
-            RpcSetPoints(_points);
-        }
-    }
-
     private bool _targetable;
     public bool IsTargetable {
         get => _targetable;
@@ -82,9 +71,9 @@ public class BattleZoneEntity : NetworkBehaviour
         Title = cardInfo.title;
         cardType = cardInfo.type;
         _health = cardInfo.health;
-        _points = cardInfo.points;
 
         if(cardType == CardType.Creature) gameObject.GetComponent<CreatureEntity>().InitializeCreature(cardInfo.attack, cardInfo.keywordAbilities);
+        else if (cardType == CardType.Technology) gameObject.GetComponent<TechnologyEntity>().InitializeTechnology(cardInfo.points);
 
         _entityUI.SetEntityUI(cardInfo);
         
@@ -131,14 +120,11 @@ public class BattleZoneEntity : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void RpcSetHealth(int value)=> _entityUI.SetHealth(value);
-    
-    // Public because from creatureEntity
-    [ClientRpc]
-    public void RpcSetAttack(int value)=> _entityUI.SetAttack(value);
-    
-    [ClientRpc]
-    private void RpcSetPoints(int value)=> _entityUI.SetPoints(value);
+    private void RpcSetHealth(int value) => _entityUI.SetHealth(value);
+    [ClientRpc] // Public because from creatureEntity
+    public void RpcSetAttack(int value) => _entityUI.SetAttack(value);
+    [ClientRpc] // Public because from technologyEntity§
+    public void RpcSetPoints(int value) => _entityUI.SetPoints(value);
     [ClientRpc]
     public void RpcEffectHighlight(bool value) {
         // print("Showing effect target highlight");

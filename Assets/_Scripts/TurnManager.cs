@@ -424,7 +424,7 @@ public class TurnManager : NetworkBehaviour
     private IEnumerator PlayCardsIntermission()
     {
         // Waiting for Entities abilities (ETB) being tracked 
-        yield return new WaitForSeconds(SorsTimings.wait);
+        yield return new WaitForSeconds(SorsTimings.cardMoveTime + SorsTimings.showSpawnedCard);
 
         // Waiting for AbilityQueue to finish resolving ETB triggers
         yield return _abilityQueue.Resolve();
@@ -506,17 +506,7 @@ public class TurnManager : NetworkBehaviour
 
     private void NextPrevailOption()
     {
-        print($"NextPrevailOption - {_prevailOptionsToPlay.Count} remaining");
-        if (_prevailOptionsToPlay.Count != 0) print(_prevailOptionsToPlay[0]);
-
-        // All options have been played
-        if (_prevailOptionsToPlay.Count == 0)
-        {
-            PrevailCleanUp();
-            return;
-        }
-
-        var nextOption = _prevailOptionsToPlay[0];
+                var nextOption = _prevailOptionsToPlay[0];
         _prevailOptionsToPlay.RemoveAt(0);
 
         switch (nextOption)
@@ -530,8 +520,7 @@ public class TurnManager : NetworkBehaviour
                 StartPrevailInteraction(PrevailOption.Trash);
                 break;
             case PrevailOption.Score:
-                print("<color=yellow> Prevail score not implemented yet </color>");
-                NextPrevailOption();
+                PrevailScoring();
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -593,6 +582,18 @@ public class TurnManager : NetworkBehaviour
         NextPrevailOption();
     }
 
+    private void PrevailScoring(bool isEndOfTurn = false)
+    {
+        foreach (var (player, options) in _playerPrevailOptions)
+        {
+            var nbPicks = options.Count(option => option == PrevailOption.Score);
+            if (isEndOfTurn) player.Score -= nbPicks;
+            else player.Score += nbPicks;
+        }
+
+        if (!isEndOfTurn) PrevailCleanUp();
+    }
+
     private void PrevailCleanUp()
     {
         _prevailPanel.RpcReset();
@@ -631,11 +632,12 @@ public class TurnManager : NetworkBehaviour
     private bool GameEnds()
     {
         var gameEnds = false;
-        foreach (var (player, health) in _gameManager.players.Values.Select(player => (player, player.Health)))
+        foreach (var player in _gameManager.players.Values)
         {
-            if (health > 0) continue;
+            if (player.Health > 0 && player.Score < _gameOptions.winScore) continue;
 
-            OnPlayerDies?.Invoke(player);
+            if (player.Health <= 0) _gameManager.PlayerIsDead(player);
+            if (player.Score >= _gameOptions.winScore) _gameManager.PlayerHasWinScore(player);
             gameEnds = true;
         }
 

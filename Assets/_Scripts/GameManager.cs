@@ -54,9 +54,7 @@ public class GameManager : NetworkBehaviour {
     {
         if (Instance == null) Instance = this;
 
-        TurnManager.OnPlayerDies += PlayerDies;
         SorsNetworkManager.OnAllPlayersReady += GameSetup;
-        
         LoadCards();
     }
 
@@ -118,7 +116,7 @@ public class GameManager : NetworkBehaviour {
             // Player stats
             player.PlayerName = player.gameObject.name; // Object name is set after instantiation in NetworkManager
             player.Health = _gameOptions.startHealth;
-            player.Score = _gameOptions.startScore;
+            player.Score = 0;
             
             // Turn stats
             player.Cash = 0;
@@ -268,11 +266,8 @@ public class GameManager : NetworkBehaviour {
     #endregion
 
     #region Ending
-
-    private void PlayerDies(PlayerManager player)
-    {
-        _loosingPlayers.Add(player);
-    }
+    internal void PlayerIsDead(PlayerManager player) => _loosingPlayers.Add(player);
+    internal void PlayerHasWinScore(PlayerManager player) => _loosingPlayers.Add(_turnManager.GetOpponentPlayer(player));
 
     public void EndGame()
     {
@@ -282,14 +277,16 @@ public class GameManager : NetworkBehaviour {
             _endScreen.RpcSetFinalScore(player, health, 0);
         }
         
-        // Both players die -> Draw
-        if (_loosingPlayers.Count == players.Count)
+        if (_loosingPlayers.Count == 1)
         {
-            _endScreen.RpcGameIsDraw();
+            _endScreen.RpcGameHasWinner(_loosingPlayers[0]);
             return;
         }
         
-        _endScreen.RpcIsLooser(_loosingPlayers[0]);
+        // TODO: evaluate all _loosingPlayers (the same could be in there twice)
+        // 1,1 or 2,2 - Draw
+        // 2,1 or 1,2 - Win for a player
+        _endScreen.RpcGameIsDraw();
     }
 
     #endregion
@@ -343,7 +340,6 @@ public class GameManager : NetworkBehaviour {
 
     private void OnDestroy()
     {
-        TurnManager.OnPlayerDies -= PlayerDies;
         SorsNetworkManager.OnAllPlayersReady -= GameSetup;
     }
 }

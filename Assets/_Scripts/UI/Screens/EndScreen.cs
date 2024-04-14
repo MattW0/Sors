@@ -37,6 +37,21 @@ public class EndScreen : NetworkBehaviour
     }
 
     [ClientRpc]
+    public void RpcGameHasWinner(PlayerManager player)
+    {
+        if (player.isOwned)
+        {
+            resultText.text = "Defeat";
+            opponentHighlight.enabled = true;
+        }
+        else
+        {
+            resultText.text = "Victory";
+            playerHighlight.enabled = true;
+        }
+    }
+
+    [ClientRpc]
     public void RpcSetFinalScore(PlayerManager player, int health, int score)
     {
         endView.SetActive(true);
@@ -52,21 +67,6 @@ public class EndScreen : NetworkBehaviour
         {
             opponentHealthText.text = health.ToString();
             opponentPointsText.text = score.ToString();
-        }
-    }
-
-    [ClientRpc]
-    public void RpcIsLooser(PlayerManager player)
-    {
-        if (player.isOwned)
-        {
-            resultText.text = "Defeat";
-            opponentHighlight.enabled = true;
-        }
-        else
-        {
-            resultText.text = "Victory";
-            playerHighlight.enabled = true;
         }
     }
 

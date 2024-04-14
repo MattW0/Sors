@@ -19,7 +19,6 @@ public class CreatureEntity : BattleZoneEntity
             RpcSetAttack(_attack);
         }
     }
-
     private bool _canAct;
     public bool CanAct
     {
@@ -40,7 +39,6 @@ public class CreatureEntity : BattleZoneEntity
             else _creatureUI.CreatureIdle();
         }
     }
-
     [SerializeField] private bool _isBlocking;
     public bool IsBlocking 
     { 
@@ -133,9 +131,6 @@ public class CreatureEntity : BattleZoneEntity
 
         _creatureUI.ResetHighlight();
     }
-
-    // [ClientRpc]
-    // private void RpcSetAttack(int value) => _entityUI.SetAttack(value);
 
     private void OnDestroy()
     {

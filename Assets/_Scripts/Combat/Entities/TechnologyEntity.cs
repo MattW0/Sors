@@ -3,16 +3,24 @@ using System.Collections.Generic;
 using UnityEngine.EventSystems;
 using UnityEngine;
 using Mirror;
+using System;
 
 public class TechnologyEntity : BattleZoneEntity
 {
-    private void Start(){
-        DropZoneManager.OnDeclareAttackers += DeclareAttackers;
+
+    [SerializeField] private int _points;
+    public int Points
+    {
+        get => _points;
+        private set
+        {
+            _points = value;
+            RpcSetPoints(_points);
+        }
     }
 
-    public void InitializeTechnology()
-    {
-        throw new System.NotImplementedException();
+    private void Start(){
+        DropZoneManager.OnDeclareAttackers += DeclareAttackers;
     }
 
     private void DeclareAttackers(bool begin) 
@@ -25,5 +33,10 @@ public class TechnologyEntity : BattleZoneEntity
     private void OnDestroy()
     {
         DropZoneManager.OnDeclareAttackers -= DeclareAttackers;
+    }
+
+    internal void InitializeTechnology(int points)
+    {
+        _points = points;
     }
 }

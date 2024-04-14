@@ -26,16 +26,7 @@ public class EffectHandler : MonoBehaviour
         // Sanity check
         if (_abilitySource == null) yield break;
 
-        // Evaluate target
-        if(_abilityTarget == null) {
-            if(_ability.target == EffectTarget.Opponent) _abilityTarget = _turnManager.GetOpponentPlayer(_abilitySource.Owner).GetEntity();
-            else if (_ability.target == EffectTarget.Player) _abilityTarget = _abilitySource.Owner.GetEntity();
-            else if (_ability.target == EffectTarget.Self) {
-                _abilityTarget = _abilitySource;
-                _targetSelf = true;
-            }
-        }
-
+        if(_abilityTarget == null) EvaluateTarget();
         _playerInterfaceManager.RpcLog($"'{_abilitySource.Title}': {_ability.ToString()}\nTarget: {_abilityTarget.Title}", LogType.EffectTrigger);
 
         if (_ability.effect == Effect.Damage) yield return HandleDamage();
@@ -94,7 +85,6 @@ public class EffectHandler : MonoBehaviour
         _abilityTarget.EntityTakesDamage(_ability.amount, _abilitySource.CardInfo.keywordAbilities.Contains(Keywords.Deathtouch));
     }
 
-
     internal void SetSource(BattleZoneEntity source, Ability ability)
     {
         _abilitySource = source;
@@ -105,6 +95,17 @@ public class EffectHandler : MonoBehaviour
         _abilityTarget = target;
         _abilitySource.RpcDeclaredTarget(_abilityTarget);
     }
+
+    private void EvaluateTarget()
+    {
+        if(_ability.target == EffectTarget.Opponent) _abilityTarget = _turnManager.GetOpponentPlayer(_abilitySource.Owner).GetEntity();
+        else if (_ability.target == EffectTarget.Player) _abilityTarget = _abilitySource.Owner.GetEntity();
+        else if (_ability.target == EffectTarget.Self) {
+            _abilityTarget = _abilitySource;
+            _targetSelf = true;
+        }
+    }
+
     internal void Reset()
     {
         _abilitySource = null;

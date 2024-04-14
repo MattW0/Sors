@@ -37,11 +37,9 @@ public struct CardInfo : IEquatable<CardInfo>
 
         isStartCard = card.isStartCard;
         hash = card.hash;
-        resourceName = card.resourceName;
         type = card.type;
         title = card.title;
-        cardSpritePath = $"Sprites/Cards/{type.ToString()}/{resourceName}/c";
-        entitySpritePath = $"Sprites/Cards/{type.ToString()}/{resourceName}/e";
+        
 
         description = card.description;
         cost = card.cost;
@@ -59,6 +57,12 @@ public struct CardInfo : IEquatable<CardInfo>
         // Creature properties
         attack = card.attack;
         keywordAbilities = card.keywordAbilities;
+
+        // Resources 
+        resourceName = card.resourceName;
+        var path = $"Sprites/Cards/{type.ToString()}/{resourceName}";
+        cardSpritePath = path + "/c";
+        entitySpritePath = path + "/e";
     }
 
     public void Destroy(){

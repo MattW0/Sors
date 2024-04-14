@@ -15,7 +15,7 @@ public struct GameOptions
 
     // Player stats
     public int startHealth;
-    public int startScore;
+    public int winScore;
 
     // Initial Deck
     public int initialDeckSize;
@@ -49,7 +49,7 @@ public struct GameOptions
 
         // Player stats
         startHealth = 10;
-        startScore = 0;
+        winScore = 10;
 
         // Initial Deck
         initialDeckSize = 10;

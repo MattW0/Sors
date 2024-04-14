@@ -118,10 +118,9 @@ public class EntityZones : NetworkBehaviour
             return;
         }
 
-        entity.transform.DOMove(targetTransform.position, SorsTimings.cardMoveTime).SetEase(Ease.InOutCubic).OnComplete(() => {
-            entity.transform.SetParent(targetTransform, true);
-            // entity.transform.position = Vector3.zero;
-        });
+        entity.transform.DOMove(targetTransform.position, SorsTimings.cardMoveTime)
+            .SetEase(Ease.InOutCubic)
+            .OnComplete(() => entity.transform.SetParent(targetTransform, true));
     }
 
     #region Entity holders
