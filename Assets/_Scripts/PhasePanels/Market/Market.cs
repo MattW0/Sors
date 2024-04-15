@@ -67,17 +67,6 @@ public class Market : NetworkBehaviour
 
     #region Tile Cost
 
-    // Removed because changed phase bonus
-    // [TargetRpc]
-    // public void TargetMarketPhaseBonus(NetworkConnection target, int priceReduction){
-    //     if (_currentPhase == Phase.Invent){
-    //         foreach(var tile in moneyTiles) tile.SetBonus(priceReduction);
-    //         foreach(var tile in technologyTiles) tile.SetBonus(priceReduction);
-    //     } else if (_currentPhase == Phase.Recruit){
-    //         foreach(var tile in creatureTiles) tile.SetBonus(priceReduction);
-    //     }
-    // }
-
     [TargetRpc]
     public void TargetMarketPriceReduction(NetworkConnection target, CardType type, int priceReduction){
         if (type == CardType.Money){
@@ -91,8 +80,11 @@ public class Market : NetworkBehaviour
 
     [TargetRpc]
     public void TargetCheckMarketPrices(NetworkConnection target, int playerCash){
+        
+        // Can always buy money cards
+        foreach(var tile in moneyTiles) tile.Interactable = playerCash >= tile.Cost;
+
         if (_currentPhase == Phase.Invent){
-            foreach(var tile in moneyTiles) tile.Interactable = playerCash >= tile.Cost;
             foreach (var tile in technologyTiles) tile.Interactable = playerCash >= tile.Cost;
         } else if (_currentPhase == Phase.Recruit){
             foreach (var tile in creatureTiles) tile.Interactable = playerCash >= tile.Cost;
@@ -108,8 +100,8 @@ public class Market : NetworkBehaviour
         _ui.SelectTile(tile.cardInfo);
 
         // Reset all other tiles -> single selection
+        foreach (var t in moneyTiles) if (t != tile) t.ResetSelected();
         if (_currentPhase == Phase.Invent){
-            foreach (var t in moneyTiles) if (t != tile) t.ResetSelected();
             foreach (var t in technologyTiles) if (t != tile) t.ResetSelected();
         } else if (_currentPhase == Phase.Recruit){
             foreach (var t in creatureTiles) if (t != tile) t.ResetSelected();

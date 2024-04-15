@@ -67,9 +67,15 @@ public class CardMover : MonoBehaviour
         // These have local scale 0.7 to reduce playboard space occupation        
         if(to == CardLocation.Hand)
             card.transform.DOScale(1.4f, SorsTimings.cardMoveTime);
-        else if(from == CardLocation.Hand || from == CardLocation.EntitySpawn || from == CardLocation.CardSpawn)
-            if(to == CardLocation.MoneyZone || to == CardLocation.PlayZone)
-                card.transform.DOScale(0.7f, SorsTimings.cardMoveTime);
+        else if(from == CardLocation.Hand && (to == CardLocation.MoneyZone || to == CardLocation.PlayZone))
+            card.transform.DOScale(0.7f, SorsTimings.cardMoveTime);
+        else if (from == CardLocation.CardSpawn){
+            card.transform.DOScale(0.5f, SorsTimings.cardMoveTime);
+        } else if (to == CardLocation.EntitySpawn){
+            card.transform.DOScale(3f, SorsTimings.cardMoveTime);
+        } else if (from == CardLocation.EntitySpawn){
+            card.transform.DOScale(0.25f, SorsTimings.cardMoveTime);
+        }
     }
 
     private void ApplyMovement(CardsPileSors pile, GameObject card)

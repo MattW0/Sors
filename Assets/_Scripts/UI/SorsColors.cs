@@ -15,7 +15,7 @@ public static class SorsColors
     // -- Play Board --
     public static Color creature = new Color(0.34f, 0f, 0f);
     public static Color technology = new Color(0.65f, 0.45f, 0.25f);
-    public static Color trash = new Color(0.3f, 0.1f, 0.3f);
+    public static Color trash = new Color(0.3f, 0.3f, 0.3f);
     public static Color cash = new Color(0.9f, 0.75f, 0.1f);
     public static Color costValue = new Color(1f, 0.9f, 0.3f);
     public static Color attackValue = new Color(0.96f, 0.27f, 0.25f);

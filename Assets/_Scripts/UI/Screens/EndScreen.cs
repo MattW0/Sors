@@ -31,43 +31,37 @@ public class EndScreen : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcGameIsDraw()
+    public void RpcSetFinalScore(PlayerManager player, int health, int score)
     {
-        resultText.text = "Draw";
+        endView.SetActive(true);
+
+        if (player.isOwned){
+            playerNameText.text = player.PlayerName;
+            playerHealthText.text = health.ToString();
+            playerPointsText.text = score.ToString();
+        } else {
+            playerNameText.text = player.PlayerName;
+            opponentHealthText.text = health.ToString();
+            opponentPointsText.text = score.ToString();
+        }
     }
 
     [ClientRpc]
     public void RpcGameHasWinner(PlayerManager player)
     {
-        if (player.isOwned)
-        {
-            resultText.text = "Defeat";
-            opponentHighlight.enabled = true;
-        }
-        else
-        {
+        if (player.isOwned){
             resultText.text = "Victory";
             playerHighlight.enabled = true;
+        } else {
+            resultText.text = "Defeat";
+            opponentHighlight.enabled = true;
         }
     }
 
     [ClientRpc]
-    public void RpcSetFinalScore(PlayerManager player, int health, int score)
+    public void RpcGameIsDraw()
     {
-        endView.SetActive(true);
-        playerNameText.text = player.isServer ? "Host" : "Client";
-        opponentNameText.text = player.isServer ? "Client" : "Host";
-
-        if (player.isOwned)
-        {
-            playerHealthText.text = health.ToString();
-            playerPointsText.text = score.ToString();
-        }
-        else
-        {
-            opponentHealthText.text = health.ToString();
-            opponentPointsText.text = score.ToString();
-        }
+        resultText.text = "Draw";
     }
 
     public void OnExitButtonPressed()

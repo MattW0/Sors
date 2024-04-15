@@ -22,6 +22,7 @@ public class GameManager : NetworkBehaviour {
     [SyncVar] public int turnNumber;
     public Dictionary<NetworkIdentity, PlayerManager> players = new();
     private List<PlayerManager> _loosingPlayers = new();
+    private List<PlayerManager> _winningPlayers = new();
 
     [Header("Available cards")]
     public ScriptableCard[] startEntities;
@@ -266,27 +267,52 @@ public class GameManager : NetworkBehaviour {
     #endregion
 
     #region Ending
-    internal void PlayerIsDead(PlayerManager player) => _loosingPlayers.Add(player);
-    internal void PlayerHasWinScore(PlayerManager player) => _loosingPlayers.Add(_turnManager.GetOpponentPlayer(player));
-
-    public void EndGame()
+    internal void PlayerIsDead(PlayerManager player){
+        if(_loosingPlayers.Contains(player)) return;
+        _loosingPlayers.Add(player);
+    }
+    internal void PlayerHasWinScore(PlayerManager player) {
+        if(_winningPlayers.Contains(player)) return;
+        _winningPlayers.Add(player);
+    }
+    internal void EndGame()
     {
-        foreach (var player in players.Values)
-        {
-            var health = player.Health;
-            _endScreen.RpcSetFinalScore(player, health, 0);
+        foreach (var player in players.Values){
+            _endScreen.RpcSetFinalScore(player, player.Health, player.Score);
         }
-        
-        if (_loosingPlayers.Count == 1)
-        {
-            _endScreen.RpcGameHasWinner(_loosingPlayers[0]);
-            return;
+
+        PlayerManager winner = null;
+        if (_winningPlayers.Count == 0 && _loosingPlayers.Count == 0) {} // Should never happen
+        else if(_winningPlayers.Count == 1 && _loosingPlayers.Count == 0){
+            winner = _winningPlayers[0];
+        } else if (_winningPlayers.Count == 0 && _loosingPlayers.Count == 1){
+            winner = _turnManager.GetOpponentPlayer(_loosingPlayers[0]);
+        } else if (_winningPlayers.Count == 1 && _loosingPlayers.Count == 1){
+            if (_winningPlayers[0] != _loosingPlayers[0]) winner = _winningPlayers[0];
+            // else _endScreen.RpcGameIsDraw();
+        } else if (_winningPlayers.Count == 2 && _loosingPlayers.Count == 0){
+            if (_winningPlayers[0].Score > _winningPlayers[1].Score) winner = _winningPlayers[0];
+            else if (_winningPlayers[0].Score < _winningPlayers[1].Score) winner = _winningPlayers[1];
+            // else _endScreen.RpcGameIsDraw();
+        } else if (_winningPlayers.Count == 0 && _loosingPlayers.Count == 2){
+            if (_loosingPlayers[0].Health > _loosingPlayers[1].Health) winner =_loosingPlayers[0];
+            else if (_loosingPlayers[0].Health < _loosingPlayers[1].Health) winner = _loosingPlayers[1];
+            // else _endScreen.RpcGameIsDraw();
+        } else if (_winningPlayers.Count == 2 && _loosingPlayers.Count == 1){
+            if(_winningPlayers[0] == _loosingPlayers[0]) winner = _winningPlayers[1];
+            else winner = _winningPlayers[0];
+        } else if (_winningPlayers.Count == 1 && _loosingPlayers.Count == 2){
+            if(_winningPlayers[0] == _loosingPlayers[0]) winner = _loosingPlayers[0];
+            else winner = _winningPlayers[1];
+        } else {
+            if (_winningPlayers[0].Score > _winningPlayers[1].Score) winner = _winningPlayers[0];
+            else if (_winningPlayers[0].Score < _winningPlayers[1].Score) winner = _winningPlayers[1];
+            else if (_loosingPlayers[0].Health > _loosingPlayers[1].Health) winner =_loosingPlayers[0];
+            else if (_loosingPlayers[0].Health < _loosingPlayers[1].Health) winner = _loosingPlayers[1];
         }
-        
-        // TODO: evaluate all _loosingPlayers (the same could be in there twice)
-        // 1,1 or 2,2 - Draw
-        // 2,1 or 1,2 - Win for a player
-        _endScreen.RpcGameIsDraw();
+
+        if (winner) _endScreen.RpcGameHasWinner(winner);
+        else _endScreen.RpcGameIsDraw();
     }
 
     #endregion

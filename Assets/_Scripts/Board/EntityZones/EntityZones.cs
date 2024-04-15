@@ -118,9 +118,14 @@ public class EntityZones : NetworkBehaviour
             return;
         }
 
+        // TODO: Not so nice doing hard coded scaling here ...
+        entity.transform.DOScale(0.33f, SorsTimings.cardMoveTime);
         entity.transform.DOMove(targetTransform.position, SorsTimings.cardMoveTime)
             .SetEase(Ease.InOutCubic)
-            .OnComplete(() => entity.transform.SetParent(targetTransform, true));
+            .OnComplete(() => {
+                entity.transform.SetParent(targetTransform, true);
+                entity.transform.localScale = Vector3.one;
+            });
     }
 
     #region Entity holders

@@ -41,7 +41,6 @@ public class TurnManager : NetworkBehaviour
 
     // Events
     public static event Action<TurnState> OnPhaseChanged;
-    public static event Action<PlayerManager> OnPlayerDies;
 
     private void Awake()
     {
@@ -309,7 +308,7 @@ public class TurnManager : NetworkBehaviour
     {
         _market.RpcMinButton();
         // Waiting for CardMover to move cards to discard, should end before money is discarded
-        yield return new WaitForSeconds(SorsTimings.showSpawnedCard + SorsTimings.cardMoveTime);
+        yield return new WaitForSeconds(SorsTimings.showSpawnedCard + 2*SorsTimings.cardMoveTime + 0.1f);
 
         // Waiting for AbilityQueue to finish resolving Buy triggers
         yield return _abilityQueue.Resolve();
@@ -470,6 +469,7 @@ public class TurnManager : NetworkBehaviour
     #region Prevail
     private void Prevail()
     {
+        _prevailOptionsToPlay.Clear();
         foreach (var player in _gameManager.players.Values)
         {
             int nbOptions = _gameOptions.prevails;
@@ -503,10 +503,9 @@ public class TurnManager : NetworkBehaviour
         _prevailOptionsToPlay.Sort();
         NextPrevailOption();
     }
-
     private void NextPrevailOption()
     {
-                var nextOption = _prevailOptionsToPlay[0];
+        var nextOption = _prevailOptionsToPlay[0];
         _prevailOptionsToPlay.RemoveAt(0);
 
         switch (nextOption)
@@ -526,6 +525,7 @@ public class TurnManager : NetworkBehaviour
                 throw new ArgumentOutOfRangeException();
         }
     }
+    public void PlayerSkipsPrevailOption(PlayerManager player) => PlayerIsReady(player);
 
     private void StartPrevailInteraction(PrevailOption currentPrevailOption)
     {
@@ -544,8 +544,6 @@ public class TurnManager : NetworkBehaviour
         _selectedCards[player] = selectedCards;
         PlayerIsReady(player);
     }
-
-    public void PlayerSkipsPrevailOption(PlayerManager player) => PlayerIsReady(player);
 
     private void FinishPrevailCardIntoHand()
     {
@@ -582,35 +580,48 @@ public class TurnManager : NetworkBehaviour
         NextPrevailOption();
     }
 
-    private void PrevailScoring(bool isEndOfTurn = false)
+    private void PrevailScoring(bool deducePoints = false)
     {
         foreach (var (player, options) in _playerPrevailOptions)
         {
             var nbPicks = options.Count(option => option == PrevailOption.Score);
-            if (isEndOfTurn) player.Score -= nbPicks;
+            if (deducePoints) player.Score -= nbPicks;
             else player.Score += nbPicks;
         }
 
-        if (!isEndOfTurn) PrevailCleanUp();
+        if (deducePoints) return;
+        StartCoroutine(PrevailCleanUp());
     }
 
-    private void PrevailCleanUp()
+    private IEnumerator PrevailCleanUp()
     {
+        yield return new WaitForSeconds(SorsTimings.turnStateTransition);
+
+        _playerPrevailOptions.Clear();
         _prevailPanel.RpcReset();
+        PrevailScoring(true);
+
         UpdateTurnState(TurnState.NextPhase);
     }
     #endregion
     
     #region EndPhase
-    private void CleanUp()
+    private bool GameEnds()
     {
-        if (GameEnds())
+        var gameEnds = false;
+        foreach (var player in _gameManager.players.Values)
         {
-            _gameManager.EndGame();
-            UpdateTurnState(TurnState.Idle);
-            return;
+            if (player.Health > 0 && player.Score < _gameOptions.winScore) continue;
+            if (player.Health <= 0) _gameManager.PlayerIsDead(player);
+            if (player.Score >= _gameOptions.winScore) _gameManager.PlayerHasWinScore(player);
+            gameEnds = true;
         }
 
+        return gameEnds;
+    }
+    
+    private void CleanUp()
+    {
         // TODO: Should not use _market here but access it from _boardManager directly
         _boardManager.BoardCleanUpEndOfTurn(_market.GetTileInfos());
 
@@ -628,22 +639,6 @@ public class TurnManager : NetworkBehaviour
 
         StartCoroutine(CheckTriggers(TurnState.PhaseSelection));
     }
-
-    private bool GameEnds()
-    {
-        var gameEnds = false;
-        foreach (var player in _gameManager.players.Values)
-        {
-            if (player.Health > 0 && player.Score < _gameOptions.winScore) continue;
-
-            if (player.Health <= 0) _gameManager.PlayerIsDead(player);
-            if (player.Score >= _gameOptions.winScore) _gameManager.PlayerHasWinScore(player);
-            gameEnds = true;
-        }
-
-        return gameEnds;
-    }
-
     #endregion
 
     #region HelperFunctions
@@ -655,6 +650,11 @@ public class TurnManager : NetworkBehaviour
 
         // TODO: Can probably combine this with OnPhaseChanged event
         _phasePanel.RpcChangeActionDescriptionText(newState);
+
+        if(GameEnds()){
+            _gameManager.EndGame();
+            newState = TurnState.Idle;
+        }
 
         switch (newState)
         {

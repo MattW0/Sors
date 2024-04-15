@@ -18,8 +18,6 @@ public class PrevailOptionUI : MonoBehaviour
         // Only do this once
         if (_prevailPanel) return;
 
-        optionDescription.enabled = false;
-
         _prevailPanel = PrevailPanel.Instance;
         PrevailPanel.OnPrevailSelectionEnded += Reset;
     }
@@ -41,19 +39,20 @@ public class PrevailOptionUI : MonoBehaviour
         _timesSelected++;
         numberSelectedText.text = _timesSelected.ToString();
 
-        optionDescription.enabled = true;
         UpdateDescriptionText();
     }
 
     private void UpdateDescriptionText()
     {
-        if (_option == PrevailOption.Trash) 
-            optionDescription.text = $"Trash up to {_timesSelected} card(s)";
-        else if (_option == PrevailOption.CardSelection) 
-            optionDescription.text = $"Put {_timesSelected} card(s) from your discard into your hand";
-        else if (_option == PrevailOption.Score){
-            // TODO:
-            optionDescription.text = $"This does nothing {_timesSelected} time(s)";
+        if (_option == PrevailOption.Trash){
+            if (_timesSelected == 0) optionDescription.text = "Trash up to X card(s)";
+            else optionDescription.text = $"Trash up to {_timesSelected} card(s)";
+        } else if (_option == PrevailOption.CardSelection){
+            if (_timesSelected == 0) optionDescription.text = "Put X card(s) from your discard into your hand";
+            else optionDescription.text = $"Put {_timesSelected} card(s) from your discard into your hand";
+        } else if (_option == PrevailOption.Score){
+            if (_timesSelected == 0) optionDescription.text = "Score X point(s) until end of turn";
+            optionDescription.text = $"Score {_timesSelected} point(s) until end of turn";
         }
     }
 

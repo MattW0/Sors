@@ -24,8 +24,8 @@ public class ArrowRenderer : MonoBehaviour
     [Header("Resolution Constants")]
     [SerializeField] private const float SCREEN_WIDTH = 1920f;
     [SerializeField] private const float SCREEN_HEIGHT = 1080f;
-    [SerializeField] private const float ARROW_RENDER_WIDHT = 9.7f;
-    [SerializeField] private const float ARROW_RENDER_HEIGHT = 5.5f;
+    [SerializeField] private const float ARROW_RENDER_WIDHT = 9f;
+    [SerializeField] private const float ARROW_RENDER_HEIGHT = 5f;
 
     private void Awake(){
         DropZoneManager.OnDestroyArrows += DestroyArrow;

@@ -73,7 +73,7 @@ public enum Trigger
     // Beginning_when_you_gain_the_initiative
     
     // When triggers
-    When_enters_the_battlefield = 20,
+    When_you_play = 20,
     // When_dies = 21,
     // When_attacks = 22,
     // When_blocks = 23,

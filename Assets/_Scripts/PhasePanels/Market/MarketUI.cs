@@ -107,7 +107,7 @@ public class MarketUI : MonoBehaviour
     private void ShowCreaturePanel(){
         _developPanel.SetActive(false);
         _recruitPanel.SetActive(true);
-        _switchBtnText.text = "Techs";
+        _switchBtnText.text = "Technologies";
     }
 
     public void EndPhase(){

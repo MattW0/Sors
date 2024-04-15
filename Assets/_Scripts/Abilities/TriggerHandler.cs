@@ -36,7 +36,7 @@ public class TriggerHandler : NetworkBehaviour
                 var trigger = ability.trigger;
 
                 // Don't add ETBs to the dict as it resolves immediately and only once
-                if (trigger == Trigger.When_enters_the_battlefield){
+                if (trigger == Trigger.When_you_play){
                     _abilityQueue.AddAbility(entity, ability);
                     continue;
                 }
