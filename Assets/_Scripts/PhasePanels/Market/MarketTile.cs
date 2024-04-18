@@ -10,7 +10,8 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     public CardInfo cardInfo;
     [SerializeField] private MarketTileUI _ui;
     private int _cost;
-    public int Cost{
+    public int Cost
+    {
         get => _cost;
         set{
             _cost = value;
@@ -19,7 +20,8 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     }
     
     private bool _isInteractable;
-    public bool Interactable {
+    public bool Interactable
+    {
         get => _isInteractable;
         set {
             if(_alreadyChosen) return;
@@ -28,7 +30,8 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         }
     }
     private bool _isSelected;
-    private bool IsSelected {
+    private bool IsSelected
+    {
         get => _isSelected;
         set {
             _isSelected = value;
@@ -42,7 +45,6 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     }
 
     private bool _alreadyChosen;
-    private bool _hovering;
 
     private void Awake(){
         _market = Market.Instance;
@@ -72,13 +74,14 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         MarketTileHoverPreview.OnHoverTile(cardInfo);
     }
 
-    public void OnPointerExit(PointerEventData eventData){
+    public void OnPointerExit(PointerEventData eventData)
+    {
         StopAllCoroutines();
         MarketTileHoverPreview.OnHoverExit();
     }
 
-    public void OnPointerClick(PointerEventData eventData){
-
+    public void OnPointerClick(PointerEventData eventData)
+    {
         // Right click to preview card only
         if (eventData.button == PointerEventData.InputButton.Right) {
             _cardZoomView.ZoomCard(cardInfo);
@@ -102,7 +105,7 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         Interactable = false;
 
         _alreadyChosen = true;
-        _ui.Highlight(true, SorsColors.tilePreviouslySelected);
+        _ui.ShowAsChosen();
     }
     
     private void EndMarketPhase() => ResetTile();

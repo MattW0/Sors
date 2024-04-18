@@ -36,7 +36,6 @@ public static class SorsColors
     // -- Market Tiles --
     public static Color tileSelectable = Color.green;
     public static Color tileSelected = Color.blue;
-    public static Color tilePreviouslySelected = Color.yellow;
 
     // -- Phases --
     public static Color phaseHighlight = new Color(1f, 1f, 0.7f, .6f);

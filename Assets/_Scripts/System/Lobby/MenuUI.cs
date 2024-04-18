@@ -7,7 +7,9 @@ public class MenuUI : MonoBehaviour
 {
     [SerializeField] private SorsNetworkManager _networkManager;
     [SerializeField] private TMP_InputField _nameInput;
+    [SerializeField] private TMP_Text _playerNetworkAddressText;
     private string _playerName;
+    private void Start() => _playerNetworkAddressText.text = "Player IPv4 : " + _networkManager.GetLocalIPv4(); 
 
     public void OnHostClick()
     {

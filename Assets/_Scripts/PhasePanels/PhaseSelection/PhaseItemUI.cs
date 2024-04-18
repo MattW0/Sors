@@ -81,7 +81,7 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (!_selectable || _phaseTitle != "") return;
+        if (_phaseTitle != "") return;
 
         _tooltip.SetActive(true);
         playerChoice.enabled = true;
@@ -89,7 +89,7 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (!_selectable || _phaseTitle != "") return;
+        if (_phaseTitle != "") return;
 
         _tooltip.SetActive(false);
 

@@ -86,8 +86,10 @@ public class Market : NetworkBehaviour
 
         if (_currentPhase == Phase.Invent){
             foreach (var tile in technologyTiles) tile.Interactable = playerCash >= tile.Cost;
+            foreach (var tile in creatureTiles) tile.Interactable = false;
         } else if (_currentPhase == Phase.Recruit){
             foreach (var tile in creatureTiles) tile.Interactable = playerCash >= tile.Cost;
+            foreach (var tile in technologyTiles) tile.Interactable = false;
         }
     }
     #endregion

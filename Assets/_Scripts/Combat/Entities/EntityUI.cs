@@ -53,7 +53,7 @@ public class EntityUI : MonoBehaviour
     public void SetAttack(int newValue) => _attack.text = newValue.ToString();
     public void SetPoints(int newValue) => _points.text = newValue.ToString();
 
-    public void Highlight(bool enabled, Color color)
+    public virtual void Highlight(bool enabled, Color color)
     {
         if(_highlight == null) return;
 

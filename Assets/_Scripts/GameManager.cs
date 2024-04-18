@@ -31,7 +31,6 @@ public class GameManager : NetworkBehaviour {
     public ScriptableCard[] technologyCardsDb;
     private List<int> _availableCreatureIds = new();
     private List<int> _availableTechnologyIds = new();
-    private Sprite[] _moneySprites;
     private int _nbMoneyTiles;
     private int _nbTechnologyTiles;
     private int _nbCreatureTiles;
@@ -61,7 +60,6 @@ public class GameManager : NetworkBehaviour {
 
     private void LoadCards()
     {
-        _moneySprites = Resources.LoadAll<Sprite>("Sprites/Money/");
         startEntities = Resources.LoadAll<ScriptableCard>("Cards/_StartCards/");
 
         // Databases of generated cards

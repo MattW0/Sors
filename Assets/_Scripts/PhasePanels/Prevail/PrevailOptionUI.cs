@@ -27,9 +27,7 @@ public class PrevailOptionUI : MonoBehaviour
         if(_timesSelected == 0 || !_prevailPanel.Decrement(_option)) return;
         _timesSelected--;
         numberSelectedText.text = _timesSelected.ToString();
-
-        if (_timesSelected == 0) optionDescription.enabled = false;
-        else UpdateDescriptionText();
+        UpdateDescriptionText();
     }
 
     public void OnClickIncrement()
@@ -52,7 +50,7 @@ public class PrevailOptionUI : MonoBehaviour
             else optionDescription.text = $"Put {_timesSelected} card(s) from your discard into your hand";
         } else if (_option == PrevailOption.Score){
             if (_timesSelected == 0) optionDescription.text = "Score X point(s) until end of turn";
-            optionDescription.text = $"Score {_timesSelected} point(s) until end of turn";
+            else optionDescription.text = $"Score {_timesSelected} point(s) until end of turn";
         }
     }
 

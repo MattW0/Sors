@@ -13,7 +13,7 @@ public class CardSpawner : MonoBehaviour
     [SerializeField] private Transform _gridChosen;
     // private GameObject _currentGrid;
 
-    public List<DetailCard> SpawnDetailCardObjects(List<CardInfo> cards, TurnState turnState)
+    public List<DetailCard> SpawnDetailCardObjects(List<CardInfo> cards, TurnState turnState, float scaleFactor = 0.6f)
     {
         var detailCards = new List<DetailCard>();
         foreach (var cardInfo in cards){
@@ -25,7 +25,7 @@ public class CardSpawner : MonoBehaviour
             };
 
             detailCardObject.transform.SetParent(_gridAll, false);
-            detailCardObject.transform.localScale = new Vector3(0.6f, 0.6f, 1);
+            detailCardObject.transform.localScale = new Vector3(scaleFactor, scaleFactor, 1);
 
             // Initialize detail card
             var detailCard = detailCardObject.GetComponent<DetailCard>();

@@ -11,14 +11,14 @@ public class DetailCardUI : CardUI, IPointerEnterHandler, IPointerExitHandler {
     public bool enableFocus = true;
     private Canvas _tempCanvas;
     private GraphicRaycaster _tempRaycaster;
-    private Vector3 NO_KEYWORDS_TITLE_POSITION = new(0f, -45f, 0f);
+    // private Vector3 NO_KEYWORDS_TITLE_POSITION = new(0f, -45f, 0f);
 
-    public override void SetCardUI(CardInfo cardInfo){
-        base.SetCardUI(cardInfo);
+    // public override void SetCardUI(CardInfo cardInfo){
+    //     base.SetCardUI(cardInfo);
 
-        if (cardInfo.type == CardType.Creature &&cardInfo.keywordAbilities.Count == 0)
-            titleBox.transform.localPosition = NO_KEYWORDS_TITLE_POSITION;
-    }
+    //     if (cardInfo.type == CardType.Creature && cardInfo.keywordAbilities.Count == 0)
+    //         titleBox.transform.localPosition = NO_KEYWORDS_TITLE_POSITION;
+    // }
 
     public void SetCardState(TurnState state) {
         _state = state;

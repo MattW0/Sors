@@ -505,6 +505,12 @@ public class TurnManager : NetworkBehaviour
     }
     private void NextPrevailOption()
     {
+        if (_prevailOptionsToPlay.Count == 0)
+        {
+            StartCoroutine(PrevailCleanUp());
+            return;
+        }
+
         var nextOption = _prevailOptionsToPlay[0];
         _prevailOptionsToPlay.RemoveAt(0);
 
@@ -590,16 +596,16 @@ public class TurnManager : NetworkBehaviour
         }
 
         if (deducePoints) return;
-        StartCoroutine(PrevailCleanUp());
+        NextPrevailOption();
     }
 
     private IEnumerator PrevailCleanUp()
     {
         yield return new WaitForSeconds(SorsTimings.turnStateTransition);
 
+        PrevailScoring(true);
         _playerPrevailOptions.Clear();
         _prevailPanel.RpcReset();
-        PrevailScoring(true);
 
         UpdateTurnState(TurnState.NextPhase);
     }

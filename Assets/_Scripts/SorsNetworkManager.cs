@@ -3,17 +3,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
+using System.Net;
+using System.Linq;
 
 public class SorsNetworkManager : NetworkManager
 {
-    private NetworkManager _manager;
     private string _playerNameBuffer;
     private GameOptions _gameOptions;
     public static event Action<GameOptions> OnAllPlayersReady;
 
     public override void Awake(){
         base.Awake();
-        _manager = GetComponent<NetworkManager>();
         GameOptionsMenu.OnUpdateNetworkAddress += UpdateNetworkAddress;
     }
 
@@ -77,8 +77,8 @@ public class SorsNetworkManager : NetworkManager
     private void PlayerJoins(string playerName, bool isHost)
     {
         _playerNameBuffer = playerName;
-        if (isHost) _manager.StartHost();
-        else _manager.StartClient();
+        if (isHost) StartHost();
+        else StartClient();
     }
 
     private GameObject CreatePlayerObject(string playerName)
@@ -94,7 +94,12 @@ public class SorsNetworkManager : NetworkManager
         return playerObject;
     }
 
-    private void UpdateNetworkAddress(string address) => _manager.networkAddress = address;
+    private void UpdateNetworkAddress(string address) => networkAddress = address;
+
+    public string GetLocalIPv4()
+    {
+        return Dns.GetHostEntry(Dns.GetHostName()).AddressList.First(f => f.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).ToString();
+    }
 
     public override void OnDestroy()
     {

@@ -49,7 +49,7 @@ public class CardUI : MonoBehaviour
             if(cardInfo.keywordAbilities.Count > 0){
                 _keywordsBox.SetActive(true);
                 _keywordsText.text = string.Join(", ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
-                titleBox.transform.localPosition = YES_KEYWORDS_TITLE_POSITION;
+                // titleBox.transform.localPosition = YES_KEYWORDS_TITLE_POSITION;
             } else { 
                 _keywordsBox.SetActive(false);
             }
