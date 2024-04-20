@@ -26,14 +26,6 @@ public class GameManager : NetworkBehaviour {
 
     [Header("Available cards")]
     public ScriptableCard[] startEntities;
-    public ScriptableCard[] creatureCardsDb;
-    public ScriptableCard[] moneyCardsDb;
-    public ScriptableCard[] technologyCardsDb;
-    private List<int> _availableCreatureIds = new();
-    private List<int> _availableTechnologyIds = new();
-    private int _nbMoneyTiles;
-    private int _nbTechnologyTiles;
-    private int _nbCreatureTiles;
     
     [Header("Prefabs")]
     [SerializeField] private GameObject creatureCardPrefab;
@@ -62,16 +54,13 @@ public class GameManager : NetworkBehaviour {
     {
         startEntities = Resources.LoadAll<ScriptableCard>("Cards/_StartCards/");
 
-        // Databases of generated cards
-        creatureCardsDb = Resources.LoadAll<ScriptableCard>("Cards/CreatureCards/");
-        technologyCardsDb = Resources.LoadAll<ScriptableCard>("Cards/TechnologyCards/");
-        moneyCardsDb = Resources.LoadAll<ScriptableCard>("Cards/MoneyCards/");
+        
 
-        var msg = " --- Available cards: --- \n" +
-                  $"Creature cards: {creatureCardsDb.Length}\n" +
-                  $"Money cards: {moneyCardsDb.Length}\n" +
-                  $"Develop cards: {technologyCardsDb.Length}";
-        print(msg);
+        // var msg = " --- Available cards: --- \n" +
+        //           $"Creature cards: {creatureCardsDb.Length}\n" +
+        //           $"Money cards: {moneyCardsDb.Length}\n" +
+        //           $"Develop cards: {technologyCardsDb.Length}";
+        // print(msg);
     }
 
     #region Setup
@@ -93,7 +82,7 @@ public class GameManager : NetworkBehaviour {
 
         if(string.IsNullOrWhiteSpace(options.StateFile)){
             // Normal game setup
-            MarketSetup();
+            _market.RpcInitializeMarket();
             foreach (var player in players.Values) SpawnPlayerDeck(player);
             OnGameStart?.Invoke(_gameOptions);
         } else {
@@ -132,32 +121,14 @@ public class GameManager : NetworkBehaviour {
         }
     }
 
-    private void MarketSetup()
-    {
-        _market.RpcSetPlayer();
-
-        // Money
-        var moneyCards = new CardInfo[_nbMoneyTiles];
-        for (var i = 0; i < _nbMoneyTiles; i++) moneyCards[i] = new CardInfo(moneyCardsDb[i]);
-        _market.RpcSetMoneyTiles(moneyCards);
-
-        // Technologies
-        var technologies = new CardInfo[_nbTechnologyTiles];
-        for (var i = 0; i < _nbTechnologyTiles; i++) technologies[i] = GetNewTechnologyFromDb();
-        _market.RpcSetTechnologyTiles(technologies);
-
-        // Creatures
-        var creatures = new CardInfo[_nbCreatureTiles];
-        for (var i = 0; i < _nbCreatureTiles; i++) creatures[i] = GetNewCreatureFromDb();
-        _market.RpcSetCreatureTiles(creatures);
-    }
-
     private void SpawnPlayerDeck(PlayerManager player)
     {
+        var startMoney = _market.GetStartMoneyCard();
         List<GameObject> startCards = new();
+
         // Only paper money currently
         for (var i = 0; i < _gameOptions.initialDeckSize - _gameOptions.initialEntities; i++){
-            var scriptableCard = moneyCardsDb[0];
+            var scriptableCard = startMoney;
             startCards.Add(SpawnCardAndAddToCollection(player, scriptableCard, CardLocation.Deck));
         }
 
@@ -317,41 +288,6 @@ public class GameManager : NetworkBehaviour {
 
     #region Utils
     public void StartGame() => OnGameStart?.Invoke(_gameOptions);
-
-    public CardInfo GetNewTechnologyFromDb()
-    {
-        if(_availableTechnologyIds.Count == 0){
-            // Random order of ids -> pop first element for random card
-            _availableTechnologyIds = Enumerable.Range(0, technologyCardsDb.Length)
-                                        .OrderBy(x => Random.value)
-                                        .ToList();
-        }
-
-        var id = _availableTechnologyIds[0];
-        _availableTechnologyIds.RemoveAt(0);
-        return new CardInfo(technologyCardsDb[id]);
-    }
-
-    public CardInfo GetNewCreatureFromDb()
-    {
-        if(_availableCreatureIds.Count == 0){
-            // Random order of ids -> pop first element for random card
-            _availableCreatureIds = Enumerable.Range(0, creatureCardsDb.Length)
-                                        .OrderBy(x => Random.value)
-                                        .ToList();
-        }
-
-        var id = _availableCreatureIds[0];
-        _availableCreatureIds.RemoveAt(0);
-        return new CardInfo(creatureCardsDb[id]);
-    }
-
-    public void SetNumberOfMarketTiles(int moneyTiles, int technologies, int creatures)
-    {
-        _nbMoneyTiles = moneyTiles;
-        _nbTechnologyTiles = technologies;
-        _nbCreatureTiles = creatures;
-    }
 
     [Server]
     private void SkipCardSpawnAnimations() => SorsTimings.SkipCardSpawnAnimations();

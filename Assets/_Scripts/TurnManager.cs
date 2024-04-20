@@ -35,6 +35,7 @@ public class TurnManager : NetworkBehaviour
     private Dictionary<PlayerManager, Phase[]> _playerPhaseChoices = new();
     private List<Phase> _phasesToPlay = new();
     private Dictionary<PlayerManager, CardInfo> _selectedMarketCards = new();
+    private List<(int, CardType)> _boughtCards = new();
     private Dictionary<PlayerManager, List<GameObject>> _selectedCards = new();
     private Dictionary<PlayerManager, List<PrevailOption>> _playerPrevailOptions = new();
     private List<PrevailOption> _prevailOptionsToPlay = new();
@@ -242,10 +243,11 @@ public class TurnManager : NetworkBehaviour
         if (turnState == TurnState.Invent){
             phase = Phase.Invent;
             cardType = CardType.Technology;
-        } 
+        }
 
-        _handManager.RpcHighlightMoney(true);
         _market.RpcBeginPhase(phase);
+        _handManager.RpcHighlightMoney(true);
+        _boughtCards.Clear();
 
         foreach (var player in _gameManager.players.Values)
         {
@@ -258,8 +260,10 @@ public class TurnManager : NetworkBehaviour
                 player.Buys += _gameOptions.extraBuys;
                 PlayerGetsMarketBonus(player, cardType, _gameOptions.marketPriceReduction);
 
-                _market.TargetCheckMarketPrices(player.connectionToClient, player.Cash);
             }
+
+            // Makes highlights appear
+            _market.TargetCheckMarketPrices(player.connectionToClient, player.Cash);
         }
     }
 
@@ -269,8 +273,10 @@ public class TurnManager : NetworkBehaviour
         _market.TargetMarketPriceReduction(player.connectionToClient, type, amount);
     }
 
-    public void PlayerConfirmBuy(PlayerManager player, CardInfo card, int cost)
+    public void PlayerConfirmBuy(PlayerManager player, CardInfo card, int cost, int tileIndex)
     {
+        _boughtCards.Add((tileIndex, card.type));
+
         player.Buys--;
         player.Cash -= cost;
 
@@ -335,17 +341,14 @@ public class TurnManager : NetworkBehaviour
         }
 
         _market.RpcMaxButton();
-        // Replace tile with intention to give more variation and a race to strong creatures
-        // TODO: Check if I should do this for technologies as well
-        // TODO: How to replace tiles for both players?
-        // TODO: Or only do this in FinishBuyCard?
-        // _market.RpcReplaceRecruitTile(card.title, nextTile);
     }
 
     private void FinishBuyCard()
     {
+        // Replace tiles that were bought by either player
+        _market.ResetMarket(_boughtCards);
         PlayersDiscardMoney();
-        _market.RpcEndMarketPhase();
+        // _market.RpcEndMarketPhase();
 
         UpdateTurnState(TurnState.NextPhase);
     }

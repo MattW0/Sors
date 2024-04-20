@@ -7,7 +7,7 @@ using System;
 public class GameOptionsMenu : MonoBehaviour
 {
     private string[] _networkAddresses = new string[2] {"localhost", "192.168.1.170"};
-    public static GameOptions gameOptions = new("localhost", 2, false, true, true, "", true, 4);
+    public static GameOptions gameOptions = new("localhost", 2, false, false, false, "", true, 4);
     public static event Action<string> OnUpdateNetworkAddress;
     public static void SetNumberPhases(int numberPhases) => gameOptions.NumberPhases = numberPhases + 1;
     public static void SetFullHand(bool drawAll){

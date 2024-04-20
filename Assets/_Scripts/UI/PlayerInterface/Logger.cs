@@ -21,6 +21,8 @@ public class Logger : MonoBehaviour
     public void Log(string message, LogType type){
         var messageColor = GetColor(type);
         logText.text += $"<color={messageColor}>{message}</color>\n";
+
+        // TODO: Scroll rect does not scroll
         scrollRect.ScrollToBottom();
     }
 

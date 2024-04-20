@@ -4,10 +4,6 @@ public static class SorsTimings
 
     // Cards and Entities
     public static float cardMoveTime = 0.5f;
-    public static float effectTrigger = 0.6f;
-    public static float effectProjectile = 1f;
-    public static float effectHitVFX = 1f;
-    public static float combatClash = 0.8f;
     
     // Turn State Machine
     public static float turnStateTransition = 1f;
@@ -31,6 +27,9 @@ public static class SorsTimings
     // VFX
     public static float damageTime = 0.3f;
     public static float attackTime = 0.5f;
+    public static float effectTrigger = 0.6f;
+    public static float effectProjectile = 0.7f;
+    public static float effectHitVFX = 1f;
 
     public static void SkipCardSpawnAnimations(){
         waitForSpawnFromFile = 0.01f;

@@ -39,10 +39,13 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
                 _market.PlayerSelectsTile(this);
                 _ui.Highlight(true, SorsColors.tileSelected);
             } else {
+                _market.PlayerDeselectsTile();
                 _ui.Highlight(true, SorsColors.tileSelectable);
             }
         }
     }
+
+    public int Index { get; private set; }
 
     private bool _alreadyChosen;
 
@@ -51,12 +54,19 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         _cardZoomView = CardZoomView.Instance;
     }
 
-    public void SetTile(CardInfo card){
+    public void InitializeTile(CardInfo card, int index){
+        Index = index;
+
+        SetTile(card);
+        
+        Market.OnMarketPhaseEnded += EndMarketPhase;
+    }
+
+    public void SetTile(CardInfo card)
+    {
         cardInfo = card;
         Cost = card.cost;
         _ui.SetEntityUI(card);
-        
-        Market.OnMarketPhaseEnded += EndMarketPhase;
     }
 
     public void SetBonus(int priceReduction){
@@ -91,7 +101,6 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         if (!_isInteractable) return;
 
         // Reset highlight and preview in market if 2nd click on selected tile
-        if(_isSelected) _market.PlayerDeselectsTile();
         IsSelected = !_isSelected;
     }
 
@@ -109,6 +118,7 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     }
     
     private void EndMarketPhase() => ResetTile();
+    
     private void ResetTile(){
         Interactable = false;
         _isSelected = false;

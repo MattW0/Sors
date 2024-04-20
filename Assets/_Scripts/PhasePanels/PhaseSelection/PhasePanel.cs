@@ -15,9 +15,11 @@ public class PhasePanel : NetworkBehaviour
 
     [Header("UI Elements")]
     [SerializeField] private TurnScreenOverlay _turnScreenOverlay;
-    [SerializeField] private GameObject confirmPhaseSelection;
+    // [SerializeField] private GameObject confirmPhaseSelection;
     [SerializeField] private TMP_Text turnText;
     [SerializeField] private TMP_Text actionDescriptionText;
+    [SerializeField] private Image phaseIcon;
+    [SerializeField] private TMP_Text phaseTitleText;
     
     private int _nbPhasesToChose;
     private PhasePanelUI _phasePanelUI;
@@ -63,7 +65,7 @@ public class PhasePanel : NetworkBehaviour
 
     public void ConfirmButtonPressed(){
         actionDescriptionText.text = "Wait for opponent...";
-        confirmPhaseSelection.SetActive(false);
+        // confirmPhaseSelection.SetActive(false);
 
         var player = PlayerManager.GetLocalPlayer();
         player.CmdPhaseSelection(_selectedPhases);
@@ -76,7 +78,8 @@ public class PhasePanel : NetworkBehaviour
     #region Phases
 
     [ClientRpc]
-    private void RpcUpdatePhaseHighlight(TurnState newState) {
+    private void RpcUpdatePhaseHighlight(TurnState newState) 
+    {
         var newHighlightIndex = newState switch
         {
             TurnState.PhaseSelection => 0,
@@ -89,7 +92,6 @@ public class PhasePanel : NetworkBehaviour
             TurnState.CleanUp => 9,
             _ => -1
         };
-
         _phasePanelUI.UpdatePhaseHighlight(newHighlightIndex);
     }
     
@@ -139,7 +141,13 @@ public class PhasePanel : NetworkBehaviour
     #endregion
 
     [ClientRpc]
-    public void RpcChangeActionDescriptionText(TurnState state){
+    public void RpcChangeActionDescriptionText(TurnState state)
+    {
+        if (state == TurnState.NextPhase) return;
+
+        // TODO: Clean up this stuff... UI elements in playerInterface should have its own class
+        // and this is hidden in PhasePanel context.
+        // Make it listen to turnManager.OnPhaseChanged ?
         var text = state switch {
             TurnState.PhaseSelection => "Select " + _nbPhasesToChose.ToString() + " phases",
             TurnState.Discard => "Discard cards",
@@ -154,6 +162,27 @@ public class PhasePanel : NetworkBehaviour
         };
 
         actionDescriptionText.text = text;
+
+        if (state == TurnState.Discard || state == TurnState.CardIntoHand || state == TurnState.Trash) return;
+
+        var iconPath = state switch {
+            TurnState.PhaseSelection => "Sprites/UI/Icons/Phases/flag",
+            TurnState.Draw => "Sprites/UI/Icons/Phases/cards",
+            TurnState.Invent => "Sprites/UI/Icons/Phases/pouch",
+            TurnState.Develop => "Sprites/UI/Icons/Phases/forward",
+            TurnState.Combat => "Sprites/UI/Icons/Phases/sword",
+            TurnState.Recruit => "Sprites/UI/Icons/Phases/pouch",
+            TurnState.Deploy => "Sprites/UI/Icons/Phases/forward",
+            TurnState.Prevail => "Sprites/UI/Icons/Phases/idea",
+            _ => "Sprites/UI/Icons/Phases/flag.png"
+        };
+        var title = state.ToString();
+        if (state == TurnState.PhaseSelection) title = "Phase Selection";
+
+        phaseTitleText.text = title;
+
+        print(iconPath);
+        phaseIcon.sprite = Resources.Load<Sprite>(iconPath);
     }
 
     private void OnDestroy() {

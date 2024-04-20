@@ -335,7 +335,7 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Command]
-    public void CmdConfirmBuy(CardInfo card, int cost) => _turnManager.PlayerConfirmBuy(this, card, cost);
+    public void CmdConfirmBuy(CardInfo card, int cost, int tileIndex) => _turnManager.PlayerConfirmBuy(this, card, cost, tileIndex);
 
     [Command]
     public void CmdSkipBuy() => _turnManager.PlayerSkipsBuy(this);

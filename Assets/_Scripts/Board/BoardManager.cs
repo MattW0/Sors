@@ -134,7 +134,7 @@ public class BoardManager : NetworkBehaviour
     {
         BoardCleanUp();
 
-        _dropZone.TechnologiesLooseHealth();
+        // _dropZone.TechnologiesLooseHealth();
         ClearDeadEntities();
         if(isServer) SaveGameState(scriptableTiles);
     }

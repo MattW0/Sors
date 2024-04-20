@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
+using System.Linq;
+using Random = UnityEngine.Random;
 
 public class Market : NetworkBehaviour
 {
@@ -12,13 +14,20 @@ public class Market : NetworkBehaviour
     private Phase _currentPhase;
 
     [SerializeField] private MarketUI _ui;
+    // [SerializeField] private MarketTile[] _marketTiles;
     [SerializeField] private MarketTile[] moneyTiles;
     [SerializeField] private MarketTile[] technologyTiles;
     [SerializeField] private MarketTile[] creatureTiles;
     [SerializeField] private GameObject moneyGrid;
     [SerializeField] private GameObject developmentsGrid;
     [SerializeField] private GameObject creaturesGrid;
-    private MarketTile _selectedTile;
+    private MarketTile _selectedTile;    
+    public ScriptableCard[] creatureCardsDb;
+    public ScriptableCard[] moneyCardsDb;
+    public ScriptableCard[] technologyCardsDb;
+    
+    private List<int> _availableCreatureIds = new();
+    private List<int> _availableTechnologyIds = new();
 
     public static event Action OnMarketPhaseEnded;
 
@@ -27,35 +36,43 @@ public class Market : NetworkBehaviour
     }
 
     private void Start(){
+        // _marketTiles = GetComponentsInChildren<MarketTile>();
         moneyTiles = moneyGrid.GetComponentsInChildren<MarketTile>();
         technologyTiles = developmentsGrid.GetComponentsInChildren<MarketTile>();
         creatureTiles = creaturesGrid.GetComponentsInChildren<MarketTile>();
 
-        _gameManager.SetNumberOfMarketTiles(moneyTiles.Length, technologyTiles.Length, creatureTiles.Length);
+        // Databases of generated cards
+        creatureCardsDb = Resources.LoadAll<ScriptableCard>("Cards/CreatureCards/");
+        technologyCardsDb = Resources.LoadAll<ScriptableCard>("Cards/TechnologyCards/");
+        moneyCardsDb = Resources.LoadAll<ScriptableCard>("Cards/MoneyCards/");
     }
 
     #region Setup
 
     [ClientRpc]
-    public void RpcSetPlayer(){
+    public void RpcInitializeMarket()
+    {
         _player = PlayerManager.GetLocalPlayer();
-    }
-    [ClientRpc]
-    public void RpcSetMoneyTiles(CardInfo[] moneyTilesInfo){
-        for (var i = 0; i < moneyTilesInfo.Length; i++) 
-            moneyTiles[i].SetTile(moneyTilesInfo[i]);
+
+        // Money
+        for (var i = 0; i < moneyTiles.Length; i++) 
+            moneyTiles[i].InitializeTile(new CardInfo(moneyCardsDb[i]), i);
+
+        // Technologies
+        for (var i = 0; i < technologyTiles.Length; i++)
+            technologyTiles[i].InitializeTile(new CardInfo(technologyCardsDb[i]), i);
+
+        // Creatures
+        for (var i = 0; i < creatureTiles.Length; i++)
+            creatureTiles[i].InitializeTile(new CardInfo(creatureCardsDb[i]), i);
     }
 
     [ClientRpc]
-    public void RpcSetTechnologyTiles(CardInfo[] technologyTilesInfo){
-        for (var i = 0; i < technologyTilesInfo.Length; i++) 
-            technologyTiles[i].SetTile(technologyTilesInfo[i]);
-    }
-
-    [ClientRpc]
-    public void RpcSetCreatureTiles(CardInfo[] creatureTilesInfo){   
-        for (var i = 0; i < creatureTilesInfo.Length; i++) 
-            creatureTiles[i].SetTile(creatureTilesInfo[i]);
+    public void RpcSetTile(CardType type, int index, CardInfo cardInfo)
+    {
+        if (type == CardType.Money) {}
+        else if (type == CardType.Technology) technologyTiles[index].SetTile(cardInfo);
+        else creatureTiles[index].SetTile(cardInfo);
     }
 
     [ClientRpc]
@@ -79,8 +96,8 @@ public class Market : NetworkBehaviour
     }
 
     [TargetRpc]
-    public void TargetCheckMarketPrices(NetworkConnection target, int playerCash){
-        
+    public void TargetCheckMarketPrices(NetworkConnection target, int playerCash)
+    {
         // Can always buy money cards
         foreach(var tile in moneyTiles) tile.Interactable = playerCash >= tile.Cost;
 
@@ -124,20 +141,18 @@ public class Market : NetworkBehaviour
         _ui.ResetInteractionButtons();
     }
 
-    [ClientRpc]
-    public void RpcReplaceRecruitTile(string oldTitle, CardInfo newCardInfo)
-    {
-        // TODO: Implement
-        MaxButton();
-        var nextTile = _gameManager.GetNewCreatureFromDb();
+    public void ResetMarket(List<(int, CardType)> boughtCards){
+        foreach (var (index, type) in boughtCards)
+        {
+            if(type == CardType.Money) continue;
 
-        // TODO: Update
-        // foreach (var tile in creatureTiles){
-        //     if (tile.cardInfo.title != oldTitle) continue;
+            if(type == CardType.Technology)
+                RpcSetTile(type, index, GetNewTechnologyFromDb());
+            else
+                RpcSetTile(type, index, GetNewCreatureFromDb());
+        }
 
-        //     tile.SetTile(newCardInfo);
-        //     break;
-        // }
+        RpcEndMarketPhase();
     }
     
     [ClientRpc]
@@ -150,7 +165,7 @@ public class Market : NetworkBehaviour
     public void PlayerPressedConfirmButton()
     {        
         // Need the cost here as market bonus are not reflected in cardInfo itself
-        if(_selectedTile) _player.CmdConfirmBuy(_selectedTile.cardInfo, _selectedTile.Cost);
+        if(_selectedTile) _player.CmdConfirmBuy(_selectedTile.cardInfo, _selectedTile.Cost, _selectedTile.Index);
         else print("ERROR: No tile selected");
     }
 
@@ -176,4 +191,60 @@ public class Market : NetworkBehaviour
 
         return scriptableTiles;
     }
+
+    // FOR GAME STATE LOADING
+    // TODO: Change this to conform with new way of loading from gameManager
+    [ClientRpc]
+    public void RpcSetPlayer()
+    {
+        _player = PlayerManager.GetLocalPlayer();
+    }
+    
+    [ClientRpc]
+    public void RpcSetMoneyTiles(CardInfo[] moneyTilesInfo){
+        for (var i = 0; i < moneyTilesInfo.Length; i++) 
+            moneyTiles[i].InitializeTile(moneyTilesInfo[i], i);
+    }
+
+    [ClientRpc]
+    public void RpcSetTechnologyTiles(CardInfo[] technologyTilesInfo){
+        for (var i = 0; i < technologyTilesInfo.Length; i++) 
+            technologyTiles[i].InitializeTile(technologyTilesInfo[i], i);
+    }
+
+    [ClientRpc]
+    public void RpcSetCreatureTiles(CardInfo[] creatureTilesInfo){   
+        for (var i = 0; i < creatureTilesInfo.Length; i++) 
+            creatureTiles[i].InitializeTile(creatureTilesInfo[i], i);
+    }
+
+    public CardInfo GetNewTechnologyFromDb()
+    {
+        if(_availableTechnologyIds.Count == 0){
+            // Random order of ids -> pop first element for random card
+            _availableTechnologyIds = Enumerable.Range(0, technologyCardsDb.Length)
+                                        .OrderBy(x => Random.value)
+                                        .ToList();
+        }
+
+        var id = _availableTechnologyIds[0];
+        _availableTechnologyIds.RemoveAt(0);
+        return new CardInfo(technologyCardsDb[id]);
+    }
+
+    public CardInfo GetNewCreatureFromDb()
+    {
+        if(_availableCreatureIds.Count == 0){
+            // Random order of ids -> pop first element for random card
+            _availableCreatureIds = Enumerable.Range(0, creatureCardsDb.Length)
+                                        .OrderBy(x => Random.value)
+                                        .ToList();
+        }
+
+        var id = _availableCreatureIds[0];
+        _availableCreatureIds.RemoveAt(0);
+        return new CardInfo(creatureCardsDb[id]);
+    }
+
+    internal ScriptableCard GetStartMoneyCard() => moneyCardsDb[0];
 }
