@@ -63,8 +63,7 @@ The **Player/Opponent Stats** shows your and your opponent's stats, including th
 </figure>
 
 
-### Abilities and Traits
-Cards and entities have abilities. Only creatures may also have traits.
+
 
 ### The Phases in detail
 >**1. Phase Selection**
@@ -77,3 +76,73 @@ Cards and entities have abilities. Only creatures may also have traits.
 
 During _Combat_ you can **attack** your opponent and/or their Technologies with your Creatures on the Battlefield. In an additional step, you choose how to **block** you opponent's attacking Creatures with your own.
 
+### Abilities and Traits
+Cards and entities have abilities. An ability has this structure 
+>	**Trigger : Effect, Target**
+
+#### Triggers
+
+At the beginning of [[Phases]]
+```
+// At the beginning of [Phase]
+BeginningTurn = 1,
+BeginningDraw = 2,
+BeginningInvent = 3,
+BeginningDevelop = 4,
+BeginningCombat = 5,
+BeginningRecruit = 6,
+BeginningDeploy = 7,
+BeginningPrevail = 8,
+BeginningCleanUp = 9,
+```
+When ... - State changes and actions of [[Card]] / [[Entity]]
+```
+// When triggers
+WhenYouBuy,
+WhenYouPlay = 20,
+WhenDies,
+WhenAttacks,
+WhenBlocks,
+WhenGetsBlocked,
+WhenTakesDamage,
+WhenDealsDamage,
+```
+#### Effects
+
+```
+CardDraw = 1,
+Damage = 5,
+LifeGain = 6,
+MoneyGain = 10,
+PriceReduction = 11,
+Destroy,
+```
+#### Targets 
+
+```
+Any = 1,
+You = 2,
+Opponent = 3,
+AnyPlayer = 4,
+Self = 7,
+Entity = 8,
+Creature = 9,
+Technology = 10,
+```
+#### Traits
+
+Changes how entity behaves during [[Combat]]. [[Creature]] only (?)
+```
+Deathtouch = 1,
+FirstStrike = 2,
+Trample = 3,
+Lifelink,
+Defender,
+Attacker,
+DoubleStrike,
+Flying,
+Reach,
+Hexproof,
+Shroud,
+Menace,
+```

@@ -101,7 +101,7 @@ public class EffectHandler : MonoBehaviour
     private void EvaluateTarget()
     {
         if(_ability.target == EffectTarget.Opponent) _abilityTarget = _turnManager.GetOpponentPlayer(_abilitySource.Owner).GetEntity();
-        else if (_ability.target == EffectTarget.Player) _abilityTarget = _abilitySource.Owner.GetEntity();
+        else if (_ability.target == EffectTarget.You) _abilityTarget = _abilitySource.Owner.GetEntity();
         else if (_ability.target == EffectTarget.Self) {
             _abilityTarget = _abilitySource;
             _targetSelf = true;

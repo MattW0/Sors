@@ -76,7 +76,7 @@ public class AbilityQueue : MonoBehaviour
 
         // Some targets are pre-determined
         if(ability.target == EffectTarget.Self
-           || ability.target == EffectTarget.Player
+           || ability.target == EffectTarget.You
            || ability.target == EffectTarget.Opponent)
         {
             return true;

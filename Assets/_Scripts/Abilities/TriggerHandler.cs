@@ -36,7 +36,7 @@ public class TriggerHandler : NetworkBehaviour
                 var trigger = ability.trigger;
 
                 // Don't add ETBs to the dict as it resolves immediately and only once
-                if (trigger == Trigger.When_you_play){
+                if (trigger == Trigger.WhenYouPlay){
                     _abilityQueue.AddAbility(entity, ability);
                     continue;
                 }
@@ -81,15 +81,15 @@ public class TriggerHandler : NetworkBehaviour
         // TODO: Extend triggers to more turn state changes (combat, prevail steps, ...)
         TurnState state = trigger switch
         {
-            Trigger.Beginning_Turn => TurnState.PhaseSelection,
-            Trigger.Beginning_Draw => TurnState.Draw,
-            Trigger.Beginning_Invent => TurnState.Invent,
-            Trigger.Beginning_Develop => TurnState.Develop,
-            Trigger.Beginning_Combat => TurnState.Combat,
-            Trigger.Beginning_Recruit => TurnState.Recruit,
-            Trigger.Beginning_Deploy => TurnState.Deploy,
-            Trigger.Beginning_Prevail => TurnState.Prevail,
-            Trigger.Beginning_CleanUp => TurnState.CleanUp,
+            Trigger.BeginningTurn => TurnState.PhaseSelection,
+            Trigger.BeginningDraw => TurnState.Draw,
+            Trigger.BeginningInvent => TurnState.Invent,
+            Trigger.BeginningDevelop => TurnState.Develop,
+            Trigger.BeginningCombat => TurnState.Combat,
+            Trigger.BeginningRecruit => TurnState.Recruit,
+            Trigger.BeginningDeploy => TurnState.Deploy,
+            Trigger.BeginningPrevail => TurnState.Prevail,
+            Trigger.BeginningCleanUp => TurnState.CleanUp,
             _ => TurnState.None
         };
 
@@ -100,15 +100,15 @@ public class TriggerHandler : NetworkBehaviour
     {
         Trigger trigger = state switch
         {
-            TurnState.PhaseSelection => Trigger.Beginning_Turn,
-            TurnState.Draw => Trigger.Beginning_Draw,
-            TurnState.Invent => Trigger.Beginning_Invent,
-            TurnState.Develop => Trigger.Beginning_Develop,
-            TurnState.Combat => Trigger.Beginning_Combat,
-            TurnState.Recruit => Trigger.Beginning_Recruit,
-            TurnState.Deploy => Trigger.Beginning_Deploy,
-            TurnState.Prevail => Trigger.Beginning_Prevail,
-            TurnState.CleanUp => Trigger.Beginning_CleanUp,
+            TurnState.PhaseSelection => Trigger.BeginningTurn,
+            TurnState.Draw => Trigger.BeginningDraw,
+            TurnState.Invent => Trigger.BeginningInvent,
+            TurnState.Develop => Trigger.BeginningDevelop,
+            TurnState.Combat => Trigger.BeginningCombat,
+            TurnState.Recruit => Trigger.BeginningRecruit,
+            TurnState.Deploy => Trigger.BeginningDeploy,
+            TurnState.Prevail => Trigger.BeginningPrevail,
+            TurnState.CleanUp => Trigger.BeginningCleanUp,
             _ => Trigger.None
         };
 
