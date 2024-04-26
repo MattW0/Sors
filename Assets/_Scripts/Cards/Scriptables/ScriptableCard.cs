@@ -27,7 +27,7 @@ public class ScriptableCard : ScriptableObject
     public List<Ability> abilities;
 
     [Header("Creature properties")]
-    public List<Keywords> keywordAbilities;
+    public List<Traits> traits;
     public List<string> relationsTexts;
 
     [Header("Card Display Data")]
@@ -46,25 +46,4 @@ public class ScriptableCard : ScriptableObject
             return _cache;
         }
     }
-}
-
-// May need these in the future to trigger during the game
-public enum Keywords
-{
-    Deathtouch,
-    Defender,
-    Attacker,
-    Double_Strike,
-    First_Strike,
-    Flying,
-    Haste,
-    Hexproof,
-    Indestructible,
-    Lifelink,
-    Menace,
-    Protection,
-    Reach,
-    Shroud,
-    Trample,
-    Vigilance,
 }

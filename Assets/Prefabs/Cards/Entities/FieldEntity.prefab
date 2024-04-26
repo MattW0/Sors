@@ -88,8 +88,8 @@ MonoBehaviour:
   _value: {fileID: 0}
   _image: {fileID: 7025200807447420495}
   _highlight: {fileID: 3934348760645149788}
-  _keywordsBox: {fileID: 2602091923678060804}
-  _keywordsText: {fileID: 5896335872758879140}
+  _traitsBox: {fileID: 2602091923678060804}
+  _traitsText: {fileID: 5896335872758879140}
   _description: {fileID: 3739364212249559463}
 --- !u!114 &325497050516565303
 MonoBehaviour:
@@ -532,7 +532,7 @@ GameObject:
   - component: {fileID: 9211526680080834551}
   - component: {fileID: 2056285449294772855}
   m_Layer: 7
-  m_Name: Keywords
+  m_Name: Traits
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1427,7 +1427,7 @@ GameObject:
   - component: {fileID: 5682503576331170084}
   - component: {fileID: 5896335872758879140}
   m_Layer: 0
-  m_Name: KeywordsText
+  m_Name: TraitsText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1563,7 +1563,7 @@ GameObject:
   - component: {fileID: 6239496242024032114}
   - component: {fileID: 2333722881909084254}
   m_Layer: 7
-  m_Name: KeywordsBox
+  m_Name: TraitsBox
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

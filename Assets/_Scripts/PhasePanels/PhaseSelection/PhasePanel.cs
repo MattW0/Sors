@@ -180,8 +180,6 @@ public class PhasePanel : NetworkBehaviour
         if (state == TurnState.PhaseSelection) title = "Phase Selection";
 
         phaseTitleText.text = title;
-
-        print(iconPath);
         phaseIcon.sprite = Resources.Load<Sprite>(iconPath);
     }
 

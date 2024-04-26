@@ -25,7 +25,7 @@ public struct CardInfo : IEquatable<CardInfo>
     public List<Ability> abilities;
 
     [Header("Creature properties")]
-    public List<Keywords> keywordAbilities;
+    public List<Traits> traits;
 
     [Header("Sprites")]
     public string cardSpritePath;
@@ -56,7 +56,7 @@ public struct CardInfo : IEquatable<CardInfo>
 
         // Creature properties
         attack = card.attack;
-        keywordAbilities = card.keywordAbilities;
+        traits = card.traits;
 
         // Resources 
         resourceName = card.resourceName;
@@ -78,7 +78,7 @@ public struct CardInfo : IEquatable<CardInfo>
         // this.type = CardType.Technology;
         this.moneyValue = 0;
 
-        this.keywordAbilities = null;
+        this.traits = null;
     }
 
     public bool Equals(CardInfo other)

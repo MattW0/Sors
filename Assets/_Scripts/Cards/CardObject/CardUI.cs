@@ -15,19 +15,12 @@ public class CardUI : MonoBehaviour
     [SerializeField] private TMP_Text _attack;
     [SerializeField] private TMP_Text _points;
     [SerializeField] private TMP_Text _moneyValue;
-    [SerializeField] private TMP_Text _keywordsText;
-    [SerializeField] private GameObject _keywordsBox;
-
-    // Could use properites for public access
-    // public int Cost { 
-    //     get => int.Parse(_cost.text); 
-    //     set => _cost.text = value.ToString();
-    // }
+    [SerializeField] private TMP_Text _traitsText;
+    [SerializeField] private GameObject _traitsBox;
 
     [Header("UI Elements")]
     public Image highlight;
     public GameObject titleBox;
-    private Vector3 YES_KEYWORDS_TITLE_POSITION = new(0f, -15f, 0f);
 
     public virtual void SetCardUI(CardInfo cardInfo)
     {
@@ -46,12 +39,11 @@ public class CardUI : MonoBehaviour
 
         if (cardInfo.type == CardType.Creature){
             _attack.text = cardInfo.attack.ToString();
-            if(cardInfo.keywordAbilities.Count > 0){
-                _keywordsBox.SetActive(true);
-                _keywordsText.text = string.Join(", ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
-                // titleBox.transform.localPosition = YES_KEYWORDS_TITLE_POSITION;
+            if(cardInfo.traits.Count > 0){
+                _traitsBox.SetActive(true);
+                _traitsText.text = string.Join(", ", cardInfo.traits.ConvertAll(f => f.ToString()));
             } else { 
-                _keywordsBox.SetActive(false);
+                _traitsBox.SetActive(false);
             }
         } else if (cardInfo.type == CardType.Technology) {
             _points.text = cardInfo.points.ToString();

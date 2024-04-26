@@ -70,6 +70,8 @@ public class EffectHandler : MonoBehaviour
         yield return new WaitForSeconds(SorsTimings.effectProjectile);
 
         _abilitiesVFXSystem.RpcPlayHit(_abilityTarget, Effect.LifeGain);
+
+        // TODO: Lifegain for creatures and entities
         _abilitySource.Owner.Health += _ability.amount;
     }
 
@@ -82,7 +84,7 @@ public class EffectHandler : MonoBehaviour
         }
         
         _abilitiesVFXSystem.RpcPlayHit(_abilityTarget, Effect.Damage);
-        _abilityTarget.EntityTakesDamage(_ability.amount, _abilitySource.CardInfo.keywordAbilities.Contains(Keywords.Deathtouch));
+        _abilityTarget.EntityTakesDamage(_ability.amount, _abilitySource.CardInfo.traits.Contains(Traits.Deathtouch));
     }
 
     internal void SetSource(BattleZoneEntity source, Ability ability)

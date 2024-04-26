@@ -43,7 +43,7 @@ public class CombatClash
         // Debug.Log($"Damage Animation at {_target.gameObject.transform.position} with {_damageFromSource} damage");
         _combatVFXSystem.RpcPlayDamage(_target, _damageFromSource);
         yield return new WaitForSeconds(SorsTimings.damageTime);
-        _target.EntityTakesDamage(_damageFromSource, _source.GetKeywords().Contains(Keywords.Deathtouch));
+        _target.EntityTakesDamage(_damageFromSource, _source.GetTraits().Contains(Traits.Deathtouch));
 
         if (IsClash)
         {
@@ -62,21 +62,21 @@ public class CombatClash
 
     private bool EvaluateFirstStrike(CreatureEntity attacker, CreatureEntity blocker, int attackDamage, int blockDamage)
     {
-        var attackerKw = attacker.GetKeywords();
-        var blockerKw = blocker.GetKeywords();
+        var attackerTraits = attacker.GetTraits();
+        var blockerTraits = blocker.GetTraits();
 
         // XOR: Neither or both have first strike
-        if( ! attackerKw.Contains(Keywords.First_Strike)
-            ^ blockerKw.Contains(Keywords.First_Strike))
+        if( ! attackerTraits.Contains(Traits.FirstStrike)
+            ^ blockerTraits.Contains(Traits.FirstStrike))
                 return true;
 
         // Only attacker has first strike, need to track trample
-        if (attackerKw.Contains(Keywords.First_Strike) 
+        if (attackerTraits.Contains(Traits.FirstStrike) 
             && blocker.Health - attackDamage > 0) 
                 return true;
 
         // Only blocker has first strike
-        if (blockerKw.Contains(Keywords.First_Strike)
+        if (blockerTraits.Contains(Traits.FirstStrike)
             && attacker.Health - blockDamage > 0)
                 return true;
 

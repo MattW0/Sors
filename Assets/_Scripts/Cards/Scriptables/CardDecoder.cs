@@ -17,7 +17,7 @@ namespace CardDecoder {
         public int attack;
         public int health;
         public int points;
-        public List<string> keyword_abilities;
+        public List<string> traitsTexts;
         public List<string> relations;
     }
 
@@ -63,12 +63,12 @@ namespace CardDecoder {
                 scriptableCard.health = card.health;
                 scriptableCard.points = card.points;
 
-                var keywords = new List<Keywords>();
-                foreach(var kw in card.keyword_abilities){
-                    var keyword = (Keywords)System.Enum.Parse(typeof(Keywords), kw);
-                    keywords.Add(keyword);
+                var traits = new List<Traits>();
+                foreach(var t in card.traitsTexts){
+                    var trait = (Traits)System.Enum.Parse(typeof(Traits), t);
+                    traits.Add(trait);
                 }
-                scriptableCard.keywordAbilities = keywords;
+                scriptableCard.traits = traits;
 
                 var relationsTexts = new List<string>();
                 foreach (var relation in card.relations)

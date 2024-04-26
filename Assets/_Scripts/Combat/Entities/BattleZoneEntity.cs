@@ -72,7 +72,7 @@ public class BattleZoneEntity : NetworkBehaviour
         cardType = cardInfo.type;
         _health = cardInfo.health;
 
-        if(cardType == CardType.Creature) gameObject.GetComponent<CreatureEntity>().InitializeCreature(cardInfo.attack, cardInfo.keywordAbilities);
+        if(cardType == CardType.Creature) gameObject.GetComponent<CreatureEntity>().InitializeCreature(cardInfo.attack, cardInfo.traits);
         else if (cardType == CardType.Technology) gameObject.GetComponent<TechnologyEntity>().InitializeTechnology(cardInfo.points);
 
         _entityUI.SetEntityUI(cardInfo);

@@ -573,7 +573,7 @@ GameObject:
   - component: {fileID: 7477659675109635774}
   - component: {fileID: 6664406608741554747}
   m_Layer: 6
-  m_Name: Text
+  m_Name: TraitsText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1038,7 +1038,7 @@ GameObject:
   - component: {fileID: 4119630026228647306}
   - component: {fileID: 4501995331047014983}
   m_Layer: 6
-  m_Name: Keywords
+  m_Name: Traits
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1269,7 +1269,7 @@ GameObject:
   - component: {fileID: 1942826233860945208}
   - component: {fileID: 8726847792335062720}
   m_Layer: 6
-  m_Name: TextBox
+  m_Name: TraitsBox
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1538,7 +1538,7 @@ MonoBehaviour:
     points: 0
     moneyValue: 0
     abilities: []
-    keywordAbilities: 
+    traits: 
     cardSpritePath: 
     entitySpritePath: 
 --- !u!114 &1662656646801267718
@@ -1561,8 +1561,8 @@ MonoBehaviour:
   _attack: {fileID: 3495054210160948786}
   _points: {fileID: 5682639332516483045}
   _moneyValue: {fileID: 4279885328887036912}
-  _keywordsText: {fileID: 6664406608741554747}
-  _keywordsBox: {fileID: 4338904254981525111}
+  _traitsText: {fileID: 6664406608741554747}
+  _traitsBox: {fileID: 4338904254981525111}
   highlight: {fileID: 6942316134712413200}
   titleBox: {fileID: 5725951918382287408}
   _front: {fileID: 1965346598283185727}

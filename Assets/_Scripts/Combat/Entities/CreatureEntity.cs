@@ -6,8 +6,8 @@ using Mirror;
 public class CreatureEntity : BattleZoneEntity
 {
     [SerializeField] private CreatureEntityUI _creatureUI;
-    private List<Keywords> _keywordAbilities;
-    public List<Keywords> GetKeywords() => _keywordAbilities;
+    private List<Traits> _traits;
+    public List<Traits> GetTraits() => _traits;
     
     [SerializeField] private int _attack;
     public int Attack
@@ -56,8 +56,8 @@ public class CreatureEntity : BattleZoneEntity
         DropZoneManager.OnResetEntityUI += ResetCreatureUI;
     }
 
-    public void InitializeCreature(int attack, List<Keywords> keywords){
-        _keywordAbilities = keywords;
+    public void InitializeCreature(int attack, List<Traits> traits){
+        _traits = traits;
         _attack = attack;
         blockerArrowHandler = GetComponent<BlockerArrowHandler>();
     }

@@ -169,7 +169,7 @@ public class CombatManager : NetworkBehaviour
     }
     #endregion
 
-    // Calculate the outcome of a combat clash between two creature entities, considering their keywords and attack damage. Returns the remaining attack damage after the clash.
+    // Calculate the outcome of a combat clash between two creature entities, considering their traits and attack damage. Returns the remaining attack damage after the clash.
     private int EvaluateClashDamage(CreatureEntity attacker, CreatureEntity blocker, int attackDamage)
     {
         print($"CombatClash: {attacker.Title} vs {blocker.Title} with {attackDamage} damage");
@@ -180,7 +180,7 @@ public class CombatManager : NetworkBehaviour
 
     private void CheckTrampleDamage(CreatureEntity attacker, int excessDamage)
     {
-        if (!attacker.GetKeywords().Contains(Keywords.Trample)) return;
+        if (!attacker.GetTraits().Contains(Traits.Trample)) return;
 
         print($"Trample of {attacker.Title} with {excessDamage} excess damage");
         var target = _attackerTarget[attacker];
@@ -189,7 +189,7 @@ public class CombatManager : NetworkBehaviour
 
     public void EntityDealsDamage(CreatureEntity a, BattleZoneEntity t, int damage)
     {
-        t.EntityTakesDamage(damage, a.GetKeywords().Contains(Keywords.Deathtouch));
+        t.EntityTakesDamage(damage, a.GetTraits().Contains(Traits.Deathtouch));
     }
 
     public IEnumerator CombatCleanUp(bool forced)

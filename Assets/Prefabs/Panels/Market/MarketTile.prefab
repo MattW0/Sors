@@ -89,7 +89,7 @@ GameObject:
   - component: {fileID: 8262200290944438323}
   - component: {fileID: 3962713822169759950}
   m_Layer: 6
-  m_Name: Keywords
+  m_Name: Traits
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -235,7 +235,7 @@ MonoBehaviour:
     points: 0
     moneyValue: 0
     abilities: []
-    keywordAbilities: 
+    traits: 
     cardSpritePath: 
     entitySpritePath: 
   _ui: {fileID: 3168988823132459645}
@@ -259,8 +259,8 @@ MonoBehaviour:
   _value: {fileID: 5330681402031685360}
   _image: {fileID: 4725394051460676049}
   _highlight: {fileID: 4426554728591177366}
-  _keywordsBox: {fileID: 724933811201248584}
-  _keywordsText: {fileID: 6158210078160352950}
+  _traitsBox: {fileID: 724933811201248584}
+  _traitsText: {fileID: 6158210078160352950}
   _description: {fileID: 2181233760051343827}
   _overlay: {fileID: 5086509819685996533}
 --- !u!1 &1237296830820317320
@@ -885,7 +885,7 @@ GameObject:
   - component: {fileID: 7763801041296786025}
   - component: {fileID: 6158210078160352950}
   m_Layer: 6
-  m_Name: Text
+  m_Name: TraitsText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

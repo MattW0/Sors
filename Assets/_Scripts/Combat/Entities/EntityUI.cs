@@ -18,8 +18,8 @@ public class EntityUI : MonoBehaviour
     [Header("Body")]
     [SerializeField] private Image _image;
     [SerializeField] private Image _highlight;
-    [SerializeField] private GameObject _keywordsBox;
-    [SerializeField] private TMP_Text _keywordsText;
+    [SerializeField] private GameObject _traitsBox;
+    [SerializeField] private TMP_Text _traitsText;
     [SerializeField] private TMP_Text _description;
 
     public void SetEntityUI(CardInfo cardInfo){
@@ -35,11 +35,11 @@ public class EntityUI : MonoBehaviour
 
         if(cardInfo.type == CardType.Creature){
             _attack.text = cardInfo.attack.ToString();
-            if(cardInfo.keywordAbilities.Count > 0){
-                _keywordsBox.SetActive(true);
-                _keywordsText.text = string.Join(", ", cardInfo.keywordAbilities.ConvertAll(f => f.ToString()));
+            if(cardInfo.traits.Count > 0){
+                _traitsBox.SetActive(true);
+                _traitsText.text = string.Join(", ", cardInfo.traits.ConvertAll(f => f.ToString()));
             } else {
-                _keywordsBox.SetActive(false);
+                _traitsBox.SetActive(false);
             }
         } else if (cardInfo.type == CardType.Technology){
             _points.text = cardInfo.points.ToString();
