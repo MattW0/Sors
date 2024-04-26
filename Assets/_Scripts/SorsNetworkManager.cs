@@ -3,19 +3,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
+using System.Net;
+using System.Linq;
 
 public class SorsNetworkManager : NetworkManager
 {
-    private string[] _networkAddresses = new string[2] {"localhost", "192.168.1.170"};
-    private static int _numberPlayersRequired = 2;
-    private static int _numberPhasesToChoose = 2;
-    private NetworkManager _manager;
     private string _playerNameBuffer;
-    public static event Action<int, int> OnAllPlayersReady;
+    private GameOptions _gameOptions;
+    public static event Action<GameOptions> OnAllPlayersReady;
 
     public override void Awake(){
         base.Awake();
-        _manager = GetComponent<NetworkManager>();
+        GameOptionsMenu.OnUpdateNetworkAddress += UpdateNetworkAddress;
     }
 
     public override void OnStartServer(){
@@ -25,23 +24,28 @@ public class SorsNetworkManager : NetworkManager
 
     public override void OnStartHost(){
         base.OnStartHost();
-        print("Host Started");
+
+        _gameOptions = GameOptionsMenu.gameOptions;
         StartCoroutine(WaitingForPlayers());
     }
 
     private IEnumerator WaitingForPlayers(){
-        while (NetworkServer.connections.Count < _numberPlayersRequired){
-            Debug.Log("Waiting for players...");
-            yield return new WaitForSeconds(1);
-        }
-        
-        StartCoroutine(StartGame());
-    }
 
-    private IEnumerator StartGame(){
-        yield return new WaitForSeconds(0.5f);
-        OnAllPlayersReady?.Invoke(_numberPlayersRequired, _numberPhasesToChoose);
-        yield return null;
+        var numPlayers = _gameOptions.SinglePlayer ? 1 : 2;
+        while (NetworkServer.connections.Count < numPlayers){
+            print("Waiting for opponent...");
+            yield return new WaitForSeconds(SorsTimings.wait);
+        }
+
+        yield return new WaitForSeconds(SorsTimings.wait);
+
+        // Currently opponent entity hull that can be targeted
+        if(_gameOptions.SinglePlayer){
+            var opponent = CreatePlayerObject("Opponent");
+            opponent.GetComponent<PlayerManager>().isAI = true;
+        }
+
+        OnAllPlayersReady?.Invoke(_gameOptions);
     }
 
     public override void OnClientConnect()
@@ -58,12 +62,7 @@ public class SorsNetworkManager : NetworkManager
 
     void OnCreateCharacter(NetworkConnectionToClient conn, CreatePlayerMessage message)
     {
-        print("Creating player " + message.name);
-        GameObject playerObject = Instantiate(playerPrefab);
-
-        PlayerManager player = playerObject.GetComponent<PlayerManager>();
-        player.PlayerName = message.name;
-
+        var playerObject = CreatePlayerObject(message.name);
         // call this to use this gameobject as the primary controller
         NetworkServer.AddPlayerForConnection(conn, playerObject);
     }
@@ -78,17 +77,35 @@ public class SorsNetworkManager : NetworkManager
     private void PlayerJoins(string playerName, bool isHost)
     {
         _playerNameBuffer = playerName;
-        if (isHost) _manager.StartHost();
-        else _manager.StartClient();
+        if (isHost) StartHost();
+        else StartClient();
     }
 
-    #region Host Options
+    private GameObject CreatePlayerObject(string playerName)
+    {
+        print($"Creating player {playerName}");
+        GameObject playerObject = Instantiate(playerPrefab);
 
-    public static void SetNumberPlayers(int numberPlayers) => _numberPlayersRequired = numberPlayers + 1;
-    public static void SetNumberPhases(int numberPhases) => _numberPhasesToChoose = numberPhases + 1;
-    public void SetNetworkAddress(int networkAddressId) => _manager.networkAddress = _networkAddresses[networkAddressId];
+        // spawn player object on server and all clients
+        NetworkServer.Spawn(playerObject);
 
-    #endregion
+        playerObject.name = playerName;
+        
+        return playerObject;
+    }
+
+    private void UpdateNetworkAddress(string address) => networkAddress = address;
+
+    public string GetLocalIPv4()
+    {
+        return Dns.GetHostEntry(Dns.GetHostName()).AddressList.First(f => f.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).ToString();
+    }
+
+    public override void OnDestroy()
+    {
+        base.OnDestroy();
+        GameOptionsMenu.OnUpdateNetworkAddress -= UpdateNetworkAddress;
+    }
 }
 
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -6,274 +7,299 @@ using Mirror;
 using Random = UnityEngine.Random;
 
 public class GameManager : NetworkBehaviour {
-    [Header("For Coding")]
-    public bool singlePlayer;
-    public bool animations;
-
+    
     public static GameManager Instance { get; private set; }
     private TurnManager _turnManager;
-    private Kingdom _kingdom;
+    private Market _market;
     private EndScreen _endScreen;
+    private BoardManager _boardManager;
 
-    public static event Action<int> OnGameStart;
-    public static event Action<PlayerManager, BattleZoneEntity, GameObject> OnEntitySpawned; 
+    private GameOptions _gameOptions;
+    public bool isSinglePlayer = false;
+    public static event Action<GameOptions> OnGameStart;
 
     [Header("Game state")]
-    [SyncVar] public int turnNb;
-    // public int numberPlayers = 2;
-    public Dictionary<PlayerManager, NetworkIdentity> players = new();
+    [SyncVar] public int turnNumber;
+    public Dictionary<NetworkIdentity, PlayerManager> players = new();
     private List<PlayerManager> _loosingPlayers = new();
-
-    [Header("Game start settings")]
-    [SerializeField] private int nbRecruitTiles = 8;
-    [SerializeField] private int nbDevelopTiles = 2;
-    [SerializeField] public int initialDeckSize = 10;
-    [SerializeField] public int nbCreatures = 2;
-    [SerializeField] public int initialHandSize = 4;
-    [SerializeField] public int startHealth = 30;
-    [SerializeField] public int startScore = 0;
-
-    [Header("Turn specifics")]
-    public int nbPhasesToChose;
-    [SerializeField] public int nbCardDraw = 2;
-    [SerializeField] public int nbDiscard = 1;
-    public int turnCash = 0;
-    public int turnDeploys = 1; 
-    public int turnRecruits = 1;
-    public int prevailOptionsToChoose = 1;
-
-    [Header("Turn Boni")]
-    public int developPriceReduction = 1;
-    public int prevailExtraOptions = 1;
-
+    private List<PlayerManager> _winningPlayers = new();
 
     [Header("Available cards")]
-    public ScriptableCard[] startCards;
-    public ScriptableCard[] creatureCardsDb;
-    private List<int> _cardsIdCache = new();
-    public ScriptableCard[] moneyCards;
-    private Sprite[] _moneySprites;
+    public ScriptableCard[] startEntities;
     
     [Header("Prefabs")]
     [SerializeField] private GameObject creatureCardPrefab;
     [SerializeField] private GameObject moneyCardPrefab;
-    [SerializeField] private GameObject entityObjectPrefab;
+    [SerializeField] private GameObject technologyCardPrefab;
+    [SerializeField] private GameObject creatureEntityPrefab;
+    [SerializeField] private GameObject technologyEntityPrefab;
 
     // Caching all gameObjects of cards in game
-    private Dictionary<string, GameObject> Cache { get; set; }
-    public GameObject GetCardObject(string goID) { return Cache[goID]; }
+    private static Dictionary<int, GameObject> CardsCache { get; set; } = new();
+    public static GameObject GetCardObject(int goID) { return CardsCache[goID]; }
+    // convert cardInfo (goIDs) to cached objects
+    public static List<GameObject> CardInfosToGameObjects(List<CardInfo> cards){
+        return cards.Select(card => GetCardObject(card.goID)).ToList();
+    }
 
     private void Awake()
     {
         if (Instance == null) Instance = this;
 
-        startCards = Resources.LoadAll<ScriptableCard>("StartCards/");
-        creatureCardsDb = Resources.LoadAll<ScriptableCard>("creatureCards/");
-        moneyCards = Resources.LoadAll<ScriptableCard>("MoneyCards/");
-        _moneySprites = Resources.LoadAll<Sprite>("Sprites/Money/");
-
-        Cache = new Dictionary<string, GameObject>();
-        TurnManager.OnPlayerDies += PlayerDies;
         SorsNetworkManager.OnAllPlayersReady += GameSetup;
+        LoadCards();
     }
 
-    public void GameSetup(int nbPlayers, int nbPhases){
+    private void LoadCards()
+    {
+        startEntities = Resources.LoadAll<ScriptableCard>("Cards/_StartCards/");
 
-        print("Game starting with " + nbPlayers + " players and " + nbPhases + " phases to choose");
-        singlePlayer = nbPlayers == 1;
-        nbPhasesToChose = nbPhases;
+        
 
-        _turnManager = TurnManager.Instance;
-        _kingdom = Kingdom.Instance;
-        _endScreen = EndScreen.Instance;
-        
-        KingdomSetup();
-        PlayerSetup();
-        
-        OnGameStart?.Invoke(nbPlayers);
+        // var msg = " --- Available cards: --- \n" +
+        //           $"Creature cards: {creatureCardsDb.Length}\n" +
+        //           $"Money cards: {moneyCardsDb.Length}\n" +
+        //           $"Develop cards: {technologyCardsDb.Length}";
+        // print(msg);
     }
 
     #region Setup
     
-    private void KingdomSetup(){
-        // Developments: right now only money
-        var developCards = new CardInfo[nbDevelopTiles];
-        developCards[0] = new CardInfo(moneyCards[1]); // Silver
-        developCards[1] = new CardInfo(moneyCards[2]); // Gold
-        _kingdom.RpcSetDevelopTiles(developCards);
+    public void GameSetup(GameOptions options)
+    {
+        _turnManager = TurnManager.Instance;
+        _boardManager = BoardManager.Instance;
+        _market = Market.Instance;
+        _endScreen = EndScreen.Instance;
 
-        // Recruits: Creatures
-        var recruitCards = new CardInfo[nbRecruitTiles];
-        for (var i = 0; i < nbRecruitTiles; i++) recruitCards[i] = GetNewCreatureFromDb();
-        _kingdom.RpcSetRecruitTiles(recruitCards);
+        print(" --- Game starting --- \n" + options.ToString());
+        _gameOptions = options;
+
+        // initialHandSize = options.FullHand ? _gameOptions.initialDeckSize : _gameOptions.InitialHandSize;
+        isSinglePlayer = options.SinglePlayer;
+
+        InitPlayers();
+
+        if(string.IsNullOrWhiteSpace(options.StateFile)){
+            // Normal game setup
+            _market.RpcInitializeMarket();
+            foreach (var player in players.Values) SpawnPlayerDeck(player);
+            OnGameStart?.Invoke(_gameOptions);
+        } else {
+            // Start game from state file
+            gameObject.GetComponent<GameStateLoader>().LoadGameState(options.StateFile);
+        }
     }
 
-    private CardInfo GetNewCreatureFromDb(){
-
-        // Get new random card
-        var id = Random.Range(0, creatureCardsDb.Length);
-        while (_cardsIdCache.Contains(id)) id = Random.Range(0, creatureCardsDb.Length);
-
-        _cardsIdCache.Add(id);
-        var card = creatureCardsDb[id];
-
-        return new CardInfo(card);
-    }
-
-    private void PlayerSetup(){
-        
+    private void InitPlayers()
+    {
         var playerManagers = FindObjectsOfType<PlayerManager>();
         foreach (var player in playerManagers)
         {
-            var playerNetworkId = player.GetComponent<NetworkIdentity>();
-            players.Add(player, playerNetworkId);
+            player.RpcInitPlayer();
 
-            // Stats
-            player.PlayerName = player.PlayerName; // To update info in network
-            player.Health = startHealth;
-            player.Score = startScore;
-            player.Cash = turnCash;
-            player.Deploys = turnDeploys;
-            player.Recruits = turnRecruits;
-
-            // Cards
-            SpawnPlayerDeck(player);
-            player.deck.Shuffle();
-
-            player.DrawInitialHand(initialHandSize);
+            // TODO: Most things break if we actually want an AI opponent
+            if(!player.isAI) players.Add(player.GetComponent<NetworkIdentity>(), player);
+            
+            // Player stats
+            player.PlayerName = player.gameObject.name; // Object name is set after instantiation in NetworkManager
+            player.Health = _gameOptions.startHealth;
+            player.Score = 0;
+            
+            // Turn stats
+            player.Cash = 0;
+            player.Buys = 0;
+            player.Plays = 0;
+            player.Prevails = 0;
         }
+
+        if(_gameOptions.SkipCardSpawnAnimations) {
+            // Needs to be done on all clients
+            playerManagers[0].RpcSkipCardSpawnAnimations();
+            // And on server
+            SkipCardSpawnAnimations();
+        }
+    }
+
+    private void SpawnPlayerDeck(PlayerManager player)
+    {
+        var startMoney = _market.GetStartMoneyCard();
+        List<GameObject> startCards = new();
+
+        // Only paper money currently
+        for (var i = 0; i < _gameOptions.initialDeckSize - _gameOptions.initialEntities; i++){
+            var scriptableCard = startMoney;
+            startCards.Add(SpawnCardAndAddToCollection(player, scriptableCard, CardLocation.Deck));
+        }
+
+        for (var i = 0; i < _gameOptions.initialEntities; i++){
+            var scriptableCard = startEntities[i];
+            startCards.Add(SpawnCardAndAddToCollection(player, scriptableCard, CardLocation.Deck));
+        }
+
+        player.RpcShowSpawnedCards(startCards, CardLocation.Deck, false);
     }
 
     #endregion
 
     #region Spawning
-    
-    private void SpawnPlayerDeck(PlayerManager playerManager){
-        // Coppers
-        for (var i = 0; i < initialDeckSize - nbCreatures; i++){
-            var moneyCard = moneyCards[0]; // Only copper right now
-            var cardObject = Instantiate(moneyCardPrefab);
-            SpawnCacheAndMoveCard(playerManager, cardObject, moneyCard, CardLocations.Deck);
-        }
+    public GameObject SpawnCardAndAddToCollection(PlayerManager player, ScriptableCard scriptableCard, CardLocation destination)
+    {
+        // print($"Spawning card {scriptableCard.title}, type : {scriptableCard.type}");
 
-        // Other start cards
-        for (var i = 0; i < nbCreatures; i++){
-            var creatureCard = startCards[i]; // Special creatures 'A' & 'B' 
-            var cardObject = Instantiate(creatureCardPrefab);
-            SpawnCacheAndMoveCard(playerManager, cardObject, creatureCard, CardLocations.Deck);
-        }
+        // Card object prefab depending on type
+        var cardObject = scriptableCard.type switch
+        {
+            CardType.Money => Instantiate(moneyCardPrefab) as GameObject,
+            CardType.Creature => Instantiate(creatureCardPrefab) as GameObject,
+            CardType.Technology => Instantiate(technologyCardPrefab) as GameObject,
+            CardType.None => null,
+            _ => null
+        };
+
+        // Assign client authority and put in cache
+        var instanceID = SpawnAndCacheCard(player, cardObject, scriptableCard);
+
+        // RPC: Setup gameobject and card UI
+        var cardInfo = IntitializeCardOnClients(cardObject, scriptableCard, instanceID);
+
+        // Must always be done on server side (in TurnManager except here after spawning)
+        AddCardToPlayerCollection(player, cardInfo, destination);
+
+        return cardObject;
+    }
+
+    public void PlayerGainCard(PlayerManager player, CardInfo card)
+    {
+        // Load scriptable
+        var pathPrefix = card.type switch {
+            CardType.Money => "Cards/MoneyCards/",
+            CardType.Creature => "Cards/CreatureCards/",
+            CardType.Technology => "Cards/TechnologyCards/",
+            _ => ""
+        };
+        var scriptableCard = Resources.Load<ScriptableCard>(pathPrefix + card.resourceName);
+
+        // Resolve card gain
+        var cardObject = SpawnCardAndAddToCollection(player, scriptableCard, CardLocation.Discard);
+        player.RpcShowSpawnedCard(cardObject, CardLocation.Discard);
     }
     
-    private void SpawnCacheAndMoveCard(PlayerManager owner, GameObject cardObject,
-                                       ScriptableCard scriptableCard, CardLocations destination){
-
-        var instanceID = cardObject.GetInstanceID().ToString();
-        cardObject.name = instanceID;
-        Cache.Add(instanceID, cardObject);
+    private int SpawnAndCacheCard(PlayerManager owner, GameObject cardObject, ScriptableCard scriptableCard){
+        // Using the unique gameObject instance ID ()
+        var instanceID = cardObject.GetInstanceID();
+        cardObject.name = instanceID.ToString();
+        CardsCache.Add(instanceID, cardObject);
 
         NetworkServer.Spawn(cardObject, connectionToClient);
-        cardObject.GetComponent<NetworkIdentity>().AssignClientAuthority(players[owner].connectionToClient);
+        cardObject.GetComponent<NetworkIdentity>().AssignClientAuthority(owner.connectionToClient);
 
+        return instanceID;
+    }
+
+    private CardInfo IntitializeCardOnClients(GameObject cardObject, ScriptableCard scriptableCard, int instanceID){
+        // Client RPC : Init card UI and disable gameObject (cause not yet on UI layer)
         var cardInfo = new CardInfo(scriptableCard, instanceID);
         cardObject.GetComponent<CardStats>().RpcSetCardStats(cardInfo);
-        
-        switch (destination)
-        {
-            case CardLocations.Deck:
-                owner.deck.Add(cardInfo);
-                break;
-            case CardLocations.Discard:
-                owner.discard.Add(cardInfo);
-                break;
-            case CardLocations.Hand:
-                owner.hand.Add(cardInfo);
-                break;
-            case CardLocations.Spawned:
-                break;
-            case CardLocations.PlayZone:
-                break;
-            case CardLocations.MoneyZone:
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(destination), destination, null);
-        }
-        owner.RpcMoveCard(cardObject, CardLocations.Spawned, destination);
+
+        return cardInfo;
     }
 
-    public void SpawnMoney(PlayerManager player, CardInfo cardInfo){
-        // using hash as index for currency scriptable objects
-        var scriptableCard = Resources.Load<ScriptableCard>("MoneyCards/" + cardInfo.hash + "_" + cardInfo.title);
-        var cardObject = Instantiate(moneyCardPrefab);
-        SpawnCacheAndMoveCard(player, cardObject, scriptableCard, CardLocations.Discard);
+    private void AddCardToPlayerCollection(PlayerManager owner, CardInfo cardInfo, CardLocation destination){
+        if (destination == CardLocation.Deck) owner.deck.Add(cardInfo);
+        else if(destination == CardLocation.Discard) owner.discard.Add(cardInfo);
+        else if(destination == CardLocation.Hand) owner.hand.Add(cardInfo);
     }
 
-    public void SpawnCreature(PlayerManager player, CardInfo cardInfo){
-        _kingdom.RpcReplaceRecruitTile(cardInfo.title, GetNewCreatureFromDb());
-
-        var scriptableCard = Resources.Load<ScriptableCard>("creatureCards/" + cardInfo.title);
-        var cardObject = Instantiate(creatureCardPrefab);
-        SpawnCacheAndMoveCard(player, cardObject, scriptableCard, CardLocations.Discard);
-    }
-
-    public void SpawnFieldEntity(PlayerManager owner, GameObject card, 
-        CardInfo cardInfo, int cardHolder)
+    public BattleZoneEntity SpawnFieldEntity(PlayerManager owner, GameObject card)
     {
-        var entityObject = Instantiate(entityObjectPrefab);
+        var cardInfo = card.GetComponent<CardStats>().cardInfo;
+
+        // Entity prefab depending on type
+        GameObject entityObject = cardInfo.type switch
+        {
+            CardType.Creature => Instantiate(creatureEntityPrefab) as GameObject,
+            CardType.Technology => Instantiate(technologyEntityPrefab) as GameObject,
+            _ => null
+        };
+        
+        // Assign authority
         NetworkServer.Spawn(entityObject, connectionToClient);
-        entityObject.GetComponent<NetworkIdentity>().AssignClientAuthority(players[owner].connectionToClient);
-        
-        var opponent = GetOpponent(owner);
+        entityObject.GetComponent<NetworkIdentity>().AssignClientAuthority(owner.connectionToClient);
         var entity = entityObject.GetComponent<BattleZoneEntity>();
-        entity.RpcSpawnEntity(owner, opponent, cardInfo, cardHolder);
+
+        // Intitialize entity on clients
+        entity.RpcInitializeEntity(owner, cardInfo);
         
-        OnEntitySpawned?.Invoke(owner, entity, card);
+        return entity;
     }
     #endregion
 
     #region Ending
-
-    private void PlayerDies(PlayerManager player)
-    {
+    internal void PlayerIsDead(PlayerManager player){
+        if(_loosingPlayers.Contains(player)) return;
         _loosingPlayers.Add(player);
     }
-
-    public void EndGame()
+    internal void PlayerHasWinScore(PlayerManager player) {
+        if(_winningPlayers.Contains(player)) return;
+        _winningPlayers.Add(player);
+    }
+    internal void EndGame()
     {
-        foreach (var player in players.Keys)
-        {
-            var health = _turnManager.GetHealth(player);
-            _endScreen.RpcSetFinalScore(player, health, 0);
+        foreach (var player in players.Values){
+            _endScreen.RpcSetFinalScore(player, player.Health, player.Score);
         }
-        
-        // Both players die -> Draw
-        if (_loosingPlayers.Count == players.Count)
-        {
-            _endScreen.RpcGameIsDraw();
-            return;
+
+        PlayerManager winner = null;
+        if (_winningPlayers.Count == 0 && _loosingPlayers.Count == 0) {} // Should never happen
+        else if(_winningPlayers.Count == 1 && _loosingPlayers.Count == 0){
+            winner = _winningPlayers[0];
+        } else if (_winningPlayers.Count == 0 && _loosingPlayers.Count == 1){
+            winner = _turnManager.GetOpponentPlayer(_loosingPlayers[0]);
+        } else if (_winningPlayers.Count == 1 && _loosingPlayers.Count == 1){
+            if (_winningPlayers[0] != _loosingPlayers[0]) winner = _winningPlayers[0];
+            // else _endScreen.RpcGameIsDraw();
+        } else if (_winningPlayers.Count == 2 && _loosingPlayers.Count == 0){
+            if (_winningPlayers[0].Score > _winningPlayers[1].Score) winner = _winningPlayers[0];
+            else if (_winningPlayers[0].Score < _winningPlayers[1].Score) winner = _winningPlayers[1];
+            // else _endScreen.RpcGameIsDraw();
+        } else if (_winningPlayers.Count == 0 && _loosingPlayers.Count == 2){
+            if (_loosingPlayers[0].Health > _loosingPlayers[1].Health) winner =_loosingPlayers[0];
+            else if (_loosingPlayers[0].Health < _loosingPlayers[1].Health) winner = _loosingPlayers[1];
+            // else _endScreen.RpcGameIsDraw();
+        } else if (_winningPlayers.Count == 2 && _loosingPlayers.Count == 1){
+            if(_winningPlayers[0] == _loosingPlayers[0]) winner = _winningPlayers[1];
+            else winner = _winningPlayers[0];
+        } else if (_winningPlayers.Count == 1 && _loosingPlayers.Count == 2){
+            if(_winningPlayers[0] == _loosingPlayers[0]) winner = _loosingPlayers[0];
+            else winner = _winningPlayers[1];
+        } else {
+            if (_winningPlayers[0].Score > _winningPlayers[1].Score) winner = _winningPlayers[0];
+            else if (_winningPlayers[0].Score < _winningPlayers[1].Score) winner = _winningPlayers[1];
+            else if (_loosingPlayers[0].Health > _loosingPlayers[1].Health) winner =_loosingPlayers[0];
+            else if (_loosingPlayers[0].Health < _loosingPlayers[1].Health) winner = _loosingPlayers[1];
         }
-        
-        _endScreen.RpcIsLooser(_loosingPlayers[0]);
+
+        if (winner) _endScreen.RpcGameHasWinner(winner);
+        else _endScreen.RpcGameIsDraw();
     }
 
     #endregion
 
-    private PlayerManager GetOpponent(PlayerManager player)
+    #region Utils
+    public void StartGame() => OnGameStart?.Invoke(_gameOptions);
+
+    [Server]
+    private void SkipCardSpawnAnimations() => SorsTimings.SkipCardSpawnAnimations();
+
+    public PlayerManager GetOpponent(PlayerManager player)
     {
-        return players.Keys.FirstOrDefault(p => p != player);
+        return players.Values.FirstOrDefault(p => p != player);
     }
+    #endregion
 
     private void OnDestroy()
     {
-        TurnManager.OnPlayerDies -= PlayerDies;
-        SorsNetworkManager.OnAllPlayersReady += GameSetup;
+        SorsNetworkManager.OnAllPlayersReady -= GameSetup;
     }
-}
-
-public enum CardLocations{
-    Spawned,
-    Deck,
-    Hand,
-    PlayZone,
-    MoneyZone,
-    Discard
 }

@@ -1,48 +1,37 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using Mirror;
 
 public class PlayerInterfaceButtons : MonoBehaviour
 {
-    private PlayerManager _player;
-    public static PlayerInterfaceButtons Instance { get; private set; }
-    private Kingdom _kingdom;
-    [SerializeField] private Button _readyButton;
-
-
-    private void Awake()
-    {
-        if (!Instance) Instance = this;
-    }
+    private PlayerInterfaceManager _manager;
+    [SerializeField] private Button _handButton;
+    [SerializeField] private Button _marketButton;
+    [SerializeField] private Button _utilityButton;
+    [SerializeField] private Button _undoButton;
+    [SerializeField] private Button _chatButton;
 
     private void Start(){
-        _kingdom = Kingdom.Instance;
-        _player = PlayerManager.GetLocalPlayer();
-    }
+        _manager = PlayerInterfaceManager.Instance;
 
-    public void OnKingdomButtonPressed(){
-        _kingdom.MaxButton();
+        // Add event listeners to the buttons
+        _handButton.onClick.AddListener(OnHandButtonPressed);
+        _marketButton.onClick.AddListener(OnMarketButtonPressed);
+        _utilityButton.onClick.AddListener(OnUtilityButtonPressed);
+        _undoButton.onClick.AddListener(OnUndoButtonPressed);
+        _chatButton.onClick.AddListener(OnChatButtonPressed);
     }
-    
-    public void OnResignButtonPressed() {
-    }
-    
-    public void OnUndoButtonPressed() {
-    }
-    
-    public void OnReadyButtonPressed() {
-        _player.PlayerPressedReadyButton();
-        _readyButton.interactable = false;
-    }
+    public void OnHandButtonPressed() => _manager.OpenCardCollectionView();
+    public void OnMarketButtonPressed() => _manager.OpenMarketView();
+    public void OnUtilityButtonPressed() => _manager.ForceEndTurn();
+    public void DisableUtilityButton() => _utilityButton.interactable = false;
+    public void OnUndoButtonPressed() => _manager.Undo();
+    public void UndoButtonEnabled(bool b) => _undoButton.interactable = b;
+    public void OnChatButtonPressed() => _manager.OpenChat();
+}
 
-    public void EnableReadyButton(){
-        _readyButton.interactable = true;
-    }
-
-    public void DisableReadyButton(){
-        _readyButton.interactable = false;
-    }
-
+public enum UndoReason : byte
+{
+    PlayMoney,
+    Attack,
+    Block
 }

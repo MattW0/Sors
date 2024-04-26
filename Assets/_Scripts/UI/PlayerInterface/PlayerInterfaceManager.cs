@@ -1,86 +1,97 @@
+using System;
 using Mirror;
 using UnityEngine;
 using System.Collections.Generic;
 
-
+[RequireComponent(typeof(PlayerInterfaceButtons))]
 public class PlayerInterfaceManager : NetworkBehaviour
 {
     public static PlayerInterfaceManager Instance { get; private set; }
-    private TurnManager _turnManager;
     [SerializeField] private Logger _logger;
-    private PhaseVisuals _phaseVisualsUI;
+    [SerializeField] private Chat _chat;
     private PlayerInterfaceButtons _buttons;
-    
+    public static event Action<string> OnChatMessageSent;
+
+    private PlayerManager _player;
+    private Market _market;
+    private HandInteractionPanel _cardCollectionPanel;
     
     private void Awake()
     {
         if (!Instance) Instance = this;
         
+        _buttons = GetComponent<PlayerInterfaceButtons>();
         GameManager.OnGameStart += RpcPrepareUIs;
-        TurnManager.OnPhasesSelected += RpcShowPlayerChoices;
-        TurnManager.OnPhaseChanged += RpcUpdatePhaseHighlight;
-        CombatManager.OnCombatStateChanged += RpcUpdateCombatHighlight;
-        
-        _turnManager = TurnManager.Instance;
     }
 
     [ClientRpc]
-    private void RpcPrepareUIs(int nbPlayers)
-    {
-        _phaseVisualsUI = PhaseVisuals.Instance;
-        _buttons = PlayerInterfaceButtons.Instance;
-     
-        _phaseVisualsUI.PrepareUI(nbPlayers);
+    private void RpcPrepareUIs(GameOptions gameOptions){
+
+        NetworkIdentity networkIdentity = GetComponent<NetworkIdentity>();
+        if(connectionToClient != null) networkIdentity.AssignClientAuthority(connectionToClient);
+
+        _market = Market.Instance;
+        _cardCollectionPanel = HandInteractionPanel.Instance;
+
+        _player = PlayerManager.GetLocalPlayer();
+        if(!_player.isServer) gameObject.GetComponent<PlayerInterfaceButtons>().DisableUtilityButton();
     }
 
     [ClientRpc]
-    private void RpcShowPlayerChoices(Phase[] choices){
-        _phaseVisualsUI.ShowPlayerChoices(choices);
-    }
-
-    [ClientRpc]
-    private void RpcUpdatePhaseHighlight(TurnState newState) {
-        var newHighlightIndex = newState switch
-        {
-            TurnState.DrawI => 0,
-            TurnState.Develop => 1,
-            TurnState.Deploy => 2,
-            TurnState.DrawII => 5,
-            TurnState.Recruit => 6,
-            TurnState.Prevail => 7,
-            TurnState.CleanUp => -2,
-            _ => -1
-        };
-
-        _phaseVisualsUI.UpdatePhaseHighlight(newHighlightIndex);
-        _buttons.EnableReadyButton();
-    }
-    
-    [ClientRpc]
-    private void RpcUpdateCombatHighlight(CombatState newState) {
-        var newHighlightIndex = newState switch
-        {
-            CombatState.Attackers => 3,
-            CombatState.Blockers => 4,
-            _ => -1
-        };
-        
-        _phaseVisualsUI.UpdatePhaseHighlight(newHighlightIndex);
-        _buttons.EnableReadyButton();
-    }
+    public void RpcUndoButtonEnabled(bool b) => _buttons.UndoButtonEnabled(b);
 
     [TargetRpc]
-    public void TargetDisableReadyButton(NetworkConnection target){
-        _buttons.DisableReadyButton();
+    public void TargetUndoButtonEnabled(NetworkConnection conn, bool b) => _buttons.UndoButtonEnabled(b);
+    public void UndoButtonEnabled(bool b) => _buttons.UndoButtonEnabled(b);
+
+    [ClientRpc]
+    public void RpcLog(string message, LogType type) => _logger.Log(message, type);
+    [ClientRpc]
+    public void RpcLogGameStart(List<string> playerNames)
+    {
+        var msg = "--- Game Setup ---\n";
+
+        if (playerNames.Count == 1)  msg += $"{playerNames[0]} vs Computer\n";
+        else msg += $"{playerNames[0]} vs {playerNames[1]}\n";
+
+        _logger.Log(msg, LogType.Standard);
     }
 
     [ClientRpc]
-    public void RpcLog(string message) => _logger.Log(message);
+    public void RpcLogPlayingCards(List<BattleZoneEntity> entities){
+        foreach (var e in entities) _logger.Log($"{e.Owner.PlayerName} plays {e.Title}", LogType.Play);
+    }
 
-    private void OnDestroy()
+    [Server]
+    public void OpenCardCollection(NetworkConnection conn, List<CardInfo> cards, CardLocation collectionType, bool isOwned)
     {
+        _cardCollectionPanel.TargetOpenCardCollection(conn, cards, collectionType, isOwned);
+    }
+    
+    // TODO: Chat
+
+    // [Client]
+    // public void Send(string message) {
+    //     CmdSendMessage(message);
+    // }
+
+    // [Command(requiresAuthority = false)]
+    // private void CmdSendMessage(string message) {
+    //     RpcHandleMessage($"[{connectionToClient.connectionId}]: {message}");
+    // }
+
+    // [ClientRpc]
+    // private void RpcHandleMessage(string message) {
+    //     OnChatMessageSent?.Invoke(message);
+    // }
+    
+    public void OpenCardCollectionView() => _cardCollectionPanel.ToggleView();
+    public void OpenMarketView() => _market.MaxButton();
+    public void ForceEndTurn() => _player.ForceEndTurn();
+    public void Undo() => _player.CmdUndoPlayMoney();
+    public void OpenChat() => _chat.ToggleChat();
+
+    private void OnDestroy(){
         GameManager.OnGameStart -= RpcPrepareUIs;
-        TurnManager.OnPhaseChanged -= RpcUpdatePhaseHighlight;
-        CombatManager.OnCombatStateChanged -= RpcUpdateCombatHighlight;
     }
 }

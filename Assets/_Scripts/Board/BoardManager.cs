@@ -1,149 +1,236 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Mirror;
 using UnityEngine;
+using UnityEditor;
+using SorsGameState;
+
 
 public class BoardManager : NetworkBehaviour
 {
     public static BoardManager Instance { get; private set; }
     private GameManager _gameManager;
-    [SerializeField] private DropZoneManager dropZone;
-    private PlayerInterfaceManager _playerInterfaceManager;
+    private CombatManager _combatManager;
+    private DropZoneManager _dropZone;
+    private TriggerHandler _triggerHandler;
+    [SerializeField] private PhasePanel _phasePanel;
 
     // Entities, corresponding card object
     private Dictionary<BattleZoneEntity, GameObject> _entitiesObjectsCache = new();
     private List<BattleZoneEntity> _deadEntities = new();
-    public List<BattleZoneEntity> boardAttackers { get; private set; }
+    private CombatState _combatState;
+    private GameState _gameState;
 
-    public static event Action<PlayerManager, BattleZoneEntity> OnEntityAdded;
-    // public static event Action<PlayerManager> OnSkipCombatPhase;
-    public static event Action<PlayerManager> OnAttackersDeclared;
-    public static event Action<PlayerManager> OnBlockersDeclared;
-
-    private void Awake() {
+    private void Awake()
+    {
         if (!Instance) Instance = this;
 
+        CombatManager.OnCombatStateChanged += StartCombatPhase;
+    }
+
+    private void Start()
+    {
         _gameManager = GameManager.Instance;
-        _playerInterfaceManager = PlayerInterfaceManager.Instance;
-        boardAttackers = new List<BattleZoneEntity>();
-
-        GameManager.OnEntitySpawned += AddEntity;
-        CombatManager.OnDeclareAttackers += DeclareAttackers;
-        CombatManager.OnDeclareBlockers += DeclareBlockers;
-
+        _combatManager = CombatManager.Instance;
+        _dropZone = DropZoneManager.Instance;
+        _triggerHandler = TriggerHandler.Instance;
     }
 
-    private void AddEntity(PlayerManager owner, BattleZoneEntity entity, GameObject card) {
-        // To keep track which card object corresponds to which entity
-        _entitiesObjectsCache.Add(entity, card);
+    public void PlayEntities(Dictionary<GameObject, BattleZoneEntity> entities) 
+    {
+        foreach(var (card, entity) in entities){
+            // Initialize and keep track which card object corresponds to which entity
+            _entitiesObjectsCache.Add(entity, card);
+        }
 
-        entity.OnDeath += EntityDies;
-        OnEntityAdded?.Invoke(owner, entity);
+        // Check for ETB and if phase start trigger gets added to phases being tracked
+        StartCoroutine(_triggerHandler.CardsArePlayed(entities.Values.ToList()));
+
+        // Move entities to holders and card into played zone
+        StartCoroutine(_dropZone.EntitiesEnterDropZone(entities));
     }
+
+    #region Effects
+
+    public void PlayerStartSelectTarget(BattleZoneEntity entity, Ability ability)
+    {
+        var owner = entity.Owner;
+
+        // Target rpc let triggering player choose
+        owner.TargetPlayerStartChooseTarget();
+        entity.TargetSpawnTargetArrow(owner.connectionToClient);
+
+        _dropZone.TargetEntitiesAreTargetable(owner.connectionToClient, ability.target);
+    }
+
+    public void ResetTargeting() => _dropZone.RpcResetTargeting();
+
+    #endregion
 
     #region Combat
 
-    private void DeclareAttackers() => dropZone.PlayersDeclareAttackers(_gameManager.players.Keys.ToList());
+    public void StartCombatPhase(CombatState state)
+    {
+        _combatState = state;
+        _phasePanel.RpcStartCombatPhase(state);
 
-    public void AttackersDeclared(PlayerManager player, List<BattleZoneEntity> playerAttackers) {
-
-        _playerInterfaceManager.RpcLog(player.PlayerName + " declared " + playerAttackers.Count + " attackers.");
-        // Is 0 for auto-skip or no attackers declared
-        if (playerAttackers.Count > 0) {
-            foreach (var a in playerAttackers) boardAttackers.Add(a);
-        }
-
-        OnAttackersDeclared?.Invoke(player);
+        StartCoroutine(CombatTransitionAnimation(state));
     }
 
-    public void ShowOpponentAttackers() {
-        // Share attacker state accross clients
-        foreach (var entity in boardAttackers){
-            entity.IsAttacking = true;
-            entity.RpcIsAttacker();
-        }
+    private IEnumerator CombatTransitionAnimation(CombatState state)
+    {
+        yield return new WaitForSeconds(SorsTimings.turnStateTransition);
+
+        if (state == CombatState.Attackers) DeclareAttackers(); 
+        else if (state == CombatState.Blockers) DeclareBlockers();
+        else if (state == CombatState.CleanUp) CombatCleanUp();
     }
 
-    private void DeclareBlockers() => dropZone.PlayersDeclareBlockers(_gameManager.players.Keys.ToList());
-
-    public void BlockersDeclared(PlayerManager player, List<BattleZoneEntity> playerBlockers) {
-        
-        _playerInterfaceManager.RpcLog(player.PlayerName + " declared " + playerBlockers.Count + " blockers.");
-
-        OnBlockersDeclared?.Invoke(player);
+    private void DeclareAttackers() => _dropZone.StartDeclareAttackers(_gameManager.players.Values.ToList());
+    public void AttackersDeclared(PlayerManager player)
+    {
+        DisableReadyButton(player);
+        _combatManager.PlayerDeclaredAttackers(player);
     }
     
-    private void EntityDies(PlayerManager owner, BattleZoneEntity entity)
+    private void DeclareBlockers() => _dropZone.StartDeclareBlockers(_gameManager.players.Values.ToList());
+    public void BlockersDeclared(PlayerManager player)
     {
-        entity.OnDeath -= EntityDies;
+        DisableReadyButton(player);
+        _combatManager.PlayerDeclaredBlockers(player);
+    }
+    
+    public void EntityDies(BattleZoneEntity entity)
+    {
+        // Catch exception where entity was already dead and received more damage
+        if (_deadEntities.Contains(entity)) return;
 
-        // Update lists of active entities 
+        print($"{entity.Title} dies");
         _deadEntities.Add(entity);
+
+        // Somehow NetworkServer.Destroy(this) destroys the GO but does not call OnDestroy(),
+        // Thus, do it here manually to prevent null references when events are triggered
+        entity.RpcUnsubscribeEvents();
     }
 
-    public void CombatCleanUp()
+    private void CombatCleanUp()
     {
-        DestroyArrows();
+        // Reset entities and destroy blocker arrows
+        _dropZone.CombatCleanUp();
+
+        ClearDeadEntities();
+    }
+    #endregion
+
+    public void BoardCleanUp()
+    {
+        ClearDeadEntities();
+        _dropZone.DestroyTargetArrows();
+    }
+
+    public void BoardCleanUpEndOfTurn(List<CardInfo>[] scriptableTiles)
+    {
+        BoardCleanUp();
+
+        // _dropZone.TechnologiesLooseHealth();
+        ClearDeadEntities();
+        if(isServer) SaveGameState(scriptableTiles);
+    }
+
+    public void ClearDeadEntities()
+    {
+        // print("_deadEntities : " + _deadEntities.Count);
         foreach (var dead in _deadEntities)
         {
-            _playerInterfaceManager.RpcLog(dead.Title + " dies for real now");
-            boardAttackers.Remove(dead);
-            
-            // Move the card object to discard pile
-            dead.Owner.discard.Add(_entitiesObjectsCache[dead].GetComponent<CardStats>().cardInfo);
-            dead.Owner.RpcMoveCard(_entitiesObjectsCache[dead],
-                CardLocations.PlayZone, CardLocations.Discard);
+            _dropZone.EntityLeavesPlayZone(dead);
+            _triggerHandler.EntityDies(dead);
 
+            // Move the card object to discard pile
+            var cardObject = _entitiesObjectsCache[dead];
+            dead.Owner.discard.Add(cardObject.GetComponent<CardStats>().cardInfo);
+            dead.Owner.RpcMoveCard(cardObject, CardLocation.PlayZone, CardLocation.Discard);
+
+            dead.UnsubscribeEvents();
             _entitiesObjectsCache.Remove(dead);
             NetworkServer.Destroy(dead.gameObject);
         }
         _deadEntities.Clear();
-
-        foreach (var attacker in boardAttackers){
-            attacker.RpcRetreatAttacker();
-        }
-        boardAttackers.Clear();
-
-        dropZone.CombatCleanUp();
     }
 
-    // public void PlayerSkipsCombatPhase(PlayerManager player) => OnSkipCombatPhase?.Invoke(player);
+    [Server]
+    public void PrepareGameStateFile(List<CardInfo>[] scriptableTiles)
+    {
+        _gameState = new GameState(_gameManager.players.Count);
 
-    #endregion
+        int i = 0;
+        foreach (var player in _gameManager.players.Values){
+            _gameState.players[i] = new Player(player.PlayerName, player.isLocalPlayer);
+            i++;
+        }
+
+        SaveGameState(scriptableTiles);
+    }
+
+    [Server]
+    private void SaveGameState(List<CardInfo>[] scriptableTiles)
+    {
+        _gameState.market.SaveMarketState(scriptableTiles);
+
+        int i = 0;
+        foreach(var player in _gameManager.players.Values){
+            _gameState.players[i].SavePlayerState(player);
+            
+            var (creatures, technologies) = _dropZone.GetPlayerEntities(player);
+
+            _gameState.players[i].entities.creatures.Clear();
+            _gameState.players[i].entities.technologies.Clear();
+
+            foreach(var entity in creatures){
+                var e = new SorsGameState.Entity(entity.CardInfo, entity.Health, entity.Attack);
+                _gameState.players[i].entities.creatures.Add(e);
+            }
+            foreach(var entity in technologies){
+                var e = new SorsGameState.Entity(entity.CardInfo, entity.Health);
+                _gameState.players[i].entities.technologies.Add(e);
+            }
+
+            i++;
+        }
+        
+        _gameState.SaveState(_gameManager.turnNumber);
+    }
 
     #region UI
-    public void ShowCardPositionOptions(bool active)
-    {
-        // Resetting with active=false at end of Deploy phase
-        // entityManagers[0] = PlayerDropZone (not opponents)
-        dropZone.RpcHighlightCardHolders(active); 
-    }
-
-    public void DisableReadyButton(PlayerManager player){
-        _playerInterfaceManager.TargetDisableReadyButton(player.connectionToClient);
-    }
-
-    public void ResetHolders()
-    {
-        dropZone.RpcResetHolders();
-    }
-
-    private void DestroyArrows()
-    {
-        foreach (var player in _gameManager.players.Keys)
+    public void PlayerPressedReadyButton(PlayerManager player){
+        if (_combatState == CombatState.Attackers)
         {
-            player.RpcDestroyArrows();
+            _dropZone.PlayerFinishedChoosingAttackers(player);
+        }
+        else if (_combatState == CombatState.Blockers)
+        {
+            _dropZone.PlayerFinishedChoosingBlockers(player);
         }
     }
 
-    public void DiscardMoney() => dropZone.RpcDiscardMoney();
+    public void ShowHolders(bool active)
+    {
+        if(active) { 
+            var turnState = TurnManager.TurnState;
+            _dropZone.RpcHighlightCardHolders(turnState);
+        } else {
+            _dropZone.RpcResetHolders();
+        }
+    }
+
+    private void DisableReadyButton(PlayerManager player) => _phasePanel.TargetDisableCombatButtons(player.connectionToClient);
+    public void DiscardMoney() => _dropZone.RpcDiscardMoney();
     #endregion
-    
     private void OnDestroy()
     {
-        GameManager.OnEntitySpawned -= AddEntity;
-        CombatManager.OnDeclareAttackers -= DeclareAttackers;
-        CombatManager.OnDeclareBlockers -= DeclareBlockers;
+        // GameManager.OnGameStart -= PrepareGameStateFile;
+        CombatManager.OnCombatStateChanged -= StartCombatPhase;
     }
+
 }

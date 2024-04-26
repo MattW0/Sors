@@ -5,22 +5,21 @@ using TMPro;
 
 public class DropDown : MonoBehaviour
 {
-    [SerializeField] private TMP_Text numberText;
-    [SerializeField] private string optionOne;
-    [SerializeField] private string optionTwo;
+    [SerializeField] private TMP_Dropdown dropdown;
+    [SerializeField] private GameOption option;
 
+    private void Start()
+    {
+        dropdown.onValueChanged.AddListener(delegate { UpdateDropDown(); });
 
-    public void DropDownSelection(int index){
-        switch (index){
-            case 0:
-                numberText.text = optionOne;
-                break;
-            case 1:
-                numberText.text = optionTwo;
-                break;
-            default:
-                Debug.Log("Unknown option");
-                break;
-        }
+        // To get pre-set values from design time 
+        UpdateDropDown();
+    }
+
+    public void UpdateDropDown()
+    {
+        var value = dropdown.value;
+
+        if(option == GameOption.NumberPhases) GameOptionsMenu.SetNumberPhases(value);
     }
 }
