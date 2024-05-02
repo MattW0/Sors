@@ -14,18 +14,20 @@ public class Market : NetworkBehaviour
     private Phase _currentPhase;
 
     [SerializeField] private MarketUI _ui;
-    // [SerializeField] private MarketTile[] _marketTiles;
     [SerializeField] private MarketTile[] moneyTiles;
     [SerializeField] private MarketTile[] technologyTiles;
     [SerializeField] private MarketTile[] creatureTiles;
     [SerializeField] private GameObject moneyGrid;
     [SerializeField] private GameObject developmentsGrid;
     [SerializeField] private GameObject creaturesGrid;
-    private MarketTile _selectedTile;    
-    public ScriptableCard[] creatureCardsDb;
-    public ScriptableCard[] moneyCardsDb;
-    public ScriptableCard[] technologyCardsDb;
-    
+    private MarketTile _selectedTile;
+
+    [Header("Available Cards")]
+
+    [SerializeField] private ScriptableCard[] _startEntities;
+    [SerializeField] private ScriptableCard[] _moneyCardsDb;
+    [SerializeField] private ScriptableCard[] _creatureCardsDb;
+    [SerializeField] private ScriptableCard[] _technologyCardsDb;
     private List<int> _availableCreatureIds = new();
     private List<int> _availableTechnologyIds = new();
 
@@ -42,9 +44,10 @@ public class Market : NetworkBehaviour
         creatureTiles = creaturesGrid.GetComponentsInChildren<MarketTile>();
 
         // Databases of generated cards
-        creatureCardsDb = Resources.LoadAll<ScriptableCard>("Cards/CreatureCards/");
-        technologyCardsDb = Resources.LoadAll<ScriptableCard>("Cards/TechnologyCards/");
-        moneyCardsDb = Resources.LoadAll<ScriptableCard>("Cards/MoneyCards/");
+        _startEntities = Resources.LoadAll<ScriptableCard>("Cards/_StartCards/");
+        _moneyCardsDb = Resources.LoadAll<ScriptableCard>("Cards/MoneyCards/");
+        _creatureCardsDb = Resources.LoadAll<ScriptableCard>("Cards/CreatureCards/");
+        _technologyCardsDb = Resources.LoadAll<ScriptableCard>("Cards/TechnologyCards/");
     }
 
     #region Setup
@@ -56,15 +59,15 @@ public class Market : NetworkBehaviour
 
         // Money
         for (var i = 0; i < moneyTiles.Length; i++) 
-            moneyTiles[i].InitializeTile(new CardInfo(moneyCardsDb[i]), i);
+            moneyTiles[i].InitializeTile(new CardInfo(_moneyCardsDb[i]), i);
 
         // Technologies
         for (var i = 0; i < technologyTiles.Length; i++)
-            technologyTiles[i].InitializeTile(new CardInfo(technologyCardsDb[i]), i);
+            technologyTiles[i].InitializeTile(new CardInfo(_technologyCardsDb[i]), i);
 
         // Creatures
         for (var i = 0; i < creatureTiles.Length; i++)
-            creatureTiles[i].InitializeTile(new CardInfo(creatureCardsDb[i]), i);
+            creatureTiles[i].InitializeTile(new CardInfo(_creatureCardsDb[i]), i);
     }
 
     [ClientRpc]
@@ -222,29 +225,31 @@ public class Market : NetworkBehaviour
     {
         if(_availableTechnologyIds.Count == 0){
             // Random order of ids -> pop first element for random card
-            _availableTechnologyIds = Enumerable.Range(0, technologyCardsDb.Length)
+            _availableTechnologyIds = Enumerable.Range(0, _technologyCardsDb.Length)
                                         .OrderBy(x => Random.value)
                                         .ToList();
         }
 
         var id = _availableTechnologyIds[0];
         _availableTechnologyIds.RemoveAt(0);
-        return new CardInfo(technologyCardsDb[id]);
+        return new CardInfo(_technologyCardsDb[id]);
     }
 
     public CardInfo GetNewCreatureFromDb()
     {
         if(_availableCreatureIds.Count == 0){
             // Random order of ids -> pop first element for random card
-            _availableCreatureIds = Enumerable.Range(0, creatureCardsDb.Length)
+            _availableCreatureIds = Enumerable.Range(0, _creatureCardsDb.Length)
                                         .OrderBy(x => Random.value)
                                         .ToList();
         }
 
         var id = _availableCreatureIds[0];
         _availableCreatureIds.RemoveAt(0);
-        return new CardInfo(creatureCardsDb[id]);
+        return new CardInfo(_creatureCardsDb[id]);
     }
 
-    internal ScriptableCard GetStartMoneyCard() => moneyCardsDb[0];
+    internal ScriptableCard GetStartMoneyCard() => _moneyCardsDb[0];
+    internal ScriptableCard[] GetStartEntities() => _startEntities;
+
 }

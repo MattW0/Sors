@@ -23,9 +23,6 @@ public class GameManager : NetworkBehaviour {
     public Dictionary<NetworkIdentity, PlayerManager> players = new();
     private List<PlayerManager> _loosingPlayers = new();
     private List<PlayerManager> _winningPlayers = new();
-
-    [Header("Available cards")]
-    public ScriptableCard[] startEntities;
     
     [Header("Prefabs")]
     [SerializeField] private GameObject creatureCardPrefab;
@@ -47,20 +44,6 @@ public class GameManager : NetworkBehaviour {
         if (Instance == null) Instance = this;
 
         SorsNetworkManager.OnAllPlayersReady += GameSetup;
-        LoadCards();
-    }
-
-    private void LoadCards()
-    {
-        startEntities = Resources.LoadAll<ScriptableCard>("Cards/_StartCards/");
-
-        
-
-        // var msg = " --- Available cards: --- \n" +
-        //           $"Creature cards: {creatureCardsDb.Length}\n" +
-        //           $"Money cards: {moneyCardsDb.Length}\n" +
-        //           $"Develop cards: {technologyCardsDb.Length}";
-        // print(msg);
     }
 
     #region Setup
@@ -123,21 +106,22 @@ public class GameManager : NetworkBehaviour {
 
     private void SpawnPlayerDeck(PlayerManager player)
     {
-        var startMoney = _market.GetStartMoneyCard();
-        List<GameObject> startCards = new();
+        List<GameObject> startingDeck = new();
 
         // Only paper money currently
+        var startMoney = _market.GetStartMoneyCard();
         for (var i = 0; i < _gameOptions.initialDeckSize - _gameOptions.initialEntities; i++){
             var scriptableCard = startMoney;
-            startCards.Add(SpawnCardAndAddToCollection(player, scriptableCard, CardLocation.Deck));
+            startingDeck.Add(SpawnCardAndAddToCollection(player, scriptableCard, CardLocation.Deck));
         }
 
+        var startEntities = _market.GetStartEntities();
         for (var i = 0; i < _gameOptions.initialEntities; i++){
             var scriptableCard = startEntities[i];
-            startCards.Add(SpawnCardAndAddToCollection(player, scriptableCard, CardLocation.Deck));
+            startingDeck.Add(SpawnCardAndAddToCollection(player, scriptableCard, CardLocation.Deck));
         }
 
-        player.RpcShowSpawnedCards(startCards, CardLocation.Deck, false);
+        player.RpcShowSpawnedCards(startingDeck, CardLocation.Deck, false);
     }
 
     #endregion

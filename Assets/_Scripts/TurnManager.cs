@@ -10,7 +10,7 @@ public class TurnManager : NetworkBehaviour
 {
     public static TurnManager Instance { get; private set; }
 
-    [Header("Entities")]
+    [Header("Singletons")]
     private GameManager _gameManager;
     private Market _market;
     private HandInteractionPanel _cardCollectionPanel;
@@ -186,7 +186,7 @@ public class TurnManager : NetworkBehaviour
     }
 
     // TODO: May want to combine this with other _abilityQueue resolution functions
-    public IEnumerator CheckTriggers(TurnState nextState)
+    public IEnumerator CheckTriggers(TurnState nextTurnState)
     {
         // Wait for evaluation of triggers
         yield return new WaitForSeconds(0.1f);
@@ -194,7 +194,7 @@ public class TurnManager : NetworkBehaviour
         // Waiting for all triggers to have resolved
         yield return _abilityQueue.Resolve();
 
-        UpdateTurnState(nextState);
+        UpdateTurnState(nextTurnState);
     }
 
     #endregion
@@ -463,7 +463,6 @@ public class TurnManager : NetworkBehaviour
 
         UpdateTurnState(TurnState.NextPhase);
     }
-
     #endregion
 
     private void Combat() => combatManager.UpdateCombatState(CombatState.Attackers);
@@ -665,52 +664,19 @@ public class TurnManager : NetworkBehaviour
             newState = TurnState.Idle;
         }
 
-        switch (newState)
-        {
-            // --- Preparation and transition ---
-            case TurnState.PhaseSelection:
-                PhaseSelection();
-                break;
-            case TurnState.NextPhase:
-                NextPhase();
-                break;
-            // --- Phases ---
-            case TurnState.Draw:
-                Draw();
-                break;
-            case TurnState.Discard:
-                Discard();
-                break;
-            case TurnState.Invent:
-                StartMarketPhase();
-                break;
-            case TurnState.Develop:
-                StartPlayCard();
-                break;
-            case TurnState.Combat:
-                Combat();
-                break;
-            case TurnState.Recruit:
-                StartMarketPhase();
-                break;
-            case TurnState.Deploy:
-                StartPlayCard();
-                break;
-            case TurnState.Prevail:
-                Prevail();
-                break;
-            // --- Win check and turn reset ---
-            case TurnState.CleanUp:
-                CleanUp();
-                break;
-            case TurnState.Idle:
-                _logger.RpcLog("Game finished", LogType.Standard);
-                break;
-
-            default:
-                print("<color=red>Invalid turn state</color>");
-                throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
-        }
+        if (newState == TurnState.PhaseSelection) PhaseSelection();
+        else if (newState == TurnState.NextPhase) NextPhase();
+        else if (newState == TurnState.Draw) Draw();
+        else if (newState == TurnState.Discard) Discard();
+        else if (newState == TurnState.Invent) StartMarketPhase();
+        else if (newState == TurnState.Develop) StartPlayCard();
+        else if (newState == TurnState.Combat) Combat();
+        else if (newState == TurnState.Recruit) StartMarketPhase();
+        else if (newState == TurnState.Deploy) StartPlayCard();
+        else if (newState == TurnState.Prevail) Prevail();
+        else if (newState == TurnState.CleanUp) CleanUp();
+        else if (newState == TurnState.Idle) _logger.RpcLog("Game finished", LogType.Standard);
+        else throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
     }
 
     public void PlayerIsReady(PlayerManager player)
@@ -719,32 +685,14 @@ public class TurnManager : NetworkBehaviour
         if (_readyPlayers.Count < _nbPlayers) return;
         _readyPlayers.Clear();
 
-        switch (turnState)
-        {
-            case TurnState.PhaseSelection:
-                FinishPhaseSelection();
-                break;
-            case TurnState.Discard:
-                FinishDiscard();
-                break;
-            case TurnState.Invent or TurnState.Recruit:
-                BuyCards();
-                break;
-            case TurnState.Develop or TurnState.Deploy:
-                PlayEntities();
-                break;
-            case TurnState.Prevail:
-                StartPrevailOptions();
-                break;
-            case TurnState.CardIntoHand:
-                FinishPrevailCardIntoHand();
-                break;
-            case TurnState.Trash:
-                FinishPrevailTrash();
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
+        if (turnState == TurnState.PhaseSelection) FinishPhaseSelection();
+        else if (turnState == TurnState.Discard) FinishDiscard();
+        else if (turnState == TurnState.Invent || turnState == TurnState.Recruit) BuyCards();
+        else if (turnState == TurnState.Develop || turnState == TurnState.Deploy) PlayEntities();
+        else if (turnState == TurnState.Prevail) StartPrevailOptions();
+        else if (turnState == TurnState.CardIntoHand) FinishPrevailCardIntoHand();
+        else if (turnState == TurnState.Trash) FinishPrevailTrash();
+        else throw new ArgumentOutOfRangeException(nameof(turnState), turnState, null);
     }
 
     private void PlayerCashChanged(PlayerManager player, int newAmount)
