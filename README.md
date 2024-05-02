@@ -1,6 +1,8 @@
 # Sors
 
-It's a card game. Networked Host-Client model on LAN with Mirror. Created with Unity.
+It's a card game created with Unity. Networked Host-Client model on LAN with Mirror.
+
+Check out the rules: https://github.com/MattW0/Sors/blob/main/Assets/Resources/Rules/rules.md
 
 ## Setup
 
