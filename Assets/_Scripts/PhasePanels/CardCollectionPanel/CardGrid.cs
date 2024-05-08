@@ -27,10 +27,15 @@ public class CardGrid : MonoBehaviour
         updateGrid = false;
     }
 
-    // update when children change
-    private void OnTransformChildrenChanged()
-    {
-        UpdateGrid();
+    // // update when children change
+    // private void OnTransformChildrenChanged()
+    // {
+    //     UpdateGrid();
+    // }
+
+    public void AddCard(Transform t){
+        t.SetParent(transform, false);
+        updateGrid = true;
     }
 
     private void UpdateGrid(){
@@ -41,7 +46,6 @@ public class CardGrid : MonoBehaviour
         if (_cardGridType == CardGridType.All) children.Reverse();
 
         if (children.Count < 1) return;
-
 
         int i = 0;
         foreach (var child in children) {
@@ -63,6 +67,10 @@ public class CardGrid : MonoBehaviour
         //     var x = Mathf.Lerp(_cardStartX, _cardEndX, i / (float)(children.Count - 1));
         //     child.localPosition = new Vector3(x, 0, 0);
         // }
+    }
+
+    public void ClearGrid(){
+        foreach (Transform child in transform) Destroy(child.gameObject);
     }
 }
 
