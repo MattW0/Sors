@@ -9,6 +9,8 @@ public class HandInteractionPanel : NetworkBehaviour
     public static HandInteractionPanel Instance { get; private set; }
     [SerializeField] private HandInteractionUI _ui;
     [SerializeField] private CardSpawner _cardSpawner;
+    [SerializeField] private CardGrid _selectablesGrid;
+    [SerializeField] private CardGrid _selectedGrid;
     private PlayerManager _player;
 
     [Header("Helper Fields")]
@@ -80,17 +82,20 @@ public class HandInteractionPanel : NetworkBehaviour
 
     
     #endregion
-
     public void AddCardToChosen(Transform t, CardInfo card){
         _selectedCards.Add(card);
-        _cardSpawner.SelectCard(t);
         _ui.UpdateInteractionElements(_selectedCards.Count);
+        
+        // _cardSpawner.SelectCard(t);
+        _selectedGrid.AddCard(t);
     }
 
     public void RemoveCardFromChosen(Transform t, CardInfo card){
         _selectedCards.Remove(card);
-        _cardSpawner.DeselectCard(t);
         _ui.UpdateInteractionElements(_selectedCards.Count);
+
+        _selectablesGrid.AddCard(t);
+        // _cardSpawner.DeselectCard(t);
     }
 
     [ClientRpc]
@@ -106,7 +111,11 @@ public class HandInteractionPanel : NetworkBehaviour
     }
 
     public void ClearPanel(){
-        _cardSpawner.ClearGrids();
+
+        _selectablesGrid.ClearGrid();
+        _selectedGrid.ClearGrid();
+
+        // _cardSpawner.ClearGrids();
         _detailCards.Clear();
         _selectedCards.Clear();
         _cache.Clear();

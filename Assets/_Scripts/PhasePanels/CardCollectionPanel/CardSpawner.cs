@@ -8,10 +8,10 @@ public class CardSpawner : MonoBehaviour
     [SerializeField] private GameObject _creatureDetailCardPrefab;
     [SerializeField] private GameObject _technologyDetailCardPrefab;
     [SerializeField] private GameObject _moneyDetailCardPrefab;
-    [SerializeField] private Transform _gridAll;
-    // [SerializeField] private GameObject _gridEntity;
-    [SerializeField] private Transform _gridChosen;
-    // private GameObject _currentGrid;
+    // [SerializeField] private Transform _gridAll;
+    // [SerializeField] private Transform _gridChosen;
+    [SerializeField] private Transform _grid;
+
 
     public List<DetailCard> SpawnDetailCardObjects(List<CardInfo> cards, TurnState turnState, float scaleFactor = 0.6f)
     {
@@ -24,7 +24,7 @@ public class CardSpawner : MonoBehaviour
                 _ => throw new System.Exception("Card type not found")
             };
 
-            detailCardObject.transform.SetParent(_gridAll, false);
+            detailCardObject.transform.SetParent(_grid, false);
             detailCardObject.transform.localScale = new Vector3(scaleFactor, scaleFactor, 1);
 
             // Initialize detail card
@@ -37,15 +37,15 @@ public class CardSpawner : MonoBehaviour
         return detailCards;
     }
 
-    public void SelectCard(Transform t) => t.SetParent(_gridChosen, false);
-    public void DeselectCard(Transform t) => t.SetParent(_gridAll, false);
+    // public void SelectCard(Transform t) => t.SetParent(_gridChosen, false);
+    // public void DeselectCard(Transform t) => t.SetParent(_gridAll, false);
 
-    public void ClearGrids(){
-        foreach (Transform child in _gridAll) Destroy(child.gameObject);
-        ClearChosenGrid();
-    }
+    // public void ClearGrids(){
+    //     foreach (Transform child in _gridAll) Destroy(child.gameObject);
+    //     ClearChosenGrid();
+    // }
 
-    public void ClearChosenGrid(){
-        foreach (Transform child in _gridChosen) Destroy(child.gameObject);
-    }
+    // public void ClearChosenGrid(){
+    //     foreach (Transform child in _gridChosen) Destroy(child.gameObject);
+    // }
 }
