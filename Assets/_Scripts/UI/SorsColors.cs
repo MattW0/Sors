@@ -44,7 +44,7 @@ public static class SorsColors
     public static Color standardHighlight = Color.white;
     public static Color interactionHighlight = Color.green;
     public static Color discardHighlight = Color.yellow;
-    public static Color deployHighlight = Color.cyan;
+    public static Color playableHighlight = Color.cyan;
     public static Color trashHighlight = Color.red;
 
     // -- Log Messages --

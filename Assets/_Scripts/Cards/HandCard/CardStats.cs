@@ -6,6 +6,7 @@ public class CardStats : NetworkBehaviour
     public PlayerManager owner { get; private set; }
     public CardInfo cardInfo;
     private HandCardUI _cardUI;
+    private bool _isChoosable;
 
     private bool _interactable;
     public bool IsInteractable { 
@@ -33,5 +34,11 @@ public class CardStats : NetworkBehaviour
         cardInfo = card;
         _cardUI.SetCardUI(card);
         gameObject.GetComponent<CardClick>().SetCardInfo(card);
+    }
+
+    public void CheckPlayability(int cash){
+        _isChoosable = cash >= cardInfo.cost;
+
+        _cardUI.Highlight(_isChoosable, SorsColors.playableHighlight);
     }
 }

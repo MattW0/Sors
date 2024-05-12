@@ -77,8 +77,5 @@ public class CardGrid : MonoBehaviour
 public enum CardGridType : byte
 {
     All,
-    Money,
-    Creature,
-    Technology,
     Chosen,
 }

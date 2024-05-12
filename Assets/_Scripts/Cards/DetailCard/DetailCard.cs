@@ -6,11 +6,12 @@ using UnityEngine.EventSystems;
 public class DetailCard : MonoBehaviour, IPointerClickHandler
 {
     private CardInfo _cardInfo;
-    private HandInteractionPanel _collectionPanel;
+    private InteractionPanel _collectionPanel;
     [SerializeField] private DetailCardUI _ui;
     public bool isChoosable;
     private bool _chosen;
-    private bool IsChosen{
+    private bool IsChosen
+    {
         get => _chosen;
         set{
             _chosen = value;
@@ -20,7 +21,7 @@ public class DetailCard : MonoBehaviour, IPointerClickHandler
     }
 
     private void Awake(){
-        _collectionPanel = HandInteractionPanel.Instance;
+        _collectionPanel = InteractionPanel.Instance;
     }
 
     public void CheckPlayability(int cash){

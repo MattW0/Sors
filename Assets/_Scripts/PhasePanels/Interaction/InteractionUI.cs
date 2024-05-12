@@ -5,24 +5,16 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class HandInteractionUI : MonoBehaviour
-{   
-    [Header("Entities")]
-    [SerializeField] private HandInteractionPanel _handInteractionPanel;
-    private PlayerManager _localPlayer;
+public class InteractionUI : MonoBehaviour
+{
 
     [Header("UI")]
-    [SerializeField] private static GameObject _view;
-    [SerializeField] private Transform _playerHand;
-    private Vector3 _handPositionStandard = Vector3.zero;
-    private Vector3 _handPositionPlayCards = new Vector3(-180, 0, 0);
-    [SerializeField] private Image _fullViewImage;
+    [SerializeField] private GameObject _interactionView;
     [SerializeField] private GameObject _waitingText;
     [SerializeField] private GameObject _buttons;
-    [SerializeField] private GameObject _skipButton;
-    [SerializeField] private Button _closeButton;
+    [SerializeField] private GameObject _skipButtonGameObject;
+    [SerializeField] private Button _skipButton;
     [SerializeField] private Button _confirmButton;
-    [SerializeField] private TMP_Text _collectionTitle;
     [SerializeField] private TMP_Text _displayText;
 
     [Header("Helper Fields")]
@@ -30,16 +22,23 @@ public class HandInteractionUI : MonoBehaviour
     private int _nbCardsToDiscard;
     private int _nbCardsToPlay = 1;
     private int _nbCardsToSelectMax;
-    
-    public void PrepareCardCollectionPanelUi(int nbCardsToDiscard){
-        _localPlayer = PlayerManager.GetLocalPlayer();
+    private InteractionPanel _interactionPanel;
 
+    private void Start()
+    {
+        _interactionPanel = InteractionPanel.Instance;
+
+        _skipButton.onClick.AddListener(OnSkipButtonPressed);
+        _confirmButton.onClick.AddListener(OnConfirmButtonPressed);
+    }
+    
+    public void PrepareInteractionPanel(int nbCardsToDiscard)
+    {
         _nbCardsToDiscard = nbCardsToDiscard;
 
-        _view = gameObject.transform.GetChild(0).gameObject;
-        // _interaction.SetActive(false);
+        _interactionView.SetActive(false);
         _buttons.SetActive(false);
-        _skipButton.SetActive(false);
+        _skipButtonGameObject.SetActive(false);
 
         _waitingText.SetActive(false);
         _displayText.text = "";
@@ -59,70 +58,38 @@ public class HandInteractionUI : MonoBehaviour
         else InteractionBegin(TurnState.Trash);
     }
 
-    public void InteractionBegin(TurnState state, int numberPlays = 0){
-        _view.SetActive(true);
-        StartHandInteractionUI();
+    public void InteractionBegin(TurnState state, int numberPlays = 0)
+    {
+        _interactionView.SetActive(true);
+        StartInteractionUI();
 
         _state = state;
         switch (_state){
             case TurnState.Develop or TurnState.Deploy:
-                _collectionTitle.text = "Hand";
                 PlayCardInteraction(numberPlays);
                 break;
             case TurnState.Discard:
-                _collectionTitle.text = "Hand";
                 _displayText.text = $"Discard 0/{_nbCardsToDiscard} cards";
-                _fullViewImage.enabled = true;
-                _closeButton.interactable = false;
                 break;
             case TurnState.CardIntoHand:
-                _collectionTitle.text = "Discard";
                 _displayText.text = $"Put up to {_nbCardsToSelectMax} card(s) into your hand";
                 _confirmButton.interactable = true;
-                _fullViewImage.enabled = true;
                 break;
             case TurnState.Trash:
-                _collectionTitle.text = "Hand";
                 _displayText.text = $"Trash up to {_nbCardsToSelectMax} card(s)";
                 _confirmButton.interactable = true;
-                _fullViewImage.enabled = true;
                 break;
         }
-    }
-
-    public void ViewCardCollection(CardLocation cardCollectionType, bool ownsCollection)
-    {
-        _view.SetActive(true);
-
-        var text = ownsCollection ? "" : "Opponent ";
-        switch(cardCollectionType){
-            case CardLocation.Deck:
-                text += "Deck";
-                break;
-            case CardLocation.Discard:
-                text += "Discard";
-                break;
-            case CardLocation.Hand:
-                text += "Hand";
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(cardCollectionType), cardCollectionType, null);
-        }
-
-        _collectionTitle.text = text;
-        _fullViewImage.enabled = true;
     }
 
     private void PlayCardInteraction(int numberPlays)
     {
-        _playerHand.localPosition = _handPositionPlayCards;
-
         if(numberPlays <= 0){
             _buttons.SetActive(false);
             _waitingText.SetActive(true);
             _displayText.text = $"You can't play more cards";
         } else {
-            _skipButton.SetActive(true);
+            _skipButtonGameObject.SetActive(true);
             if (_state == TurnState.Develop) {
                 _displayText.text = $"You may develop a card";
             }
@@ -134,15 +101,14 @@ public class HandInteractionUI : MonoBehaviour
 
     public void OnConfirmButtonPressed()
     {
-        if (_state == TurnState.Discard) _handInteractionPanel.ConfirmDiscard();
+        if (_state == TurnState.Discard) _interactionPanel.ConfirmDiscard();
         else if (_state == TurnState.CardIntoHand || _state == TurnState.Trash) 
-            _handInteractionPanel.ConfirmPrevailCardSelection();
+            _interactionPanel.ConfirmPrevailCardSelection();
         else if (_state == TurnState.Develop || _state == TurnState.Deploy) 
-            _handInteractionPanel.ConfirmPlay();
+            _interactionPanel.ConfirmPlay();
 
         _buttons.SetActive(false);
         _waitingText.SetActive(true);
-        _closeButton.interactable = true;
     }
 
     public void OnSkipButtonPressed() => SkipInteraction(_state);
@@ -151,9 +117,9 @@ public class HandInteractionUI : MonoBehaviour
         _waitingText.SetActive(true);
 
         if(_state == TurnState.Develop || _state == TurnState.Deploy) 
-            _localPlayer.CmdSkipCardPlay();
+            _interactionPanel.SkipCardPlay();
         else if(state == TurnState.CardIntoHand || state == TurnState.Trash) 
-            _localPlayer.CmdPlayerSkipsPrevailOption();
+            _interactionPanel.PlayerSkipsPrevailOption();
     }
 
     public void UpdateInteractionElements(int nbSelected){
@@ -168,32 +134,20 @@ public class HandInteractionUI : MonoBehaviour
         }
     }
 
-    private void StartHandInteractionUI(){
+    private void StartInteractionUI(){
         _buttons.SetActive(true);
         // _interaction.SetActive(true);
         _waitingText.SetActive(false);
         _confirmButton.interactable = false;
-        _collectionTitle.text = "Hand";
     }
 
     public void ResetPanelUI(bool hard){
-        _fullViewImage.enabled = false;
         _buttons.SetActive(true);
         _waitingText.SetActive(false);
         if(!hard) return;
         
-        // _interaction.SetActive(false);
-        _playerHand.localPosition = _handPositionStandard;
-        _skipButton.SetActive(false);
-        Close();
+        _interactionView.SetActive(false);
+        _skipButtonGameObject.SetActive(false);
+        // Close(); TODO
     }
-
-    public void OnCloseButtonPressed() => Close();
-    public void ToggleView() {
-        if(_view.activeSelf) Close();
-        else Open();
-    }
-    public static void Open() => _view.SetActive(true);
-    public static void Close() => _view.SetActive(false);
-
 }

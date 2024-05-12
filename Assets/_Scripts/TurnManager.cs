@@ -13,7 +13,7 @@ public class TurnManager : NetworkBehaviour
     [Header("Singletons")]
     private GameManager _gameManager;
     private Market _market;
-    private HandInteractionPanel _cardCollectionPanel;
+    private InteractionPanel _interactionPanel;
     private PhasePanel _phasePanel;
     private PrevailPanel _prevailPanel;
     private PlayerInterfaceManager _logger;
@@ -71,8 +71,8 @@ public class TurnManager : NetworkBehaviour
         _logger = PlayerInterfaceManager.Instance;
 
         // Panels with setup (GameManager handles market setup)
-        _cardCollectionPanel = HandInteractionPanel.Instance;
-        _cardCollectionPanel.RpcPrepareCardCollectionPanel(gameOptions.phaseDiscard);
+        _interactionPanel = InteractionPanel.Instance;
+        _interactionPanel.RpcPrepareInteractionPanel(gameOptions.phaseDiscard);
         _phasePanel = PhasePanel.Instance;
         _phasePanel.RpcPreparePhasePanel(gameOptions.NumberPhases);
         _prevailPanel = PrevailPanel.Instance;
@@ -94,7 +94,6 @@ public class TurnManager : NetworkBehaviour
         // reverse order of _playerPhaseChoices to have host first
         _playerPhaseChoices = _playerPhaseChoices.Reverse().ToDictionary(x => x.Key, x => x.Value);
         _playerPrevailOptions = _playerPrevailOptions.Reverse().ToDictionary(x => x.Key, x => x.Value);
-        PlayerManager.OnCashChanged += PlayerCashChanged;
     }
 
     private IEnumerator DrawInitialHand()
@@ -228,7 +227,7 @@ public class TurnManager : NetworkBehaviour
             player.DiscardSelection();
         }
 
-        _cardCollectionPanel.RpcResetPanel();
+        _interactionPanel.RpcResetPanel();
         UpdateTurnState(TurnState.NextPhase);
     }
 
@@ -448,7 +447,7 @@ public class TurnManager : NetworkBehaviour
 
         // Play another card if not all players have skipped
         if (_readyPlayers.Count != _gameManager.players.Count) {
-            _cardCollectionPanel.RpcSoftResetPanel();
+            _interactionPanel.RpcSoftResetPanel();
             PlayCard();
         } else {
             FinishPlayCard();
@@ -457,7 +456,7 @@ public class TurnManager : NetworkBehaviour
 
     private void FinishPlayCard()
     {
-        _cardCollectionPanel.RpcResetPanel();
+        _interactionPanel.RpcResetPanel();
         _boardManager.ShowHolders(false);
         PlayersDiscardMoney();
 
@@ -543,7 +542,7 @@ public class TurnManager : NetworkBehaviour
         foreach (var (player, options) in _playerPrevailOptions)
         {
             var nbPicks = options.Count(option => option == currentPrevailOption);
-            _cardCollectionPanel.TargetBeginPrevailSelection(player.connectionToClient, turnState, nbPicks);
+            _interactionPanel.TargetBeginPrevailSelection(player.connectionToClient, turnState, nbPicks);
         }
     }
 
@@ -566,7 +565,7 @@ public class TurnManager : NetworkBehaviour
             }
         }
 
-        _cardCollectionPanel.RpcResetPanel();
+        _interactionPanel.RpcResetPanel();
         NextPrevailOption();
     }
 
@@ -584,7 +583,7 @@ public class TurnManager : NetworkBehaviour
             }
         }
 
-        _cardCollectionPanel.RpcResetPanel();
+        _interactionPanel.RpcResetPanel();
         NextPrevailOption();
     }
 
@@ -703,7 +702,7 @@ public class TurnManager : NetworkBehaviour
                 _market.TargetCheckMarketPrices(player.connectionToClient, newAmount);
                 break;
             case TurnState.Develop or TurnState.Deploy:
-                _cardCollectionPanel.TargetCheckPlayability(player.connectionToClient, newAmount);
+                _interactionPanel.TargetCheckPlayability(player.connectionToClient, newAmount);
                 break;
         }
     }
@@ -733,6 +732,9 @@ public class TurnManager : NetworkBehaviour
 
     private void ShowCardCollection()
     {
+
+        _handManager.RpcHighlightMoney(false);
+
         foreach (var player in _gameManager.players.Values)
         {
             List<CardInfo> cards = player.hand; // mostly will be the hand cards
@@ -744,18 +746,18 @@ public class TurnManager : NetworkBehaviour
 
             var cardObjects = GameManager.CardInfosToGameObjects(cards);
             // Need plays here because clients can't access that number
-            _cardCollectionPanel.TargetShowCardCollection(player.connectionToClient, turnState, cardObjects, cards, player.Plays);
+            _interactionPanel.TargetStartInteraction(player.connectionToClient, turnState, cardObjects, cards, player.Plays);
 
             // Reevaluating money in play to highlight playable cards after reset
             if (turnState == TurnState.Develop || turnState == TurnState.Deploy)
-                _cardCollectionPanel.TargetCheckPlayability(player.connectionToClient, player.Cash);
+                _interactionPanel.TargetCheckPlayability(player.connectionToClient, player.Cash);
         }
     }
 
     public void ForceEndTurn()
     { // experimental
         _handManager.RpcHighlightMoney(false);
-        _cardCollectionPanel.RpcResetPanel();
+        _interactionPanel.RpcResetPanel();
         _market.RpcEndMarketPhase();
         _boardManager.ShowHolders(false);
 

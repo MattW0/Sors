@@ -16,7 +16,7 @@ public class DetailCardUI : CardUI, IPointerEnterHandler, IPointerExitHandler {
         _state = state;
         
         if(state == TurnState.Discard) highlight.color = SorsColors.discardHighlight;
-        else if(state == TurnState.Deploy) highlight.color = SorsColors.deployHighlight;
+        else if(state == TurnState.Deploy) highlight.color = SorsColors.playableHighlight;
         else if(state == TurnState.Trash) highlight.color = SorsColors.trashHighlight;
     }
 

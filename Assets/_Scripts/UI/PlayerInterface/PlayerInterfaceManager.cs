@@ -14,7 +14,6 @@ public class PlayerInterfaceManager : NetworkBehaviour
 
     private PlayerManager _player;
     private Market _market;
-    private HandInteractionPanel _cardCollectionPanel;
     
     private void Awake()
     {
@@ -31,8 +30,6 @@ public class PlayerInterfaceManager : NetworkBehaviour
         if(connectionToClient != null) networkIdentity.AssignClientAuthority(connectionToClient);
 
         _market = Market.Instance;
-        _cardCollectionPanel = HandInteractionPanel.Instance;
-
         _player = PlayerManager.GetLocalPlayer();
         if(!_player.isServer) gameObject.GetComponent<PlayerInterfaceButtons>().DisableUtilityButton();
     }
@@ -61,12 +58,6 @@ public class PlayerInterfaceManager : NetworkBehaviour
     public void RpcLogPlayingCards(List<BattleZoneEntity> entities){
         foreach (var e in entities) _logger.Log($"{e.Owner.PlayerName} plays {e.Title}", LogType.Play);
     }
-
-    [Server]
-    public void OpenCardCollection(NetworkConnection conn, List<CardInfo> cards, CardLocation collectionType, bool isOwned)
-    {
-        _cardCollectionPanel.TargetOpenCardCollection(conn, cards, collectionType, isOwned);
-    }
     
     // TODO: Chat
 
@@ -85,10 +76,10 @@ public class PlayerInterfaceManager : NetworkBehaviour
     //     OnChatMessageSent?.Invoke(message);
     // }
     
-    public void OpenCardCollectionView() => _cardCollectionPanel.ToggleView();
     public void OpenMarketView() => _market.MaxButton();
-    public void ForceEndTurn() => _player.ForceEndTurn();
     public void Undo() => _player.CmdUndoPlayMoney();
+    public void Concede() {} // TODO
+    public void ForceEndTurn() => _player.ForceEndTurn();
     public void OpenChat() => _chat.ToggleChat();
 
     private void OnDestroy(){

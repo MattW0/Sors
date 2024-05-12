@@ -17,6 +17,7 @@ public class PlayerManager : NetworkBehaviour
     private Hand _handManager;
     private PhasePanelUI _phaseVisualsUI;
     private PlayerInterfaceManager _playerInterface;
+    private PanelsManager _panelsManager;
 
     [Header("Game State")]
     public List<Phase> chosenPhases = new();
@@ -99,6 +100,7 @@ public class PlayerManager : NetworkBehaviour
         _handManager = Hand.Instance;
         _cardMover = CardMover.Instance;
         _phaseVisualsUI = PhasePanelUI.Instance;
+        _panelsManager = PanelsManager.Instance;
         CardPileClick.OnLookAtCollection += LookAtCollection;
 
         EntityAndUISetup();
@@ -608,16 +610,18 @@ public class PlayerManager : NetworkBehaviour
         // TODO: Expand this for other collections, needs CardPileClick with SorsCardsPile for that
         CmdPlayerOpensCardCollection(this, collectionType, ownsCollection);
     }
+
     [Command]
     private void CmdPlayerOpensCardCollection(PlayerManager player, CardLocation collectionType, bool ownsCollection)
     {
         var cards = player.discard;
-        print($"Player {player.playerName} opens collection {collectionType.ToString()}, owns collection {ownsCollection}");
+        print($"Player {player.PlayerName} opens collection {collectionType.ToString()}, owns collection {ownsCollection}");
 
         if(! ownsCollection) cards = _turnManager.GetOpponentPlayer(player).discard; 
 
-        _playerInterface.OpenCardCollection(player.connectionToClient, cards, collectionType, ownsCollection);
+        _panelsManager.TargetOpenCardCollection(player.connectionToClient, cards, collectionType, ownsCollection);
     }
+    
 
     [ClientRpc]
     public void RpcSkipCardSpawnAnimations() => SorsTimings.SkipCardSpawnAnimations();

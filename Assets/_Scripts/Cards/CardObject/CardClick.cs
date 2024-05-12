@@ -18,6 +18,7 @@ public class CardClick : MonoBehaviour, IPointerClickHandler
             _cardInfo = cardStats.cardInfo;
         }
     }
+
     public void OnPointerClick(PointerEventData eventData) {
         
         // print($"click card {_cardInfo.title}");
@@ -28,8 +29,7 @@ public class CardClick : MonoBehaviour, IPointerClickHandler
             return;
         }
 
-        // Return if card can't be played (not in hand or no money card)
-        if(!cardStats || !cardStats.IsInteractable) return;
+        if(!cardStats.IsInteractable) return;
         _owner.CmdPlayMoneyCard(gameObject, cardStats.cardInfo);        
         cardStats.IsInteractable = false;
     }

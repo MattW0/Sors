@@ -4,13 +4,12 @@ using UnityEngine;
 using Mirror;
 using System.Linq;
 
-public class HandInteractionPanel : NetworkBehaviour
+public class InteractionPanel : NetworkBehaviour
 {
-    public static HandInteractionPanel Instance { get; private set; }
-    [SerializeField] private HandInteractionUI _ui;
-    [SerializeField] private CardSpawner _cardSpawner;
-    [SerializeField] private CardGrid _selectablesGrid;
+    public static InteractionPanel Instance { get; private set; }
     [SerializeField] private CardGrid _selectedGrid;
+    private Hand _playerHand;
+    private InteractionUI _ui;
     private PlayerManager _player;
 
     [Header("Helper Fields")]
@@ -23,32 +22,30 @@ public class HandInteractionPanel : NetworkBehaviour
         if (Instance == null) Instance = this;
     }
 
+    private void Start(){
+        _playerHand = Hand.Instance;
+    }
+
     [ClientRpc]
-    public void RpcPrepareCardCollectionPanel(int nbCardsToDiscard){
-        _ui.PrepareCardCollectionPanelUi(nbCardsToDiscard);
+    public void RpcPrepareInteractionPanel(int nbCardsToDiscard){
+        _ui = gameObject.GetComponent<InteractionUI>();
+        _ui.PrepareInteractionPanel(nbCardsToDiscard);
         _player = PlayerManager.GetLocalPlayer();
     }
 
     [TargetRpc]
-    public void TargetShowCardCollection(NetworkConnection target, TurnState turnState, 
+    public void TargetStartInteraction(NetworkConnection target, TurnState turnState, 
                                          List<GameObject> cardObjects, List<CardInfo> cardInfos, int numberPlays)
     {
+
+        _playerHand.StartInteraction(turnState);
         _ui.InteractionBegin(turnState, numberPlays);
 
         // caching hand cards gameobjects
-        for(var i=0; i<cardInfos.Count; i++) _cache.Add(cardInfos[i], cardObjects[i]);
+        // for(var i=0; i<cardInfos.Count; i++) _cache.Add(cardInfos[i], cardObjects[i]);
         
-        var detailCards = _cardSpawner.SpawnDetailCardObjects(cardInfos, turnState);
-        _detailCards.AddRange(detailCards);
-    }
-
-    [TargetRpc]
-    public void TargetOpenCardCollection(NetworkConnection target, List<CardInfo> cards, CardLocation collectionType, bool ownsCollection)
-    {
-        _ui.ViewCardCollection(collectionType, ownsCollection);
-
-        var detailCards = _cardSpawner.SpawnDetailCardObjects(cards, TurnState.Idle);
-        _detailCards.AddRange(detailCards);
+        // var detailCards = _cardSpawner.SpawnDetailCardObjects(cardInfos, turnState);
+        // _detailCards.AddRange(detailCards);
     }
 
     #region States
@@ -94,9 +91,12 @@ public class HandInteractionPanel : NetworkBehaviour
         _selectedCards.Remove(card);
         _ui.UpdateInteractionElements(_selectedCards.Count);
 
-        _selectablesGrid.AddCard(t);
+        // _selectablesGrid.AddCard(t);
         // _cardSpawner.DeselectCard(t);
     }
+
+    public void SkipCardPlay() => _player.CmdSkipCardPlay();
+    public void PlayerSkipsPrevailOption() => _player.CmdPlayerSkipsPrevailOption();
 
     [ClientRpc]
     public void RpcResetPanel(){
@@ -110,16 +110,21 @@ public class HandInteractionPanel : NetworkBehaviour
         _ui.ResetPanelUI(false);
     }
 
-    public void ClearPanel(){
-
-        _selectablesGrid.ClearGrid();
+    public void ClearPanel()
+    {
         _selectedGrid.ClearGrid();
+        _playerHand.EndInteraction();
 
         // _cardSpawner.ClearGrids();
         _detailCards.Clear();
         _selectedCards.Clear();
         _cache.Clear();
     }
+}
 
-    public void ToggleView() => _ui.ToggleView();
+public enum InteractionType
+{
+    Play,
+    Discard,
+    Prevail
 }
