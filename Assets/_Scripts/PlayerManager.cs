@@ -130,20 +130,6 @@ public class PlayerManager : NetworkBehaviour
             _opponentUI.SetEntity(entity, _opponentUI.transform.GetChild(0).position);
         }
     }
-
-    [Server] // GameManager calls this on player object
-    public void DrawInitialHand(int amount)
-    {
-        for (var i = 0; i < amount; i++)
-        {
-            var cardInfo = deck[0];
-            deck.RemoveAt(0);
-            hand.Add(cardInfo);
-
-            var cardObject = GameManager.GetCardObject(cardInfo.goID);
-            RpcMoveCard(cardObject, CardLocation.Deck, CardLocation.Hand);
-        }
-    }
     #endregion GameSetup
 
     #region Cards
@@ -172,6 +158,8 @@ public class PlayerManager : NetworkBehaviour
 
     private IEnumerator ClientDrawing(List<GameObject> cards)
     {
+        RpcUpdateHandCards(cards, true);
+
         foreach(var card in cards){
             RpcMoveCard(card, CardLocation.Deck, CardLocation.Hand);
             yield return new WaitForSeconds(SorsTimings.draw);
@@ -210,10 +198,13 @@ public class PlayerManager : NetworkBehaviour
     public void RpcMoveCard(GameObject card, CardLocation from, CardLocation to)
     {
         _cardMover.MoveTo(card, isOwned, from, to);
+    }
 
-        if (!isOwned) return;
-        if (to == CardLocation.Hand) _handManager.UpdateHandCardList(card, true);
-        else if (from == CardLocation.Hand) _handManager.UpdateHandCardList(card, false);
+    [ClientRpc]
+    public void RpcUpdateHandCards(List<GameObject> cards, bool adding)
+    {
+        if(!isOwned) return;
+        _handManager.UpdateHandCards(cards, adding);
     }
 
     [ClientRpc]
@@ -222,14 +213,7 @@ public class PlayerManager : NetworkBehaviour
     [ClientRpc]
     public void RpcShowSpawnedCards(List<GameObject> cards, CardLocation destination, bool fromFile) => StartCoroutine(_cardMover.ShowSpawnedCards(cards, isOwned, destination, fromFile));
     [TargetRpc]
-    public void TargetSetHandCards(NetworkConnection conn, List<GameObject> handCards){
-        var cardStats = new List<CardStats>();
-        foreach(var c in handCards){
-            cardStats.Add(c.GetComponent<CardStats>());
-        }
-
-        _handManager.SetHandCards(cardStats);  
-    } 
+    public void TargetSetHandCards(NetworkConnection conn, List<GameObject> handCards) => _handManager.UpdateHandCards(handCards, true);
 
     [Command]
     public void CmdPlayMoneyCard(GameObject card, CardInfo cardInfo)
@@ -330,7 +314,7 @@ public class PlayerManager : NetworkBehaviour
 
             RemoveHandCard(cardInfo);
             discard.Add(cardInfo);
-            RpcMoveCard(card, CardLocation.Hand, CardLocation.Discard);
+            RpcMoveCard(card, CardLocation.Selection, CardLocation.Discard);
 
             _playerInterface.RpcLog($"{PlayerName} discards {cardInfo.title}", LogType.Standard);
         }
@@ -442,7 +426,7 @@ public class PlayerManager : NetworkBehaviour
 
     #endregion
 
-    #region UI
+    #region Resources UI
 
     private void SetPlayerName(string name)
     {
@@ -506,12 +490,8 @@ public class PlayerManager : NetworkBehaviour
     private void SetBuyValue(int value)
     {
         _buys = value;
-        if (isServer) RpcSetBuyValue(value);
-        else CmdUISetBuyValue(value);
+        RpcSetBuyValue(value);
     }
-
-    [Command]
-    private void CmdUISetBuyValue(int value) => RpcSetBuyValue(value);
 
     [ClientRpc]
     private void RpcSetBuyValue(int value)
@@ -524,12 +504,8 @@ public class PlayerManager : NetworkBehaviour
     private void SetPlayValue(int value)
     {
         _plays = value;
-        if (isServer) RpcSetPlayValue(value);
-        else CmdUISetPlayValue(value);
+        RpcSetPlayValue(value);
     }
-
-    [Command]
-    private void CmdUISetPlayValue(int value) => RpcSetPlayValue(value);
 
     [ClientRpc]
     private void RpcSetPlayValue(int value)
@@ -538,18 +514,12 @@ public class PlayerManager : NetworkBehaviour
         else _opponentUI.SetPlays(value);
     }
 
-    // Same for prevail
-
     [Server]
     private void SetPrevailValue(int value)
     {
         _prevails = value;
-        if (isServer) RpcSetPrevailValue(value);
-        else CmdUISetPrevailValue(value);
+        RpcSetPrevailValue(value);
     }
-
-    [Command]
-    private void CmdUISetPrevailValue(int value) => RpcSetPrevailValue(value);
 
     [ClientRpc]
     private void RpcSetPrevailValue(int value)
@@ -567,19 +537,20 @@ public class PlayerManager : NetworkBehaviour
         return networkIdentity.GetComponent<PlayerManager>();
     }
 
+    // TODO: Does this make sense like this ? 
+    // TODO: Could rework to not show what opponent is playing until confirmation
     [ClientRpc]
     private void RpcPlayMoney(GameObject card)
     {
-        // TODO: Does this make sense like this ? Bugness
         _cardMover.MoveTo(card, isOwned, CardLocation.Hand, CardLocation.MoneyZone);
-        if (isOwned) _handManager.UpdateHandCardList(card, false);
+        if (isOwned) _handManager.UpdateHandCards(new List<GameObject> { card }, false);
     }
 
     [ClientRpc]
     private void RpcReturnMoneyCardToHand(GameObject card)
     {
         _cardMover.MoveTo(card, isOwned, CardLocation.MoneyZone, CardLocation.Hand);
-        if (isOwned) _handManager.UpdateHandCardList(card, true);
+        if (isOwned) _handManager.UpdateHandCards(new List<GameObject> { card }, true);
     }
 
     [ClientRpc]

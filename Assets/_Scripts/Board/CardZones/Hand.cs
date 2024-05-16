@@ -9,25 +9,22 @@ using DG.Tweening;
 public class Hand : NetworkBehaviour
 {
     public static Hand Instance { get; private set; }
+    private InteractionPanel _interactionPanel;
     private List<CardStats> _handCards = new();
-    public void SetHandCards(List<CardStats> handCards) => _handCards = handCards;
+    private TurnState _state;
     [SerializeField] private Transform _cardHolder;
     private Vector3 _handPositionPlayCards = new Vector3(-200, 100, 0);
     private Vector3 _handScalePlayCards = new Vector3(1.2f, 1.2f, 0);
-    private TurnState _state;
 
     private void Awake()
     {
         if (!Instance) Instance = this;
-        PlayerManager.OnCashChanged += PlayerCashChanged;
+        CardClick.OnCardClicked += ClickedCard;
     }
 
-    public void UpdateHandCardList(GameObject card, bool addingCard)
+    private void Start()
     {
-        var stats = card.GetComponent<CardStats>();
-        
-        if (addingCard) _handCards.Add(stats);
-        else _handCards.Remove(stats);
+        _interactionPanel = InteractionPanel.Instance;
     }
 
     [ClientRpc]
@@ -36,30 +33,47 @@ public class Hand : NetworkBehaviour
     [TargetRpc]
     public void TargetHighlightMoney(NetworkConnection target) => HighlightCardTypes(true, new List<CardType> { CardType.Money });
 
+    public void HighlightAllHandCards(bool b)
+    {
+        foreach(var card in _handCards) card.IsInteractable = b;
+    }
+
     private void HighlightCardTypes(bool b, List<CardType> cardTypes)
     {
         foreach (var card in _handCards.Where(card => cardTypes.Contains(card.cardInfo.type))) card.IsInteractable = b;
     }
 
-    private void PlayerCashChanged(PlayerManager player, int newAmount)
-    {
-        if(_state == TurnState.Develop || _state == TurnState.Deploy)
-            TargetCheckPlayability(player.connectionToClient, newAmount);
-    }
-
     [TargetRpc]
-    private void TargetCheckPlayability(NetworkConnection target, int newAmount)
+    public void TargetCheckPlayability(NetworkConnection target, int newAmount)
     {
-        foreach (var card in _handCards) card.CheckPlayability(newAmount);
+        var allowedType = _state switch
+        {
+            TurnState.Develop => CardType.Technology,
+            TurnState.Deploy => CardType.Creature,
+            _ => CardType.None
+        };
+
+        foreach (var card in _handCards) {
+            if (card.cardInfo.type != allowedType) continue;
+
+            card.CheckPlayability(newAmount);
+        }
     }
 
     public void StartInteraction(TurnState state)
     {
+        print("Starting interaction in state " + state);
+
         _state = state;
         _cardHolder.DOLocalMove(_handPositionPlayCards, SorsTimings.cardPileRearrangement);
         _cardHolder.DOScale(_handScalePlayCards, SorsTimings.cardPileRearrangement);
         
-        List<CardType> interactableCardTypes = new(); 
+        if (state == TurnState.Discard) {
+            HighlightAllHandCards(true);
+            return;
+        }
+
+        List<CardType> interactableCardTypes = new();
         if (state == TurnState.Develop || state == TurnState.Deploy)
         {
             interactableCardTypes.Add(CardType.Money);
@@ -68,13 +82,35 @@ public class Hand : NetworkBehaviour
         }
 
         HighlightCardTypes(true, interactableCardTypes);
-
-
     }
 
     public void EndInteraction()
     {
         _cardHolder.DOLocalMove(Vector3.zero, SorsTimings.cardPileRearrangement);
         _cardHolder.DOScale(Vector3.one, SorsTimings.cardPileRearrangement);
+        HighlightAllHandCards(false);
+    }
+
+    public void UpdateHandCards(List<GameObject> cards, bool adding) 
+    {
+        for (int i = 0; i < cards.Count; i++) {
+            var stats = cards[i].GetComponent<CardStats>();
+        
+            if (adding) _handCards.Add(stats);
+            else _handCards.Remove(stats);
+        }
+    }
+
+    private void ClickedCard(GameObject card)
+    {
+        var cardInfo = card.GetComponent<CardStats>().cardInfo;
+        print($"Clicked card {cardInfo.title}");
+
+        var b = _interactionPanel.PlayerInteractionOnCard(card);
+    }
+
+    private void OnDestroy()
+    {
+        CardClick.OnCardClicked -= ClickedCard;
     }
 }

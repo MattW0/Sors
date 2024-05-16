@@ -21,6 +21,7 @@ public class CardMover : MonoBehaviour
     [SerializeField] private CardsPileSors opponentDiscardPile;
     [SerializeField] private CardsPileSors playerCardSpawn;
     [SerializeField] private CardsPileSors opponentCardSpawn;
+    [SerializeField] private CardsPileSors selection;
     [SerializeField] private CardsPileSors entitySpawn;
     [SerializeField] private CardsPileSors trash;
     
@@ -94,6 +95,7 @@ public class CardMover : MonoBehaviour
             CardLocation.CardSpawn => hasAuthority ? playerCardSpawn : opponentCardSpawn,
             CardLocation.EntitySpawn => entitySpawn,
             CardLocation.Trash => trash,
+            CardLocation.Selection => selection,
             CardLocation.Deck => hasAuthority ? playerDeck : opponentDeck,
             CardLocation.Hand => hasAuthority ? playerHand : opponentHand,
             CardLocation.PlayZone => hasAuthority ? playerPlayZone : opponentPlayZone,
@@ -160,5 +162,6 @@ public enum CardLocation : byte
     Hand,
     PlayZone,
     MoneyZone,
-    Discard
+    Discard,
+    Selection
 }

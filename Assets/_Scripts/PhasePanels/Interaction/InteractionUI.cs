@@ -44,19 +44,19 @@ public class InteractionUI : MonoBehaviour
         _displayText.text = "";
     }
 
-    public void BeginCardIntoHand(int nbCardsToSelect){
-        _nbCardsToSelectMax = nbCardsToSelect;
+    // public void BeginCardIntoHand(int nbCardsToSelect){
+    //     _nbCardsToSelectMax = nbCardsToSelect;
 
-        if (_nbCardsToSelectMax == 0) SkipInteraction(TurnState.CardIntoHand);
-        else InteractionBegin(TurnState.CardIntoHand);
-    }
+    //     if (_nbCardsToSelectMax == 0) SkipInteraction(TurnState.CardIntoHand);
+    //     else InteractionBegin(TurnState.CardIntoHand);
+    // }
 
-    public void BeginTrash(int nbCardsToTrash){
-        _nbCardsToSelectMax = nbCardsToTrash;
+    // public void BeginTrash(int nbCardsToTrash){
+    //     _nbCardsToSelectMax = nbCardsToTrash;
 
-        if (nbCardsToTrash == 0) SkipInteraction(TurnState.Trash);
-        else InteractionBegin(TurnState.Trash);
-    }
+    //     if (nbCardsToTrash == 0) SkipInteraction(TurnState.Trash);
+    //     else InteractionBegin(TurnState.Trash);
+    // }
 
     public void InteractionBegin(TurnState state, int numberPlays = 0)
     {
@@ -101,11 +101,7 @@ public class InteractionUI : MonoBehaviour
 
     public void OnConfirmButtonPressed()
     {
-        if (_state == TurnState.Discard) _interactionPanel.ConfirmDiscard();
-        else if (_state == TurnState.CardIntoHand || _state == TurnState.Trash) 
-            _interactionPanel.ConfirmPrevailCardSelection();
-        else if (_state == TurnState.Develop || _state == TurnState.Deploy) 
-            _interactionPanel.ConfirmPlay();
+        _interactionPanel.ConfirmSelection();
 
         _buttons.SetActive(false);
         _waitingText.SetActive(true);
@@ -134,9 +130,9 @@ public class InteractionUI : MonoBehaviour
         }
     }
 
-    private void StartInteractionUI(){
+    private void StartInteractionUI()
+    {
         _buttons.SetActive(true);
-        // _interaction.SetActive(true);
         _waitingText.SetActive(false);
         _confirmButton.interactable = false;
     }

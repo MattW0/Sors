@@ -48,6 +48,7 @@ public class TurnManager : NetworkBehaviour
         if (Instance == null) Instance = this;
 
         GameManager.OnGameStart += Prepare;
+        PlayerManager.OnCashChanged += PlayerCashChanged;
     }
 
     private void Prepare(GameOptions gameOptions)
@@ -107,7 +108,7 @@ public class TurnManager : NetworkBehaviour
         else {
             foreach(var player in _gameManager.players.Values) {
                 player.deck.Shuffle();
-                player.DrawInitialHand(_gameOptions.InitialHandSize);
+                player.DrawCards(_gameOptions.InitialHandSize);
             }
             yield return new WaitForSeconds(SorsTimings.wait);
         }
@@ -216,8 +217,9 @@ public class TurnManager : NetworkBehaviour
 
     private void Discard()
     {
-        ShowCardCollection();
+        StartPhaseInteraction();
     }
+
     public void PlayerSelectedDiscardCards(PlayerManager player) => PlayerIsReady(player);
 
     private void FinishDiscard()
@@ -236,6 +238,8 @@ public class TurnManager : NetworkBehaviour
     #region Market phases (Invent, Recruit)
     private void StartMarketPhase()
     {
+        _boughtCards.Clear();
+        
         // convert current turnState (TurnState enum) to Phase enum
         var phase = Phase.Recruit;
         var cardType = CardType.Creature;
@@ -245,8 +249,7 @@ public class TurnManager : NetworkBehaviour
         }
 
         _market.RpcBeginPhase(phase);
-        _handManager.RpcHighlightMoney(true);
-        _boughtCards.Clear();
+        StartPhaseInteraction();
 
         foreach (var player in _gameManager.players.Values)
         {
@@ -382,8 +385,7 @@ public class TurnManager : NetworkBehaviour
     {
         foreach (var cardsList in _selectedCards.Values) cardsList.Clear();
 
-        _handManager.RpcHighlightMoney(true);
-        ShowCardCollection();
+        StartPhaseInteraction();
     }
 
     public void PlayerPlaysCard(PlayerManager player, GameObject card)
@@ -533,18 +535,6 @@ public class TurnManager : NetworkBehaviour
         }
     }
     public void PlayerSkipsPrevailOption(PlayerManager player) => PlayerIsReady(player);
-
-    private void StartPrevailInteraction(PrevailOption currentPrevailOption)
-    {
-        foreach (var cardsList in _selectedCards.Values) cardsList.Clear();
-
-        ShowCardCollection();
-        foreach (var (player, options) in _playerPrevailOptions)
-        {
-            var nbPicks = options.Count(option => option == currentPrevailOption);
-            _interactionPanel.TargetBeginPrevailSelection(player.connectionToClient, turnState, nbPicks);
-        }
-    }
 
     public void PlayerSelectedPrevailCards(PlayerManager player, List<GameObject> selectedCards)
     {
@@ -696,15 +686,10 @@ public class TurnManager : NetworkBehaviour
 
     private void PlayerCashChanged(PlayerManager player, int newAmount)
     {
-        switch (turnState)
-        {
-            case TurnState.Invent or TurnState.Recruit:
-                _market.TargetCheckMarketPrices(player.connectionToClient, newAmount);
-                break;
-            case TurnState.Develop or TurnState.Deploy:
-                _interactionPanel.TargetCheckPlayability(player.connectionToClient, newAmount);
-                break;
-        }
+        if(turnState == TurnState.Develop || turnState == TurnState.Deploy)
+            _handManager.TargetCheckPlayability(player.connectionToClient, newAmount);
+        else if (turnState == TurnState.Invent || turnState == TurnState.Recruit)
+            _market.TargetCheckMarketPrices(player.connectionToClient, newAmount);
     }
 
     private void PlayersDiscardMoney()
@@ -730,27 +715,32 @@ public class TurnManager : NetworkBehaviour
         }
     }
 
-    private void ShowCardCollection()
+    private void StartPhaseInteraction()
     {
-
-        _handManager.RpcHighlightMoney(false);
-
         foreach (var player in _gameManager.players.Values)
         {
-            List<CardInfo> cards = player.hand; // mostly will be the hand cards
+            var nbInteractions = turnState switch 
+            {
+                TurnState.Discard => _gameOptions.phaseDiscard,
+                TurnState.Invent => player.Buys,
+                TurnState.Recruit => player.Buys,
+                TurnState.Develop => player.Plays,
+                TurnState.Deploy => player.Plays,
+                _ => -1
+            };
 
-            // other / more specific options
-            if (turnState == TurnState.CardIntoHand) cards = player.discard;
-            else if (turnState == TurnState.Develop) cards = cards.Where(card => card.type == CardType.Technology).ToList();
-            else if (turnState == TurnState.Deploy) cards = cards.Where(card => card.type == CardType.Creature).ToList();
+            _interactionPanel.TargetStartInteraction(player.connectionToClient, turnState, nbInteractions);
+        }
+    }
 
-            var cardObjects = GameManager.CardInfosToGameObjects(cards);
-            // Need plays here because clients can't access that number
-            _interactionPanel.TargetStartInteraction(player.connectionToClient, turnState, cardObjects, cards, player.Plays);
+    private void StartPrevailInteraction(PrevailOption currentPrevailOption)
+    {
+        foreach (var cardsList in _selectedCards.Values) cardsList.Clear();
 
-            // Reevaluating money in play to highlight playable cards after reset
-            if (turnState == TurnState.Develop || turnState == TurnState.Deploy)
-                _interactionPanel.TargetCheckPlayability(player.connectionToClient, player.Cash);
+        foreach (var (player, options) in _playerPrevailOptions)
+        {
+            var nbPicks = options.Count(option => option == currentPrevailOption);
+            _interactionPanel.TargetStartInteraction(player.connectionToClient, turnState, nbPicks);
         }
     }
 
@@ -788,6 +778,7 @@ public class TurnManager : NetworkBehaviour
     private void OnDestroy()
     {
         GameManager.OnGameStart -= Prepare;
+        PlayerManager.OnCashChanged -= PlayerCashChanged;
     }
 }
 

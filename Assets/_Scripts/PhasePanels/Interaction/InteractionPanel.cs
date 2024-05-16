@@ -1,22 +1,24 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
 using System.Linq;
+using System;
 
 public class InteractionPanel : NetworkBehaviour
 {
     public static InteractionPanel Instance { get; private set; }
-    [SerializeField] private CardGrid _selectedGrid;
     private Hand _playerHand;
+    private CardMover _cardMover;
     private InteractionUI _ui;
     private PlayerManager _player;
 
     [Header("Helper Fields")]
-    private List<DetailCard> _detailCards = new();
-    private List<CardInfo> _selectedCards = new();
+    private List<GameObject> _selectedCards = new();
     // Linking detail cards with their hand card gameobject
     private Dictionary<CardInfo, GameObject> _cache = new();
+    private TurnState _state;
+    private int _numberSelectableCards;
+    public static event Action OnInteractionConfirmed;
 
     private void Awake(){
         if (Instance == null) Instance = this;
@@ -24,6 +26,7 @@ public class InteractionPanel : NetworkBehaviour
 
     private void Start(){
         _playerHand = Hand.Instance;
+        _cardMover = CardMover.Instance;
     }
 
     [ClientRpc]
@@ -34,65 +37,64 @@ public class InteractionPanel : NetworkBehaviour
     }
 
     [TargetRpc]
-    public void TargetStartInteraction(NetworkConnection target, TurnState turnState, 
-                                         List<GameObject> cardObjects, List<CardInfo> cardInfos, int numberPlays)
+    public void TargetStartInteraction(NetworkConnection target, TurnState turnState, int numberSelectableCards)
     {
+        _state = turnState;
+        _numberSelectableCards = numberSelectableCards;
+
+        // TODO: Implement and check if more interactions require other collection than hand
+        if (turnState == TurnState.CardIntoHand) return;
 
         _playerHand.StartInteraction(turnState);
-        _ui.InteractionBegin(turnState, numberPlays);
-
-        // caching hand cards gameobjects
-        // for(var i=0; i<cardInfos.Count; i++) _cache.Add(cardInfos[i], cardObjects[i]);
-        
-        // var detailCards = _cardSpawner.SpawnDetailCardObjects(cardInfos, turnState);
-        // _detailCards.AddRange(detailCards);
+        _ui.InteractionBegin(turnState, numberSelectableCards);
     }
 
     #region States
-    [TargetRpc]
-    public void TargetBeginPrevailSelection(NetworkConnection conn, TurnState turnState, int nbCardsToTrash){
-        foreach(var card in _detailCards) card.SetCardState(turnState);
 
-        if (turnState == TurnState.CardIntoHand) _ui.BeginCardIntoHand(nbCardsToTrash);
-        else if (turnState == TurnState.Trash) _ui.BeginTrash(nbCardsToTrash);
+    public void ConfirmSelection()
+    {
+        OnInteractionConfirmed?.Invoke();
+
+        if (_state == TurnState.Discard) _player.CmdDiscardSelection(_selectedCards);
+        else if (_state == TurnState.CardIntoHand || _state == TurnState.Trash) _player.CmdPrevailCardsSelection(_selectedCards);
+        else if (_state == TurnState.Develop || _state == TurnState.Deploy) _player.CmdPlayCard(_selectedCards[0]);
+        // else if (_state == TurnState.Invent || _state == TurnState.Recruit) _player.CmdBuyCards(cards);
+        
+        _selectedCards.Clear();
     }
 
-    [TargetRpc]
-    public void TargetCheckPlayability(NetworkConnection target, int currentCash){
-        foreach (var card in _detailCards) card.CheckPlayability(currentCash);
+    public bool PlayerInteractionOnCard(GameObject card)
+    {
+        var cardStats = card.GetComponent<CardStats>();
+        if (cardStats.IsSelected) {
+            DeselectCard(card);
+            return false;
+        }
+
+        // Remove the previously selected card if user clicks another one
+        if (_selectedCards.Count >= _numberSelectableCards) 
+            DeselectCard(_selectedCards.Last());
+        
+        SelectCard(card);
+        return true;
     }
 
-    public void ConfirmPlay(){
-        var card = _cache[_selectedCards[0]];
-        _player.CmdPlayCard(card);
-    }
-
-    public void ConfirmDiscard(){
-        var cards = _selectedCards.Select(card => _cache[card]).ToList();
-        _player.CmdDiscardSelection(cards);
-    }
-
-    public void ConfirmPrevailCardSelection(){
-        var cards = _selectedCards.Select(card => _cache[card]).ToList();
-        _player.CmdPrevailCardsSelection(cards);
-    }
-
-    
     #endregion
-    public void AddCardToChosen(Transform t, CardInfo card){
+
+    private void SelectCard(GameObject card){
         _selectedCards.Add(card);
         _ui.UpdateInteractionElements(_selectedCards.Count);
-        
-        // _cardSpawner.SelectCard(t);
-        _selectedGrid.AddCard(t);
+
+        card.GetComponent<CardStats>().IsSelected = true;
+        _cardMover.MoveTo(card, true, CardLocation.Hand, CardLocation.Selection);
     }
 
-    public void RemoveCardFromChosen(Transform t, CardInfo card){
+    public void DeselectCard(GameObject card){
         _selectedCards.Remove(card);
         _ui.UpdateInteractionElements(_selectedCards.Count);
-
-        // _selectablesGrid.AddCard(t);
-        // _cardSpawner.DeselectCard(t);
+        
+        card.GetComponent<CardStats>().IsSelected = false;
+        _cardMover.MoveTo(card, true, CardLocation.Selection, CardLocation.Hand);
     }
 
     public void SkipCardPlay() => _player.CmdSkipCardPlay();
@@ -112,11 +114,8 @@ public class InteractionPanel : NetworkBehaviour
 
     public void ClearPanel()
     {
-        _selectedGrid.ClearGrid();
         _playerHand.EndInteraction();
 
-        // _cardSpawner.ClearGrids();
-        _detailCards.Clear();
         _selectedCards.Clear();
         _cache.Clear();
     }

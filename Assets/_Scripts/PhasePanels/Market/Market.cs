@@ -141,7 +141,7 @@ public class Market : NetworkBehaviour
     {
         _selectedTile.HasBeenChosen();
         PlayerDeselectsTile();
-        _ui.ResetInteractionButtons();
+        // _ui.ResetInteractionButtons();
     }
 
     public void ResetMarket(List<(int, CardType)> boughtCards){

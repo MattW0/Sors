@@ -1,28 +1,22 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using System;
 
 public class CardClick : MonoBehaviour, IPointerClickHandler
 {
     [SerializeField] private CardStats cardStats;
     private CardInfo _cardInfo;
-    private PlayerManager _owner;
     private CardZoomView _cardZoomView;
-
+    
+    public static event Action<GameObject> OnCardClicked;
     
     private void Start() {
         _cardZoomView = CardZoomView.Instance;
-
-        // only money cards needs owner
-        if(cardStats) {
-            _owner = cardStats.owner;
-            _cardInfo = cardStats.cardInfo;
-        }
+        _cardInfo = cardStats.cardInfo;
     }
 
-    public void OnPointerClick(PointerEventData eventData) {
-        
-        // print($"click card {_cardInfo.title}");
-        
+    public void OnPointerClick(PointerEventData eventData)
+    {
         // Right click to preview card only
         if (eventData.button == PointerEventData.InputButton.Right) {
             _cardZoomView.ZoomCard(_cardInfo);
@@ -30,9 +24,7 @@ public class CardClick : MonoBehaviour, IPointerClickHandler
         }
 
         if(!cardStats.IsInteractable) return;
-        _owner.CmdPlayMoneyCard(gameObject, cardStats.cardInfo);        
-        cardStats.IsInteractable = false;
-    }
 
-    public void SetCardInfo(CardInfo cardInfo) => _cardInfo = cardInfo;
+        OnCardClicked?.Invoke(gameObject);
+    }
 }

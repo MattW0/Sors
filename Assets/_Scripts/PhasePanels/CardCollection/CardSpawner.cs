@@ -30,7 +30,6 @@ public class CardSpawner : MonoBehaviour
             // Initialize detail card
             var detailCard = detailCardObject.GetComponent<DetailCard>();
             detailCard.SetCardUI(cardInfo);
-            detailCard.SetCardState(turnState);
             detailCards.Add(detailCard);
         }
         

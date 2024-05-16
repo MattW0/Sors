@@ -7,6 +7,8 @@ using Sirenix.OdinInspector;
 [RequireComponent(typeof(CardPileUI))]
 public class CardsPileSors : MonoBehaviour
 {
+	[SerializeField] private Transform _cardHolder;
+	public CardLocation pileType;
 	private bool updatePosition;
 	[ShowInInspector] public bool UpdatePosition {
 		get => updatePosition;
@@ -17,18 +19,19 @@ public class CardsPileSors : MonoBehaviour
 			#endif
 		}
 	}
-	public CardLocation pileType;
 	public float height = 0.5f;
 	public float width = 1f;
 	private float _defaultHandWidth = 400f;
 	[Range(0f, 90f)] public float maxCardAngle = 5f;
 	public float yPerCard = 0f;
 	public float zDistance;
-	[SerializeField] private Transform _cardHolder;
-	[SerializeField] private CardPileUI _cardPileUI;
-
 	private readonly List<GameObject> cards = new List<GameObject>();
 	readonly List<GameObject> forceSetPosition = new List<GameObject>();
+	private CardPileUI _cardPileUI;
+
+	private void Start(){
+		_cardPileUI = gameObject.GetComponent<CardPileUI>();
+	}
 
 	public void CardHasArrived(GameObject card)
 	{

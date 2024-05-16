@@ -6,15 +6,16 @@ using TMPro;
 
 public class MarketUI : MonoBehaviour
 {
-    [SerializeField] private Market _market;
+    private Market _market;
+    private InteractionPanel _interactionPanel;
     [SerializeField] private GameObject maxView;
     [SerializeField] private GameObject _developPanel;
     [SerializeField] private GameObject _recruitPanel;
-    [SerializeField] private GameObject _interactionButtons;
-    [SerializeField] private GameObject _waitingText;
+    // [SerializeField] private GameObject _interactionButtons;
+    // [SerializeField] private GameObject _waitingText;
     [SerializeField] private TMP_Text _switchBtnText;
-    [SerializeField] private Button confirm;
-    [SerializeField] private Button skip;
+    // [SerializeField] private Button confirm;
+    // [SerializeField] private Button skip;
     [SerializeField] private GameObject _creatureDetailCard;
     [SerializeField] private GameObject _technologyDetailCard;
     [SerializeField] private GameObject _moneyDetailCard;
@@ -30,14 +31,14 @@ public class MarketUI : MonoBehaviour
     private void Start()
     {
         _market = Market.Instance;
-        skip.interactable = false;
+        // skip.interactable = false;
         MinButton();
     }
 
     public void BeginPhase(Phase phase)
     {
         MaxButton();
-        skip.interactable = true;
+        // skip.interactable = true;
         if(phase == Phase.Recruit) ShowCreaturePanel();
         else ShowTechnologyPanel();
     }
@@ -57,7 +58,7 @@ public class MarketUI : MonoBehaviour
         detailCard.SetCardUI(cardInfo);
         previewCardObject.SetActive(true);
 
-        confirm.interactable = true;
+        // confirm.interactable = true;
     }
 
     public void DeselectTile(){
@@ -65,33 +66,33 @@ public class MarketUI : MonoBehaviour
         _technologyDetailCard.SetActive(false);
         _moneyDetailCard.SetActive(false);
 
-        confirm.interactable = false;
+        // confirm.interactable = false;
     }
     #endregion
 
     #region Buttons and UI
     
-    public void ConfirmButtonPressed(){
-        _interactionButtons.SetActive(false);
-        _waitingText.SetActive(true);
+    // public void ConfirmButtonPressed(){
+    //     _interactionButtons.SetActive(false);
+    //     _waitingText.SetActive(true);
 
-        // Market lets local player make command to server
-        _market.PlayerPressedConfirmButton();
-    }
+    //     // Market lets local player make command to server
+    //     _market.PlayerPressedConfirmButton();
+    // }
 
-    public void SkipButtonPressed(){
-        _interactionButtons.SetActive(false);
-        _waitingText.SetActive(true);
+    // public void SkipButtonPressed(){
+    //     _interactionButtons.SetActive(false);
+    //     _waitingText.SetActive(true);
         
-        // Market lets local player make command to server
-        _market.PlayerPressedSkipButton();
-    }
+    //     // Market lets local player make command to server
+    //     _market.PlayerPressedSkipButton();
+    // }
 
-    public void ResetInteractionButtons(){
-        _interactionButtons.SetActive(true);
-        confirm.interactable = false;
-        _waitingText.SetActive(false);
-    }
+    // public void ResetInteractionButtons(){
+    //     _interactionButtons.SetActive(true);
+    //     confirm.interactable = false;
+    //     _waitingText.SetActive(false);
+    // }
 
     public void SwitchButtonPressed(){
         if(_developPanel.activeSelf) ShowCreaturePanel();
@@ -117,10 +118,10 @@ public class MarketUI : MonoBehaviour
         _technologyDetailCard.SetActive(false);
         _moneyDetailCard.SetActive(false);
 
-        _interactionButtons.SetActive(true);
-        _waitingText.SetActive(false);
-        confirm.interactable = false;
-        skip.interactable = false;
+        // _interactionButtons.SetActive(true);
+        // _waitingText.SetActive(false);
+        // confirm.interactable = false;
+        // skip.interactable = false;
     }
 
     public void MaxButton() {
