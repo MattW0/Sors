@@ -248,9 +248,7 @@ public class TurnManager : NetworkBehaviour
             cardType = CardType.Technology;
         }
 
-        _market.RpcBeginPhase(phase);
-        StartPhaseInteraction();
-
+        _market.RpcBeginMarketPhase(phase);
         foreach (var player in _gameManager.players.Values)
         {
             // Each player gets +1 Buy
@@ -261,12 +259,13 @@ public class TurnManager : NetworkBehaviour
             {
                 player.Buys += _gameOptions.extraBuys;
                 PlayerGetsMarketBonus(player, cardType, _gameOptions.marketPriceReduction);
-
             }
 
             // Makes highlights appear
             _market.TargetCheckMarketPrices(player.connectionToClient, player.Cash);
         }
+
+        StartPhaseInteraction();
     }
 
     public void PlayerGetsMarketBonus(PlayerManager player, CardType type, int amount)
@@ -275,25 +274,19 @@ public class TurnManager : NetworkBehaviour
         _market.TargetMarketPriceReduction(player.connectionToClient, type, amount);
     }
 
-    public void PlayerConfirmBuy(PlayerManager player, CardInfo card, int cost, int tileIndex)
+    public void PlayerConfirmBuy(PlayerManager player, MarketSelection selection)
     {
-        _boughtCards.Add((tileIndex, card.type));
+        _boughtCards.Add((selection.index, selection.cardInfo.type));
 
         player.Buys--;
-        player.Cash -= cost;
+        player.Cash -= selection.cost;
 
         if (_selectedMarketCards.ContainsKey(player))
-            _selectedMarketCards[player] = card;
+            _selectedMarketCards[player] = selection.cardInfo;
         else
-            _selectedMarketCards.Add(player,  card);
+            _selectedMarketCards.Add(player,  selection.cardInfo);
 
         _market.TargetResetMarket(player.connectionToClient, player.Buys);
-        PlayerIsReady(player);
-    }
-
-    public void PlayerSkipsBuy(PlayerManager player)
-    {
-        _skippedPlayers.Add(player);
         PlayerIsReady(player);
     }
 
@@ -329,28 +322,22 @@ public class TurnManager : NetworkBehaviour
         // Reset abilities and dead entities, needs market tiles for game state saving
         _boardManager.BoardCleanUp();
 
-        // Add each player that skipped to _readyPlayers
-        foreach (var player in _gameManager.players.Values) 
-        {
-            if (_skippedPlayers.Contains(player)) _readyPlayers.Add(player);
-            else if (player.Buys == 0) _readyPlayers.Add(player);
-        }
-
         // Play another card if not all players have skipped
-        if (_readyPlayers.Count == _gameManager.players.Count) {
+        if (AllPlayersSkipped()) {
             FinishBuyCard();
             return;
         }
 
         _market.RpcMaxButton();
+        StartPhaseInteraction();
     }
 
     private void FinishBuyCard()
     {
         // Replace tiles that were bought by either player
-        _market.ResetMarket(_boughtCards);
+        _market.EndMarketPhase(_boughtCards);
         PlayersDiscardMoney();
-        // _market.RpcEndMarketPhase();
+        _interactionPanel.RpcResetPanel();
 
         UpdateTurnState(TurnState.NextPhase);
     }
@@ -397,12 +384,6 @@ public class TurnManager : NetworkBehaviour
         PlayerIsReady(player);
     }
 
-    public void PlayerSkipsCardPlay(PlayerManager player)
-    {
-        _skippedPlayers.Add(player);
-        PlayerIsReady(player);
-    }
-
     private void PlayEntities()
     {
         Dictionary<GameObject, BattleZoneEntity> entities = new();
@@ -440,20 +421,13 @@ public class TurnManager : NetworkBehaviour
         // Reset abilities and dead entities
         _boardManager.BoardCleanUp();
 
-        // Add each player that skipped to _readyPlayers
-        foreach (var player in _gameManager.players.Values) 
-        {
-            if (_skippedPlayers.Contains(player)) _readyPlayers.Add(player);
-            else if (player.Plays == 0) _readyPlayers.Add(player);
-        }
-
         // Play another card if not all players have skipped
-        if (_readyPlayers.Count != _gameManager.players.Count) {
-            _interactionPanel.RpcSoftResetPanel();
-            PlayCard();
-        } else {
+        if (AllPlayersSkipped()) {
             FinishPlayCard();
+            return;
         }
+        
+        PlayCard();
     }
 
     private void FinishPlayCard()
@@ -521,11 +495,11 @@ public class TurnManager : NetworkBehaviour
         {
             case PrevailOption.CardSelection:
                 turnState = TurnState.CardIntoHand;
-                StartPrevailInteraction(PrevailOption.CardSelection);
+                StartPrevailInteraction(nextOption);
                 break;
             case PrevailOption.Trash:
                 turnState = TurnState.Trash;
-                StartPrevailInteraction(PrevailOption.Trash);
+                StartPrevailInteraction(nextOption);
                 break;
             case PrevailOption.Score:
                 PrevailScoring();
@@ -534,7 +508,6 @@ public class TurnManager : NetworkBehaviour
                 throw new ArgumentOutOfRangeException();
         }
     }
-    public void PlayerSkipsPrevailOption(PlayerManager player) => PlayerIsReady(player);
 
     public void PlayerSelectedPrevailCards(PlayerManager player, List<GameObject> selectedCards)
     {
@@ -602,7 +575,7 @@ public class TurnManager : NetworkBehaviour
     }
     #endregion
     
-    #region EndPhase
+    #region Clean Up
     private bool GameEnds()
     {
         var gameEnds = false;
@@ -684,6 +657,26 @@ public class TurnManager : NetworkBehaviour
         else throw new ArgumentOutOfRangeException(nameof(turnState), turnState, null);
     }
 
+    public void PlayerSkipsInteraction(PlayerManager player)
+    {
+        _skippedPlayers.Add(player);
+        PlayerIsReady(player);
+    }
+
+    private bool AllPlayersSkipped()
+    {
+        // Add each player that skipped to _readyPlayers
+
+        foreach (var player in _gameManager.players.Values) 
+        {
+            if (_skippedPlayers.Contains(player)) _readyPlayers.Add(player);
+            else if ((turnState == TurnState.Invent || turnState == TurnState.Recruit) && player.Buys <= 0) _readyPlayers.Add(player);
+            else if ((turnState == TurnState.Develop || turnState == TurnState.Deploy) && player.Plays <= 0) _readyPlayers.Add(player);
+        }
+
+        return _readyPlayers.Count == _nbPlayers;
+    }
+
     private void PlayerCashChanged(PlayerManager player, int newAmount)
     {
         if(turnState == TurnState.Develop || turnState == TurnState.Deploy)
@@ -694,9 +687,6 @@ public class TurnManager : NetworkBehaviour
 
     private void PlayersDiscardMoney()
     {
-        // _logger.RpcLog("... Discarding money ...", LogType.Standard);
-        _handManager.RpcHighlightMoney(false);
-
         foreach (var player in _gameManager.players.Values)
         {
             // Returns unused money then discards the remaining cards
@@ -746,7 +736,6 @@ public class TurnManager : NetworkBehaviour
 
     public void ForceEndTurn()
     { // experimental
-        _handManager.RpcHighlightMoney(false);
         _interactionPanel.RpcResetPanel();
         _market.RpcEndMarketPhase();
         _boardManager.ShowHolders(false);

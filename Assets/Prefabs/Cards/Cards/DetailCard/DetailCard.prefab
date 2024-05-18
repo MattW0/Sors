@@ -1006,7 +1006,6 @@ GameObject:
   - component: {fileID: 5155140612128770232}
   - component: {fileID: 4638933404628054201}
   - component: {fileID: 486377202005596747}
-  - component: {fileID: 3192643061952834248}
   m_Layer: 6
   m_Name: DetailCard
   m_TagString: Untagged
@@ -1070,7 +1069,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _ui: {fileID: 486377202005596747}
-  isChoosable: 0
 --- !u!114 &486377202005596747
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1096,19 +1094,6 @@ MonoBehaviour:
   highlight: {fileID: 6942316134712413200}
   titleBox: {fileID: 5056304822219746285}
   enableFocus: 1
---- !u!114 &3192643061952834248
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5450374274839420802}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d16e96c8497085642bd0be2fc0c83480, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  cardStats: {fileID: 0}
 --- !u!1 &5650112559521258811
 GameObject:
   m_ObjectHideFlags: 0

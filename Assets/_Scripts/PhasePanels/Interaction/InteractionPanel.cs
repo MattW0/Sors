@@ -14,14 +14,14 @@ public class InteractionPanel : NetworkBehaviour
 
     [Header("Helper Fields")]
     private List<GameObject> _selectedCards = new();
-    // Linking detail cards with their hand card gameobject
-    private Dictionary<CardInfo, GameObject> _cache = new();
+    private MarketSelection _marketSelection;
     private TurnState _state;
     private int _numberSelectableCards;
     public static event Action OnInteractionConfirmed;
 
     private void Awake(){
         if (Instance == null) Instance = this;
+        CardClick.OnCardClicked += ClickedCard;
     }
 
     private void Start(){
@@ -41,12 +41,13 @@ public class InteractionPanel : NetworkBehaviour
     {
         _state = turnState;
         _numberSelectableCards = numberSelectableCards;
+        bool autoSkip = CheckAutoskip();
 
         // TODO: Implement and check if more interactions require other collection than hand
         if (turnState == TurnState.CardIntoHand) return;
 
-        _playerHand.StartInteraction(turnState);
-        _ui.InteractionBegin(turnState, numberSelectableCards);
+        _ui.InteractionBegin(turnState, autoSkip);
+        if (!autoSkip) _playerHand.StartInteraction(turnState);
     }
 
     #region States
@@ -55,20 +56,56 @@ public class InteractionPanel : NetworkBehaviour
     {
         OnInteractionConfirmed?.Invoke();
 
-        if (_state == TurnState.Discard) _player.CmdDiscardSelection(_selectedCards);
+        if (_state == TurnState.Discard) {
+            _playerHand.UpdateHandCards(_selectedCards, false);
+            _player.CmdDiscardSelection(_selectedCards);
+        }
         else if (_state == TurnState.CardIntoHand || _state == TurnState.Trash) _player.CmdPrevailCardsSelection(_selectedCards);
-        else if (_state == TurnState.Develop || _state == TurnState.Deploy) _player.CmdPlayCard(_selectedCards[0]);
-        // else if (_state == TurnState.Invent || _state == TurnState.Recruit) _player.CmdBuyCards(cards);
+        else if (_state == TurnState.Invent || _state == TurnState.Recruit) _player.CmdConfirmBuy(_marketSelection);
+        else if (_state == TurnState.Develop || _state == TurnState.Deploy) {
+            var card = _selectedCards[0];
+            _playerHand.RemoveCard(card);
+            _player.CmdConfirmPlay(card);
+        }
         
         _selectedCards.Clear();
+        _ui.ResetPanelUI(false);
     }
 
-    public bool PlayerInteractionOnCard(GameObject card)
+    private void ClickedCard(GameObject card)
     {
         var cardStats = card.GetComponent<CardStats>();
-        if (cardStats.IsSelected) {
+
+        // Only select or deselect in these turnStates
+        if (_state == TurnState.Discard || _state == TurnState.CardIntoHand || _state == TurnState.Trash) {
+            SelectOrDeselectCard(card, cardStats.IsSelected);
+            return;
+        }
+
+        // Have to check if playing money card
+        if (cardStats.cardInfo.type == CardType.Money) {
+            _player.CmdPlayMoneyCard(card, cardStats.cardInfo);
+            cardStats.IsInteractable = false;
+            return;
+        }
+
+        // Else we can select or deselect entity card
+        SelectOrDeselectCard(card, cardStats.IsSelected);
+    }
+
+    public void SelectMarketTile(MarketTile tile)
+    {
+        _marketSelection = new MarketSelection(tile.cardInfo, tile.Cost, tile.Index);
+        _ui.SelectMarketTile(tile.cardInfo);
+    }
+
+    public void DeselectMarketTile() => _ui.DeselectMarketTile();
+
+    private void SelectOrDeselectCard(GameObject card, bool isSelected)
+    {
+        if (isSelected) {
             DeselectCard(card);
-            return false;
+            return;
         }
 
         // Remove the previously selected card if user clicks another one
@@ -76,12 +113,12 @@ public class InteractionPanel : NetworkBehaviour
             DeselectCard(_selectedCards.Last());
         
         SelectCard(card);
-        return true;
     }
 
     #endregion
 
-    private void SelectCard(GameObject card){
+    private void SelectCard(GameObject card)
+    {
         _selectedCards.Add(card);
         _ui.UpdateInteractionElements(_selectedCards.Count);
 
@@ -89,7 +126,8 @@ public class InteractionPanel : NetworkBehaviour
         _cardMover.MoveTo(card, true, CardLocation.Hand, CardLocation.Selection);
     }
 
-    public void DeselectCard(GameObject card){
+    public void DeselectCard(GameObject card)
+    {
         _selectedCards.Remove(card);
         _ui.UpdateInteractionElements(_selectedCards.Count);
         
@@ -97,33 +135,44 @@ public class InteractionPanel : NetworkBehaviour
         _cardMover.MoveTo(card, true, CardLocation.Selection, CardLocation.Hand);
     }
 
-    public void SkipCardPlay() => _player.CmdSkipCardPlay();
-    public void PlayerSkipsPrevailOption() => _player.CmdPlayerSkipsPrevailOption();
+    public void OnSkipInteraction() => _player.CmdSkipInteraction();
+
+    private bool CheckAutoskip()
+    {
+        if (_numberSelectableCards <= 0) return true;
+
+        // No card in hand -> only valid where player has to interact from hand
+        if ((_state == TurnState.Discard || _state == TurnState.Trash) && _playerHand.HandCardsCount == 0) return true;
+
+        // No entity to play
+        if (_state == TurnState.Develop) return ! _playerHand.ContainsTechnology();
+        else if (_state == TurnState.Deploy) return ! _playerHand.ContainsCreature();
+
+        return false;
+    }
 
     [ClientRpc]
     public void RpcResetPanel(){
-        ClearPanel();
+        _playerHand.EndInteraction();
+        _selectedCards.Clear();
+
         _ui.ResetPanelUI(true);
     }
 
-    [ClientRpc]
-    public void RpcSoftResetPanel(){
-        ClearPanel();
-        _ui.ResetPanelUI(false);
-    }
-
-    public void ClearPanel()
+    private void OnDestroy()
     {
-        _playerHand.EndInteraction();
-
-        _selectedCards.Clear();
-        _cache.Clear();
+        CardClick.OnCardClicked -= ClickedCard;
     }
 }
 
-public enum InteractionType
-{
-    Play,
-    Discard,
-    Prevail
+public struct MarketSelection{
+    public CardInfo cardInfo;
+    public int cost;
+    public int index;
+
+    public MarketSelection(CardInfo cardInfo, int cost, int index){
+        this.cardInfo = cardInfo;
+        this.cost = cost;
+        this.index = index;
+    }
 }

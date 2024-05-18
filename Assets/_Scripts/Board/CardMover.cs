@@ -31,6 +31,9 @@ public class CardMover : MonoBehaviour
 
     public void MoveTo(GameObject card, bool hasAuthority, CardLocation from, CardLocation to)
     {
+        // Change this here because card moved on client already ( InteractionPanel.SelectCard() )
+        if(to == CardLocation.EntitySpawn && hasAuthority) from = CardLocation.Selection;
+
         // Remove from pile, cards positions are immediately updated in CardsPile
         var sourcePile = GetPile(from, hasAuthority);
         sourcePile.Remove(card);

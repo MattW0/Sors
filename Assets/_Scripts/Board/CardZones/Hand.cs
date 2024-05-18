@@ -11,6 +11,7 @@ public class Hand : NetworkBehaviour
     public static Hand Instance { get; private set; }
     private InteractionPanel _interactionPanel;
     private List<CardStats> _handCards = new();
+    public int HandCardsCount => _handCards.Count;
     private TurnState _state;
     [SerializeField] private Transform _cardHolder;
     private Vector3 _handPositionPlayCards = new Vector3(-200, 100, 0);
@@ -19,28 +20,24 @@ public class Hand : NetworkBehaviour
     private void Awake()
     {
         if (!Instance) Instance = this;
-        CardClick.OnCardClicked += ClickedCard;
     }
 
     private void Start()
     {
         _interactionPanel = InteractionPanel.Instance;
     }
-
-    [ClientRpc]
-    public void RpcHighlightMoney(bool isInteractable) => HighlightCardTypes(isInteractable, new List<CardType> { CardType.Money });
     
     [TargetRpc]
-    public void TargetHighlightMoney(NetworkConnection target) => HighlightCardTypes(true, new List<CardType> { CardType.Money });
+    public void TargetHighlightMoney(NetworkConnection target) => HighlightMoneyHandCards(true);
 
-    public void HighlightAllHandCards(bool b)
+    private void HighlightAllHandCards(bool b)
     {
         foreach(var card in _handCards) card.IsInteractable = b;
     }
 
-    private void HighlightCardTypes(bool b, List<CardType> cardTypes)
+    private void HighlightMoneyHandCards(bool b)
     {
-        foreach (var card in _handCards.Where(card => cardTypes.Contains(card.cardInfo.type))) card.IsInteractable = b;
+        foreach(var card in _handCards) if (card.cardInfo.type == CardType.Money) card.IsInteractable = b;
     }
 
     [TargetRpc]
@@ -63,6 +60,7 @@ public class Hand : NetworkBehaviour
     public void StartInteraction(TurnState state)
     {
         print("Starting interaction in state " + state);
+        print("Hand cards: " + _handCards.Count);
 
         _state = state;
         _cardHolder.DOLocalMove(_handPositionPlayCards, SorsTimings.cardPileRearrangement);
@@ -73,15 +71,7 @@ public class Hand : NetworkBehaviour
             return;
         }
 
-        List<CardType> interactableCardTypes = new();
-        if (state == TurnState.Develop || state == TurnState.Deploy)
-        {
-            interactableCardTypes.Add(CardType.Money);
-            // if (state == TurnState.Develop) interactableCardTypes.Add(CardType.Technology);
-            // else if (state == TurnState.Deploy) interactableCardTypes.Add(CardType.Creature);
-        }
-
-        HighlightCardTypes(true, interactableCardTypes);
+        HighlightMoneyHandCards(true);
     }
 
     public void EndInteraction()
@@ -101,16 +91,8 @@ public class Hand : NetworkBehaviour
         }
     }
 
-    private void ClickedCard(GameObject card)
-    {
-        var cardInfo = card.GetComponent<CardStats>().cardInfo;
-        print($"Clicked card {cardInfo.title}");
-
-        var b = _interactionPanel.PlayerInteractionOnCard(card);
-    }
-
-    private void OnDestroy()
-    {
-        CardClick.OnCardClicked -= ClickedCard;
-    }
+    public void RemoveCard(GameObject card) => _handCards.Remove(card.GetComponent<CardStats>());
+    public bool ContainsMoney() => _handCards.Any(c => c.cardInfo.type == CardType.Money);
+    public bool ContainsTechnology() => _handCards.Any(c => c.cardInfo.type == CardType.Technology);
+    public bool ContainsCreature() => _handCards.Any(c => c.cardInfo.type == CardType.Creature);
 }

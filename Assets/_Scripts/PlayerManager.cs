@@ -184,16 +184,6 @@ public class PlayerManager : NetworkBehaviour
         deck.Shuffle();
     }
 
-    [Command]
-    public void CmdPlayCard(GameObject card)
-    {
-        _turnManager.PlayerPlaysCard(this, card);
-        RemoveHandCard(card.GetComponent<CardStats>().cardInfo);
-    }
-
-    [Command]
-    public void CmdSkipCardPlay() => _turnManager.PlayerSkipsCardPlay(this);
-
     [ClientRpc]
     public void RpcMoveCard(GameObject card, CardLocation from, CardLocation to)
     {
@@ -235,8 +225,6 @@ public class PlayerManager : NetworkBehaviour
     [Server]
     public void ReturnMoneyToHand(bool isUndo)
     {
-        // print($"ReturnMoneyToHand : {moneyCardsInPlay.Count} cards");
-
         // Don't allow to return already spent money
         var totalMoneyBack = 0;
         var cardsToReturn = new Dictionary<GameObject, CardInfo>();
@@ -248,7 +236,6 @@ public class PlayerManager : NetworkBehaviour
             totalMoneyBack += info.moneyValue;
         }
 
-        // print($"CardsToReturn : {cardsToReturn.Count} cards");
         // Return to hand
         foreach (var (card, info) in cardsToReturn)
         {
@@ -321,10 +308,14 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Command]
-    public void CmdConfirmBuy(CardInfo card, int cost, int tileIndex) => _turnManager.PlayerConfirmBuy(this, card, cost, tileIndex);
+    public void CmdConfirmBuy(MarketSelection card) => _turnManager.PlayerConfirmBuy(this, card);
 
     [Command]
-    public void CmdSkipBuy() => _turnManager.PlayerSkipsBuy(this);
+    public void CmdConfirmPlay(GameObject card)
+    {
+        _turnManager.PlayerPlaysCard(this, card);
+        RemoveHandCard(card.GetComponent<CardStats>().cardInfo);
+    }
 
     [Command]
     public void CmdPrevailSelection(List<PrevailOption> options)
@@ -343,7 +334,7 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Command]
-    public void CmdPlayerSkipsPrevailOption() => _turnManager.PlayerSkipsPrevailOption(this);
+    public void CmdSkipInteraction() => _turnManager.PlayerSkipsInteraction(this);
 
     #endregion TurnActions
 

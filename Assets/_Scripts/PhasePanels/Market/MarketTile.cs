@@ -29,6 +29,7 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
             _ui.Highlight(value, SorsColors.tileSelectable);
         }
     }
+
     private bool _isSelected;
     private bool IsSelected
     {
@@ -46,20 +47,19 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     }
 
     public int Index { get; private set; }
-
     private bool _alreadyChosen;
 
-    private void Awake(){
+    private void Awake()
+    {
         _market = Market.Instance;
         _cardZoomView = CardZoomView.Instance;
     }
 
-    public void InitializeTile(CardInfo card, int index){
+    public void InitializeTile(CardInfo card, int index)
+    {
         Index = index;
-
         SetTile(card);
-        
-        Market.OnMarketPhaseEnded += EndMarketPhase;
+        Market.OnMarketPhaseEnded += ResetTile;
     }
 
     public void SetTile(CardInfo card)
@@ -69,25 +69,10 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         _ui.SetEntityUI(card);
     }
 
-    public void SetBonus(int priceReduction){
+    public void SetBonus(int priceReduction)
+    {
         if(Cost - priceReduction <= 0) Cost = 0;
         else Cost -= priceReduction;
-    }
-
-    public void OnPointerEnter(PointerEventData eventData){
-        StopAllCoroutines();
-        StartCoroutine(HoverPreviewWaitTimer());
-    }
-
-    private IEnumerator HoverPreviewWaitTimer(){
-        yield return new WaitForSeconds(0.5f);
-        MarketTileHoverPreview.OnHoverTile(cardInfo);
-    }
-
-    public void OnPointerExit(PointerEventData eventData)
-    {
-        StopAllCoroutines();
-        MarketTileHoverPreview.OnHoverExit();
     }
 
     public void OnPointerClick(PointerEventData eventData)
@@ -104,6 +89,24 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         IsSelected = !_isSelected;
     }
 
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        StopAllCoroutines();
+        StartCoroutine(HoverPreviewWaitTimer());
+    }
+
+    private IEnumerator HoverPreviewWaitTimer()
+    {
+        yield return new WaitForSeconds(0.5f);
+        MarketTileHoverPreview.OnHoverTile(cardInfo);
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        StopAllCoroutines();
+        MarketTileHoverPreview.OnHoverExit();
+    }
+
     public void ResetSelected(){
         if(!IsSelected) return;
         IsSelected = false;
@@ -117,8 +120,6 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         _ui.ShowAsChosen();
     }
     
-    private void EndMarketPhase() => ResetTile();
-    
     private void ResetTile(){
         Interactable = false;
         _isSelected = false;
@@ -129,6 +130,6 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     }
 
     private void OnDestroy(){
-        Market.OnMarketPhaseEnded -= EndMarketPhase;
+        Market.OnMarketPhaseEnded -= ResetTile;
     }
 }

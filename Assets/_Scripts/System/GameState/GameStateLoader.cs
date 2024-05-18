@@ -142,7 +142,6 @@ public class GameStateLoader : MonoBehaviour
     {
         // Get reference to the market object in the game
         var _market = Market.Instance;
-        _market.RpcSetPlayer();
 
         // Money
         var moneyCards = new CardInfo[market.money.Count];

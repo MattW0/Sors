@@ -9,8 +9,7 @@ using Random = UnityEngine.Random;
 public class Market : NetworkBehaviour
 {
     public static Market Instance { get; private set; }
-    [SerializeField] private GameManager _gameManager;
-    private PlayerManager _player;
+    private InteractionPanel _interactionPanel;
     private Phase _currentPhase;
 
     [SerializeField] private MarketUI _ui;
@@ -48,6 +47,8 @@ public class Market : NetworkBehaviour
         _moneyCardsDb = Resources.LoadAll<ScriptableCard>("Cards/MoneyCards/");
         _creatureCardsDb = Resources.LoadAll<ScriptableCard>("Cards/CreatureCards/");
         _technologyCardsDb = Resources.LoadAll<ScriptableCard>("Cards/TechnologyCards/");
+
+        _interactionPanel = InteractionPanel.Instance;
     }
 
     #region Setup
@@ -55,8 +56,6 @@ public class Market : NetworkBehaviour
     [ClientRpc]
     public void RpcInitializeMarket()
     {
-        _player = PlayerManager.GetLocalPlayer();
-
         // Money
         for (var i = 0; i < moneyTiles.Length; i++) 
             moneyTiles[i].InitializeTile(new CardInfo(_moneyCardsDb[i]), i);
@@ -71,15 +70,7 @@ public class Market : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcSetTile(CardType type, int index, CardInfo cardInfo)
-    {
-        if (type == CardType.Money) {}
-        else if (type == CardType.Technology) technologyTiles[index].SetTile(cardInfo);
-        else creatureTiles[index].SetTile(cardInfo);
-    }
-
-    [ClientRpc]
-    public void RpcBeginPhase(Phase phase){
+    public void RpcBeginMarketPhase(Phase phase){
         _currentPhase = phase;
         _ui.BeginPhase(phase);
     }
@@ -119,7 +110,7 @@ public class Market : NetworkBehaviour
         PlayerDeselectsTile();
 
         _selectedTile = tile;
-        _ui.SelectTile(tile.cardInfo);
+        _interactionPanel.SelectMarketTile(tile);
 
         // Reset all other tiles -> single selection
         foreach (var t in moneyTiles) if (t != tile) t.ResetSelected();
@@ -132,7 +123,7 @@ public class Market : NetworkBehaviour
 
     public void PlayerDeselectsTile(){
         _selectedTile = null;
-        _ui.DeselectTile();
+        _interactionPanel.DeselectMarketTile();
     }
 
     #region Reset and EoP
@@ -141,10 +132,9 @@ public class Market : NetworkBehaviour
     {
         _selectedTile.HasBeenChosen();
         PlayerDeselectsTile();
-        // _ui.ResetInteractionButtons();
     }
 
-    public void ResetMarket(List<(int, CardType)> boughtCards){
+    public void EndMarketPhase(List<(int, CardType)> boughtCards){
         foreach (var (index, type) in boughtCards)
         {
             if(type == CardType.Money) continue;
@@ -157,22 +147,21 @@ public class Market : NetworkBehaviour
 
         RpcEndMarketPhase();
     }
+
+    [ClientRpc]
+    public void RpcSetTile(CardType type, int index, CardInfo cardInfo)
+    {
+        if (type == CardType.Money) {}
+        else if (type == CardType.Technology) technologyTiles[index].SetTile(cardInfo);
+        else creatureTiles[index].SetTile(cardInfo);
+    }
     
     [ClientRpc]
     public void RpcEndMarketPhase(){
-        _ui.EndPhase();
+        _ui.MinButton();
         OnMarketPhaseEnded?.Invoke();
     }
     #endregion
-
-    public void PlayerPressedConfirmButton()
-    {        
-        // Need the cost here as market bonus are not reflected in cardInfo itself
-        if(_selectedTile) _player.CmdConfirmBuy(_selectedTile.cardInfo, _selectedTile.Cost, _selectedTile.Index);
-        else print("ERROR: No tile selected");
-    }
-
-    public void PlayerPressedSkipButton() => _player.CmdSkipBuy();
 
     [ClientRpc]
     public void RpcMinButton() => _ui.MinButton();
@@ -197,11 +186,6 @@ public class Market : NetworkBehaviour
 
     // FOR GAME STATE LOADING
     // TODO: Change this to conform with new way of loading from gameManager
-    [ClientRpc]
-    public void RpcSetPlayer()
-    {
-        _player = PlayerManager.GetLocalPlayer();
-    }
     
     [ClientRpc]
     public void RpcSetMoneyTiles(CardInfo[] moneyTilesInfo){

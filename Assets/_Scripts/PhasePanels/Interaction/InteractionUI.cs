@@ -17,6 +17,11 @@ public class InteractionUI : MonoBehaviour
     [SerializeField] private Button _confirmButton;
     [SerializeField] private TMP_Text _displayText;
 
+    [Header("Market Selection")]
+    [SerializeField] private GameObject _creatureCard;
+    [SerializeField] private GameObject _technologyCard;
+    [SerializeField] private GameObject _moneyCard;
+
     [Header("Helper Fields")]
     private TurnState _state;
     private int _nbCardsToDiscard;
@@ -24,17 +29,13 @@ public class InteractionUI : MonoBehaviour
     private int _nbCardsToSelectMax;
     private InteractionPanel _interactionPanel;
 
+
     private void Start()
     {
         _interactionPanel = InteractionPanel.Instance;
 
         _skipButton.onClick.AddListener(OnSkipButtonPressed);
         _confirmButton.onClick.AddListener(OnConfirmButtonPressed);
-    }
-    
-    public void PrepareInteractionPanel(int nbCardsToDiscard)
-    {
-        _nbCardsToDiscard = nbCardsToDiscard;
 
         _interactionView.SetActive(false);
         _buttons.SetActive(false);
@@ -42,61 +43,78 @@ public class InteractionUI : MonoBehaviour
 
         _waitingText.SetActive(false);
         _displayText.text = "";
+        
+        _creatureCard.SetActive(false);
+        _technologyCard.SetActive(false);
+        _moneyCard.SetActive(false);
+    }
+    
+    public void PrepareInteractionPanel(int nbCardsToDiscard)
+    {
+        _nbCardsToDiscard = nbCardsToDiscard;
     }
 
-    // public void BeginCardIntoHand(int nbCardsToSelect){
-    //     _nbCardsToSelectMax = nbCardsToSelect;
-
-    //     if (_nbCardsToSelectMax == 0) SkipInteraction(TurnState.CardIntoHand);
-    //     else InteractionBegin(TurnState.CardIntoHand);
-    // }
-
-    // public void BeginTrash(int nbCardsToTrash){
-    //     _nbCardsToSelectMax = nbCardsToTrash;
-
-    //     if (nbCardsToTrash == 0) SkipInteraction(TurnState.Trash);
-    //     else InteractionBegin(TurnState.Trash);
-    // }
-
-    public void InteractionBegin(TurnState state, int numberPlays = 0)
+    public void InteractionBegin(TurnState state, bool autoSkip)
     {
-        _interactionView.SetActive(true);
-        StartInteractionUI();
-
         _state = state;
-        switch (_state){
-            case TurnState.Develop or TurnState.Deploy:
-                PlayCardInteraction(numberPlays);
-                break;
-            case TurnState.Discard:
-                _displayText.text = $"Discard 0/{_nbCardsToDiscard} cards";
-                break;
-            case TurnState.CardIntoHand:
-                _displayText.text = $"Put up to {_nbCardsToSelectMax} card(s) into your hand";
-                _confirmButton.interactable = true;
-                break;
-            case TurnState.Trash:
-                _displayText.text = $"Trash up to {_nbCardsToSelectMax} card(s)";
-                _confirmButton.interactable = true;
-                break;
+        var actionVerb = StartInteractionUI();
+        _interactionView.SetActive(true);
+
+        if(autoSkip){
+            print("AutoSkip in InteractionUI: " + actionVerb);
+            _displayText.text = $"You can't {actionVerb} more cards";
+
+            SkipInteraction();
+            return;
         }
+
+        if (_state == TurnState.Discard) _displayText.text = $"Discard 0/{_nbCardsToDiscard} cards";
+        else if (_state == TurnState.CardIntoHand) {
+            _displayText.text = $"Put up to {_nbCardsToSelectMax} card(s) into your hand";
+            _confirmButton.interactable = true;
+        } else if (_state == TurnState.Trash) {
+            _displayText.text = $"Trash up to {_nbCardsToSelectMax} card(s)";
+            _confirmButton.interactable = true;
+        } else MoneyInteraction(actionVerb);
     }
 
-    private void PlayCardInteraction(int numberPlays)
+    private void MoneyInteraction(string actionVerb)
     {
-        if(numberPlays <= 0){
-            _buttons.SetActive(false);
-            _waitingText.SetActive(true);
-            _displayText.text = $"You can't play more cards";
-        } else {
-            _skipButtonGameObject.SetActive(true);
-            if (_state == TurnState.Develop) {
-                _displayText.text = $"You may develop a card";
-            }
-            else if(_state == TurnState.Deploy) {
-                _displayText.text = $"You may deploy a card";
-            }
-        }
+        _skipButtonGameObject.SetActive(true);
+        var cardType = _state switch {
+            TurnState.Invent or TurnState.Develop => " Technology",
+            TurnState.Recruit or TurnState.Deploy => " Creature",
+            _ => ""
+        };
+
+        if (_state == TurnState.Invent || _state == TurnState.Recruit) cardType += " or Money";
+        
+        _displayText.text = $"You may {actionVerb} a{cardType} card";
+    }
+
+    public void SelectMarketTile(CardInfo cardInfo)
+    {
+        var previewCardObject = cardInfo.type switch{
+            CardType.Creature => _creatureCard,
+            CardType.Technology => _technologyCard,
+            CardType.Money => _moneyCard,
+            _ => null
+        };
+
+        var detailCard = previewCardObject.GetComponent<DetailCard>();
+        detailCard.SetCardUI(cardInfo);
+        previewCardObject.SetActive(true);
+
+        _confirmButton.interactable = true;
+    }
+
+    public void DeselectMarketTile()
+    {
+        _creatureCard.SetActive(false);
+        _technologyCard.SetActive(false);
+        _moneyCard.SetActive(false);
+
+        _confirmButton.interactable = false;
     }
 
     public void OnConfirmButtonPressed()
@@ -107,15 +125,12 @@ public class InteractionUI : MonoBehaviour
         _waitingText.SetActive(true);
     }
 
-    public void OnSkipButtonPressed() => SkipInteraction(_state);
-    public void SkipInteraction(TurnState state){
+    public void OnSkipButtonPressed() => SkipInteraction();
+    public void SkipInteraction(){
         _buttons.SetActive(false);
         _waitingText.SetActive(true);
 
-        if(_state == TurnState.Develop || _state == TurnState.Deploy) 
-            _interactionPanel.SkipCardPlay();
-        else if(state == TurnState.CardIntoHand || state == TurnState.Trash) 
-            _interactionPanel.PlayerSkipsPrevailOption();
+        _interactionPanel.OnSkipInteraction();
     }
 
     public void UpdateInteractionElements(int nbSelected){
@@ -130,11 +145,20 @@ public class InteractionUI : MonoBehaviour
         }
     }
 
-    private void StartInteractionUI()
+    private string StartInteractionUI()
     {
         _buttons.SetActive(true);
         _waitingText.SetActive(false);
         _confirmButton.interactable = false;
+
+        var actionVerb = _state switch{
+            TurnState.Discard => "discard",
+            TurnState.Invent or TurnState.Recruit => "buy",
+            TurnState.Develop or TurnState.Deploy => "play",
+            _ => throw new ArgumentOutOfRangeException()
+        };
+
+        return actionVerb;
     }
 
     public void ResetPanelUI(bool hard){
@@ -144,6 +168,5 @@ public class InteractionUI : MonoBehaviour
         
         _interactionView.SetActive(false);
         _skipButtonGameObject.SetActive(false);
-        // Close(); TODO
     }
 }
