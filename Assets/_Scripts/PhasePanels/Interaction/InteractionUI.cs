@@ -24,8 +24,6 @@ public class InteractionUI : MonoBehaviour
 
     [Header("Helper Fields")]
     private TurnState _state;
-    private int _nbCardsToDiscard;
-    private int _nbCardsToPlay = 1;
     private int _nbCardsToSelectMax;
     private InteractionPanel _interactionPanel;
 
@@ -48,34 +46,23 @@ public class InteractionUI : MonoBehaviour
         _technologyCard.SetActive(false);
         _moneyCard.SetActive(false);
     }
-    
-    public void PrepareInteractionPanel(int nbCardsToDiscard)
-    {
-        _nbCardsToDiscard = nbCardsToDiscard;
-    }
 
-    public void InteractionBegin(TurnState state, bool autoSkip)
+    public void InteractionBegin(TurnState state, bool autoSkip, int nbCardsToSelectMax)
     {
         _state = state;
+        _nbCardsToSelectMax = nbCardsToSelectMax;
         var actionVerb = StartInteractionUI();
         _interactionView.SetActive(true);
 
         if(autoSkip){
-            print("AutoSkip in InteractionUI: " + actionVerb);
             _displayText.text = $"You can't {actionVerb} more cards";
-
             SkipInteraction();
             return;
         }
 
-        if (_state == TurnState.Discard) _displayText.text = $"Discard 0/{_nbCardsToDiscard} cards";
-        else if (_state == TurnState.CardIntoHand) {
-            _displayText.text = $"Put up to {_nbCardsToSelectMax} card(s) into your hand";
-            _confirmButton.interactable = true;
-        } else if (_state == TurnState.Trash) {
-            _displayText.text = $"Trash up to {_nbCardsToSelectMax} card(s)";
-            _confirmButton.interactable = true;
-        } else MoneyInteraction(actionVerb);
+        if (_state == TurnState.Discard) _displayText.text = $"Discard {_nbCardsToSelectMax} card(s)";
+        else if (_state == TurnState.CardIntoHand || _state == TurnState.Trash) PrevailInteraction();
+        else MoneyInteraction(actionVerb);
     }
 
     private void MoneyInteraction(string actionVerb)
@@ -90,6 +77,17 @@ public class InteractionUI : MonoBehaviour
         if (_state == TurnState.Invent || _state == TurnState.Recruit) cardType += " or Money";
         
         _displayText.text = $"You may {actionVerb} a{cardType} card";
+    }
+
+    private void PrevailInteraction()
+    {
+        // "Up to X cards"
+        _confirmButton.interactable = true;
+
+        if (_state == TurnState.CardIntoHand)
+            _displayText.text = $"Put up to {_nbCardsToSelectMax} card(s) into your hand";
+        else if (_state == TurnState.Trash)
+            _displayText.text = $"Trash up to {_nbCardsToSelectMax} card(s)";
     }
 
     public void SelectMarketTile(CardInfo cardInfo)
@@ -126,23 +124,12 @@ public class InteractionUI : MonoBehaviour
     }
 
     public void OnSkipButtonPressed() => SkipInteraction();
-    public void SkipInteraction(){
+    public void SkipInteraction()
+    {
         _buttons.SetActive(false);
         _waitingText.SetActive(true);
 
         _interactionPanel.OnSkipInteraction();
-    }
-
-    public void UpdateInteractionElements(int nbSelected){
-        switch (_state){
-            case TurnState.Discard:
-                _displayText.text = $"Discard {nbSelected}/{_nbCardsToDiscard} cards";
-                _confirmButton.interactable = nbSelected == _nbCardsToDiscard;
-                break;
-            case TurnState.Develop or TurnState.Deploy:
-                _confirmButton.interactable = nbSelected == _nbCardsToPlay;
-                break;
-        }
     }
 
     private string StartInteractionUI()
@@ -161,7 +148,8 @@ public class InteractionUI : MonoBehaviour
         return actionVerb;
     }
 
-    public void ResetPanelUI(bool hard){
+    internal void ResetPanelUI(bool hard)
+    {
         _buttons.SetActive(true);
         _waitingText.SetActive(false);
         if(!hard) return;
@@ -169,4 +157,6 @@ public class InteractionUI : MonoBehaviour
         _interactionView.SetActive(false);
         _skipButtonGameObject.SetActive(false);
     }
+
+    internal void EnableConfirmButton(bool isEnabled) => _confirmButton.interactable = isEnabled;
 }

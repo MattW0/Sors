@@ -10,7 +10,7 @@ public class Hand : NetworkBehaviour
 {
     public static Hand Instance { get; private set; }
     private InteractionPanel _interactionPanel;
-    private List<CardStats> _handCards = new();
+    [SerializeField]private List<CardStats> _handCards = new();
     public int HandCardsCount => _handCards.Count;
     private TurnState _state;
     [SerializeField] private Transform _cardHolder;
@@ -59,14 +59,11 @@ public class Hand : NetworkBehaviour
 
     public void StartInteraction(TurnState state)
     {
-        print("Starting interaction in state " + state);
-        print("Hand cards: " + _handCards.Count);
-
         _state = state;
         _cardHolder.DOLocalMove(_handPositionPlayCards, SorsTimings.cardPileRearrangement);
         _cardHolder.DOScale(_handScalePlayCards, SorsTimings.cardPileRearrangement);
         
-        if (state == TurnState.Discard) {
+        if (state == TurnState.Discard || state == TurnState.Trash) {
             HighlightAllHandCards(true);
             return;
         }

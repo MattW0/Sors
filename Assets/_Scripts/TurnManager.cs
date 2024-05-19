@@ -73,7 +73,7 @@ public class TurnManager : NetworkBehaviour
 
         // Panels with setup (GameManager handles market setup)
         _interactionPanel = InteractionPanel.Instance;
-        _interactionPanel.RpcPrepareInteractionPanel(gameOptions.phaseDiscard);
+        _interactionPanel.RpcPrepareInteractionPanel();
         _phasePanel = PhasePanel.Instance;
         _phasePanel.RpcPreparePhasePanel(gameOptions.NumberPhases);
         _prevailPanel = PrevailPanel.Instance;
@@ -712,10 +712,10 @@ public class TurnManager : NetworkBehaviour
             var nbInteractions = turnState switch 
             {
                 TurnState.Discard => _gameOptions.phaseDiscard,
-                TurnState.Invent => player.Buys,
-                TurnState.Recruit => player.Buys,
-                TurnState.Develop => player.Plays,
-                TurnState.Deploy => player.Plays,
+                TurnState.Invent => player.Buys > 0 ? 1 : 0,
+                TurnState.Recruit => player.Buys > 0 ? 1 : 0,
+                TurnState.Develop => player.Plays > 0 ? 1 : 0,
+                TurnState.Deploy => player.Plays > 0 ? 1 : 0,
                 _ => -1
             };
 

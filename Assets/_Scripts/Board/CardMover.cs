@@ -6,7 +6,6 @@ using DG.Tweening;
 public class CardMover : MonoBehaviour
 {
     public static CardMover Instance { get; private set; }
-    public static Dictionary<DetailCard, GameObject> Cache = new();
 
     [Header("Playboard Transforms")]
     [SerializeField] private CardsPileSors playerHand;
@@ -25,7 +24,8 @@ public class CardMover : MonoBehaviour
     [SerializeField] private CardsPileSors entitySpawn;
     [SerializeField] private CardsPileSors trash;
     
-    private void Awake(){
+    private void Awake()
+    {
         if(!Instance) Instance = this;
     }
 
@@ -49,7 +49,8 @@ public class CardMover : MonoBehaviour
         ApplyMovement(destinationPile, card);
     }
 
-    private void FlipCard(GameObject card, bool hasAuthority, CardLocation to){
+    private void FlipCard(GameObject card, bool hasAuthority, CardLocation to)
+    {
         var cardUI = card.GetComponent<HandCardUI>();
         if(to == CardLocation.Discard 
             || to == CardLocation.MoneyZone 
@@ -67,7 +68,7 @@ public class CardMover : MonoBehaviour
 
     private void ApplyScaling(GameObject card, CardLocation from, CardLocation to)
     {
-        // Only apply scaling for piles PlayZone and MoneyZone
+        // Only apply scaling for piles PlayZone, MoneyZone and Spawn
         // These have local scale 0.7 to reduce playboard space occupation        
         if(to == CardLocation.Hand)
             card.transform.DOScale(1.4f, SorsTimings.cardMoveTime);
@@ -93,7 +94,8 @@ public class CardMover : MonoBehaviour
         });
     }
 
-    private CardsPileSors GetPile(CardLocation location, bool hasAuthority){
+    private CardsPileSors GetPile(CardLocation location, bool hasAuthority)
+    {
         var pile = location switch{
             CardLocation.CardSpawn => hasAuthority ? playerCardSpawn : opponentCardSpawn,
             CardLocation.EntitySpawn => entitySpawn,
@@ -109,13 +111,7 @@ public class CardMover : MonoBehaviour
 
         return pile;
     }
-    public void DiscardMoney(List<GameObject> cards, bool hasAuthority){
-        foreach(var c in cards){
-            MoveTo(c, false, CardLocation.MoneyZone, CardLocation.Discard);
-            opponentHand.Remove(c);
-        }
-    }
-
+    
     public IEnumerator ShowSpawnedCard(GameObject card, bool hasAuthority, CardLocation destination)
     {
         InitSpawnedCard(card, hasAuthority, destination);

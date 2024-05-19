@@ -24,17 +24,15 @@ public class InteractionPanel : NetworkBehaviour
         CardClick.OnCardClicked += ClickedCard;
     }
 
-    private void Start(){
+    private void Start()
+    {
+        _ui = gameObject.GetComponent<InteractionUI>();
         _playerHand = Hand.Instance;
         _cardMover = CardMover.Instance;
     }
 
     [ClientRpc]
-    public void RpcPrepareInteractionPanel(int nbCardsToDiscard){
-        _ui = gameObject.GetComponent<InteractionUI>();
-        _ui.PrepareInteractionPanel(nbCardsToDiscard);
-        _player = PlayerManager.GetLocalPlayer();
-    }
+    public void RpcPrepareInteractionPanel() => _player = PlayerManager.GetLocalPlayer();
 
     [TargetRpc]
     public void TargetStartInteraction(NetworkConnection target, TurnState turnState, int numberSelectableCards)
@@ -46,7 +44,7 @@ public class InteractionPanel : NetworkBehaviour
         // TODO: Implement and check if more interactions require other collection than hand
         if (turnState == TurnState.CardIntoHand) return;
 
-        _ui.InteractionBegin(turnState, autoSkip);
+        _ui.InteractionBegin(turnState, autoSkip, numberSelectableCards);
         if (!autoSkip) _playerHand.StartInteraction(turnState);
     }
 
@@ -76,7 +74,7 @@ public class InteractionPanel : NetworkBehaviour
     {
         var cardStats = card.GetComponent<CardStats>();
 
-        // Only select or deselect in these turnStates
+        // Only select or deselect in these turnStates (all card types behave the same way)
         if (_state == TurnState.Discard || _state == TurnState.CardIntoHand || _state == TurnState.Trash) {
             SelectOrDeselectCard(card, cardStats.IsSelected);
             return;
@@ -103,36 +101,33 @@ public class InteractionPanel : NetworkBehaviour
 
     private void SelectOrDeselectCard(GameObject card, bool isSelected)
     {
-        if (isSelected) {
-            DeselectCard(card);
-            return;
-        }
-
-        // Remove the previously selected card if user clicks another one
-        if (_selectedCards.Count >= _numberSelectableCards) 
-            DeselectCard(_selectedCards.Last());
-        
-        SelectCard(card);
+        if (isSelected) DeselectCard(card);
+        else SelectCard(card);
     }
 
     #endregion
 
     private void SelectCard(GameObject card)
     {
-        _selectedCards.Add(card);
-        _ui.UpdateInteractionElements(_selectedCards.Count);
+        // Remove the previously selected card if user clicks another one
+        if (_selectedCards.Count >= _numberSelectableCards) 
+            DeselectCard(_selectedCards.Last());
 
+        _selectedCards.Add(card);
         card.GetComponent<CardStats>().IsSelected = true;
         _cardMover.MoveTo(card, true, CardLocation.Hand, CardLocation.Selection);
+
+        if (_selectedCards.Count >= _numberSelectableCards) 
+            _ui.EnableConfirmButton(true);
     }
 
     public void DeselectCard(GameObject card)
     {
-        _selectedCards.Remove(card);
-        _ui.UpdateInteractionElements(_selectedCards.Count);
-        
+        _selectedCards.Remove(card);        
         card.GetComponent<CardStats>().IsSelected = false;
+
         _cardMover.MoveTo(card, true, CardLocation.Selection, CardLocation.Hand);
+        _ui.EnableConfirmButton(false);
     }
 
     public void OnSkipInteraction() => _player.CmdSkipInteraction();
@@ -144,6 +139,9 @@ public class InteractionPanel : NetworkBehaviour
         // No card in hand -> only valid where player has to interact from hand
         if ((_state == TurnState.Discard || _state == TurnState.Trash) && _playerHand.HandCardsCount == 0) return true;
 
+        // TODO: No card in discard -> autoskip
+        // if(_state == TurnState.CardIntoHand && _player.discard.Count == 0) return false;
+
         // No entity to play
         if (_state == TurnState.Develop) return ! _playerHand.ContainsTechnology();
         else if (_state == TurnState.Deploy) return ! _playerHand.ContainsCreature();
@@ -152,7 +150,8 @@ public class InteractionPanel : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcResetPanel(){
+    public void RpcResetPanel()
+    {
         _playerHand.EndInteraction();
         _selectedCards.Clear();
 
@@ -165,7 +164,8 @@ public class InteractionPanel : NetworkBehaviour
     }
 }
 
-public struct MarketSelection{
+public struct MarketSelection
+{
     public CardInfo cardInfo;
     public int cost;
     public int index;

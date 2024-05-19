@@ -93,7 +93,8 @@ public class CardsPileSors : MonoBehaviour
 		}
 	}
 
-	private void LateUpdate(){
+	private void LateUpdate()
+	{
 		if (!updatePosition) return;
 		updatePosition = false;
 
