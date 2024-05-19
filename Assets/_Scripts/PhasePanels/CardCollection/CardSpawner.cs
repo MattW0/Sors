@@ -8,14 +8,13 @@ public class CardSpawner : MonoBehaviour
     [SerializeField] private GameObject _creatureDetailCardPrefab;
     [SerializeField] private GameObject _technologyDetailCardPrefab;
     [SerializeField] private GameObject _moneyDetailCardPrefab;
-    // [SerializeField] private Transform _gridAll;
-    // [SerializeField] private Transform _gridChosen;
-    [SerializeField] private Transform _grid;
+    [SerializeField] private CardGrid _grid;
 
-
-    public List<DetailCard> SpawnDetailCardObjects(List<CardInfo> cards, TurnState turnState, float scaleFactor = 0.6f)
+    public void SpawnDetailCardObjects(List<CardInfo> cards)
     {
-        var detailCards = new List<DetailCard>();
+        _grid.SetPanelWidth(cards.Count);
+
+        var transforms = new List<Transform>();
         foreach (var cardInfo in cards){
             var detailCardObject = cardInfo.type switch{
                 CardType.Creature => Instantiate(_creatureDetailCardPrefab) as GameObject,
@@ -24,27 +23,13 @@ public class CardSpawner : MonoBehaviour
                 _ => throw new System.Exception("Card type not found")
             };
 
-            detailCardObject.transform.SetParent(_grid, false);
-            detailCardObject.transform.localScale = new Vector3(scaleFactor, scaleFactor, 1);
-
             // Initialize detail card
             var detailCard = detailCardObject.GetComponent<DetailCard>();
             detailCard.SetCardUI(cardInfo);
-            detailCards.Add(detailCard);
+
+            transforms.Add(detailCard.gameObject.transform);
         }
-        
-        return detailCards;
+
+        _grid.AddCards(transforms);
     }
-
-    // public void SelectCard(Transform t) => t.SetParent(_gridChosen, false);
-    // public void DeselectCard(Transform t) => t.SetParent(_gridAll, false);
-
-    // public void ClearGrids(){
-    //     foreach (Transform child in _gridAll) Destroy(child.gameObject);
-    //     ClearChosenGrid();
-    // }
-
-    // public void ClearChosenGrid(){
-    //     foreach (Transform child in _gridChosen) Destroy(child.gameObject);
-    // }
 }

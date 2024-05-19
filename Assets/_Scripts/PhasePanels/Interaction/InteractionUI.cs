@@ -140,9 +140,10 @@ public class InteractionUI : MonoBehaviour
 
         var actionVerb = _state switch{
             TurnState.Discard => "discard",
+            TurnState.Trash => "trash",
             TurnState.Invent or TurnState.Recruit => "buy",
             TurnState.Develop or TurnState.Deploy => "play",
-            _ => throw new ArgumentOutOfRangeException()
+            _ => "select"
         };
 
         return actionVerb;

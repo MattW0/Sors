@@ -1,12 +1,10 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
 public class CardCollectionUI : MonoBehaviour
 {
+    [SerializeField] private Image _background;
     [SerializeField] private TMP_Text _collectionTitle;
     [SerializeField] private Button _closeButton;
 
@@ -18,18 +16,15 @@ public class CardCollectionUI : MonoBehaviour
     public void OpenCardCollection(CardLocation cardCollectionType, bool ownsCollection)
     {
         var text = ownsCollection ? "" : "Opponent ";
-        switch(cardCollectionType){
-            case CardLocation.Deck:
-                text += "Deck";
-                break;
-            case CardLocation.Discard:
-                text += "Discard";
-                break;
-            case CardLocation.Hand:
-                text += "Hand";
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(cardCollectionType), cardCollectionType, null);
+        if (cardCollectionType == CardLocation.Deck) text += "Deck";
+        else if (cardCollectionType == CardLocation.Discard) text += "Discard";
+        else if (cardCollectionType == CardLocation.Hand) text += "Hand";
+        else if (cardCollectionType == CardLocation.MoneyZone) text += "Money Zone";
+        else if (cardCollectionType == CardLocation.PlayZone) text += "Play Zone";
+        // Nobody owns these collections
+        else if (cardCollectionType == CardLocation.Trash) {
+            text = "Trash";
+            _background.color = SorsColors.trashHighlight;
         }
 
         _collectionTitle.text = text;

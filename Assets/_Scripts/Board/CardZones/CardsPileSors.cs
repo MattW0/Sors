@@ -8,6 +8,7 @@ using Sirenix.OdinInspector;
 public class CardsPileSors : MonoBehaviour
 {
 	[SerializeField] private Transform _cardHolder;
+	public Transform CardHolderTransform => _cardHolder;
 	public CardLocation pileType;
 	private bool updatePosition;
 	[ShowInInspector] public bool UpdatePosition {

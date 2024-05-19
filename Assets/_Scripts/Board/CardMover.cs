@@ -31,8 +31,8 @@ public class CardMover : MonoBehaviour
 
     public void MoveTo(GameObject card, bool hasAuthority, CardLocation from, CardLocation to)
     {
-        // Change this here because card moved on client already ( InteractionPanel.SelectCard() )
-        if(to == CardLocation.EntitySpawn && hasAuthority) from = CardLocation.Selection;
+        // Change where card comes from because card moved on client already ( InteractionPanel.SelectCard() )
+        if((to == CardLocation.EntitySpawn || to == CardLocation.Trash) && hasAuthority) from = CardLocation.Selection;
 
         // Remove from pile, cards positions are immediately updated in CardsPile
         var sourcePile = GetPile(from, hasAuthority);
@@ -85,7 +85,7 @@ public class CardMover : MonoBehaviour
 
     private void ApplyMovement(CardsPileSors pile, GameObject card)
     {
-        var destinationTransform = pile.transform;
+        var destinationTransform = pile.CardHolderTransform;
 
         card.transform.DOMove(destinationTransform.position, SorsTimings.cardMoveTime).SetEase(Ease.InOutCubic).OnComplete(() => {
             card.transform.SetParent(destinationTransform, true);

@@ -8,20 +8,13 @@ public class DetailCardUI : CardUI, IPointerEnterHandler, IPointerExitHandler {
     private TurnState _state;
     
     [Header("Card UI")]
-    public bool enableFocus = true;
+    private bool _enableFocus = true;
     private Canvas _tempCanvas;
     private GraphicRaycaster _tempRaycaster;
 
-    public void SetCardState(TurnState state) {
-        _state = state;
-        
-        if(state == TurnState.Discard) highlight.color = SorsColors.discardHighlight;
-        else if(state == TurnState.Deploy) highlight.color = SorsColors.playableHighlight;
-        else if(state == TurnState.Trash) highlight.color = SorsColors.trashHighlight;
-    }
-
-    public void OnPointerEnter(PointerEventData eventData){
-        if(!enableFocus) return;
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if(!_enableFocus) return;
 
         // Puts the card on top of others
         _tempCanvas = gameObject.AddComponent<Canvas>();
@@ -44,7 +37,7 @@ public class DetailCardUI : CardUI, IPointerEnterHandler, IPointerExitHandler {
         // _highlight.DOColor(standardHighlight, 0.2f);
     }
 
-    public void DisableFocus() => enableFocus = false;
+    public void DisableFocus() => _enableFocus = false;
     public void EnableHighlight() => highlight.enabled = true;
     public void DisableHighlight() => highlight.enabled = false;
 }

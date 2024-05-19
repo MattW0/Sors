@@ -576,11 +576,18 @@ public class PlayerManager : NetworkBehaviour
     [Command]
     private void CmdPlayerOpensCardCollection(PlayerManager player, CardLocation collectionType, bool ownsCollection)
     {
-        var cards = player.discard;
         print($"Player {player.PlayerName} opens collection {collectionType.ToString()}, owns collection {ownsCollection}");
 
-        if(! ownsCollection) cards = _turnManager.GetOpponentPlayer(player).discard; 
-
+        var cards = new List<CardInfo>();
+        if (collectionType == CardLocation.Discard){
+            cards = player.discard;
+            if(! ownsCollection) cards = _turnManager.GetOpponentPlayer(player).discard; 
+        } else if (collectionType == CardLocation.Trash){
+            cards = _turnManager.GetTrashedCardInfos();
+        }
+        
+        // TODO: Still show when empty?
+        if (cards.Count == 0) return;
         _panelsManager.TargetOpenCardCollection(player.connectionToClient, cards, collectionType, ownsCollection);
     }
     

@@ -18,7 +18,8 @@ public class CardZoomView : MonoBehaviour, IPointerClickHandler
     private GameObject _openedCardObject;
     private GameObject _openedEntityObject;
 
-    private void Awake(){
+    private void Awake()
+    {
         Instance = this;
 
         _cardZoomView.SetActive(false);
@@ -31,7 +32,8 @@ public class CardZoomView : MonoBehaviour, IPointerClickHandler
         _technologyEntity.SetActive(false);
     }
 
-    public void ZoomCard(CardInfo card){
+    public void ZoomCard(CardInfo card)
+    {
         _cardZoomView.SetActive(true);
 
         // Set Card
@@ -41,6 +43,7 @@ public class CardZoomView : MonoBehaviour, IPointerClickHandler
             CardType.Money => _moneyDetailCard,
             _ => null
         };
+        
         _openedCardObject.SetActive(true);
         var detailCard = _openedCardObject.GetComponent<DetailCard>();
         detailCard.SetCardUI(card);
@@ -62,11 +65,11 @@ public class CardZoomView : MonoBehaviour, IPointerClickHandler
         entityUI.SetEntityUI(card);
     }
 
-    public void OnPointerClick(PointerEventData eventData){
-        if (eventData.button == PointerEventData.InputButton.Left) Close();
-    }
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        // Close view on left click
+        if (eventData.button != PointerEventData.InputButton.Left) return;
 
-    public void Close(){
         _cardHolder.transform.localPosition = Vector3.zero;
         _cardZoomView.SetActive(false);
         _openedCardObject.SetActive(false);

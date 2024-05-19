@@ -13,7 +13,6 @@ public class GameManager : NetworkBehaviour {
     private Market _market;
     private EndScreen _endScreen;
     private BoardManager _boardManager;
-
     private GameOptions _gameOptions;
     public bool isSinglePlayer = false;
     public static event Action<GameOptions> OnGameStart;
@@ -24,7 +23,7 @@ public class GameManager : NetworkBehaviour {
     private List<PlayerManager> _loosingPlayers = new();
     private List<PlayerManager> _winningPlayers = new();
     
-    [Header("Prefabs")]
+    [Header("Spawnable Prefabs")]
     [SerializeField] private GameObject creatureCardPrefab;
     [SerializeField] private GameObject moneyCardPrefab;
     [SerializeField] private GameObject technologyCardPrefab;
@@ -34,11 +33,7 @@ public class GameManager : NetworkBehaviour {
     // Caching all gameObjects of cards in game
     private static Dictionary<int, GameObject> CardsCache { get; set; } = new();
     public static GameObject GetCardObject(int goID) { return CardsCache[goID]; }
-    // convert cardInfo (goIDs) to cached objects
-    public static List<GameObject> CardInfosToGameObjects(List<CardInfo> cards){
-        return cards.Select(card => GetCardObject(card.goID)).ToList();
-    }
-
+    
     private void Awake()
     {
         if (Instance == null) Instance = this;

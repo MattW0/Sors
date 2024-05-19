@@ -39,6 +39,7 @@ public class TurnManager : NetworkBehaviour
     private Dictionary<PlayerManager, List<GameObject>> _selectedCards = new();
     private Dictionary<PlayerManager, List<PrevailOption>> _playerPrevailOptions = new();
     private List<PrevailOption> _prevailOptionsToPlay = new();
+    private Dictionary<GameObject, CardInfo> _trashedCards = new();
 
     // Events
     public static event Action<TurnState> OnPhaseChanged;
@@ -543,6 +544,8 @@ public class TurnManager : NetworkBehaviour
                 var cardInfo = card.GetComponent<CardStats>().cardInfo;
                 player.hand.Remove(cardInfo);
                 player.RpcMoveCard(card, CardLocation.Hand, CardLocation.Trash);
+
+                _trashedCards.Add(card, cardInfo);
             }
         }
 
@@ -733,6 +736,8 @@ public class TurnManager : NetworkBehaviour
             _interactionPanel.TargetStartInteraction(player.connectionToClient, turnState, nbPicks);
         }
     }
+
+    public List<CardInfo> GetTrashedCardInfos() => _trashedCards.Values.ToList();
 
     public void ForceEndTurn()
     { // experimental

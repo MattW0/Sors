@@ -121,7 +121,8 @@ public class Market : NetworkBehaviour
         }        
     }
 
-    public void PlayerDeselectsTile(){
+    public void PlayerDeselectsTile()
+    {
         _selectedTile = null;
         _interactionPanel.DeselectMarketTile();
     }
@@ -134,7 +135,8 @@ public class Market : NetworkBehaviour
         PlayerDeselectsTile();
     }
 
-    public void EndMarketPhase(List<(int, CardType)> boughtCards){
+    public void EndMarketPhase(List<(int, CardType)> boughtCards)
+    {
         foreach (var (index, type) in boughtCards)
         {
             if(type == CardType.Money) continue;

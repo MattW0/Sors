@@ -25,7 +25,7 @@ public class PanelsManager : NetworkBehaviour
     public void TargetOpenCardCollection(NetworkConnection conn, List<CardInfo> cards, CardLocation collectionType, bool isOwned)
     {
         var cardCollection = Instantiate(_cardCollectionViewPrefab, _spawnParentTransform);
-        cardCollection.GetComponent<CardSpawner>().SpawnDetailCardObjects(cards, TurnState.Idle);
+        cardCollection.GetComponent<CardSpawner>().SpawnDetailCardObjects(cards);
         cardCollection.GetComponent<CardCollectionUI>().OpenCardCollection(collectionType, isOwned);
     }    
 }

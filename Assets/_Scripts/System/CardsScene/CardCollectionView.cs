@@ -57,6 +57,6 @@ public class CardCollectionView : MonoBehaviour
         {
             cardInfos.Add(new CardInfo(s, -1));
         }
-        _cardSpawner.SpawnDetailCardObjects(cardInfos, TurnState.Idle, 0.95f);
+        _cardSpawner.SpawnDetailCardObjects(cardInfos);
     }
 }
