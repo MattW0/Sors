@@ -22,10 +22,13 @@ public class PanelsManager : NetworkBehaviour
     }
 
     [TargetRpc]
-    public void TargetOpenCardCollection(NetworkConnection conn, List<CardInfo> cards, CardLocation collectionType, bool isOwned)
+    public void TargetOpenCardCollection(NetworkConnection conn, List<CardStats> cards, CardLocation collectionType, bool isOwned)
     {
+        var cardInfos = new List<CardInfo>();
+        foreach (var card in cards) cardInfos.Add(card.cardInfo);
+
         var cardCollection = Instantiate(_cardCollectionViewPrefab, _spawnParentTransform);
-        cardCollection.GetComponent<CardSpawner>().SpawnDetailCardObjects(cards);
+        cardCollection.GetComponent<CardSpawner>().SpawnDetailCardObjects(cardInfos);
         cardCollection.GetComponent<CardCollectionUI>().OpenCardCollection(collectionType, isOwned);
     }    
 }

@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace SorsGameState
 {
@@ -99,7 +100,7 @@ public class GameState
         // File.WriteAllText(Application.dataPath + "/Resources/GameStates/Auto/" + fileName, json);
     }
 
-    public static List<string> CardInfosToScriptablePathStrings(List<CardInfo> cards)
+    public static List<string> CardInfosToScriptablePaths(List<CardInfo> cards)
     {    
         List<string> scriptableCardPaths = new List<string>();
         foreach(var card in cards) scriptableCardPaths.Add(GetScriptableObjectPath(card));
@@ -147,9 +148,9 @@ public class Market
 
     public void SaveMarketState(List<CardInfo>[] market)
     {
-        money = GameState.CardInfosToScriptablePathStrings(market[0]);
-        technologies = GameState.CardInfosToScriptablePathStrings(market[1]);
-        creatures = GameState.CardInfosToScriptablePathStrings(market[2]);
+        money = GameState.CardInfosToScriptablePaths(market[0]);
+        technologies = GameState.CardInfosToScriptablePaths(market[1]);
+        creatures = GameState.CardInfosToScriptablePaths(market[2]);
     }
 }
 
@@ -175,9 +176,12 @@ public class Player
     public void SavePlayerState(PlayerManager player)
     {
         health = player.Health;
-        cards.deckCards = GameState.CardInfosToScriptablePathStrings(player.deck);
-        cards.handCards = GameState.CardInfosToScriptablePathStrings(player.hand);
-        cards.discardCards = GameState.CardInfosToScriptablePathStrings(player.discard);
+
+        // Lists should be CardInfo because we need the same function to get market tiles CardInfos
+        // and they have no CardStats component.
+        cards.deckCards = GameState.CardInfosToScriptablePaths(player.deck.Select(c => c.cardInfo).ToList());
+        cards.handCards = GameState.CardInfosToScriptablePaths(player.hand.Select(c => c.cardInfo).ToList());
+        cards.discardCards = GameState.CardInfosToScriptablePaths(player.discard.Select(c => c.cardInfo).ToList());
     }
 }
 

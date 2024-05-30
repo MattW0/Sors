@@ -73,13 +73,9 @@ public class GameStateLoader : MonoBehaviour
             cardList.Add(_gameManager.SpawnCardAndAddToCollection(p, scriptableCard, CardLocation.Hand));
         }
         p.RpcShowSpawnedCards(cardList, CardLocation.Hand, true);
+        cardList.Clear();
 
         yield return new WaitForSeconds(SorsTimings.waitForSpawnFromFile / 3f);
-        
-        // Tracking hand cards on each client for UI stuff
-        // TODO: Could replace this with observer pattern maybe?
-        p.TargetSetHandCards(p.connectionToClient, cardList);
-        cardList.Clear();
 
         foreach(var c in cards.deckCards){
             var scriptableCard = Resources.Load<ScriptableCard>(c);

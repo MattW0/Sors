@@ -14,7 +14,6 @@ public class PlayerManager : NetworkBehaviour
     private CombatManager _combatManager;
     private AbilityQueue _abilityQueue;
     private CardMover _cardMover;
-    private Hand _handManager;
     private PhasePanelUI _phaseVisualsUI;
     private PlayerInterfaceManager _playerInterface;
     private PanelsManager _panelsManager;
@@ -23,7 +22,7 @@ public class PlayerManager : NetworkBehaviour
     public List<Phase> chosenPhases = new();
     public List<PrevailOption> chosenPrevailOptions = new();
     private List<GameObject> _selectedCards = new();
-    public Dictionary<GameObject, CardInfo> moneyCardsInPlay = new();
+    public Dictionary<GameObject, CardStats> moneyCardsInPlay = new();
 
     public bool PlayerIsChoosingTarget { get; private set; }
     public bool PlayerIsChoosingAttack { get; private set; }
@@ -39,7 +38,6 @@ public class PlayerManager : NetworkBehaviour
     public readonly CardCollection deck = new();
     public readonly CardCollection hand = new();
     public readonly CardCollection discard = new();
-    public readonly CardCollection money = new();
 
     [Header("Game Stats")]
     [SyncVar, SerializeField] private string playerName;
@@ -97,7 +95,6 @@ public class PlayerManager : NetworkBehaviour
     [ClientRpc]
     public void RpcInitPlayer()
     {
-        _handManager = Hand.Instance;
         _cardMover = CardMover.Instance;
         _phaseVisualsUI = PhasePanelUI.Instance;
         _panelsManager = PanelsManager.Instance;
@@ -145,11 +142,11 @@ public class PlayerManager : NetworkBehaviour
         {
             if (deck.Count == 0) ShuffleDiscardIntoDeck();
 
-            var cardInfo = deck[0];
+            var card = deck[0];
             deck.RemoveAt(0);
-            hand.Add(cardInfo);
+            hand.Add(card);
 
-            cards.Add(GameManager.GetCardObject(cardInfo.goID));
+            cards.Add(GameManager.GetCardObject(card.cardInfo.goID));
         }
 
         // The draw cards on Clients, moving the card objects with movement durations
@@ -158,7 +155,7 @@ public class PlayerManager : NetworkBehaviour
 
     private IEnumerator ClientDrawing(List<GameObject> cards)
     {
-        RpcUpdateHandCards(cards, true);
+        // RpcUpdateHandCards(cards, true);
 
         foreach(var card in cards){
             RpcMoveCard(card, CardLocation.Deck, CardLocation.Hand);
@@ -169,13 +166,13 @@ public class PlayerManager : NetworkBehaviour
     [Server]
     private void ShuffleDiscardIntoDeck()
     {
-        var temp = new List<CardInfo>();
+        var temp = new List<CardStats>();
         foreach (var card in discard)
         {
             temp.Add(card);
             deck.Add(card);
 
-            var cachedCard = GameManager.GetCardObject(card.goID);
+            var cachedCard = GameManager.GetCardObject(card.cardInfo.goID);
             RpcMoveCard(cachedCard, CardLocation.Discard, CardLocation.Deck);
         }
 
@@ -191,66 +188,55 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcUpdateHandCards(List<GameObject> cards, bool adding)
-    {
-        if(!isOwned) return;
-        _handManager.UpdateHandCards(cards, adding);
-    }
-
-    [ClientRpc]
     public void RpcShowSpawnedCard(GameObject card, CardLocation destination) => StartCoroutine(_cardMover.ShowSpawnedCard(card, isOwned, destination));
 
     [ClientRpc]
     public void RpcShowSpawnedCards(List<GameObject> cards, CardLocation destination, bool fromFile) => StartCoroutine(_cardMover.ShowSpawnedCards(cards, isOwned, destination, fromFile));
-    [TargetRpc]
-    public void TargetSetHandCards(NetworkConnection conn, List<GameObject> handCards) => _handManager.UpdateHandCards(handCards, true);
 
     [Command]
-    public void CmdPlayMoneyCard(GameObject card, CardInfo cardInfo)
+    public void CmdPlayMoneyCard(GameObject cardObject, CardStats cardStats)
     {
-        Cash += cardInfo.moneyValue;
-        moneyCardsInPlay.Add(card, cardInfo);
+        Cash += cardStats.cardInfo.moneyValue;
+        moneyCardsInPlay.Add(cardObject, cardStats);
 
-        RemoveHandCard(cardInfo);
-        RpcPlayMoney(card);
+        RemoveHandCard(cardStats);
+        RpcPlayMoney(cardObject);
     }
 
     [Command]
     public void CmdUndoPlayMoney()
     {
         if (moneyCardsInPlay.Count == 0 || Cash <= 0) return;
-        ReturnMoneyToHand(true);
+        ReturnMoneyToHand();
+        _turnManager.PlayerClickedUndoButton(this);
     }
 
     [Server]
-    public void ReturnMoneyToHand(bool isUndo)
+    public void ReturnMoneyToHand()
     {
         // Don't allow to return already spent money
         var totalMoneyBack = 0;
-        var cardsToReturn = new Dictionary<GameObject, CardInfo>();
-        foreach (var (card, info) in moneyCardsInPlay)
+        var cardsToReturn = new Dictionary<GameObject, CardStats>();
+        foreach (var (card, stats) in moneyCardsInPlay)
         {
-            if (totalMoneyBack + info.moneyValue > Cash) continue;
+            if (totalMoneyBack + stats.cardInfo.moneyValue > Cash) continue;
 
-            cardsToReturn.Add(card, info);
-            totalMoneyBack += info.moneyValue;
+            cardsToReturn.Add(card, stats);
+            totalMoneyBack += stats.cardInfo.moneyValue;
         }
 
         // Return to hand
-        foreach (var (card, info) in cardsToReturn)
+        foreach (var (card, stats) in cardsToReturn)
         {
             moneyCardsInPlay.Remove(card);
-            Cash -= info.moneyValue;
-            hand.Add(info);
+            Cash -= stats.cardInfo.moneyValue;
+            hand.Add(stats);
             RpcReturnMoneyCardToHand(card);
         }
-
-        if (isUndo) _handManager.TargetHighlightMoney(connectionToClient);
-        else DiscardMoneyCards();
     }
 
     [Server]
-    private void DiscardMoneyCards()
+    public void DiscardMoneyCards()
     {
         if (moneyCardsInPlay.Count == 0) return;
 
@@ -297,13 +283,13 @@ public class PlayerManager : NetworkBehaviour
         // Server calls each player object to discard their selection _selectedCards
         foreach (var card in _selectedCards)
         {
-            var cardInfo = card.GetComponent<CardStats>().cardInfo;
+            var stats = card.GetComponent<CardStats>();
 
-            RemoveHandCard(cardInfo);
-            discard.Add(cardInfo);
+            RemoveHandCard(stats);
+            discard.Add(stats);
             RpcMoveCard(card, CardLocation.Selection, CardLocation.Discard);
 
-            _playerInterface.RpcLog($"{PlayerName} discards {cardInfo.title}", LogType.Standard);
+            _playerInterface.RpcLog($"{PlayerName} discards {stats.cardInfo.title}", LogType.Standard);
         }
     }
 
@@ -314,7 +300,7 @@ public class PlayerManager : NetworkBehaviour
     public void CmdConfirmPlay(GameObject card)
     {
         _turnManager.PlayerPlaysCard(this, card);
-        RemoveHandCard(card.GetComponent<CardStats>().cardInfo);
+        RemoveHandCard(card.GetComponent<CardStats>());
     }
 
     [Command]
@@ -465,14 +451,13 @@ public class PlayerManager : NetworkBehaviour
     private void SetMoneyValue(int value)
     {
         _cash = value;
+        OnCashChanged?.Invoke(this, value);
         RpcUISetMoneyValue(value);
     }
 
     [ClientRpc]
     private void RpcUISetMoneyValue(int value)
     {
-        OnCashChanged?.Invoke(this, value);
-
         if (isOwned) _playerUI.SetCash(value);
         else _opponentUI.SetCash(value);
     }
@@ -534,14 +519,12 @@ public class PlayerManager : NetworkBehaviour
     private void RpcPlayMoney(GameObject card)
     {
         _cardMover.MoveTo(card, isOwned, CardLocation.Hand, CardLocation.MoneyZone);
-        if (isOwned) _handManager.UpdateHandCards(new List<GameObject> { card }, false);
     }
 
     [ClientRpc]
     private void RpcReturnMoneyCardToHand(GameObject card)
     {
         _cardMover.MoveTo(card, isOwned, CardLocation.MoneyZone, CardLocation.Hand);
-        if (isOwned) _handManager.UpdateHandCards(new List<GameObject> { card }, true);
     }
 
     [ClientRpc]
@@ -551,10 +534,17 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Server]
-    private void RemoveHandCard(CardInfo cardInfo)
+    private void RemoveHandCard(CardStats card)
     {
-        var cardToRemove = hand.FirstOrDefault(c => c.Equals(cardInfo));
+        // TODO: Do I really need this?
+        // It seems that doing hand.Remove(card) does not work, why ?
+
+        print($"Removing card from hand (count {hand.Count}) : {card.cardInfo.title}");
+        var cardToRemove = hand.FirstOrDefault(c => c.Equals(card));
+        print("Card to remove : " + cardToRemove.cardInfo.title);
         hand.Remove(cardToRemove);
+
+        print($"Hand count : {hand.Count}");
     }
 
     public void PlayerPressedCombatButton() => CmdPlayerPressedCombatButton(this);
@@ -578,12 +568,12 @@ public class PlayerManager : NetworkBehaviour
     {
         print($"Player {player.PlayerName} opens collection {collectionType.ToString()}, owns collection {ownsCollection}");
 
-        var cards = new List<CardInfo>();
+        var cards = new List<CardStats>();
         if (collectionType == CardLocation.Discard){
             cards = player.discard;
             if(! ownsCollection) cards = _turnManager.GetOpponentPlayer(player).discard; 
         } else if (collectionType == CardLocation.Trash){
-            cards = _turnManager.GetTrashedCardInfos();
+            cards = _turnManager.GetTrashedCards();
         }
         
         // TODO: Still show when empty?

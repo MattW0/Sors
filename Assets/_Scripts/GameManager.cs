@@ -140,10 +140,10 @@ public class GameManager : NetworkBehaviour {
         var instanceID = SpawnAndCacheCard(player, cardObject, scriptableCard);
 
         // RPC: Setup gameobject and card UI
-        var cardInfo = IntitializeCardOnClients(cardObject, scriptableCard, instanceID);
+        var cardStats = IntitializeCardOnClients(cardObject, scriptableCard, instanceID);
 
         // Must always be done on server side (in TurnManager except here after spawning)
-        AddCardToPlayerCollection(player, cardInfo, destination);
+        AddCardToPlayerCollection(player, cardStats, destination);
 
         return cardObject;
     }
@@ -176,18 +176,17 @@ public class GameManager : NetworkBehaviour {
         return instanceID;
     }
 
-    private CardInfo IntitializeCardOnClients(GameObject cardObject, ScriptableCard scriptableCard, int instanceID){
+    private CardStats IntitializeCardOnClients(GameObject cardObject, ScriptableCard scriptableCard, int instanceID){
         // Client RPC : Init card UI and disable gameObject (cause not yet on UI layer)
-        var cardInfo = new CardInfo(scriptableCard, instanceID);
-        cardObject.GetComponent<CardStats>().RpcSetCardStats(cardInfo);
+        cardObject.GetComponent<CardStats>().RpcSetCardStats(new CardInfo(scriptableCard, instanceID));
 
-        return cardInfo;
+        return cardObject.GetComponent<CardStats>();
     }
 
-    private void AddCardToPlayerCollection(PlayerManager owner, CardInfo cardInfo, CardLocation destination){
-        if (destination == CardLocation.Deck) owner.deck.Add(cardInfo);
-        else if(destination == CardLocation.Discard) owner.discard.Add(cardInfo);
-        else if(destination == CardLocation.Hand) owner.hand.Add(cardInfo);
+    private void AddCardToPlayerCollection(PlayerManager owner, CardStats card, CardLocation destination){
+        if (destination == CardLocation.Deck) owner.deck.Add(card);
+        else if(destination == CardLocation.Discard) owner.discard.Add(card);
+        else if(destination == CardLocation.Hand) owner.hand.Add(card);
     }
 
     public BattleZoneEntity SpawnFieldEntity(PlayerManager owner, GameObject card)

@@ -14,6 +14,6 @@ public class DetailCard : MonoBehaviour
         _ui.SetCardUI(card);
     }
 
-    public void DisableFocus() => _ui.DisableFocus();
+    public void DisableFocus() => _ui.EnableFocus = false;
 
 }

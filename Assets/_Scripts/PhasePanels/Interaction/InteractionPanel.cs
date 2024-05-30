@@ -7,16 +7,18 @@ using System;
 public class InteractionPanel : NetworkBehaviour
 {
     public static InteractionPanel Instance { get; private set; }
-    private Hand _playerHand;
+    [SerializeField] private CardPileInteraction _playerHand;
+    [SerializeField] private CardPileInteraction _playerDiscard;
     private CardMover _cardMover;
     private InteractionUI _ui;
     private PlayerManager _player;
 
     [Header("Helper Fields")]
+    [SerializeField] private List<CardStats> _selectableCards = new();
     private List<GameObject> _selectedCards = new();
     private MarketSelection _marketSelection;
     private TurnState _state;
-    private int _numberSelectableCards;
+    private int _numberSelections;
     public static event Action OnInteractionConfirmed;
 
     private void Awake(){
@@ -27,7 +29,6 @@ public class InteractionPanel : NetworkBehaviour
     private void Start()
     {
         _ui = gameObject.GetComponent<InteractionUI>();
-        _playerHand = Hand.Instance;
         _cardMover = CardMover.Instance;
     }
 
@@ -35,36 +36,57 @@ public class InteractionPanel : NetworkBehaviour
     public void RpcPrepareInteractionPanel() => _player = PlayerManager.GetLocalPlayer();
 
     [TargetRpc]
-    public void TargetStartInteraction(NetworkConnection target, TurnState turnState, int numberSelectableCards)
+    public void TargetStartInteraction(NetworkConnection target, List<CardStats> interactableCards, TurnState turnState, int numberSelections)
     {
+        print($"Start interaction in state {turnState} choose {numberSelections} / {interactableCards.Count} selectable cards");
+
         _state = turnState;
-        _numberSelectableCards = numberSelectableCards;
+        _numberSelections = numberSelections;
+        _selectableCards = interactableCards;
+
         bool autoSkip = CheckAutoskip();
+        _ui.InteractionBegin(turnState, autoSkip, numberSelections);
+        if (autoSkip) return;
 
-        // TODO: Implement and check if more interactions require other collection than hand
-        if (turnState == TurnState.CardIntoHand) return;
+        // All cards are interactable
+        if (_state == TurnState.Discard 
+            || _state == TurnState.Trash 
+            || _state == TurnState.CardIntoHand) 
+            AllCardsAreInteractable(true);
+        else 
+            MoneyCardsAreInteractable();
 
-        _ui.InteractionBegin(turnState, autoSkip, numberSelectableCards);
-        if (!autoSkip) _playerHand.StartInteraction(turnState);
+        if (_state == TurnState.CardIntoHand) _playerDiscard.StartInteraction();
+        else _playerHand.StartInteraction();
     }
 
     #region States
+
+    [TargetRpc]
+    public void TargetCheckPlayability(NetworkConnection target, TurnState state, int newAmount)
+    {
+        var allowedType = state switch
+        {
+            TurnState.Develop => CardType.Technology,
+            TurnState.Deploy => CardType.Creature,
+            _ => CardType.None
+        };
+
+        foreach (var card in _selectableCards) {
+            if (card.cardInfo.type != allowedType) continue;
+
+            card.CheckPlayability(newAmount);
+        }
+    }
 
     public void ConfirmSelection()
     {
         OnInteractionConfirmed?.Invoke();
 
-        if (_state == TurnState.Discard) {
-            _playerHand.UpdateHandCards(_selectedCards, false);
-            _player.CmdDiscardSelection(_selectedCards);
-        }
+        if (_state == TurnState.Discard) _player.CmdDiscardSelection(_selectedCards);
         else if (_state == TurnState.CardIntoHand || _state == TurnState.Trash) _player.CmdPrevailCardsSelection(_selectedCards);
         else if (_state == TurnState.Invent || _state == TurnState.Recruit) _player.CmdConfirmBuy(_marketSelection);
-        else if (_state == TurnState.Develop || _state == TurnState.Deploy) {
-            var card = _selectedCards[0];
-            _playerHand.RemoveCard(card);
-            _player.CmdConfirmPlay(card);
-        }
+        else if (_state == TurnState.Develop || _state == TurnState.Deploy) _player.CmdConfirmPlay(_selectedCards[0]);
         
         _selectedCards.Clear();
         _ui.ResetPanelUI(false);
@@ -82,7 +104,7 @@ public class InteractionPanel : NetworkBehaviour
 
         // Have to check if playing money card
         if (cardStats.cardInfo.type == CardType.Money) {
-            _player.CmdPlayMoneyCard(card, cardStats.cardInfo);
+            _player.CmdPlayMoneyCard(card, cardStats);
             cardStats.IsInteractable = false;
             return;
         }
@@ -110,14 +132,14 @@ public class InteractionPanel : NetworkBehaviour
     private void SelectCard(GameObject card)
     {
         // Remove the previously selected card if user clicks another one
-        if (_selectedCards.Count >= _numberSelectableCards) 
+        if (_selectedCards.Count >= _numberSelections) 
             DeselectCard(_selectedCards.Last());
 
         _selectedCards.Add(card);
         card.GetComponent<CardStats>().IsSelected = true;
         _cardMover.MoveTo(card, true, CardLocation.Hand, CardLocation.Selection);
 
-        if (_selectedCards.Count >= _numberSelectableCards) 
+        if (_selectedCards.Count >= _numberSelections) 
             _ui.EnableConfirmButton(true);
     }
 
@@ -130,28 +152,43 @@ public class InteractionPanel : NetworkBehaviour
         _ui.EnableConfirmButton(false);
     }
 
+    private void AllCardsAreInteractable(bool b)
+    {
+        foreach(var card in _selectableCards) card.IsInteractable = b;
+    }
+
+    private void MoneyCardsAreInteractable()
+    {
+        foreach(var card in _selectableCards) if (card.cardInfo.type == CardType.Money) card.IsInteractable = true;
+    }
+
+    [TargetRpc]
+    // Only used for undo on playing money cards
+    public void TargetUndoMoneyPlay(NetworkConnection target) => MoneyCardsAreInteractable();
+
     public void OnSkipInteraction() => _player.CmdSkipInteraction();
 
     private bool CheckAutoskip()
     {
-        if (_numberSelectableCards <= 0) return true;
-
-        // No card in hand -> only valid where player has to interact from hand
-        if ((_state == TurnState.Discard || _state == TurnState.Trash) && _playerHand.HandCardsCount == 0) return true;
-
-        // TODO: No card in discard -> autoskip
-        // if(_state == TurnState.CardIntoHand && _player.discard.Count == 0) return false;
+        // Nothing to select
+        if (_numberSelections <= 0) return true;
+        if (_selectableCards.Count == 0) return true;
 
         // No entity to play
-        if (_state == TurnState.Develop) return ! _playerHand.ContainsTechnology();
-        else if (_state == TurnState.Deploy) return ! _playerHand.ContainsCreature();
+        if (_state == TurnState.Develop) return ! ContainsTechnology();
+        if (_state == TurnState.Deploy) return ! ContainsCreature();
 
         return false;
     }
 
+    private bool ContainsMoney() => _selectableCards.Any(c => c.cardInfo.type == CardType.Money);
+    private bool ContainsTechnology() => _selectableCards.Any(c => c.cardInfo.type == CardType.Technology);
+    private bool ContainsCreature() => _selectableCards.Any(c => c.cardInfo.type == CardType.Creature);
+
     [ClientRpc]
     public void RpcResetPanel()
     {
+        AllCardsAreInteractable(false);
         _playerHand.EndInteraction();
         _selectedCards.Clear();
 

@@ -1,18 +1,10 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 
+
 [System.Serializable]
-public class CardCollection : List<CardInfo> 
+public class CardCollection : List<CardStats>
 {
-    // public List<CardInfo> cards;
-
-    // constructor
-    public CardCollection()
-    {
-        // cards = new List<CardInfo>();
-    }
-
     public void Shuffle(){
         var provider = new RNGCryptoServiceProvider();
         int n = Count;

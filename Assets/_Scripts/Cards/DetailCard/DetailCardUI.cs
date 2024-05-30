@@ -4,11 +4,10 @@ using UnityEngine.UI;
 using TMPro;
 
 public class DetailCardUI : CardUI, IPointerEnterHandler, IPointerExitHandler {
-
-    private TurnState _state;
     
     [Header("Card UI")]
     private bool _enableFocus = true;
+    public bool EnableFocus { get => _enableFocus; set => _enableFocus = value; }
     private Canvas _tempCanvas;
     private GraphicRaycaster _tempRaycaster;
 
@@ -22,7 +21,6 @@ public class DetailCardUI : CardUI, IPointerEnterHandler, IPointerExitHandler {
         _tempCanvas.sortingOrder = 1;
         _tempRaycaster = gameObject.AddComponent<GraphicRaycaster>();
         
-        if(_state == TurnState.Deploy) return;
         highlight.enabled = true;
         // _highlight.DOColor(standardHighlight, 0.2f);
     }
@@ -32,12 +30,10 @@ public class DetailCardUI : CardUI, IPointerEnterHandler, IPointerExitHandler {
         Destroy(_tempRaycaster);
         Destroy(_tempCanvas);
         
-        if(_state == TurnState.Deploy) return;
         highlight.enabled = false;
         // _highlight.DOColor(standardHighlight, 0.2f);
     }
-
-    public void DisableFocus() => _enableFocus = false;
+    
     public void EnableHighlight() => highlight.enabled = true;
     public void DisableHighlight() => highlight.enabled = false;
 }

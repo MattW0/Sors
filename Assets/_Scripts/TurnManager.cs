@@ -17,7 +17,6 @@ public class TurnManager : NetworkBehaviour
     private PhasePanel _phasePanel;
     private PrevailPanel _prevailPanel;
     private PlayerInterfaceManager _logger;
-    private Hand _handManager;
     private BoardManager _boardManager;
     private AbilityQueue _abilityQueue;
     [SerializeField] private CombatManager combatManager;
@@ -39,7 +38,7 @@ public class TurnManager : NetworkBehaviour
     private Dictionary<PlayerManager, List<GameObject>> _selectedCards = new();
     private Dictionary<PlayerManager, List<PrevailOption>> _playerPrevailOptions = new();
     private List<PrevailOption> _prevailOptionsToPlay = new();
-    private Dictionary<GameObject, CardInfo> _trashedCards = new();
+    private Dictionary<GameObject, CardStats> _trashedCards = new();
 
     // Events
     public static event Action<TurnState> OnPhaseChanged;
@@ -66,7 +65,6 @@ public class TurnManager : NetworkBehaviour
     private void SetupInstances(GameOptions gameOptions)
     {
         _gameManager = GameManager.Instance;
-        _handManager = Hand.Instance;
         _boardManager = BoardManager.Instance;
         _abilityQueue = AbilityQueue.Instance;
         _market = Market.Instance;
@@ -218,6 +216,7 @@ public class TurnManager : NetworkBehaviour
 
     private void Discard()
     {
+        print("Discard phase");
         StartPhaseInteraction();
     }
 
@@ -266,6 +265,7 @@ public class TurnManager : NetworkBehaviour
             _market.TargetCheckMarketPrices(player.connectionToClient, player.Cash);
         }
 
+        // StartCoroutine(StartPhaseInteraction());
         StartPhaseInteraction();
     }
 
@@ -371,8 +371,6 @@ public class TurnManager : NetworkBehaviour
 
     private void PlayCard()
     {
-        foreach (var cardsList in _selectedCards.Values) cardsList.Clear();
-
         StartPhaseInteraction();
     }
 
@@ -496,11 +494,11 @@ public class TurnManager : NetworkBehaviour
         {
             case PrevailOption.CardSelection:
                 turnState = TurnState.CardIntoHand;
-                StartPrevailInteraction(nextOption);
+                StartPhaseInteraction(nextOption);
                 break;
             case PrevailOption.Trash:
                 turnState = TurnState.Trash;
-                StartPrevailInteraction(nextOption);
+                StartPhaseInteraction(nextOption);
                 break;
             case PrevailOption.Score:
                 PrevailScoring();
@@ -523,8 +521,8 @@ public class TurnManager : NetworkBehaviour
             foreach (var card in cards)
             {
                 var stats = card.GetComponent<CardStats>();
-                player.discard.Remove(stats.cardInfo);
-                player.hand.Add(stats.cardInfo);
+                player.discard.Remove(stats);
+                player.hand.Add(stats);
                 player.RpcMoveCard(card, CardLocation.Discard, CardLocation.Hand);
             }
         }
@@ -541,11 +539,11 @@ public class TurnManager : NetworkBehaviour
             {
                 card.GetComponent<NetworkIdentity>().RemoveClientAuthority();
 
-                var cardInfo = card.GetComponent<CardStats>().cardInfo;
-                player.hand.Remove(cardInfo);
+                var stats = card.GetComponent<CardStats>();
+                player.hand.Remove(stats);
                 player.RpcMoveCard(card, CardLocation.Hand, CardLocation.Trash);
 
-                _trashedCards.Add(card, cardInfo);
+                _trashedCards.Add(card, stats);
             }
         }
 
@@ -633,11 +631,9 @@ public class TurnManager : NetworkBehaviour
         else if (newState == TurnState.NextPhase) NextPhase();
         else if (newState == TurnState.Draw) Draw();
         else if (newState == TurnState.Discard) Discard();
-        else if (newState == TurnState.Invent) StartMarketPhase();
-        else if (newState == TurnState.Develop) StartPlayCard();
+        else if (newState == TurnState.Invent || newState == TurnState.Recruit) StartMarketPhase();
+        else if (newState == TurnState.Develop || newState == TurnState.Deploy) StartPlayCard();
         else if (newState == TurnState.Combat) Combat();
-        else if (newState == TurnState.Recruit) StartMarketPhase();
-        else if (newState == TurnState.Deploy) StartPlayCard();
         else if (newState == TurnState.Prevail) Prevail();
         else if (newState == TurnState.CleanUp) CleanUp();
         else if (newState == TurnState.Idle) _logger.RpcLog("Game finished", LogType.Standard);
@@ -682,8 +678,10 @@ public class TurnManager : NetworkBehaviour
 
     private void PlayerCashChanged(PlayerManager player, int newAmount)
     {
+        // Taking this "detour" to have server and clients in sync
+        // Had troubles making Hand / Market listen to OnCashChanged directly..
         if(turnState == TurnState.Develop || turnState == TurnState.Deploy)
-            _handManager.TargetCheckPlayability(player.connectionToClient, newAmount);
+            _interactionPanel.TargetCheckPlayability(player.connectionToClient, turnState, newAmount);
         else if (turnState == TurnState.Invent || turnState == TurnState.Recruit)
             _market.TargetCheckMarketPrices(player.connectionToClient, newAmount);
     }
@@ -693,7 +691,9 @@ public class TurnManager : NetworkBehaviour
         foreach (var player in _gameManager.players.Values)
         {
             // Returns unused money then discards the remaining cards
-            player.ReturnMoneyToHand(false);
+            // player.ReturnMoneyToHand(false);
+            player.ReturnMoneyToHand();
+            player.DiscardMoneyCards();
             player.Cash = 0;
         }
     }
@@ -708,36 +708,36 @@ public class TurnManager : NetworkBehaviour
         }
     }
 
-    private void StartPhaseInteraction()
+    private void StartPhaseInteraction(PrevailOption currentPrevailOption = PrevailOption.None)
     {
-        foreach (var player in _gameManager.players.Values)
+        // yield return new WaitForSeconds(0.1f);        
+        foreach (var (player, selection) in _selectedCards)
         {
+            selection.Clear();
+
             var nbInteractions = turnState switch 
             {
                 TurnState.Discard => _gameOptions.phaseDiscard,
-                TurnState.Invent => player.Buys > 0 ? 1 : 0,
-                TurnState.Recruit => player.Buys > 0 ? 1 : 0,
-                TurnState.Develop => player.Plays > 0 ? 1 : 0,
-                TurnState.Deploy => player.Plays > 0 ? 1 : 0,
+                TurnState.Invent or TurnState.Recruit => player.Buys > 0 ? 1 : 0,
+                TurnState.Develop or TurnState.Deploy => player.Plays > 0 ? 1 : 0,
+                TurnState.CardIntoHand or TurnState.Trash => _playerPrevailOptions[player].Count(option => option == currentPrevailOption),
                 _ => -1
             };
 
-            _interactionPanel.TargetStartInteraction(player.connectionToClient, turnState, nbInteractions);
+            // TODO: Could add interactions with other collections here 
+            // Eg. opponent hand, trash, etc.
+            List<CardStats> collection = turnState switch
+            {
+                TurnState.CardIntoHand => player.discard,
+                // TurnState.GetFromTrash => _trashedCards.Values.ToList(),
+                _ => player.hand
+            };
+
+            _interactionPanel.TargetStartInteraction(player.connectionToClient, collection, turnState, nbInteractions);
         }
     }
 
-    private void StartPrevailInteraction(PrevailOption currentPrevailOption)
-    {
-        foreach (var cardsList in _selectedCards.Values) cardsList.Clear();
-
-        foreach (var (player, options) in _playerPrevailOptions)
-        {
-            var nbPicks = options.Count(option => option == currentPrevailOption);
-            _interactionPanel.TargetStartInteraction(player.connectionToClient, turnState, nbPicks);
-        }
-    }
-
-    public List<CardInfo> GetTrashedCardInfos() => _trashedCards.Values.ToList();
+    public List<CardStats> GetTrashedCards() => _trashedCards.Values.ToList();
 
     public void ForceEndTurn()
     { // experimental
@@ -773,6 +773,11 @@ public class TurnManager : NetworkBehaviour
     {
         GameManager.OnGameStart -= Prepare;
         PlayerManager.OnCashChanged -= PlayerCashChanged;
+    }
+
+    internal void PlayerClickedUndoButton(PlayerManager player)
+    {
+        _interactionPanel.TargetUndoMoneyPlay(player.connectionToClient);
     }
 }
 

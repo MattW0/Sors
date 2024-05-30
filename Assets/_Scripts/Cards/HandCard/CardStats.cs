@@ -56,6 +56,13 @@ public class CardStats : NetworkBehaviour
         _cardUI.Highlight(false, SorsColors.interactionHighlight);
     }
 
+    public bool Equals(CardStats other)
+    {
+        if (other == null) throw new ArgumentNullException(nameof(other));
+
+        return cardInfo.Equals(other.cardInfo);
+    }
+
     private void Destroy()
     {
         InteractionPanel.OnInteractionConfirmed -= ResetCard;
