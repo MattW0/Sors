@@ -1,11 +1,13 @@
 using UnityEngine;
 using DG.Tweening;
+using UnityEngine.UI;
 
 public class CardPileInteraction : MonoBehaviour
 {
     [SerializeField] private Transform _cardHolder;
-    private Vector3 _positionInteractable = new Vector3(-200, 100, 0);
-    private Vector3 _scaleInteractable = new Vector3(1.2f, 1.2f, 0);
+    [SerializeField] private Image _background;
+    [SerializeField] private Vector3 _positionInteractable = new Vector3(-200, 100, 0);
+    [SerializeField] private Vector3 _scaleInteractable = new Vector3(1.2f, 1.2f, 0);
 
     public void StartInteraction()
     {

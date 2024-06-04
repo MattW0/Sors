@@ -216,7 +216,6 @@ public class TurnManager : NetworkBehaviour
 
     private void Discard()
     {
-        print("Discard phase");
         StartPhaseInteraction();
     }
 

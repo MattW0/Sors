@@ -81688,6 +81688,7 @@ GameObject:
   - component: {fileID: 944275177732614430}
   - component: {fileID: 8130274160528354339}
   - component: {fileID: 8130274160528354340}
+  - component: {fileID: 8130274160528354341}
   m_Layer: 5
   m_Name: InteractionPanel
   m_TagString: Untagged
@@ -100849,6 +100850,18 @@ MonoBehaviour:
   _creatureCard: {fileID: 1163141759}
   _technologyCard: {fileID: 1791184035}
   _moneyCard: {fileID: 658397057}
+--- !u!114 &8130274160528354341
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6087230525073355943}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1211b415f9152c49abfebe8f0a71005, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &8150743083843682512
 GameObject:
   m_ObjectHideFlags: 0
@@ -101133,6 +101146,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _cardHolder: {fileID: 3002874652644849013}
+  _background: {fileID: 0}
+  _positionInteractable: {x: 710, y: 0, z: 0}
+  _scaleInteractable: {x: 1.2, y: 1.2, z: 0}
 --- !u!1 &8228244813401383814
 GameObject:
   m_ObjectHideFlags: 0
@@ -105188,6 +105204,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _cardHolder: {fileID: 4370084848960911499}
+  _background: {fileID: 0}
+  _positionInteractable: {x: -200, y: 100, z: 0}
+  _scaleInteractable: {x: 1.2, y: 1.2, z: 0}
 --- !u!224 &8576244130552726640
 RectTransform:
   m_ObjectHideFlags: 0

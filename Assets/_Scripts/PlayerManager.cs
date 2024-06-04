@@ -155,8 +155,6 @@ public class PlayerManager : NetworkBehaviour
 
     private IEnumerator ClientDrawing(List<GameObject> cards)
     {
-        // RpcUpdateHandCards(cards, true);
-
         foreach(var card in cards){
             RpcMoveCard(card, CardLocation.Deck, CardLocation.Hand);
             yield return new WaitForSeconds(SorsTimings.draw);

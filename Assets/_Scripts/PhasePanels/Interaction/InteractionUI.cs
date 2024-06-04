@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
+[RequireComponent(typeof(CardSelectionHandler))]
 public class InteractionUI : MonoBehaviour
 {
 
@@ -25,13 +26,13 @@ public class InteractionUI : MonoBehaviour
     [Header("Helper Fields")]
     private TurnState _state;
     private int _nbCardsToSelectMax;
-    private InteractionPanel _interactionPanel;
+    private CardSelectionHandler _selectionHandler;
 
 
     private void Start()
     {
-        _interactionPanel = InteractionPanel.Instance;
-
+        _selectionHandler = GetComponent<CardSelectionHandler>();
+        
         _skipButton.onClick.AddListener(OnSkipButtonPressed);
         _confirmButton.onClick.AddListener(OnConfirmButtonPressed);
 
@@ -117,7 +118,7 @@ public class InteractionUI : MonoBehaviour
 
     public void OnConfirmButtonPressed()
     {
-        _interactionPanel.ConfirmSelection();
+        _selectionHandler.ConfirmSelection();
 
         _buttons.SetActive(false);
         _waitingText.SetActive(true);
@@ -129,7 +130,7 @@ public class InteractionUI : MonoBehaviour
         _buttons.SetActive(false);
         _waitingText.SetActive(true);
 
-        _interactionPanel.OnSkipInteraction();
+        _selectionHandler.OnSkipInteraction();
     }
 
     private string StartInteractionUI()
