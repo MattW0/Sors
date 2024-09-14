@@ -36,17 +36,15 @@ public struct GameOptions
     public int extraCash;
     public int marketPriceReduction;
 
-    public GameOptions(string address, int numPhases, bool singlePlayer, bool fullHand, bool skipSpawnimations, string stateFile, bool saveStates, int initialHandSize)
+    public GameOptions(int numPhases = 2,
+                       bool singlePlayer = false, 
+                       bool fullHand = false, 
+                       bool skipSpawnimations = false, 
+                       string stateFile = "", 
+                       bool saveStates = true, 
+                       int initialHandSize = 4, 
+                       string address = "localhost")
     {
-        NetworkAddress = address;
-        NumberPhases = numPhases;
-        SinglePlayer = singlePlayer;
-        FullHand = fullHand;
-        SkipCardSpawnAnimations = skipSpawnimations;
-        StateFile = stateFile;
-        InitialHandSize = initialHandSize;
-        SaveStates = saveStates;
-
         // Player stats
         startHealth = 10;
         winScore = 10;
@@ -69,6 +67,19 @@ public struct GameOptions
         extraPrevails = 2;
         extraCash = 2;
         marketPriceReduction = 1;
+
+        // Configurable options
+        NumberPhases = numPhases;
+        SinglePlayer = singlePlayer;
+        SaveStates = saveStates;
+        SkipCardSpawnAnimations = skipSpawnimations;
+
+        NetworkAddress = address;
+        StateFile = stateFile;
+
+        FullHand = fullHand;
+        if (fullHand) InitialHandSize = initialDeckSize;
+        else InitialHandSize = initialHandSize;
     }
 
     public override string ToString()
@@ -94,4 +105,5 @@ public enum GameOption : byte
     SinglePlayer,
     FullHand,
     SkipCardSpawnAnimations,
+    SaveStates
 }

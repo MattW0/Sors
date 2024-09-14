@@ -38,7 +38,8 @@ public class GameManager : NetworkBehaviour {
     {
         if (Instance == null) Instance = this;
 
-        SorsNetworkManager.OnAllPlayersReady += GameSetup;
+        Sors.Lan.SorsNetworkManager.OnAllPlayersReady += GameSetup;
+        SorsSteamNetworkManager.OnAllPlayersReady += GameSetup;
     }
 
     #region Setup
@@ -52,9 +53,7 @@ public class GameManager : NetworkBehaviour {
 
         print(" --- Game starting --- \n" + options.ToString());
         _gameOptions = options;
-
-        // initialHandSize = options.FullHand ? _gameOptions.initialDeckSize : _gameOptions.InitialHandSize;
-        isSinglePlayer = options.SinglePlayer;
+        // isSinglePlayer = options.SinglePlayer;
 
         InitPlayers();
 
@@ -278,6 +277,7 @@ public class GameManager : NetworkBehaviour {
 
     private void OnDestroy()
     {
-        SorsNetworkManager.OnAllPlayersReady -= GameSetup;
+        SorsSteamNetworkManager.OnAllPlayersReady -= GameSetup;
+        Sors.Lan.SorsNetworkManager.OnAllPlayersReady -= GameSetup;
     }
 }

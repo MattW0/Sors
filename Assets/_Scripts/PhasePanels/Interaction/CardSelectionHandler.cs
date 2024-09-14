@@ -23,10 +23,9 @@ public class CardSelectionHandler : MonoBehaviour
         _ui = gameObject.GetComponent<InteractionUI>();
 
         CardClick.OnCardClicked += ClickedCard;
-        _player = PlayerManager.GetLocalPlayer();
     }
 
-    public void GetLocalPlayer() {}
+    public void GetLocalPlayer() => _player = PlayerManager.GetLocalPlayer();
     public void BeginInteraction(TurnState turnState, int numberSelections, bool autoSkip, bool isUpToNumber = false)
     {
         _state = turnState;
