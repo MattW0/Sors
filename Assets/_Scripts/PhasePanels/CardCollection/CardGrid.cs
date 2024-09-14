@@ -9,10 +9,10 @@ public class CardGrid : MonoBehaviour
     public bool updateGrid;
     [SerializeField] private RectTransform _maxViewTransform;
     [SerializeField] private Transform _cardHolder;
+    public float scaleFactor = 0.7f;
     private const float _panelMaxWidth = 1300f;
     private const float _defaultX = 120f;
     private const float _padding = 20f;
-    private const float _defaultScale = 0.7f;
     private const float _cardWidth = 154f; // With scale factor 0.7! Default: 220f
     private float _panelWidth;
 
@@ -35,7 +35,7 @@ public class CardGrid : MonoBehaviour
     {
         foreach (var t in transforms) {
             t.SetParent(_cardHolder, false);
-            t.localScale = Vector3.one * _defaultScale;
+            t.localScale = Vector3.one * scaleFactor;
         }
 
         updateGrid = true;

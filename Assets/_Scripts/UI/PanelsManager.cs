@@ -28,7 +28,7 @@ public class PanelsManager : NetworkBehaviour
         foreach (var card in cards) cardInfos.Add(card.cardInfo);
 
         var cardCollection = Instantiate(_cardCollectionViewPrefab, _spawnParentTransform);
-        cardCollection.GetComponent<CardSpawner>().SpawnDetailCardObjects(cardInfos);
+        cardCollection.GetComponent<CardSpawner>().SpawnDetailCardObjectsInGrid(cardInfos);
         cardCollection.GetComponent<CardCollectionUI>().OpenCardCollection(collectionType, isOwned);
     }    
 }
