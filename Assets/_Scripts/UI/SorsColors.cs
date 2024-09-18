@@ -11,6 +11,13 @@ public static class SorsColors
     public static Color neutralDark = new Color(0.1f, 0.1f, 0.12f);
     public static Color neutral = new Color(0.15f, 0.15f, 0.16f);
     public static Color neutralLight = new Color(0.25f, 0.25f, 0.28f);
+    public static Color text = new Color(240, 243, 219);
+    // public static Color primary = new Color(27, 68, 28);
+    public static Color primary = new Color(0.16f, 0.27f, 0.12f);
+    public static Color primaryLight = new Color(172, 203, 124);
+    // public static Color secondary = new Color(0.2f, 0.2f, 0.2f);
+    public static Color warn = new Color(230, 197, 36);
+    public static Color error = new Color(216, 56, 20);
 
     // -- Play Board --
     public static Color creature = new Color(0.34f, 0f, 0f);

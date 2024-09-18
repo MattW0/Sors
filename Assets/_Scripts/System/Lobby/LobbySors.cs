@@ -1,26 +1,16 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Steamworks.Data;
 using Steamworks;
 using TMPro;
-using UnityEngine.UI;
-using System;
 
-public class SteamLobby : MonoBehaviour
+public class LobbySors : MonoBehaviour
 {
-    [SerializeField] private SteamLobbiesManager _steamLobbiesManager;
-    private LobbyMembers _lobbyMembers;
-
-    [SerializeField] private GameObject _lobbyScreen;
+    [SerializeField] private SteamPlayerItem _host;
+    [SerializeField] private SteamPlayerItem _client;
     [SerializeField] private TMP_Text _lobbyId;
     [SerializeField] private TMP_Text _lobbyName;
     [SerializeField] private TMP_Text _lobbyOwnerName;
-
-    private void Awake() 
-    {
-        _lobbyMembers = GetComponent<LobbyMembers>();
-    }
+    private Lobby _lobby;
 
     private void Start()
     {
@@ -30,29 +20,39 @@ public class SteamLobby : MonoBehaviour
 
     public void SetLobby(Lobby lobby)
     {
-        _lobbyScreen.SetActive(true);
-
+        print("Set lobby");
+        _lobby = lobby;
         _lobbyId.text = lobby.Id.ToString();
         _lobbyName.text = lobby.GetData("name");
         _lobbyOwnerName.text = lobby.Owner.Name;
 
-        _lobbyMembers.InitLobby(lobby);
+        InitLobby();
+    }
+
+    private void InitLobby()
+    {
+        print("Init lobby");
+        _host.Reset();
+        _client.Reset();
+
+        foreach(var member in _lobby.Members) 
+            if (member.Id == _lobby.Owner.Id) _host.InitLobbyMember(member, true);
+            else _client.InitLobbyMember(member, false);
     }
 
     private void OnMemberJoinCallback(Lobby lobby, Friend friend)
     {
+        if (lobby.Id != _lobby.Id) return;
+
         print($"{friend.Name} joined");
-        _lobbyMembers.AddMember(friend);
+        InitLobby();
     }
 
     private void OnMemeberLeaveCallback(Lobby lobby, Friend friend)
     {
-        print($"{friend.Name} left lobby");
-        _lobbyMembers.InitLobby(lobby);
-    }
+        if (lobby.Id != _lobby.Id) return;
 
-    public void LeaveLobby()
-    {
-        _lobbyScreen.SetActive(false);
+        print($"{friend.Name} left lobby");
+        InitLobby();
     }
 }

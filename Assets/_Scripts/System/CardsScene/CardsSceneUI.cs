@@ -2,32 +2,38 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
+using TMPro;
 
 public class CardsSceneUI : MonoBehaviour
 {
-    [SerializeField] private Button _backButton;
-    [SerializeField] private Button _deckButton;
-    [SerializeField] private Button _creaturesButton;
-    [SerializeField] private Button _technologiesButton;
-    [SerializeField] private Button _moneyButton;
-
+    [SerializeField] private ScrollRect _scrollRect;
+    [SerializeField] private TMP_Dropdown _cardTypeSelection;
+    [SerializeField] private Button _createCard;
     private CardsSceneManager _cardsSceneManager;
 
     private void Start()
     {
         _cardsSceneManager = GetComponent<CardsSceneManager>();
 
-        _backButton.onClick.AddListener(OnBack);
-        _deckButton.onClick.AddListener(OnDeck);
-        _creaturesButton.onClick.AddListener(OnCreatures);
-        _technologiesButton.onClick.AddListener(OnTechnologies);
-        _moneyButton.onClick.AddListener(OnMoney);
+        // Player is a "free" type that represents starting Deck
+        _createCard.onClick.AddListener(() => _cardsSceneManager.OpenCardCreateWindow());
+        _cardTypeSelection.onValueChanged.AddListener((int i) => SelectType(i));
     }
 
-    private void OnBack() => SceneManager.LoadScene("Lobby");
-    private void OnDeck() => _cardsSceneManager.SelectCardType(CardType.Player);
-    private void OnCreatures() => _cardsSceneManager.SelectCardType(CardType.Creature);
-    private void OnTechnologies() => _cardsSceneManager.SelectCardType(CardType.Technology);
-    private void OnMoney() => _cardsSceneManager.SelectCardType(CardType.Money);
+    private void SelectType(int index)
+    {
+        CardType type = index switch
+        {
+            0 => CardType.All,
+            1 => CardType.Creature,
+            2 => CardType.Technology,
+            3 => CardType.Money,
+            4 => CardType.Player,
+            _ => CardType.All
+        };
+
+        _cardsSceneManager.SelectCardType(type);
+    }
+
+    public void ScrollToTop() => _scrollRect.ScrollToTop();
 }

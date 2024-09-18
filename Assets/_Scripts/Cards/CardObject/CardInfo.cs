@@ -94,5 +94,6 @@ public enum CardType : byte
     Money,
     Technology,
     Player,
-    None
+    None,
+    All
 }

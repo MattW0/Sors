@@ -31,7 +31,7 @@ public class ScriptableCard : ScriptableObject
     public List<string> relationsTexts;
 
     [Header("Card Display Data")]
-    public string description;
+    [TextArea] public string description;
 
     static Dictionary<string, ScriptableCard> _cache;
     public static Dictionary<string, ScriptableCard> Cache

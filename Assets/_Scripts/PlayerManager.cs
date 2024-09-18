@@ -108,7 +108,6 @@ public class PlayerManager : NetworkBehaviour
         _combatManager = CombatManager.Instance;
         _abilityQueue = AbilityQueue.Instance;
         _entity = GetComponent<BattleZoneEntity>();
-        print("Player Entitiy : " + _entity.Title);
     }
 
     private void EntityAndUISetup(){
@@ -553,11 +552,7 @@ public class PlayerManager : NetworkBehaviour
     {
         // Only trigger from my own player object 
         if (! isOwned) return;
-
-        // TODO: This triggers again when cardCollection is already open -> adding same cards again
-        // TODO: Need logic to close collection if cardCollection is already open, including when an actual hand interaction starts
-
-        // TODO: Expand this for other collections, needs CardPileClick with SorsCardsPile for that
+        
         CmdPlayerOpensCardCollection(this, collectionType, ownsCollection);
     }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,6 +6,8 @@ using UnityEngine;
 public class CardsSceneManager : MonoBehaviour
 {
     private CardSpawner _cardSpawner;
+    private CardsSceneUI _cardsSceneUI;
+    [SerializeField] private CardCreateWindow _cardCreateWindow;
     public List<CardInfo> startDeck = new();
     public List<CardInfo> moneyCards = new();
     public List<CardInfo> creatureCards = new();
@@ -15,6 +18,7 @@ public class CardsSceneManager : MonoBehaviour
     private void Awake()
     {
         _cardSpawner = GetComponent<CardSpawner>();
+        _cardsSceneUI = GetComponent<CardsSceneUI>();
     }
 
     private void Start()
@@ -50,7 +54,15 @@ public class CardsSceneManager : MonoBehaviour
     public void SelectCardType(CardType type)
     {
         foreach (var (k,v) in _detailCardObjects) {
-            foreach (var go in v) go.SetActive(k == type);
+            foreach (var go in v) 
+                go.SetActive(type == CardType.All || k == type);
         }
+
+        _cardsSceneUI.ScrollToTop();
+    }
+
+    internal void OpenCardCreateWindow()
+    {
+        _cardCreateWindow.ModalWindowIn();
     }
 }
