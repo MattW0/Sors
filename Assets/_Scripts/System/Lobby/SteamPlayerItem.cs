@@ -18,7 +18,7 @@ public class SteamPlayerItem : MonoBehaviour
     private ButtonAction _action;
     public static event Action<SteamId, ButtonAction> OnSteamPlayerClicked;
 
-    internal async void InitFriend(Friend friend, bool isInLobby=false)
+    internal async void InitFriend(Friend friend, bool selfIsInLobby=false)
     {        
         if (!SteamClient.IsValid) return;
 
@@ -31,17 +31,27 @@ public class SteamPlayerItem : MonoBehaviour
 
         _button.onClick.AddListener(() => OnSteamPlayerClicked?.Invoke(_steamId, _action));
 
-        // Can invite friend if player is in lobby
-        if (isInLobby) {
-            _action = friend.IsOnline ? ButtonAction.INVITE : ButtonAction.NONE;
-            _actionText.text = friend.IsOnline ? "Invite" : "";
-            return;
-        }
+        // Can invite friend if local player (self) is in lobby. Otherwise, can join friends that are in a lobby
+        if (selfIsInLobby) InitLobbyFriend(friend.IsOnline);
+        else _button.interactable = friend.IsOnline;
+        
+        // TODO: Is it possible to join a friend that is hosting a public Sors lobby?
+        // InitDefaultFriend(friend); Doesn't work
+        // friend.IsPlayingThisGame could be interesting (but needs proper SteamID for Sors)
+    }
 
-        // Otherwise, can join friends that are in a lobby
-        _button.interactable = friend.IsOnline;
+    private void InitLobbyFriend(bool friendIsOnline)
+    {
+        _action = friendIsOnline ? ButtonAction.INVITE : ButtonAction.NONE;
+        _actionText.text = friendIsOnline ? "Invite" : "";
+    }
+
+    private void InitDefaultFriend(Friend friend)
+    {
+        
         Friend.FriendGameInfo? gameInfo = friend.GameInfo;
         if (gameInfo.HasValue && gameInfo.Value.Lobby.HasValue){
+            print("Friend game info: " + gameInfo.Value.Lobby);
             _action = ButtonAction.JOIN;
             _actionText.text = "Join";
             _status.text = "In Lobby";
@@ -50,17 +60,14 @@ public class SteamPlayerItem : MonoBehaviour
 
     internal async void InitLobbyMember(Friend friend, bool isHost)
     {
-        print("Init lobby member");
         await LoadFriendData(friend);
 
-        if (isHost || friend.IsMe) {
-            _button.interactable = false;
-            _status.text = "Host";
-            _actionText.text = "";
-            _action = ButtonAction.NONE;
-        } else {
+        _button.interactable = false;
+        _status.text = isHost ? "Host" : "Client";
+
+        if (friend.IsMe) _actionText.text = "";
+        else if (! isHost) {
             _button.interactable = true;
-            _status.text = "Client";
             _actionText.text = "Kick";
             _action = ButtonAction.KICK;
         }
@@ -79,6 +86,9 @@ public class SteamPlayerItem : MonoBehaviour
     {
         _playerName.text = "";
         _status.text = "";
+        _actionText.text = "";
+        _action = ButtonAction.NONE;
+        _playerAvatar.texture = null;
     }
 }
 

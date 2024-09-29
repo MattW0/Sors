@@ -5,6 +5,10 @@ using UnityUtils;
 using System.Linq;
 using System;
 using Michsky.UI.Shift;
+using System.Collections;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+
 
 public class SteamLobbiesManager : MonoBehaviour
 {
@@ -17,11 +21,13 @@ public class SteamLobbiesManager : MonoBehaviour
     [SerializeField] private GameObject _headerPrefab;
     [SerializeField] private GameObject _lobbyPrefab;
     [SerializeField] private Transform _lobbiesParent;
-    [SerializeField] private GameObject _joinDialogue;
+    [SerializeField] private ModalWindow _joinDialogue;
 
     private SteamFriendsManager _friendsManager;
     private Lobby _activeLobby;
     private Lobby _invitedLobby;
+    private CancellationTokenSource _cts;
+    private const int SCAN_INTERVAL = 3000;
 
     private void Awake()
     {
@@ -54,24 +60,34 @@ public class SteamLobbiesManager : MonoBehaviour
             return;
         }
 
-        LoadLobbies();
+        _friendsManager.StartFriendScanning(SCAN_INTERVAL);
+        StartScanningLobbies();
     }
 
-    private async void LoadLobbies()
+    private async void StartScanningLobbies()
     {
-        try
-        {
-            var lobbies = await SteamMatchmaking.LobbyList
-                                .WithMaxResults(10)
-                                .FilterDistanceClose()
+        _cts = new CancellationTokenSource();
+        try {
+            while (true) {
+                GetLobbies(_cts.Token).Forget();
+                await UniTask.Delay(SCAN_INTERVAL, cancellationToken: _cts.Token);
+            }
+        } catch (OperationCanceledException) {
+            print("Lobbies scan cancelled");
+        }
+    }
+
+    private async UniTaskVoid GetLobbies(CancellationToken token)
+    {
+        print ("Scanning for lobbies");
+        token.ThrowIfCancellationRequested();
+
+        var lobbies = await SteamMatchmaking.LobbyList
+                                .WithMaxResults(20)
+                                .FilterDistanceFar()
                                 .WithSlotsAvailable(1)
-                                .RequestAsync();
-            InstantiateLobbyItems(lobbies);
-        }
-        catch (Exception e) {
-            print("Failed to load lobby data");
-            print(e);
-        }
+                                .RequestAsync().AsUniTask();
+        InstantiateLobbyItems(lobbies, token);
     }
 
     public void CreateLobby() => SteamMatchmaking.CreateLobbyAsync(_networkManager.maxConnections);
@@ -84,6 +100,7 @@ public class SteamLobbiesManager : MonoBehaviour
         }
 
         lobby.Owner = new Friend(SteamClient.SteamId);
+        lobby.SetData("game", "Sors");
         lobby.SetData("name", SteamClient.Name + "'s Lobby");
         lobby.SetData("owner", SteamClient.Name);
 
@@ -95,26 +112,31 @@ public class SteamLobbiesManager : MonoBehaviour
     {
         print("Lobby joined - " + lobby.Id);
         _panelManager.OpenPanel("Lobby");
+        _cts.Cancel();
 
         _activeLobby = lobby;
         _sorsLobby.SetLobby(lobby);
     }
     public void InvitePlayer(SteamId id) => _activeLobby.InviteFriend(id);
-    public void KickPlayer(SteamId id) {}//TODO: _activeLobby.Kick(id);
+    public void KickPlayer(SteamId id) 
+    {
+        // TODO: https://wiki.facepunch.com/steamworks/SteamMatchmaking.OnLobbyMemberKicked
+        print("TODO: Trying to kick player " + id.ToString()); 
+    }
     public void JoinLobbyViaInvite() => JoinLobby(_invitedLobby.Id);
     private void OnInviteRecievedCallback(Friend friend, Lobby lobby)
     {
         print("Lobby invite received - " + lobby.Id + " from " + friend.Name);
-        _joinDialogue.SetActive(true);
         _invitedLobby = lobby;
 
-        _joinDialogue.GetComponent<ModalWindow>().SetMessage("You have been invited to " + lobby.GetData("name") + " by " + friend.Name);
+        _joinDialogue.SetMessage("You have been invited to " + lobby.GetData("name") + " by " + friend.Name);
+        _joinDialogue.ModalWindowIn();
     }
 
     internal void LeaveLobby()
     {
         _activeLobby.Leave();
-        LoadLobbies();
+        StartScanningLobbies();
 
         _panelManager.OpenPanel("Home");
     }
@@ -128,7 +150,7 @@ public class SteamLobbiesManager : MonoBehaviour
         _networkManager.StartMirror(_activeLobby.Owner.Id, SteamClient.Name);
     }
 
-    private void InstantiateLobbyItems(Lobby[] lobbies)
+    private void InstantiateLobbyItems(Lobby[] lobbies, CancellationToken token)
     {
         _lobbiesParent.DestroyChildren();
 
@@ -137,6 +159,8 @@ public class SteamLobbiesManager : MonoBehaviour
 
         foreach (var lobby in lobbies)
         {
+            if (lobby.GetData("game") != "Sors") continue;
+
             var lobbyObject = Instantiate(_lobbyPrefab, _lobbiesParent);
             lobbyObject.GetComponent<SteamLobbyItem>().SetLobby(lobby, this);
         }
@@ -144,6 +168,7 @@ public class SteamLobbiesManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        _cts.Cancel();
         SteamMatchmaking.OnLobbyCreated -= OnLobbyCreatedCallback;
         SteamMatchmaking.OnLobbyEntered -= OnLobbyEnteredCallback;
         SteamMatchmaking.OnLobbyInvite -= OnInviteRecievedCallback;

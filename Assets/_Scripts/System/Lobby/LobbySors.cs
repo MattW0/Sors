@@ -20,7 +20,6 @@ public class LobbySors : MonoBehaviour
 
     public void SetLobby(Lobby lobby)
     {
-        print("Set lobby");
         _lobby = lobby;
         _lobbyId.text = lobby.Id.ToString();
         _lobbyName.text = lobby.GetData("name");
@@ -31,7 +30,6 @@ public class LobbySors : MonoBehaviour
 
     private void InitLobby()
     {
-        print("Init lobby");
         _host.Reset();
         _client.Reset();
 
