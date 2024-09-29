@@ -2,8 +2,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 using Mirror;
-using System.Net;
-using System.Linq;
+using Cysharp.Threading.Tasks;
 
 namespace Sors.Lan
 {
@@ -43,19 +42,18 @@ namespace Sors.Lan
                 opponent.GetComponent<PlayerManager>().isAI = true;
             }
 
-            StartCoroutine(WaitForAllClients());
+            WaitForAllClients().Forget();
         }
 
-        private IEnumerator WaitForAllClients()
+        private async UniTaskVoid WaitForAllClients()
         {
             var numPlayers = _gameOptions.SinglePlayer ? 1 : 2;
             while (NetworkServer.connections.Count < numPlayers){
                 print("Waiting for opponent...");
-                yield return new WaitForSeconds(SorsTimings.wait);
+                await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.waitSeconds));
             }
 
-            yield return new WaitForSeconds(SorsTimings.wait);
-
+            await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.waitSeconds));
             OnAllPlayersReady?.Invoke(_gameOptions);
         }
 

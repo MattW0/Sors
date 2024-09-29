@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Mirror;
-using SorsGameState;
+using Cysharp.Threading.Tasks;
 
 public class TurnManager : NetworkBehaviour
 {
@@ -59,7 +59,7 @@ public class TurnManager : NetworkBehaviour
 
         SetupInstances(gameOptions);
         VariablesCaching(gameOptions);
-        StartCoroutine(DrawInitialHand());
+        DrawInitialHand().Forget();
     }
 
     private void SetupInstances(GameOptions gameOptions)
@@ -96,10 +96,9 @@ public class TurnManager : NetworkBehaviour
         _playerPrevailOptions = _playerPrevailOptions.Reverse().ToDictionary(x => x.Key, x => x.Value);
     }
 
-    private IEnumerator DrawInitialHand()
+    private async UniTaskVoid DrawInitialHand()
     {
-        float waitForSpawn = _skipCardDrawAnimations ? 0.5f : 4f;
-        yield return new WaitForSeconds(waitForSpawn);
+        await UniTask.Delay(TimeSpan.FromSeconds(_skipCardDrawAnimations ? 0.5f : 4f));
 
         // StateFile is NOT null or empty if we load from a file eg. state.json
         // Dont want ETB triggers for entities from game state and only draw initial hand in normal game start 
@@ -109,7 +108,7 @@ public class TurnManager : NetworkBehaviour
                 player.deck.Shuffle();
                 player.DrawCards(_gameOptions.InitialHandSize);
             }
-            yield return new WaitForSeconds(SorsTimings.wait);
+            await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.waitSeconds));
         }
 
         if(_gameOptions.SaveStates) _boardManager.PrepareGameStateFile(_market.GetTileInfos());
@@ -709,31 +708,44 @@ public class TurnManager : NetworkBehaviour
 
     private void StartPhaseInteraction(PrevailOption currentPrevailOption = PrevailOption.None)
     {
-        // yield return new WaitForSeconds(0.1f);        
         foreach (var (player, selection) in _selectedCards)
         {
+            // Always clear selection from last interaction
             selection.Clear();
 
-            var nbInteractions = turnState switch 
-            {
-                TurnState.Discard => _gameOptions.phaseDiscard,
-                TurnState.Invent or TurnState.Recruit => player.Buys > 0 ? 1 : 0,
-                TurnState.Develop or TurnState.Deploy => player.Plays > 0 ? 1 : 0,
-                TurnState.CardIntoHand or TurnState.Trash => _playerPrevailOptions[player].Count(option => option == currentPrevailOption),
-                _ => -1
-            };
-
-            // TODO: Could add interactions with other collections here 
-            // Eg. opponent hand, trash, etc.
-            List<CardStats> collection = turnState switch
-            {
-                TurnState.CardIntoHand => player.discard,
-                // TurnState.GetFromTrash => _trashedCards.Values.ToList(),
-                _ => player.hand
-            };
+            var nbInteractions = GetNumberOfInteractions(player, currentPrevailOption);
+            var collection = GetCollectionType(player);
 
             _interactionPanel.TargetStartInteraction(player.connectionToClient, collection, turnState, nbInteractions);
         }
+    }
+
+    private int GetNumberOfInteractions(PlayerManager player, PrevailOption currentPrevailOption)
+    {
+        int numberInteractions = turnState switch 
+        {
+            TurnState.Discard => _gameOptions.phaseDiscard,
+            TurnState.Invent or TurnState.Recruit => player.Buys > 0 ? 1 : 0,
+            TurnState.Develop or TurnState.Deploy => player.Plays > 0 ? 1 : 0,
+            TurnState.CardIntoHand or TurnState.Trash => _playerPrevailOptions[player].Count(option => option == currentPrevailOption),
+            _ => -1
+        };
+
+        return numberInteractions;
+    }
+
+    // TODO: Could add interactions with other collections here 
+    // Eg. opponent hand, trash, etc.
+    private List<CardStats> GetCollectionType(PlayerManager player)
+    {
+        List<CardStats> collection = turnState switch
+        {
+            TurnState.CardIntoHand => player.discard,
+            // TurnState.GetFromTrash => _trashedCards.Values.ToList(),
+            _ => player.hand
+        };
+
+        return collection;
     }
 
     public List<CardStats> GetTrashedCards() => _trashedCards.Values.ToList();

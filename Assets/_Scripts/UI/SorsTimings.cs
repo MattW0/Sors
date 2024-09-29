@@ -1,6 +1,6 @@
 public static class SorsTimings 
 {
-    public static float wait = 1f;
+    public static int waitSeconds = 1;
 
     // Cards and Entities
     public static float cardMoveTime = 0.5f;

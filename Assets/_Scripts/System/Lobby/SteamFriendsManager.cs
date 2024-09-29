@@ -11,7 +11,7 @@ public class SteamFriendsManager : MonoBehaviour
     [SerializeField] private SteamPlayers _steamFriends;
     [SerializeField] private TMP_Text _playerName;
     public static event Action<bool> OnFriendsInviteButtonToggle;
-    private CancellationTokenSource _cts = new();
+    private CancellationTokenSource _cts;
 
     private void Awake()
     {
@@ -21,18 +21,21 @@ public class SteamFriendsManager : MonoBehaviour
     public async void StartFriendScanning(int intervalMiliseconds)
     {
         _playerName.text = SteamClient.Name;
-        
-        var token = this.GetCancellationTokenOnDestroy();
+
+        _cts = new();
         try {
-            while (true) await ScanFriends(intervalMiliseconds, token);
+            while (true) await ScanFriends(intervalMiliseconds, _cts.Token);
         } catch (OperationCanceledException) {
             print("Friends scan cancelled");
         }
     }
 
+    public void StopFriendScanning() => _cts.Cancel();
+
     private async UniTask ScanFriends(int intervalMiliseconds, CancellationToken token)
     {
         print("Scanning friends");
+        token.ThrowIfCancellationRequested();
         _steamFriends.InitFriends();
 
         await UniTask.Delay(intervalMiliseconds, cancellationToken: token);

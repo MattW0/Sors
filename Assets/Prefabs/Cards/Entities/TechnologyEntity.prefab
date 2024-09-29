@@ -187,6 +187,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3140304299993523850, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3406130842374366824, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
       propertyPath: colorType
       value: 1
@@ -311,6 +315,10 @@ PrefabInstance:
       propertyPath: m_Color.r
       value: 0.65
       objectReference: {fileID: 0}
+    - target: {fileID: 8497471753196507985, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8726007311086192731, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -365,10 +373,10 @@ MonoBehaviour:
   _playerUI: {fileID: 0}
   cardType: 2
   _health: 0
-  _points: 0
   targetArrowHandler: {fileID: 0}
   attackerArrowHandler: {fileID: 0}
   blockerArrowHandler: {fileID: 0}
+  _points: 0
 --- !u!114 &6077006085268490378 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8219696012871407867, guid: 2e4c1bbe5daa0a94f92a8887ab3af299, type: 3}

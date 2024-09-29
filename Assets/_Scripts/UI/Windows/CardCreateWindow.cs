@@ -4,6 +4,7 @@ using UnityEngine;
 using Michsky.UI.Shift;
 using UnityEngine.UI;
 using System;
+using Cysharp.Threading.Tasks;
 
 public class CardCreateWindow : MonoBehaviour, IModalWindow
 {
@@ -30,7 +31,7 @@ public class CardCreateWindow : MonoBehaviour, IModalWindow
 
     public void ModalWindowIn()
     {
-        StopCoroutine(DisableWindow());
+        // DisableWindow().Forget();
         gameObject.SetActive(true);
         _blurManager.BlurInAnim();
 
@@ -45,7 +46,7 @@ public class CardCreateWindow : MonoBehaviour, IModalWindow
 
     public void ModalWindowOut()
     {
-        StartCoroutine(DisableWindow());
+        DisableWindow().Forget();
         _blurManager.BlurOutAnim();
 
         if (! _isOn) return;
@@ -58,9 +59,9 @@ public class CardCreateWindow : MonoBehaviour, IModalWindow
         _isOn = false;
     }
 
-    private IEnumerator DisableWindow()
+    private async UniTask DisableWindow()
     {
-        yield return new WaitForSeconds(0.5f);
+        await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
         gameObject.SetActive(false);
     }
 }

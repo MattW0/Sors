@@ -32,7 +32,8 @@ public class AbilityQueue : MonoBehaviour
 
     public IEnumerator Resolve()
     {
-        foreach(var (entity, ability) in _queue){
+        foreach(var (entity, ability) in _queue)
+        {
             _effectHandler.SetSource(entity, ability);
             entity.RpcEffectHighlight(true);
 

@@ -147,6 +147,7 @@ public class SteamLobbiesManager : MonoBehaviour
         var playerNames = _activeLobby.Members.Select(m => m.Name).ToList();
         print("Starting game with players: " + string.Join(", ", playerNames));
 
+        _friendsManager.StopFriendScanning();
         _networkManager.StartMirror(_activeLobby.Owner.Id, SteamClient.Name);
     }
 
