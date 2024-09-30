@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
+using Cysharp.Threading.Tasks;
 
 public class TriggerHandler : NetworkBehaviour
 {
@@ -21,10 +22,10 @@ public class TriggerHandler : NetworkBehaviour
         TurnManager.OnPhaseChanged += CheckTurnStateTriggers;
     }
 
-    public IEnumerator CardsArePlayed(List<BattleZoneEntity> entities)
+    public async UniTaskVoid CardsArePlayed(List<BattleZoneEntity> entities)
     {
         // Wait for card initialization
-        yield return new WaitForSeconds(0.1f);
+        await UniTask.Delay(100);
 
         foreach (var entity in entities){
             var abilities = entity.CardInfo.abilities;

@@ -26,7 +26,7 @@ public class InteractionPanel : NetworkBehaviour
     [TargetRpc]
     public void TargetStartInteraction(NetworkConnection target, List<CardStats> interactableCards, TurnState turnState, int numberSelections)
     {
-        print($"Start interaction in state {turnState} choose {numberSelections} / {interactableCards.Count} selectable cards");
+        print($"{turnState} interaction: Choose {numberSelections} out of {interactableCards.Count} selectable cards");
 
         _state = turnState;
         _selectableCards = interactableCards;

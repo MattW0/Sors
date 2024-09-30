@@ -46,10 +46,10 @@ public class BoardManager : NetworkBehaviour
         }
 
         // Check for ETB and if phase start trigger gets added to phases being tracked
-        StartCoroutine(_triggerHandler.CardsArePlayed(entities.Values.ToList()));
+        _triggerHandler.CardsArePlayed(entities.Values.ToList()).Forget();
 
         // Move entities to holders and card into played zone
-        StartCoroutine(_dropZone.EntitiesEnterDropZone(entities));
+        _dropZone.EntitiesEnterDropZone(entities).Forget();
     }
 
     #region Effects

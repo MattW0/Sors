@@ -186,10 +186,10 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcShowSpawnedCard(GameObject card, CardLocation destination) => StartCoroutine(_cardMover.ShowSpawnedCard(card, isOwned, destination));
+    public void RpcShowSpawnedCard(GameObject card, CardLocation destination) => _cardMover.ShowSpawnedCard(card, isOwned, destination).Forget();
 
     [ClientRpc]
-    public void RpcShowSpawnedCards(List<GameObject> cards, CardLocation destination, bool fromFile) => StartCoroutine(_cardMover.ShowSpawnedCards(cards, isOwned, destination, fromFile));
+    public void RpcShowSpawnedCards(List<GameObject> cards, CardLocation destination, bool fromFile) => _cardMover.ShowSpawnedCards(cards, isOwned, destination, fromFile).Forget();
 
     [Command]
     public void CmdPlayMoneyCard(GameObject cardObject, CardStats cardStats)
@@ -534,15 +534,8 @@ public class PlayerManager : NetworkBehaviour
     [Server]
     private void RemoveHandCard(CardStats card)
     {
-        // TODO: Do I really need this?
-        // It seems that doing hand.Remove(card) does not work, why ?
-
-        print($"Removing card from hand (count {hand.Count}) : {card.cardInfo.title}");
         var cardToRemove = hand.FirstOrDefault(c => c.Equals(card));
-        print("Card to remove : " + cardToRemove.cardInfo.title);
         hand.Remove(cardToRemove);
-
-        print($"Hand count : {hand.Count}");
     }
 
     public void PlayerPressedCombatButton() => CmdPlayerPressedCombatButton(this);

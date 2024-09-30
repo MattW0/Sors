@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
+using Cysharp.Threading.Tasks;
 
 public class CardMover : MonoBehaviour
 {
@@ -85,7 +86,7 @@ public class CardMover : MonoBehaviour
 
     private void ApplyMovement(CardsPileSors pile, GameObject card)
     {
-        var destinationTransform = pile.CardHolderTransform;
+        var destinationTransform = pile.cardHolderTransform;
 
         card.transform.DOMove(destinationTransform.position, SorsTimings.cardMoveTime).SetEase(Ease.InOutCubic).OnComplete(() => {
             card.transform.SetParent(destinationTransform, true);
@@ -112,27 +113,27 @@ public class CardMover : MonoBehaviour
         return pile;
     }
     
-    public IEnumerator ShowSpawnedCard(GameObject card, bool hasAuthority, CardLocation destination)
+    public async UniTaskVoid ShowSpawnedCard(GameObject card, bool hasAuthority, CardLocation destination)
     {
         InitSpawnedCard(card, hasAuthority, destination);
         
-        yield return new WaitForSeconds(SorsTimings.showSpawnedCard);
+        await UniTask.Delay(SorsTimings.showSpawnedCard);
 
         MoveTo(card, hasAuthority, CardLocation.CardSpawn, destination);
     }
 
-    public IEnumerator ShowSpawnedCards(List<GameObject> cards, bool hasAuthority, CardLocation destination, bool fromFile)
+    public async UniTaskVoid ShowSpawnedCards(List<GameObject> cards, bool hasAuthority, CardLocation destination, bool fromFile)
     {
         foreach(var card in cards){
             InitSpawnedCard(card, hasAuthority, destination, fromFile);
-            yield return new WaitForSeconds(SorsTimings.spawnCard);
+            await UniTask.Delay(SorsTimings.spawnCard);
         }
 
-        yield return new WaitForSeconds(2*SorsTimings.showSpawnedCard);
+        await UniTask.Delay(SorsTimings.showSpawnedCard);
 
         foreach(var card in cards){
             MoveTo(card, hasAuthority, CardLocation.CardSpawn, destination);
-            yield return new WaitForSeconds(SorsTimings.moveSpawnedCard);
+            await UniTask.Delay(SorsTimings.moveSpawnedCard);
         }
     }
 

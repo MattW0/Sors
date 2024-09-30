@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using SorsGameState;
+using Cysharp.Threading.Tasks;
 
 public class GameStateLoader : MonoBehaviour
 {
@@ -45,27 +46,24 @@ public class GameStateLoader : MonoBehaviour
             playerEntities.Add(player, p.entities);
         }
 
-        StartCoroutine(SpawningFromFile(playerCards, playerEntities));
+        SpawningFromFile(playerCards, playerEntities).Forget();
     }
 
-    private IEnumerator SpawningFromFile(Dictionary<PlayerManager, Cards> playerCards, Dictionary<PlayerManager, Entities> playerEntities)
+    private async UniTaskVoid SpawningFromFile(Dictionary<PlayerManager, Cards> playerCards, 
+                                               Dictionary<PlayerManager, Entities> playerEntities)
     {
         foreach(var (player, cards) in playerCards){
-            StartCoroutine(SpawnCardsFromFile(player, cards));
+            await SpawnCardsFromFile(player, cards);
 
-            yield return new WaitForSeconds(SorsTimings.waitForSpawnFromFile);
-            // yield return new WaitForSeconds(0.1f);
-
-            StartCoroutine(SpawnEntitiesFromFile(player, playerEntities[player]));
+            await SpawnEntitiesFromFile(player, playerEntities[player]);
         }
 
-        yield return new WaitForSeconds(SorsTimings.waitForSpawnFromFile / 3f);
-        // yield return new WaitForSeconds(0.1f);
+        await UniTask.Delay(SorsTimings.waitForSpawnFromFile);
 
         _gameManager.StartGame();
     }
 
-    private IEnumerator SpawnCardsFromFile(PlayerManager p, Cards cards)
+    private async UniTask SpawnCardsFromFile(PlayerManager p, Cards cards)
     {
         List<GameObject> cardList = new();
         foreach(var c in cards.handCards){
@@ -75,7 +73,7 @@ public class GameStateLoader : MonoBehaviour
         p.RpcShowSpawnedCards(cardList, CardLocation.Hand, true);
         cardList.Clear();
 
-        yield return new WaitForSeconds(SorsTimings.waitForSpawnFromFile / 3f);
+        await UniTask.Delay(SorsTimings.waitForSpawnFromFile);
 
         foreach(var c in cards.deckCards){
             var scriptableCard = Resources.Load<ScriptableCard>(c);
@@ -84,18 +82,18 @@ public class GameStateLoader : MonoBehaviour
         p.RpcShowSpawnedCards(cardList, CardLocation.Deck, true);
         cardList.Clear();
 
-        yield return new WaitForSeconds(SorsTimings.waitForSpawnFromFile / 3f);
+        await UniTask.Delay(SorsTimings.waitForSpawnFromFile);
 
         foreach(var c in cards.discardCards){
             var scriptableCard = Resources.Load<ScriptableCard>(c);
             cardList.Add(_gameManager.SpawnCardAndAddToCollection(p, scriptableCard, CardLocation.Discard));
         }
         p.RpcShowSpawnedCards(cardList, CardLocation.Discard, true);
-
-        yield return new WaitForSeconds(SorsTimings.waitForSpawnFromFile / 3f);
+        
+        await UniTask.Delay(SorsTimings.waitForSpawnFromFile);
     }
 
-    private IEnumerator SpawnEntitiesFromFile(PlayerManager p, Entities entities)
+    private async UniTask SpawnEntitiesFromFile(PlayerManager p, Entities entities)
     {
         var entitiesDict = new Dictionary<GameObject, BattleZoneEntity>();
 
@@ -104,11 +102,11 @@ public class GameStateLoader : MonoBehaviour
             var cardObject = _gameManager.SpawnCardAndAddToCollection(p, scriptableCard, CardLocation.PlayZone);
             
             // Wait for card initialization
-            yield return new WaitForSeconds(0.01f);
+            await UniTask.Delay(10);
             var entity = _gameManager.SpawnFieldEntity(p, cardObject);
 
             // Wait for entity initialization
-            yield return new WaitForSeconds(0.01f);
+            await UniTask.Delay(10);
             entity.Health = e.health;
             entity.GetComponent<CreatureEntity>().Attack = e.attack;
 
@@ -120,11 +118,11 @@ public class GameStateLoader : MonoBehaviour
             var cardObject = _gameManager.SpawnCardAndAddToCollection(p, scriptableCard, CardLocation.PlayZone);
             
             // Wait for card initialization
-            yield return new WaitForSeconds(0.01f);
+            await UniTask.Delay(10);
             var entity = _gameManager.SpawnFieldEntity(p, cardObject);
             
             // Wait for entity initialization
-            yield return new WaitForSeconds(0.01f);
+            await UniTask.Delay(10);
             entity.Health = e.health;
 
             entitiesDict.Add(cardObject, entity);

@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Mirror;
 using UnityEngine;
+using Cysharp.Threading.Tasks;
 
 public class DropZoneManager : NetworkBehaviour
 {
@@ -33,11 +34,11 @@ public class DropZoneManager : NetworkBehaviour
     #region Entities ETB and LTB
 
     [Server]
-    public IEnumerator EntitiesEnterDropZone(Dictionary<GameObject, BattleZoneEntity> entities)
+    public async UniTaskVoid EntitiesEnterDropZone(Dictionary<GameObject, BattleZoneEntity> entities)
     {   
         foreach (var (card, entity) in entities){
             // Need to await RPC for initialization
-            while (!entity.Owner) yield return new WaitForSeconds(0.1f);
+            while (!entity.Owner) await UniTask.Delay(100);
             var owner = entity.Owner;
 
             // To show which card spawns an entity 
@@ -48,7 +49,7 @@ public class DropZoneManager : NetworkBehaviour
             entityZones.AddEntity(entity, owner.isLocalPlayer);
 
             // Spawning animation
-            yield return new WaitForSeconds(SorsTimings.showSpawnedEntity);
+            await UniTask.Delay(SorsTimings.showSpawnedEntity);
             entityZones.RpcMoveEntityToHolder(entity);
             owner.RpcMoveCard(card, CardLocation.EntitySpawn, CardLocation.PlayZone);
 

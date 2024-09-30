@@ -7,8 +7,7 @@ using Sirenix.OdinInspector;
 [RequireComponent(typeof(CardPileUI))]
 public class CardsPileSors : MonoBehaviour
 {
-	[SerializeField] private Transform _cardHolder;
-	public Transform CardHolderTransform => _cardHolder;
+	[SerializeField] public Transform cardHolderTransform;
 	public CardLocation pileType;
 	private bool updatePosition;
 	[ShowInInspector] public bool UpdatePosition {
@@ -20,13 +19,16 @@ public class CardsPileSors : MonoBehaviour
 			#endif
 		}
 	}
+
+	[Header("Arrangement Settings")]
 	public float height = 0.5f;
 	public float width = 1f;
 	private float _defaultHandWidth = 400f;
 	[Range(0f, 90f)] public float maxCardAngle = 5f;
 	public float yPerCard = 0f;
 	public float zDistance;
-	private readonly List<GameObject> cards = new List<GameObject>();
+
+	[SerializeField] private readonly List<GameObject> cards = new List<GameObject>();
 	readonly List<GameObject> forceSetPosition = new List<GameObject>();
 	private CardPileUI _cardPileUI;
 
@@ -36,7 +38,7 @@ public class CardsPileSors : MonoBehaviour
 
 	public void CardHasArrived(GameObject card)
 	{
-		card.transform.SetParent(_cardHolder, false);
+		card.transform.SetParent(cardHolderTransform, false);
 		updatePosition = true;
 		_cardPileUI.UpdateCardPileNumber(cards.Count);
 	}
@@ -76,7 +78,7 @@ public class CardsPileSors : MonoBehaviour
 
 		for (int i = 0; i < cards.Count; i++)
 		{
-			cards[i].transform.SetParent(_cardHolder, false);
+			cards[i].transform.SetParent(cardHolderTransform, false);
 
 			(Vector3 position, Vector3 rotation) = GetCardPosition(radius, angle, cardAngle, i); 
 
@@ -109,7 +111,7 @@ public class CardsPileSors : MonoBehaviour
 
 		cards.Clear();
 		forceSetPosition.Clear();
-		foreach (Transform child in _cardHolder) Add(child.gameObject);
+		foreach (Transform child in cardHolderTransform) Add(child.gameObject);
 
 		UpdateCardPositions();
 	}
