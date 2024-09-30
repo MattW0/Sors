@@ -100,8 +100,8 @@ public class BattleZoneEntity : NetworkBehaviour
     }
 
     [Server]
-    public void EntityTakesDamage(int value, bool deathtouch){
-
+    public void EntityTakesDamage(int value, bool deathtouch)
+    {
         if (cardType == CardType.Player){
             Owner.Health -= value;
             return;

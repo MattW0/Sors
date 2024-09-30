@@ -50,10 +50,10 @@ namespace Sors.Lan
             var numPlayers = _gameOptions.SinglePlayer ? 1 : 2;
             while (NetworkServer.connections.Count < numPlayers){
                 print("Waiting for opponent...");
-                await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.waitSeconds));
+                await UniTask.Delay(SorsTimings.second);
             }
 
-            await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.waitSeconds));
+            await UniTask.Delay(100);
             OnAllPlayersReady?.Invoke(_gameOptions);
         }
 

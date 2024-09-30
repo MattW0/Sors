@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using Cysharp.Threading.Tasks;
 
 public class AbilityQueue : MonoBehaviour
 {
@@ -30,7 +31,7 @@ public class AbilityQueue : MonoBehaviour
         _queue.Add(entity, ability);
     }
 
-    public IEnumerator Resolve()
+    public async UniTask Resolve()
     {
         foreach(var (entity, ability) in _queue)
         {
@@ -38,14 +39,14 @@ public class AbilityQueue : MonoBehaviour
             entity.RpcEffectHighlight(true);
 
             // May need to wait for player to declare target -> set _abilityTarget
-            yield return EvaluateAbilityTarget(entity, ability);
+            await EvaluateAbilityTarget(entity, ability);
 
             // Execute effect
-            yield return _effectHandler.Execute();
+            await _effectHandler.Execute();
             entity.RpcEffectHighlight(false);
 
             // Wait some more to prevent too early clean-up (destroying dead entities)
-            yield return new WaitForSeconds(0.1f);
+            await UniTask.Delay(100);
 
             // Destroy dead entities and target arrows
             _boardManager.BoardCleanUp();
@@ -54,16 +55,16 @@ public class AbilityQueue : MonoBehaviour
         _queue.Clear();
     }
 
-    private IEnumerator EvaluateAbilityTarget(BattleZoneEntity entity, Ability ability)
+    private async UniTask EvaluateAbilityTarget(BattleZoneEntity entity, Ability ability)
     {
         print($"Evaluate target for {entity.Title} ability : " + ability.ToString());
         
-        yield return new WaitForSeconds(SorsTimings.effectTrigger);
+        await UniTask.Delay(SorsTimings.effectTrigger);
 
         // Wait for player input if needed
         _continue = CanContinueWithoutPlayerInput(entity, ability);
         while(!_continue) {
-            yield return new WaitForSeconds(0.1f);
+            await UniTask.Delay(100);
         }
         _continue = false;
     }

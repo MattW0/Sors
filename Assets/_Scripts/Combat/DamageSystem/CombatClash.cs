@@ -1,8 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using System.Threading.Tasks;
 using System;
+using Mirror;
+using Cysharp.Threading.Tasks;
+using UnityEngine;
 
 public class CombatClash
 {
@@ -10,9 +9,10 @@ public class CombatClash
     public BattleZoneEntity _target;
     private int _damageFromSource;
     private int _damageFromTarget;
-    public bool IsClash { get; private set; }
-    public bool IsDone { get; private set; }
-    private CombatVFXSystem _combatVFXSystem;
+    public bool IsClash => _target is CreatureEntity;
+
+    public static event Action<Transform> OnPlayDamage;
+    public static event Action<Transform, Transform> OnPlayAttack;
 
     // Need to pass attack damage for trample and _target groups
     public CombatClash(CreatureEntity attacker, CreatureEntity blocker, int aDmg, int bDmg)
@@ -21,9 +21,6 @@ public class CombatClash
         _target = blocker;
         _damageFromSource = aDmg;
         _damageFromTarget = bDmg;
-
-        IsClash = EvaluateFirstStrike(attacker, blocker, aDmg, bDmg);
-        _combatVFXSystem = CombatVFXSystem.Instance;
     }
 
     public CombatClash(CreatureEntity a, BattleZoneEntity t, int aDmg)
@@ -31,56 +28,30 @@ public class CombatClash
         _source = a;
         _target = t;
         _damageFromSource = aDmg;
-        _combatVFXSystem = CombatVFXSystem.Instance;
     }
 
-    public IEnumerator Execute()
+    public async UniTask ExecuteCombatClash()
     {
-        // Debug.Log($"Attack Animation : {_source.gameObject.transform.position} -> {_target.gameObject.transform.position}");
-        _combatVFXSystem.RpcPlayAttack(_source, _target);
-        yield return new WaitForSeconds(SorsTimings.attackTime);
+        OnPlayAttack?.Invoke(_source.gameObject.transform, _target.gameObject.transform);
+        await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.attackTime));
 
-        // Debug.Log($"Damage Animation at {_target.gameObject.transform.position} with {_damageFromSource} damage");
-        _combatVFXSystem.RpcPlayDamage(_target, _damageFromSource);
-        yield return new WaitForSeconds(SorsTimings.damageTime);
+        OnPlayDamage?.Invoke(_target.gameObject.transform);
+        await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.damageTime));
+
         _target.EntityTakesDamage(_damageFromSource, _source.GetTraits().Contains(Traits.Deathtouch));
 
         if (IsClash)
         {
-            // Debug.Log($"Attack Animation : {_source.position} -> {_target.position}");
-            _combatVFXSystem.RpcPlayAttack(_target, _source);
-            yield return new WaitForSeconds(SorsTimings.attackTime);
+            OnPlayAttack?.Invoke(_target.gameObject.transform, _source.gameObject.transform);
+            await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.attackTime));
 
-            // Debug.Log($"Damage Animation at {_source} with {_damageFromTarget} damage");
-            _combatVFXSystem.RpcPlayDamage(_source, _damageFromSource);
-            yield return new WaitForSeconds(SorsTimings.damageTime);
-            _source.Health -= _damageFromTarget;
+            OnPlayDamage?.Invoke(_source.gameObject.transform);
+            await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.damageTime));
+            
+            // Can't be player if it is clash
+            var targetCe = (CreatureEntity) _target;
+            _source.EntityTakesDamage(_damageFromTarget, targetCe.GetTraits().Contains(Traits.Deathtouch));
         }
-        
-        IsDone = true;
-    }
-
-    private bool EvaluateFirstStrike(CreatureEntity attacker, CreatureEntity blocker, int attackDamage, int blockDamage)
-    {
-        var attackerTraits = attacker.GetTraits();
-        var blockerTraits = blocker.GetTraits();
-
-        // XOR: Neither or both have first strike
-        if( ! attackerTraits.Contains(Traits.FirstStrike)
-            ^ blockerTraits.Contains(Traits.FirstStrike))
-                return true;
-
-        // Only attacker has first strike, need to track trample
-        if (attackerTraits.Contains(Traits.FirstStrike) 
-            && blocker.Health - attackDamage > 0) 
-                return true;
-
-        // Only blocker has first strike
-        if (blockerTraits.Contains(Traits.FirstStrike)
-            && attacker.Health - blockDamage > 0)
-                return true;
-
-        return false;
     }
 
     public override string ToString()

@@ -1,7 +1,8 @@
 using UnityEngine;
 using DG.Tweening;
 using Mirror;
-using System.Collections;
+using Cysharp.Threading.Tasks;
+using System;
 
 public class AbilitiesVFXSystem : NetworkBehaviour
 {
@@ -49,7 +50,6 @@ public class AbilitiesVFXSystem : NetworkBehaviour
     [ClientRpc]
     public void RpcPlayProjectile(BattleZoneEntity source, BattleZoneEntity target, Effect effect)
     {
-        print("RpcPlayProjectile");
         var sourcePosition = source.gameObject.transform.position;
         var (projectilePrefab, projectileVFX) = effect switch
         {
@@ -79,7 +79,6 @@ public class AbilitiesVFXSystem : NetworkBehaviour
     [ClientRpc]
     public void RpcPlayHit(BattleZoneEntity target, Effect effect)
     {
-        print($"RpcPlayHit - Target: {target.Title} Effect: " + effect);
         var (hitPrefab, hitVFX) = effect switch
         {
             Effect.Damage => (damageHitPrefab, _damageHitVFX),
@@ -89,14 +88,14 @@ public class AbilitiesVFXSystem : NetworkBehaviour
         };
         hitPrefab.transform.position = target.gameObject.transform.position;
 
-        StartCoroutine(RunHitVFX(hitVFX, hitPrefab));
+        RunHitVFX(hitVFX, hitPrefab).Forget();
     }
 
-    private IEnumerator RunHitVFX(ParticleSystem vfx, GameObject prefab)
+    private async UniTaskVoid RunHitVFX(ParticleSystem vfx, GameObject prefab)
     {
         prefab.SetActive(true);
 
-        yield return new WaitForSeconds(SorsTimings.effectHitVFX);
+        await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.effectHitVFX));
 
         prefab.SetActive(false);
     }

@@ -43,6 +43,7 @@ public class TurnManager : NetworkBehaviour
     // Events
     public static event Action<TurnState> OnPhaseChanged;
 
+    #region Setup
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -95,30 +96,9 @@ public class TurnManager : NetworkBehaviour
         _playerPhaseChoices = _playerPhaseChoices.Reverse().ToDictionary(x => x.Key, x => x.Value);
         _playerPrevailOptions = _playerPrevailOptions.Reverse().ToDictionary(x => x.Key, x => x.Value);
     }
+    #endregion
 
-    private async UniTaskVoid DrawInitialHand()
-    {
-        await UniTask.Delay(TimeSpan.FromSeconds(_skipCardDrawAnimations ? 0.5f : 4f));
-
-        // StateFile is NOT null or empty if we load from a file eg. state.json
-        // Dont want ETB triggers for entities from game state and only draw initial hand in normal game start 
-        if(! string.IsNullOrEmpty(_gameOptions.StateFile)) _abilityQueue.ClearQueue();
-        else {
-            foreach(var player in _gameManager.players.Values) {
-                player.deck.Shuffle();
-                player.DrawCards(_gameOptions.InitialHandSize);
-            }
-            await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.waitSeconds));
-        }
-
-        if(_gameOptions.SaveStates) _boardManager.PrepareGameStateFile(_market.GetTileInfos());
-        UpdateTurnState(TurnState.PhaseSelection);
-
-        // For phase panel
-        OnPhaseChanged?.Invoke(TurnState.PhaseSelection);
-    }
-
-    #region PhaseSelection
+    #region Phase Selection
     private void PhaseSelection()
     {
         _gameManager.turnNumber++;
@@ -180,21 +160,8 @@ public class TurnManager : NetworkBehaviour
         _logger.RpcLog($"------- {nextTurnState} -------", LogType.Phase);
         OnPhaseChanged?.Invoke(nextTurnState);
 
-        StartCoroutine(CheckTriggers(nextTurnState));
+        CheckTriggers(nextTurnState).Forget();
     }
-
-    // TODO: May want to combine this with other _abilityQueue resolution functions
-    public IEnumerator CheckTriggers(TurnState nextTurnState)
-    {
-        // Wait for evaluation of triggers
-        yield return new WaitForSeconds(0.1f);
-
-        // Waiting for all triggers to have resolved
-        yield return _abilityQueue.Resolve();
-
-        UpdateTurnState(nextTurnState);
-    }
-
     #endregion
 
     #region Drawing
@@ -233,7 +200,7 @@ public class TurnManager : NetworkBehaviour
 
     #endregion
 
-    #region Market phases (Invent, Recruit)
+    #region Buy cards (Invent, Recruit)
     private void StartMarketPhase()
     {
         _boughtCards.Clear();
@@ -301,19 +268,9 @@ public class TurnManager : NetworkBehaviour
         }
 
         _selectedMarketCards.Clear();
-        StartCoroutine(BuyCardsIntermission());
-    }
-
-    private IEnumerator BuyCardsIntermission()
-    {
         _market.RpcMinButton();
-        // Waiting for CardMover to move cards to discard, should end before money is discarded
-        yield return new WaitForSeconds(SorsTimings.showSpawnedCard + 2*SorsTimings.cardMoveTime + 0.1f);
 
-        // Waiting for AbilityQueue to finish resolving Buy triggers
-        yield return _abilityQueue.Resolve();
-
-        CheckBuyAnotherCard();
+        BuyCardsIntermission().Forget();
     }
 
     private void CheckBuyAnotherCard()
@@ -328,6 +285,7 @@ public class TurnManager : NetworkBehaviour
         }
 
         _market.RpcMaxButton();
+
         StartPhaseInteraction();
     }
 
@@ -343,7 +301,7 @@ public class TurnManager : NetworkBehaviour
 
     #endregion
 
-    #region PlayCardPhase (Develop, Deploy)
+    #region Play Cards (Develop, Deploy)
 
     private void StartPlayCard()
     {
@@ -399,18 +357,7 @@ public class TurnManager : NetworkBehaviour
             return;
         }
         
-        StartCoroutine(PlayCardsIntermission());
-    }
-
-    private IEnumerator PlayCardsIntermission()
-    {
-        // Waiting for Entities abilities (ETB) being tracked 
-        yield return new WaitForSeconds(SorsTimings.cardMoveTime + SorsTimings.showSpawnedCard);
-
-        // Waiting for AbilityQueue to finish resolving ETB triggers
-        yield return _abilityQueue.Resolve();
-
-        CheckPlayAnotherCard();
+        PlayCardsIntermission().Forget();
     }
 
     private void CheckPlayAnotherCard()
@@ -436,9 +383,6 @@ public class TurnManager : NetworkBehaviour
         UpdateTurnState(TurnState.NextPhase);
     }
     #endregion
-
-    private void Combat() => combatManager.UpdateCombatState(CombatState.Attackers);
-    public void FinishCombat() => UpdateTurnState(TurnState.NextPhase);
 
     #region Prevail
     private void Prevail()
@@ -481,7 +425,7 @@ public class TurnManager : NetworkBehaviour
     {
         if (_prevailOptionsToPlay.Count == 0)
         {
-            StartCoroutine(PrevailCleanUp());
+            PrevailCleanUp().Forget();
             return;
         }
 
@@ -561,17 +505,6 @@ public class TurnManager : NetworkBehaviour
         if (deducePoints) return;
         NextPrevailOption();
     }
-
-    private IEnumerator PrevailCleanUp()
-    {
-        yield return new WaitForSeconds(SorsTimings.turnStateTransition);
-
-        PrevailScoring(true);
-        _playerPrevailOptions.Clear();
-        _prevailPanel.RpcReset();
-
-        UpdateTurnState(TurnState.NextPhase);
-    }
     #endregion
     
     #region Clean Up
@@ -599,18 +532,99 @@ public class TurnManager : NetworkBehaviour
         _readyPlayers.Clear();
 
         OnPhaseChanged?.Invoke(TurnState.PhaseSelection);
-        StartCoroutine(CleanUpIntermission());
-    }
-
-    private IEnumerator CleanUpIntermission()
-    {
-        yield return new WaitForSeconds(SorsTimings.turnStateTransition);
-
-        StartCoroutine(CheckTriggers(TurnState.PhaseSelection));
+        CleanUpIntermission().Forget();
     }
     #endregion
 
-    #region HelperFunctions
+    #region Async Functions
+
+    private async UniTaskVoid DrawInitialHand()
+    {
+        await UniTask.Delay(TimeSpan.FromSeconds(_skipCardDrawAnimations ? 0.5f : 4f));
+
+        // StateFile is NOT null or empty if we load from a file eg. state.json
+        // Dont want ETB triggers for entities from game state and only draw initial hand in normal game start 
+        if(! string.IsNullOrEmpty(_gameOptions.StateFile)) _abilityQueue.ClearQueue();
+        else {
+            foreach(var player in _gameManager.players.Values) {
+                player.deck.Shuffle();
+                player.DrawCards(_gameOptions.InitialHandSize);
+            }
+            await UniTask.Delay(SorsTimings.second);
+        }
+
+        if(_gameOptions.SaveStates) _boardManager.PrepareGameStateFile(_market.GetTileInfos());
+        UpdateTurnState(TurnState.PhaseSelection);
+
+        // For phase panel
+        OnPhaseChanged?.Invoke(TurnState.PhaseSelection);
+    }
+
+    // TODO: May want to combine this with other _abilityQueue resolution functions
+    public async UniTaskVoid CheckTriggers(TurnState nextTurnState)
+    {
+        // Wait for evaluation of triggers
+        await UniTask.Delay(10);
+
+        // Waiting for all triggers to have resolved
+
+        // TODO: CHECK IF THIS WORKS
+        await _abilityQueue.Resolve();
+
+        UpdateTurnState(nextTurnState);
+    }
+
+    private async UniTaskVoid BuyCardsIntermission()
+    {
+        // Waiting for CardMover to move cards to discard, should end before money is discarded
+        // TODO: Can this be time independent and await resolution of card move in CardMover?
+        await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.showSpawnedCard + 2 * SorsTimings.cardMoveTime + 0.1f));
+
+        // Waiting for AbilityQueue to finish resolving Buy triggers
+        // TODO: DOES THIS WORK?
+        await _abilityQueue.Resolve();
+
+        CheckBuyAnotherCard();
+    }
+
+    private async UniTaskVoid PlayCardsIntermission()
+    {
+        // Waiting for Entities abilities (ETB) being tracked 
+        await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.cardMoveTime + SorsTimings.showSpawnedCard));
+
+        // Waiting for AbilityQueue to finish resolving ETB triggers
+        await _abilityQueue.Resolve();
+
+        CheckPlayAnotherCard();
+    }
+
+    public async UniTaskVoid CombatCleanUp()
+    {
+        await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.combatCleanUp));
+        UpdateTurnState(TurnState.NextPhase);
+    }
+
+    private async UniTaskVoid PrevailCleanUp()
+    {
+        await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.turnStateTransition));
+
+        PrevailScoring(true);
+        _playerPrevailOptions.Clear();
+        _prevailPanel.RpcReset();
+
+        UpdateTurnState(TurnState.NextPhase);
+    }
+
+    private async UniTaskVoid CleanUpIntermission()
+    {
+        await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.turnStateTransition));
+
+        CheckTriggers(TurnState.PhaseSelection).Forget();
+    }
+
+    #endregion
+
+    #region Helpers
 
     private void UpdateTurnState(TurnState newState)
     {
@@ -631,7 +645,7 @@ public class TurnManager : NetworkBehaviour
         else if (newState == TurnState.Discard) Discard();
         else if (newState == TurnState.Invent || newState == TurnState.Recruit) StartMarketPhase();
         else if (newState == TurnState.Develop || newState == TurnState.Deploy) StartPlayCard();
-        else if (newState == TurnState.Combat) Combat();
+        else if (newState == TurnState.Combat) combatManager.UpdateCombatState(CombatState.Attackers);
         else if (newState == TurnState.Prevail) Prevail();
         else if (newState == TurnState.CleanUp) CleanUp();
         else if (newState == TurnState.Idle) _logger.RpcLog("Game finished", LogType.Standard);
@@ -704,6 +718,11 @@ public class TurnManager : NetworkBehaviour
             player.Plays = 0;
             player.Prevails = 0;
         }
+    }
+
+    internal void PlayerClickedUndoButton(PlayerManager player)
+    {
+        _interactionPanel.TargetUndoMoneyPlay(player.connectionToClient);
     }
 
     private void StartPhaseInteraction(PrevailOption currentPrevailOption = PrevailOption.None)
@@ -784,12 +803,7 @@ public class TurnManager : NetworkBehaviour
     {
         GameManager.OnGameStart -= Prepare;
         PlayerManager.OnCashChanged -= PlayerCashChanged;
-    }
-
-    internal void PlayerClickedUndoButton(PlayerManager player)
-    {
-        _interactionPanel.TargetUndoMoneyPlay(player.connectionToClient);
-    }
+    }    
 }
 
 public enum TurnState : byte

@@ -6,7 +6,7 @@ using Mirror;
 using UnityEngine;
 using UnityEditor;
 using SorsGameState;
-
+using Cysharp.Threading.Tasks;
 
 public class BoardManager : NetworkBehaviour
 {
@@ -76,12 +76,12 @@ public class BoardManager : NetworkBehaviour
         _combatState = state;
         _phasePanel.RpcStartCombatPhase(state);
 
-        StartCoroutine(CombatTransitionAnimation(state));
+        CombatTransitionAnimation(state).Forget();
     }
 
-    private IEnumerator CombatTransitionAnimation(CombatState state)
+    private async UniTaskVoid CombatTransitionAnimation(CombatState state)
     {
-        yield return new WaitForSeconds(SorsTimings.turnStateTransition);
+        await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.turnStateTransition));
 
         if (state == CombatState.Attackers) DeclareAttackers(); 
         else if (state == CombatState.Blockers) DeclareBlockers();

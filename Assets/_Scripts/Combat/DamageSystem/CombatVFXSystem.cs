@@ -1,24 +1,21 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
 using Mirror;
 
-
 public class CombatVFXSystem : NetworkBehaviour
 {
-    public static CombatVFXSystem Instance { get; private set; }
     public GameObject attackProjectilePrefab;
-    private ParticleSystem _attackProjectileVFX;
     public GameObject attackHitPrefab;
+    private ParticleSystem _attackProjectileVFX;
     private ParticleSystem _attackHitVFX;
 
     private void Awake()
     {
-        if (!Instance) Instance = this;
+        CombatClash.OnPlayDamage += RpcPlayDamage;
+        CombatClash.OnPlayAttack += RpcPlayAttack;
     }
 
-    public void Start()
+    private void Start()
     {
         attackProjectilePrefab.SetActive(false);
         _attackProjectileVFX = attackProjectilePrefab.GetComponent<ParticleSystem>();
@@ -26,28 +23,26 @@ public class CombatVFXSystem : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcPlayDamage(BattleZoneEntity entity, int damage)
+    public void RpcPlayDamage(Transform entity)
     {
-        attackHitPrefab.transform.position = entity.gameObject.transform.position;
+        attackHitPrefab.transform.position = entity.position;
         _attackHitVFX.Play();
         attackHitPrefab.transform.DORotate(Vector3.zero, SorsTimings.damageTime).OnComplete(() => _attackHitVFX.Stop());
     }
 
     [ClientRpc]
-    public void RpcPlayAttack(BattleZoneEntity source, BattleZoneEntity target)
+    public void RpcPlayAttack(Transform source, Transform target)
     {
-        var sourcePosition = source.gameObject.transform.position;
-        attackProjectilePrefab.transform.position = sourcePosition;
+        attackProjectilePrefab.transform.position = source.position;
 
-        var tartgetPosition = target.gameObject.transform.position;
-        var dir = Quaternion.LookRotation(tartgetPosition - sourcePosition).eulerAngles;
+        var dir = Quaternion.LookRotation(target.position - source.position).eulerAngles;
         attackProjectilePrefab.transform.localRotation = Quaternion.Euler(dir.x, dir.y - 90f, dir.z);
 
         attackProjectilePrefab.SetActive(true);
         _attackProjectileVFX.Play();
 
         attackProjectilePrefab.transform
-            .DOMove(tartgetPosition, SorsTimings.attackTime)
+            .DOMove(target.position, SorsTimings.attackTime)
             .SetEase(Ease.InCubic)
             .OnComplete(() =>  {
                 _attackProjectileVFX.Stop();

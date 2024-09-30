@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using System.Collections;
+using Cysharp.Threading.Tasks;
 
 [System.Serializable]
 public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
@@ -92,12 +93,12 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     public void OnPointerEnter(PointerEventData eventData)
     {
         StopAllCoroutines();
-        StartCoroutine(HoverPreviewWaitTimer());
+        HoverPreviewWaitTimer().Forget();
     }
 
-    private IEnumerator HoverPreviewWaitTimer()
+    private async UniTaskVoid HoverPreviewWaitTimer()
     {
-        yield return new WaitForSeconds(0.5f);
+        await UniTask.Delay(SorsTimings.hoverPreviewDelay);
         MarketTileHoverPreview.OnHoverTile(cardInfo);
     }
 

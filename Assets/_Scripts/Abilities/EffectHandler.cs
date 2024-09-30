@@ -13,6 +13,7 @@ public class EffectHandler : MonoBehaviour
     // TODO: Make this a list for multiple targets
     private BattleZoneEntity _abilityTarget;
     private bool _targetSelf = false;
+    private WaitForSeconds _wait = new WaitForSeconds(SorsTimings.effectProjectile);
 
     private void Start()
     {
@@ -39,7 +40,7 @@ public class EffectHandler : MonoBehaviour
     private IEnumerator HandleCardDraw(){
         _abilitySource.Owner.DrawCards(_ability.amount);
 
-        yield return new WaitForSeconds(SorsTimings.effectProjectile);
+        yield return _wait;
     }
 
     private IEnumerator HandlePriceReduction()
@@ -50,14 +51,14 @@ public class EffectHandler : MonoBehaviour
 
         _turnManager.PlayerGetsMarketBonus(_abilitySource.Owner, cardType, reduction);
 
-        yield return new WaitForSeconds(SorsTimings.effectProjectile);
+        yield return _wait;
     }
 
     private IEnumerator HandleMoneyGain()
     {
         _abilityTarget = _abilitySource.Owner.GetEntity();
         _abilitiesVFXSystem.RpcPlayProjectile(_abilitySource, _abilityTarget, Effect.MoneyGain);
-        yield return new WaitForSeconds(SorsTimings.effectProjectile);
+        yield return _wait;
 
         _abilitiesVFXSystem.RpcPlayHit(_abilityTarget, Effect.MoneyGain);
         _abilitySource.Owner.Cash += _ability.amount;
@@ -67,7 +68,7 @@ public class EffectHandler : MonoBehaviour
     {
         _abilityTarget = _abilitySource.Owner.GetEntity();
         _abilitiesVFXSystem.RpcPlayProjectile(_abilitySource, _abilityTarget, Effect.LifeGain);
-        yield return new WaitForSeconds(SorsTimings.effectProjectile);
+        yield return _wait;
 
         _abilitiesVFXSystem.RpcPlayHit(_abilityTarget, Effect.LifeGain);
 
@@ -80,7 +81,7 @@ public class EffectHandler : MonoBehaviour
         // Only play projectile if not targeting self
         if (! _targetSelf){
             _abilitiesVFXSystem.RpcPlayProjectile(_abilitySource, _abilityTarget, Effect.Damage);
-            yield return new WaitForSeconds(SorsTimings.effectProjectile);
+            yield return _wait;
         }
         
         _abilitiesVFXSystem.RpcPlayHit(_abilityTarget, Effect.Damage);

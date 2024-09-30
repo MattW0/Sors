@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine.UI;
 using System;
 using Michsky.UI.Shift;
+using Cysharp.Threading.Tasks;
 
 public class ModalWindow : MonoBehaviour, IModalWindow
 {
@@ -59,7 +60,6 @@ public class ModalWindow : MonoBehaviour, IModalWindow
 
     public void ModalWindowIn()
     {
-        StopCoroutine(DisableWindow());
         gameObject.SetActive(true);
         _blurManager.BlurInAnim();
 
@@ -74,7 +74,7 @@ public class ModalWindow : MonoBehaviour, IModalWindow
 
     public void ModalWindowOut()
     {
-        StartCoroutine(DisableWindow());
+        DisableWindow().Forget();
         _blurManager.BlurOutAnim();
 
         if (! _isOn) return;
@@ -87,9 +87,9 @@ public class ModalWindow : MonoBehaviour, IModalWindow
         _isOn = false;
     }
 
-    IEnumerator DisableWindow()
+    private async UniTaskVoid DisableWindow()
     {
-        yield return new WaitForSeconds(0.5f);
+        await UniTask.Delay(500);
         gameObject.SetActive(false);
     }
 

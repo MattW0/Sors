@@ -10,7 +10,6 @@ public class SteamFriendsManager : MonoBehaviour
 {
     [SerializeField] private SteamPlayers _steamFriends;
     [SerializeField] private TMP_Text _playerName;
-    public static event Action<bool> OnFriendsInviteButtonToggle;
     private CancellationTokenSource _cts;
 
     private void Awake()
@@ -49,7 +48,7 @@ public class SteamFriendsManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        _cts.Cancel();
+        if(_cts != null) _cts.Cancel();
         SteamFriends.OnGameLobbyJoinRequested -= LobbyJoinRequestSent;
     }
 }

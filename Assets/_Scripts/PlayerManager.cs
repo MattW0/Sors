@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 using Mirror;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 
 public class PlayerManager : NetworkBehaviour
 {
@@ -149,14 +150,14 @@ public class PlayerManager : NetworkBehaviour
         }
 
         // The draw cards on Clients, moving the card objects with movement durations
-        StartCoroutine(ClientDrawing(cards));
+        ClientDrawing(cards).Forget();
     }
 
-    private IEnumerator ClientDrawing(List<GameObject> cards)
+    private async UniTaskVoid ClientDrawing(List<GameObject> cards)
     {
         foreach(var card in cards){
             RpcMoveCard(card, CardLocation.Deck, CardLocation.Hand);
-            yield return new WaitForSeconds(SorsTimings.draw);
+            await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.draw));
         }
     }
 

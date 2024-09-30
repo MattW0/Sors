@@ -167,11 +167,29 @@ public class SteamLobbiesManager : MonoBehaviour
         }
     }
 
+    // Steam does not recognize exiting play mode : https://wiki.facepunch.com/steamworks/Installing_For_Unity#shuttingdown
+    // Works fine in build mode
+
+    // private void OnDisable()
+    // {
+    //     if(UnityUtils.SystemUtils.ApplicationIsAboutToExitPlayMode())
+    //     {
+    //         print("Shutting down Steam client");
+    //         SteamClient.Shutdown();
+    //     }
+    // }
+
     private void OnDestroy()
     {
-        _cts.Cancel();
+        if(_cts != null) _cts.Cancel();
         SteamMatchmaking.OnLobbyCreated -= OnLobbyCreatedCallback;
         SteamMatchmaking.OnLobbyEntered -= OnLobbyEnteredCallback;
         SteamMatchmaking.OnLobbyInvite -= OnInviteRecievedCallback;
+    }
+
+    private void OnApplicationQuit()
+    {
+        print("Shutting down Steam client");
+        SteamClient.Shutdown();
     }
 }

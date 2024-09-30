@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using System.Linq;
 using Mirror;
 using UnityEditor;
 
@@ -13,8 +12,8 @@ public class CombatManager : NetworkBehaviour
 
     public static event Action<CombatState> OnCombatStateChanged;
 
-    private Dictionary<CreatureEntity, BattleZoneEntity> _attackerTarget = new ();
-    private Dictionary<CreatureEntity, CreatureEntity> _blockerAttacker = new ();
+    private Dictionary<CreatureEntity, BattleZoneEntity> _attackerTarget = new();
+    private Dictionary<CreatureEntity, CreatureEntity> _blockerAttacker = new();
     private List<CombatClash> _clashes = new();
     private GameManager _gameManager;
     private TurnManager _turnManager;
@@ -50,7 +49,7 @@ public class CombatManager : NetworkBehaviour
                 break;
             case CombatState.CleanUp:
                 _playerInterfaceManager.RpcLog(" - Combat ends - ", LogType.Standard);
-                StartCoroutine(CombatCleanUp(false));
+                CombatCleanUp(false);
                 break;
             default:
                 print("<color=red>Invalid turn state</color>");
@@ -121,88 +120,22 @@ public class CombatManager : NetworkBehaviour
         UpdateCombatState(CombatState.Damage);
     }
 
-    #region Combat Logic
     private void ResolveDamage()
     {
         // Skip damage logic if there are no attackers 
         if (_attackerTarget.Count == 0) UpdateCombatState(CombatState.CleanUp);
-        else EvaluateBlocks();
+        else _damageSystem.EvaluateBlocks(_attackerTarget, _blockerAttacker);
     }
 
-    private void EvaluateBlocks(){
-        if (_blockerAttacker.Count == 0){
-            EvaluateUnblocked();
-            return;
-        }
-
-        int excessDamage = int.MinValue;
-        var prevA = _blockerAttacker.First().Value;
-        foreach(var (b, a) in _blockerAttacker)
-        {
-            var dmg = a.Attack;
-            if (excessDamage != int.MinValue) dmg = excessDamage; 
-            excessDamage = EvaluateClashDamage(a, b, dmg);
-
-            // In the same blocker group -> Do normal damage
-            if (!prevA.Equals(a)) {
-                CheckTrampleDamage(prevA, excessDamage);
-                excessDamage = int.MinValue;
-                _attackerTarget.Remove(prevA);
-            }
-            prevA = a;
-        }
-
-        CheckTrampleDamage(prevA, excessDamage);
-        _attackerTarget.Remove(prevA);
-
-        EvaluateUnblocked();
-    }
-
-    private void EvaluateUnblocked()
-    {
-        print($"Unblocked creatures after blocks : {_attackerTarget.Count}");
-
-        foreach(var (a, t) in _attackerTarget)
-            _clashes.Add(new CombatClash(a, t, a.Attack));
-
-        _damageSystem.ExecuteClashes(_clashes);
-    }
-    #endregion
-
-    // Calculate the outcome of a combat clash between two creature entities, considering their traits and attack damage. Returns the remaining attack damage after the clash.
-    private int EvaluateClashDamage(CreatureEntity attacker, CreatureEntity blocker, int attackDamage)
-    {
-        print($"CombatClash: {attacker.Title} vs {blocker.Title} with {attackDamage} damage");
-        _clashes.Add(new CombatClash(attacker, blocker, attackDamage, blocker.Attack));
-
-        return attackDamage - blocker.Health;
-    }
-
-    private void CheckTrampleDamage(CreatureEntity attacker, int excessDamage)
-    {
-        if (!attacker.GetTraits().Contains(Traits.Trample)) return;
-
-        print($"Trample of {attacker.Title} with {excessDamage} excess damage");
-        var target = _attackerTarget[attacker];
-        _clashes.Add(new CombatClash(attacker, target, excessDamage));
-    }
-
-    public void EntityDealsDamage(CreatureEntity a, BattleZoneEntity t, int damage)
-    {
-        t.EntityTakesDamage(damage, a.GetTraits().Contains(Traits.Deathtouch));
-    }
-
-    public IEnumerator CombatCleanUp(bool forced)
+    public void CombatCleanUp(bool forced)
     {
         _readyPlayers.Clear();
         _attackerTarget.Clear();
         _blockerAttacker.Clear();
         _clashes.Clear();
-        
-        yield return new WaitForSeconds(SorsTimings.combatCleanUp);
 
         UpdateCombatState(CombatState.Idle);
-        if(!forced) _turnManager.FinishCombat();
+        if(!forced) _turnManager.CombatCleanUp().Forget();
     }
 
     public void PlayerPressedReadyButton(PlayerManager player) => _boardManager.PlayerPressedReadyButton(player);
