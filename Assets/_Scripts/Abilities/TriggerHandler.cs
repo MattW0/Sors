@@ -8,15 +8,14 @@ using Cysharp.Threading.Tasks;
 
 public class TriggerHandler : NetworkBehaviour
 {
-    public static TriggerHandler Instance { get; private set; }
     private AbilityQueue _abilityQueue;
 
     [Header("Helper Fields")]
     private List<TurnState> _turnStateTriggers = new(); // List to reduce number of searches on all entities and their triggers
     private Dictionary<BattleZoneEntity, List<Ability>> _presentAbilities = new();
 
-    private void Awake() {
-        if (!Instance) Instance = this;
+    private void Awake() 
+    {
         _abilityQueue = GetComponent<AbilityQueue>();
 
         TurnManager.OnPhaseChanged += CheckTurnStateTriggers;

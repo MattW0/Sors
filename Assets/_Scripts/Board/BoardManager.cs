@@ -8,13 +8,14 @@ using UnityEditor;
 using SorsGameState;
 using Cysharp.Threading.Tasks;
 
+[RequireComponent(typeof(TriggerHandler))]
 public class BoardManager : NetworkBehaviour
 {
     public static BoardManager Instance { get; private set; }
     private GameManager _gameManager;
     private CombatManager _combatManager;
-    private DropZoneManager _dropZone;
     private TriggerHandler _triggerHandler;
+    [SerializeField] private DropZoneManager _dropZone;
     [SerializeField] private PhasePanel _phasePanel;
 
     // Entities, corresponding card object
@@ -34,8 +35,8 @@ public class BoardManager : NetworkBehaviour
     {
         _gameManager = GameManager.Instance;
         _combatManager = CombatManager.Instance;
-        _dropZone = DropZoneManager.Instance;
-        _triggerHandler = TriggerHandler.Instance;
+
+        _triggerHandler = GetComponent<TriggerHandler>();
     }
 
     public void PlayEntities(Dictionary<GameObject, BattleZoneEntity> entities) 

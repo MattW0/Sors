@@ -8,8 +8,6 @@ using UnityEditor;
 public class CombatManager : NetworkBehaviour
 {
     public static CombatManager Instance { get; private set; }
-    private static CombatState state { get; set; }
-
     public static event Action<CombatState> OnCombatStateChanged;
 
     private Dictionary<CreatureEntity, BattleZoneEntity> _attackerTarget = new();
@@ -29,31 +27,18 @@ public class CombatManager : NetworkBehaviour
         GameManager.OnGameStart += Prepare;
     }
 
-    public void UpdateCombatState(CombatState newState){
-        state = newState;
-        
-        OnCombatStateChanged?.Invoke(state);
+    public void UpdateCombatState(CombatState newState)
+    {
+        OnCombatStateChanged?.Invoke(newState);
 
-        switch(state){
-            case CombatState.Idle:
-                break;
-            case CombatState.Attackers:
-                // _playerInterfaceManager.RpcLog(" --- Starting Combat --- ", LogType.Combat);
-                break;
-            case CombatState.Blockers:
-                _playerInterfaceManager.RpcLog(" - Attackers declared", LogType.Standard);
-                break;
+        switch (newState)
+        {
             case CombatState.Damage:
-                _playerInterfaceManager.RpcLog(" - Blockers declared", LogType.Standard);
                 ResolveDamage();
                 break;
             case CombatState.CleanUp:
-                _playerInterfaceManager.RpcLog(" - Combat ends - ", LogType.Standard);
                 CombatCleanUp(false);
                 break;
-            default:
-                print("<color=red>Invalid turn state</color>");
-                throw new System.ArgumentOutOfRangeException(nameof(newState), newState, null);
         }
     }
 

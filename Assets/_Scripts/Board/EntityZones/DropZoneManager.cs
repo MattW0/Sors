@@ -8,8 +8,6 @@ using Cysharp.Threading.Tasks;
 
 public class DropZoneManager : NetworkBehaviour
 {
-    public static DropZoneManager Instance { get; private set; }
-    // private PlayerManager _player;
     [SerializeField] private BoardManager _boardManager;
     [SerializeField] private EntityZones entityZones;
     [SerializeField] private MoneyZone playerMoneyZone;
@@ -21,11 +19,6 @@ public class DropZoneManager : NetworkBehaviour
     public static event Action<EffectTarget> OnTargetEntities;
     public static event Action OnResetEntityUI;
     public static event Action OnDestroyArrows;
-
-    private void Awake()
-    {
-        if (!Instance) Instance = this;
-    }
 
     #region Entities ETB and LTB
 
