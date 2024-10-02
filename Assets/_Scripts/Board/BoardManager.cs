@@ -81,9 +81,9 @@ public class BoardManager : NetworkBehaviour
 
     private async UniTaskVoid CombatTransitionAnimation(CombatState state)
     {
-        await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.turnStateTransition));
+        await UniTask.Delay(SorsTimings.turnStateTransition);
 
-        if (state == CombatState.Attackers) DeclareAttackers(); 
+        if (state == CombatState.Attackers) DeclareAttackers();
         else if (state == CombatState.Blockers) DeclareBlockers();
         else if (state == CombatState.CleanUp) CombatCleanUp();
     }

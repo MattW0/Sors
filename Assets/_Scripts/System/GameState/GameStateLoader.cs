@@ -54,8 +54,10 @@ public class GameStateLoader : MonoBehaviour
     {
         foreach(var (player, cards) in playerCards){
             await SpawnCardsFromFile(player, cards);
+        }
 
-            await SpawnEntitiesFromFile(player, playerEntities[player]);
+        foreach(var (player, entities) in playerEntities){
+            await SpawnEntitiesFromFile(player, entities);
         }
 
         await UniTask.Delay(SorsTimings.waitForSpawnFromFile);

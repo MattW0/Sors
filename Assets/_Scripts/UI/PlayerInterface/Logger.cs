@@ -4,8 +4,8 @@ using UnityEngine.UI;
 
 public class Logger : MonoBehaviour
 {
-    [SerializeField] private TMP_Text logText;
-    [SerializeField] private ScrollRect scrollRect;
+    [SerializeField] private TextMessage _textMessagePrefab;
+    [SerializeField] private Transform _logTransform;
     
     public LogType lineType;
     public bool printLine;
@@ -15,18 +15,17 @@ public class Logger : MonoBehaviour
         if(!printLine) return;
         printLine = false;
 
-        Log($"This is test message", lineType);
+        Log($"This is a test message", lineType);
     }
 
-    public void Log(string message, LogType type){
-        var messageColor = GetColor(type);
-        logText.text += $"<color={messageColor}>{message}</color>\n";
-
-        // TODO: Scroll rect does not scroll
-        scrollRect.ScrollToBottom();
+    public void Log(string message, LogType type)
+    {
+        var text = $"<color={GetColor(type)}>{message}</color>";
+        Instantiate(_textMessagePrefab, _logTransform).SetMessage(text);
     }
 
-    private string GetColor(LogType type){
+    private string GetColor(LogType type)
+    {
         var messageColor = type switch{
             LogType.EffectTrigger => SorsColors.effectTrigger,
             LogType.TurnChange => SorsColors.turnChange,

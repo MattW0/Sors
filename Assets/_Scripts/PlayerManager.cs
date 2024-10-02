@@ -155,9 +155,10 @@ public class PlayerManager : NetworkBehaviour
 
     private async UniTaskVoid ClientDrawing(List<GameObject> cards)
     {
-        foreach(var card in cards){
+        foreach(var card in cards)
+        {
             RpcMoveCard(card, CardLocation.Deck, CardLocation.Hand);
-            await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.draw));
+            await UniTask.Delay(SorsTimings.draw);
         }
     }
 

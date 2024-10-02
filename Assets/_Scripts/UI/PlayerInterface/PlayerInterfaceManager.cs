@@ -10,7 +10,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
     [SerializeField] private Logger _logger;
     [SerializeField] private Chat _chat;
     private PlayerInterfaceButtons _buttons;
-    public static event Action<string> OnChatMessageSent;
+    public static event Action<string> OnChatMessageReceived;
 
     private PlayerManager _player;
     private Market _market;
@@ -46,10 +46,9 @@ public class PlayerInterfaceManager : NetworkBehaviour
     [ClientRpc]
     public void RpcLogGameStart(List<string> playerNames)
     {
-        var msg = "--- Game Setup ---\n";
-
-        if (playerNames.Count == 1)  msg += $"{playerNames[0]} vs Computer\n";
-        else msg += $"{playerNames[0]} vs {playerNames[1]}\n";
+        var msg = "";
+        if (playerNames.Count == 1)  msg += $" --- {playerNames[0]} vs Computer --- ";
+        else msg += $" --- {playerNames[0]} vs {playerNames[1]} --- ";
 
         _logger.Log(msg, LogType.Standard);
     }
@@ -58,23 +57,15 @@ public class PlayerInterfaceManager : NetworkBehaviour
     public void RpcLogPlayingCards(List<BattleZoneEntity> entities){
         foreach (var e in entities) _logger.Log($"{e.Owner.PlayerName} plays {e.Title}", LogType.Play);
     }
-    
-    // TODO: Chat
 
-    // [Client]
-    // public void Send(string message) {
-    //     CmdSendMessage(message);
-    // }
+    [Client]
+    public void Send(string message) => CmdSendMessage(message);
 
-    // [Command(requiresAuthority = false)]
-    // private void CmdSendMessage(string message) {
-    //     RpcHandleMessage($"[{connectionToClient.connectionId}]: {message}");
-    // }
+    [Command(requiresAuthority = false)]
+    private void CmdSendMessage(string message) => RpcHandleMessage($"[{connectionToServer.connectionId}]: {message}");
 
-    // [ClientRpc]
-    // private void RpcHandleMessage(string message) {
-    //     OnChatMessageSent?.Invoke(message);
-    // }
+    [ClientRpc]
+    private void RpcHandleMessage(string message) => OnChatMessageReceived?.Invoke(message);
     
     public void OpenMarketView() => _market.MaxButton();
     public void Undo() => _player.CmdUndoPlayMoney();

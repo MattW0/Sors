@@ -13,11 +13,7 @@ public class DropZoneManager : NetworkBehaviour
     [SerializeField] private BoardManager _boardManager;
     [SerializeField] private EntityZones entityZones;
     [SerializeField] private MoneyZone playerMoneyZone;
-    [SerializeField] private MoneyZone opponentMoneyZone;
-    // public static event Action OnTargetPlayer;
-    // public static event Action OnTargetOpponent;
-    // public static event Action OnTargetCreatures;
-    
+    [SerializeField] private MoneyZone opponentMoneyZone;    
     public static event Action OnCombatStart;
     public static event Action<bool> OnDeclareAttackers;
     public static event Action<bool> OnDeclareBlockers;

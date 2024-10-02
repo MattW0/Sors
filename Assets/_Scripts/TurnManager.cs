@@ -102,7 +102,7 @@ public class TurnManager : NetworkBehaviour
     private void PhaseSelection()
     {
         _gameManager.turnNumber++;
-        _logger.RpcLog($" -------------- Turn {_gameManager.turnNumber} -------------- ", LogType.TurnChange);
+        _logger.RpcLog($" ------------ Turn {_gameManager.turnNumber} ------------ ", LogType.TurnChange);
 
         // Reset and draw per turn
         foreach (var player in _gameManager.players.Values) {
@@ -578,7 +578,7 @@ public class TurnManager : NetworkBehaviour
     {
         // Waiting for CardMover to move cards to discard, should end before money is discarded
         // TODO: Can this be time independent and await resolution of card move in CardMover?
-        await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.showSpawnedCard + 2 * SorsTimings.cardMoveTime + 0.1f));
+        await UniTask.Delay(SorsTimings.showSpawnedCard);
 
         // Waiting for AbilityQueue to finish resolving Buy triggers
         // TODO: DOES THIS WORK?
@@ -600,13 +600,13 @@ public class TurnManager : NetworkBehaviour
 
     public async UniTaskVoid CombatCleanUp()
     {
-        await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.combatCleanUp));
+        await UniTask.Delay(SorsTimings.combatCleanUp);
         UpdateTurnState(TurnState.NextPhase);
     }
 
     private async UniTaskVoid PrevailCleanUp()
     {
-        await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.turnStateTransition));
+        await UniTask.Delay(SorsTimings.turnStateTransition);
 
         PrevailScoring(true);
         _playerPrevailOptions.Clear();
@@ -617,7 +617,7 @@ public class TurnManager : NetworkBehaviour
 
     private async UniTaskVoid CleanUpIntermission()
     {
-        await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.turnStateTransition));
+        await UniTask.Delay(SorsTimings.turnStateTransition);
 
         CheckTriggers(TurnState.PhaseSelection).Forget();
     }
