@@ -1,6 +1,4 @@
 using UnityEngine;
-using TMPro;
-using UnityEngine.UI;
 
 public class Logger : MonoBehaviour
 {
@@ -20,8 +18,12 @@ public class Logger : MonoBehaviour
 
     public void Log(string message, LogType type)
     {
+        // Get timestamp for message
+        var time = System.DateTime.Now.ToString("HH:mm:ss");
+        var originator = "<color=#AAAAAA> ORIGINATOR </color>";
         var text = $"<color={GetColor(type)}>{message}</color>";
-        Instantiate(_textMessagePrefab, _logTransform).SetMessage(text);
+
+        Instantiate(_textMessagePrefab, _logTransform).SetMessage(new Message(originator, time, text));
     }
 
     private string GetColor(LogType type)

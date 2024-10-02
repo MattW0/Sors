@@ -36,8 +36,10 @@ public class Chat : MonoBehaviour
 
     private void HandleNewMessage(string message) 
     {
-        var msg = Instantiate(_textMessagePrefab, _chatTransform);
-        msg.SetMessage(message);
+        var time = System.DateTime.Now.ToString("HH:mm:ss");
+        var originator = "<color=> ORIGINATOR </color>";
+
+        Instantiate(_textMessagePrefab, _chatTransform).SetMessage(new Message(originator, time, message));
     }
 
     public void ToggleChat() {
