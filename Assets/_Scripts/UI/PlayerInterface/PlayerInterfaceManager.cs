@@ -71,7 +71,11 @@ public class PlayerInterfaceManager : NetworkBehaviour
     public void Undo() => _player.CmdUndoPlayMoney();
     public void Concede() {} // TODO
     public void ForceEndTurn() => _player.ForceEndTurn();
-    public void OpenChat() => _chat.ToggleChat();
+    public void ToggleLogChat()
+    {
+        _chat.ToggleVisible();
+        _logger.ToggleVisible();
+    }
 
     private void OnDestroy(){
         GameManager.OnGameStart -= RpcPrepareUIs;

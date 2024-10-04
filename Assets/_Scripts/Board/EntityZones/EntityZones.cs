@@ -5,28 +5,15 @@ using DG.Tweening;
 
 public class EntityZones : NetworkBehaviour
 {
-    private const int MAX_ENTITIES = 6;
     [SerializeField] private List<CreatureEntity> _hostCreatures = new();
     [SerializeField] private List<CreatureEntity> _clientCreatures = new();
     [SerializeField] private List<TechnologyEntity> _hostTechnologies = new();
     [SerializeField] private List<TechnologyEntity> _clientTechnologies = new();
-
-    #region Entity Holders
     [SerializeField] private Transform _spawnedEntityTransform;
-    [SerializeField] private GameObject playerCreatureZone;
-    [SerializeField] private GameObject playerTechnologyZone;
-    [SerializeField] private GameObject opponentCreatureZone;
-    [SerializeField] private GameObject opponentTechnologyZone;
-    private PlayZoneCardHolder[] _playerTechnologyHolders = new PlayZoneCardHolder[MAX_ENTITIES];
-    private PlayZoneCardHolder[] _playerCreatureHolders = new PlayZoneCardHolder[MAX_ENTITIES];
-    private PlayZoneCardHolder[] _opponentTechnologyHolders= new PlayZoneCardHolder[MAX_ENTITIES];
-    private PlayZoneCardHolder[] _opponentCreatureHolders = new PlayZoneCardHolder[MAX_ENTITIES];
-
-    #endregion
-
-    private void Start(){
-        FindEntityHolders();
-    }
+    [SerializeField] private PlayZoneCardHolder[] _playerTechnologyHolders;
+    [SerializeField] private PlayZoneCardHolder[] _playerCreatureHolders;
+    [SerializeField] private PlayZoneCardHolder[] _opponentTechnologyHolders;
+    [SerializeField] private PlayZoneCardHolder[] _opponentCreatureHolders;
 
     [Server]
     public void AddEntity(BattleZoneEntity entity, bool isHost)
@@ -48,24 +35,28 @@ public class EntityZones : NetworkBehaviour
     }
 
     [Server]
-    public void RemoveTechnology(TechnologyEntity technology, bool isHost){
+    public void RemoveTechnology(TechnologyEntity technology, bool isHost)
+    {
         if(isHost) _hostTechnologies.Remove(technology);
         else _clientTechnologies.Remove(technology);
     }
 
     [Server]
-    public void RemoveCreature(CreatureEntity creature, bool isHost){
+    public void RemoveCreature(CreatureEntity creature, bool isHost)
+    {
         if(isHost) _hostCreatures.Remove(creature);
         else _clientCreatures.Remove(creature);
     }
 
     [Server]
-    public List<CreatureEntity> GetCreatures(bool isHost){
+    public List<CreatureEntity> GetCreatures(bool isHost)
+    {
         if(isHost) return _hostCreatures;
         else return _clientCreatures;
     }
 
-    public List<CreatureEntity> GetAllCreatures(){
+    public List<CreatureEntity> GetAllCreatures()
+    {
         var creatures = new List<CreatureEntity>();
         creatures.AddRange(_hostCreatures);
         creatures.AddRange(_clientCreatures);
@@ -74,12 +65,14 @@ public class EntityZones : NetworkBehaviour
     }
 
     [Server]
-    public List<TechnologyEntity> GetTechnologies(bool isHost){
+    public List<TechnologyEntity> GetTechnologies(bool isHost)
+    {
         if(isHost) return _hostTechnologies;
         else return _clientTechnologies;
     }
 
-    public List<TechnologyEntity> GetAllTechnologies(){
+    public List<TechnologyEntity> GetAllTechnologies()
+    {
         var technologies = new List<TechnologyEntity>();
         technologies.AddRange(_hostTechnologies);
         technologies.AddRange(_clientTechnologies);
@@ -87,7 +80,8 @@ public class EntityZones : NetworkBehaviour
         return technologies;
     }
 
-    public List<BattleZoneEntity> GetAllEntities(){
+    public List<BattleZoneEntity> GetAllEntities()
+    {
         var technologies = GetAllTechnologies();
         var creatures = GetAllCreatures();
 
@@ -103,7 +97,8 @@ public class EntityZones : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcMoveEntityToSpawned(BattleZoneEntity e){
+    public void RpcMoveEntityToSpawned(BattleZoneEntity e)
+    {
         e.transform.SetParent(_spawnedEntityTransform, false);
         e.gameObject.SetActive(true);
     }
@@ -129,14 +124,6 @@ public class EntityZones : NetworkBehaviour
     }
 
     #region Entity holders
-    private void FindEntityHolders(){
-        for (int i = 0; i < MAX_ENTITIES; i++){
-            _playerTechnologyHolders[i] = playerTechnologyZone.transform.GetChild(i).GetComponent<PlayZoneCardHolder>();
-            _playerCreatureHolders[i] = playerCreatureZone.transform.GetChild(i).GetComponent<PlayZoneCardHolder>();
-            _opponentTechnologyHolders[i] = opponentTechnologyZone.transform.GetChild(i).GetComponent<PlayZoneCardHolder>();
-            _opponentCreatureHolders[i] = opponentCreatureZone.transform.GetChild(i).GetComponent<PlayZoneCardHolder>();
-        }
-    }
     private Transform FindHolderTransform(BattleZoneEntity entity)
     {
         var index = 0;
@@ -165,10 +152,14 @@ public class EntityZones : NetworkBehaviour
 
     private int GetFirstFreeHolderIndex(PlayZoneCardHolder[] holders)
     {
-        // Only other child is holder outline image -> childCount == 1
-        for (int i = 0; i < holders.Length; i++){
-            if(holders[i].transform.childCount == 1) return i;
+        for (int i = 0; i < holders.Length; i++)
+        {
+            // Holder has Entity -> continue
+            if(holders[i].transform.GetComponentInChildren<BattleZoneEntity>()) continue;
+            
+            return i;
         }
+        
         return -1;
     }
 

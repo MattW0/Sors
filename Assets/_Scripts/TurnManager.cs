@@ -352,12 +352,8 @@ public class TurnManager : NetworkBehaviour
         _logger.RpcLogPlayingCards(entities.Values.ToList());
 
         // Skip waiting for entity ability checks
-        if (entities.Count == 0){
-            CheckPlayAnotherCard();
-            return;
-        }
-        
-        PlayCardsIntermission().Forget();
+        if (entities.Count == 0) CheckPlayAnotherCard();
+        else PlayCardsIntermission().Forget();
     }
 
     private void CheckPlayAnotherCard()
@@ -366,12 +362,8 @@ public class TurnManager : NetworkBehaviour
         _boardManager.BoardCleanUp();
 
         // Play another card if not all players have skipped
-        if (AllPlayersSkipped()) {
-            FinishPlayCard();
-            return;
-        }
-        
-        PlayCard();
+        if (AllPlayersSkipped()) FinishPlayCard();
+        else PlayCard();
     }
 
     private void FinishPlayCard()

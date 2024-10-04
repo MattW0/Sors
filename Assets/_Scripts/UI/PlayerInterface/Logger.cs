@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class Logger : MonoBehaviour
@@ -44,6 +45,8 @@ public class Logger : MonoBehaviour
 
         return messageColor;
     }
+
+    internal void ToggleVisible() => gameObject.SetActive(!gameObject.activeSelf);
 }
 
 public enum LogType : byte

@@ -72,7 +72,8 @@ public class CardsPileSors : MonoBehaviour
 
 	private void UpdateCardPositions()
 	{
-		if (pileType == CardLocation.Hand) ChangeHandDimensions(cards.Count);
+		if (pileType == CardLocation.Hand || pileType == CardLocation.Interaction) 
+			ChangePileWidth(cards.Count);
 
 		(float radius, float angle, float cardAngle) = GetGeometry();
 
@@ -141,7 +142,7 @@ public class CardsPileSors : MonoBehaviour
 		return (position, rotation);
 	}
 
-	private void ChangeHandDimensions(int cardCount)
+	private void ChangePileWidth(int cardCount)
 	{
 		// Changes the width of the hand based on the number of cards
 		// TODO: Use groupings for the same card(s) like in dominion.games ?

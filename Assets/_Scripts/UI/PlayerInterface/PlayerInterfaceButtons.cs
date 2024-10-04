@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class PlayerInterfaceButtons : MonoBehaviour
 {
@@ -9,6 +10,8 @@ public class PlayerInterfaceButtons : MonoBehaviour
     [SerializeField] private Button _concedeButton;
     [SerializeField] private Button _utilityButton;
     [SerializeField] private Button _chatButton;
+    [SerializeField] private TMP_Text _chatButtonText;
+    private bool _chatVisible = false;
 
     private void Start(){
         _manager = PlayerInterfaceManager.Instance;
@@ -26,7 +29,13 @@ public class PlayerInterfaceButtons : MonoBehaviour
     public void OnUtilityButtonPressed() => _manager.ForceEndTurn();
     public void DisableUtilityButton() => _utilityButton.interactable = false;
     public void UndoButtonEnabled(bool b) => _undoButton.interactable = b;
-    public void OnChatButtonPressed() => _manager.OpenChat();
+    public void OnChatButtonPressed()
+    {
+        _chatVisible = !_chatVisible;
+        _chatButtonText.text = _chatVisible ? "Log" : "Chat";
+
+        _manager.ToggleLogChat();
+    }
 }
 
 public enum UndoReason : byte

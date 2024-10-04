@@ -6,6 +6,7 @@ public class SetColor : MonoBehaviour
 {
     [SerializeField] private ColorType colorType;
     [SerializeField] private Image image;
+    // [SerializeField] private SpriteRenderer spriteRenderer;
     [Range(0, 1), SerializeField] private float alpha = 1f;
     
 // #if UNITY_EDITOR
@@ -32,7 +33,9 @@ public class SetColor : MonoBehaviour
         };
 
         if (alpha < 1f) color.a = alpha;
-        image.color = color;
+        
+        if (image) image.color = color;
+        else Debug.LogWarning("No image found on " + gameObject.name);
     }
 // #endif
 }

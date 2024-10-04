@@ -42,10 +42,7 @@ public class Chat : MonoBehaviour
         Instantiate(_textMessagePrefab, _chatTransform).SetMessage(new Message(originator, time, message));
     }
 
-    public void ToggleChat() {
-        gameObject.SetActive(!gameObject.activeSelf);
-    }
-
+    public void ToggleVisible() => gameObject.SetActive(!gameObject.activeSelf);
     private void OnDestroy() 
     {
         PlayerInterfaceManager.OnChatMessageReceived -= HandleNewMessage;
