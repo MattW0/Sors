@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
+using System;
 
 public class PlayerUI : MonoBehaviour, IPointerClickHandler
 {
@@ -22,6 +23,7 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
     [SerializeField] private TMP_Text turnPrevails;
     [SerializeField] private Image highlight;
     private bool _isTargetable;
+    public static event Action<BattleZoneEntity> OnClickedPlayer;
 
     private void Awake()
     {
@@ -31,7 +33,8 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
         DropZoneManager.OnCombatEnd += EndCombat;
     }
 
-    public void SetEntity(BattleZoneEntity e, Vector3 p) {
+    public void SetEntity(BattleZoneEntity e, Vector3 p) 
+    {
         _playerEntity = e;
         _playerEntity.transform.position = p;
     }
@@ -53,9 +56,7 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
     {
         if(!_isTargetable) return;
 
-        var clicker = PlayerManager.GetLocalPlayer();
-        if (clicker.PlayerIsChoosingAttack) clicker.PlayerChoosesTargetToAttack(_playerEntity);
-        else if (clicker.PlayerIsChoosingTarget) clicker.PlayerChoosesEntityTarget(_playerEntity);
+        OnClickedPlayer?.Invoke(_playerEntity);
     }
 
     public void TargetHighlight(bool targetable, bool isOwned)

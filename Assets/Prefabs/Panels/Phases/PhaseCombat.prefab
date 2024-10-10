@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7315483012074436870}
   - component: {fileID: 5629393523466575050}
   - component: {fileID: 4096760680459506166}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Title
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -147,7 +147,7 @@ GameObject:
   - component: {fileID: 4331371291053919417}
   - component: {fileID: 4262530005446225219}
   - component: {fileID: 8541185983238872372}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: PhaseCombat
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -229,10 +229,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _phaseTitle: Attack
   _mesh: {fileID: 2169655906813910809}
-  _phaseTitleUI: {fileID: 4096760680459506166}
-  _phaseTitleMesh: {fileID: 6085488630153285749}
+  _tooltip: {fileID: 0}
   _icon: {fileID: 8561790675743861653}
   outline: {fileID: 4262530005446225219}
+  playerChoice: {fileID: 0}
+  opponentChoice: {fileID: 0}
 --- !u!1 &2169655906813910809
 GameObject:
   m_ObjectHideFlags: 0
@@ -244,7 +245,7 @@ GameObject:
   - component: {fileID: 3341481951488425012}
   - component: {fileID: 1197603488}
   - component: {fileID: 1822314049}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Mesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -322,7 +323,7 @@ GameObject:
   - component: {fileID: 5527087940375282128}
   - component: {fileID: 952425268195343389}
   - component: {fileID: 6085488630153285749}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: MeshTitle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -457,7 +458,7 @@ GameObject:
   - component: {fileID: 4477728202390455754}
   - component: {fileID: 1322597187459139494}
   - component: {fileID: 8561790675743861653}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -533,7 +534,7 @@ GameObject:
   - component: {fileID: 2363196503015748483}
   - component: {fileID: 7487256865068613035}
   - component: {fileID: 7396162225666108391}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Mesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -4,14 +4,11 @@ using Mirror;
 using UnityEngine;
 
 
-[RequireComponent(typeof(AttackerArrowHandler), typeof(TargetArrowHandler))]
+[RequireComponent(typeof(EntityClickHandler))]
 public class BattleZoneEntity : NetworkBehaviour
 {
-    private BoardManager _boardManager;
     public PlayerManager Owner { get; private set; }
     public string Title { get; private set; }
-    [SerializeField] private BattleZoneEntityUI _entityUI;
-    [SerializeField] private PlayerUI _playerUI;
 
     [field: Header("Stats")]
     public CardType cardType;
@@ -32,7 +29,6 @@ public class BattleZoneEntity : NetworkBehaviour
             }
         }
     }
-
     private bool _targetable;
     public bool IsTargetable {
         get => _targetable;
@@ -43,18 +39,17 @@ public class BattleZoneEntity : NetworkBehaviour
         }
     }
 
-    [HideInInspector] public TargetArrowHandler targetArrowHandler;
-    [HideInInspector] public AttackerArrowHandler attackerArrowHandler;
-    [HideInInspector] public BlockerArrowHandler blockerArrowHandler;
+    [SerializeField] private PlayerUI _playerUI;
+    private EntityUI _entityUI;
+    private BoardManager _boardManager;
+    public static event Action<Transform, int> OnTargetStart;
+    public static event Action<Transform, Transform> OnTargetFinish;
 
-
-    private void Awake(){
-        targetArrowHandler = GetComponent<TargetArrowHandler>();
-        attackerArrowHandler = GetComponent<AttackerArrowHandler>();
-
+    private void Awake()
+    {
         DropZoneManager.OnTargetEntities += CheckTargetable;
         if (cardType != CardType.Player){
-            CombatManager.OnCombatStateChanged += RpcCombatStateChanged;
+            _entityUI = GetComponent<EntityUI>();
             DropZoneManager.OnResetEntityUI += ResetEntityUI;
         }
     }
@@ -130,12 +125,6 @@ public class BattleZoneEntity : NetworkBehaviour
         // print("Showing effect target highlight");
         _entityUI.Highlight(value, SorsColors.effectTriggerHighlight);   
     }
-
-    [ClientRpc]
-    public virtual void RpcCombatStateChanged(CombatState newState){
-        targetArrowHandler.CombatStateChanged(newState);
-        attackerArrowHandler.CombatStateChanged(newState);
-    }
     
     #region UI Target Arrows
     private void ResetEntityUI()
@@ -150,11 +139,9 @@ public class BattleZoneEntity : NetworkBehaviour
         else _playerUI.Highlight(true, SorsColors.combatClash);
     } 
     [TargetRpc]
-    public void TargetSpawnTargetArrow(NetworkConnection target) => targetArrowHandler.SpawnArrow();
+    public void TargetSpawnTargetArrow(NetworkConnection conn) => OnTargetStart?.Invoke(transform, GetInstanceID());
     [ClientRpc]
-    public void RpcDeclaredTarget(BattleZoneEntity target) => targetArrowHandler.HandleFoundTarget(target.transform);
-    [ClientRpc]
-    public void RpcResetAfterTarget() => targetArrowHandler.RemoveArrow(false);
+    public void RpcDeclaredTarget(BattleZoneEntity target) => OnTargetFinish?.Invoke(transform, target.transform);
     #endregion
 
     // Need this for player UI highlights : attackable, targetable, ...
@@ -174,7 +161,6 @@ public class BattleZoneEntity : NetworkBehaviour
         DropZoneManager.OnTargetEntities -= CheckTargetable;
         if (cardType == CardType.Player) return;
 
-        CombatManager.OnCombatStateChanged -= RpcCombatStateChanged;
         DropZoneManager.OnResetEntityUI -= ResetEntityUI;
     }
     private void OnDestroy() => UnsubscribeEvents();

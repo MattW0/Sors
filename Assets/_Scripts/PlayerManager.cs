@@ -26,10 +26,6 @@ public class PlayerManager : NetworkBehaviour
     public Dictionary<GameObject, CardStats> moneyCardsInPlay = new();
 
     public bool PlayerIsChoosingTarget { get; private set; }
-    public bool PlayerIsChoosingAttack { get; private set; }
-    public bool PlayerIsChoosingBlock { get; private set; }
-    private List<CreatureEntity> _attackers = new();
-    private List<CreatureEntity> _blockers = new();
     private PlayerUI _playerUI;
     private PlayerUI _opponentUI;
     private BattleZoneEntity _entity;
@@ -325,53 +321,14 @@ public class PlayerManager : NetworkBehaviour
 
     #region Combat
 
-    public void PlayerChoosesAttacker(CreatureEntity attacker)
-    {
-        PlayerIsChoosingAttack = true;
-        _attackers.Add(attacker);
-    }
-
-    public void PlayerRemovesAttacker(CreatureEntity attacker)
-    {
-        _attackers.Remove(attacker);
-        if (_attackers.Count == 0) PlayerIsChoosingAttack = false;
-    }
-
-    public void PlayerChoosesTargetToAttack(BattleZoneEntity target)
-    {
-        CmdPlayerChoosesTargetToAttack(target, _attackers);
-        _attackers.Clear();
-        PlayerIsChoosingAttack = false;
-    }
-
     [Command]
-    private void CmdPlayerChoosesTargetToAttack(BattleZoneEntity target, List<CreatureEntity> attackers)
+    public void CmdPlayerChoosesTargetToAttack(BattleZoneEntity target, List<CreatureEntity> attackers)
     {
         _combatManager.PlayerChoosesTargetToAttack(target, attackers);
     }
 
-    public void PlayerChoosesBlocker(CreatureEntity blocker)
-    {
-        PlayerIsChoosingBlock = true;
-        _blockers.Add(blocker);
-    }
-
-    public void PlayerRemovesBlocker(CreatureEntity blocker)
-    {
-        _blockers.Remove(blocker);
-        if (_blockers.Count == 0) PlayerIsChoosingBlock = false;
-    }
-
-    public void PlayerChoosesAttackerToBlock(CreatureEntity attacker)
-    {
-        CmdPlayerChoosesAttackerToBlock(attacker, _blockers);
-
-        _blockers.Clear();
-        PlayerIsChoosingBlock = false;
-    }
-
     [Command]
-    private void CmdPlayerChoosesAttackerToBlock(CreatureEntity target, List<CreatureEntity> blockers)
+    public void CmdPlayerChoosesAttackerToBlock(CreatureEntity target, List<CreatureEntity> blockers)
     {
         _combatManager.PlayerChoosesAttackerToBlock(target, blockers);
     }

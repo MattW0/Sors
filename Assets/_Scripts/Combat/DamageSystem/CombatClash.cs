@@ -7,9 +7,9 @@ public class CombatClash
 {
     public CreatureEntity _source;
     public BattleZoneEntity _target;
+    public bool IsClash => _target is CreatureEntity;
     private int _damageFromSource;
     private int _damageFromTarget;
-    public bool IsClash => _target is CreatureEntity;
 
     public static event Action<Transform> OnPlayDamage;
     public static event Action<Transform, Transform> OnPlayAttack;

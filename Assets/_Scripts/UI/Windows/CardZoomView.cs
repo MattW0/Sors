@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 
 public class CardZoomView : MonoBehaviour, IPointerClickHandler
 {
-    public static CardZoomView Instance { get; private set; }
+    // public static CardZoomView Instance { get; private set; }
     [SerializeField] private GameObject _cardZoomView;
     [SerializeField] private GameObject _cardHolder;
     [SerializeField] private Vector3 _cardHolderOffset;
@@ -20,8 +20,6 @@ public class CardZoomView : MonoBehaviour, IPointerClickHandler
 
     private void Awake()
     {
-        Instance = this;
-
         _cardZoomView.SetActive(false);
         _cardHolder.transform.localPosition = Vector3.zero;
 
@@ -30,6 +28,10 @@ public class CardZoomView : MonoBehaviour, IPointerClickHandler
         _moneyDetailCard.SetActive(false);
         _creatureEntity.SetActive(false);
         _technologyEntity.SetActive(false);
+
+        CardClickHandler.OnCardInspect += ZoomCard;
+        EntityClickHandler.OnEntityInspect += ZoomCard;
+        MarketTile.OnMarketTileInspect += ZoomCard;
     }
 
     public void ZoomCard(CardInfo card)
@@ -75,5 +77,12 @@ public class CardZoomView : MonoBehaviour, IPointerClickHandler
         _openedCardObject.SetActive(false);
         // is null if money card
         if(_openedEntityObject) _openedEntityObject.SetActive(false);
+    }
+
+    private void OnDestroy()
+    {
+        CardClickHandler.OnCardInspect -= ZoomCard;
+        EntityClickHandler.OnEntityInspect -= ZoomCard;
+        MarketTile.OnMarketTileInspect -= ZoomCard;
     }
 }

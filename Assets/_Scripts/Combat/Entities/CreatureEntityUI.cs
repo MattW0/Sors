@@ -27,29 +27,29 @@ public class CreatureEntityUI : MonoBehaviour
         highlight.enabled = false;
     }
 
-    #region Tapping / Moving on board
-    private Transform _transform;
-    private readonly Vector3 _untappedPosition = new Vector3(0f, -30f, -1f);
-    private readonly Vector3 _tappedPosition = new Vector3(0f, 30f, -1f);
-    private const float TappingDuration = 0.3f;
-    private void Start(){
-        _transform = gameObject.transform;
-        // _transform.position = _untappedPosition;
-    }
-    public void TapCreature() {
-        //  TODO: Could replace {} with action to do after tapping
-        _transform.DOLocalMove(_tappedPosition, TappingDuration).OnComplete( () => {} );
-    }
+    // #region Tapping / Moving on board
+    // private Transform _transform;
+    // private readonly Vector3 _untappedPosition = new Vector3(0f, -30f, -1f);
+    // private readonly Vector3 _tappedPosition = new Vector3(0f, 30f, -1f);
+    // private const float TappingDuration = 0.3f;
+    // private void Start(){
+    //     _transform = gameObject.transform;
+    //     // _transform.position = _untappedPosition;
+    // }
+    // public void TapCreature() {
+    //     //  TODO: Could replace {} with action to do after tapping
+    //     _transform.DOLocalMove(_tappedPosition, TappingDuration).OnComplete( () => {} );
+    // }
 
-    public void UntapCreature() {
-        _transform.DOLocalMove(_untappedPosition, TappingDuration).OnComplete( () => {} );
-        ResetHighlight();
-    }
+    // public void UntapCreature() {
+    //     _transform.DOLocalMove(_untappedPosition, TappingDuration).OnComplete( () => {} );
+    //     ResetHighlight();
+    // }
 
-    public void TapOpponentCreature() => _transform.DOLocalMove(_untappedPosition, TappingDuration);
-    public void UntapOpponentCreature(){
-        _transform.DOLocalMove(_tappedPosition, TappingDuration);
-        ResetHighlight();
-    }
-    #endregion
+    // public void TapOpponentCreature() => _transform.DOLocalMove(_untappedPosition, TappingDuration);
+    // public void UntapOpponentCreature(){
+    //     _transform.DOLocalMove(_tappedPosition, TappingDuration);
+    //     ResetHighlight();
+    // }
+    // #endregion
 }

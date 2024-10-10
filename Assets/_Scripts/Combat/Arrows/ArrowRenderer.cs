@@ -3,57 +3,69 @@ using UnityEngine;
 
 public class ArrowRenderer : MonoBehaviour
 {
-    [SerializeField] ArrowType arrowType;
     public bool stopUpdating;
     public float height = 0.5f;
     public float segmentLength = 0.5f;
     public float fadeDistance = 0.35f;
     public float speed = 1f;
 
-    [SerializeField] GameObject arrowPrefab;
-    [SerializeField] GameObject segmentPrefab;
-
-    [Space] [SerializeField] Vector3 start;
-    [SerializeField] Vector3 end;
-    [SerializeField] Vector3 upwards = Vector3.up;
-    private Transform _arrow;
-
-    readonly List<Transform> segments = new List<Transform>();
-    readonly List<MeshRenderer> renderers = new List<MeshRenderer>();
+    [Space] [SerializeField] private Vector3 start;
+    [SerializeField] private Vector3 end;
+    [SerializeField] private Vector3 upwards = Vector3.up;
 
     [Header("Resolution Constants")]
-    [SerializeField] private const float SCREEN_WIDTH = 1920f;
-    [SerializeField] private const float SCREEN_HEIGHT = 1080f;
-    [SerializeField] private const float ARROW_RENDER_WIDHT = 9f;
-    [SerializeField] private const float ARROW_RENDER_HEIGHT = 5f;
+    [SerializeField] private const float ARROW_RENDER_WIDHT_L = 5f;
+    [SerializeField] private const float ARROW_RENDER_WIDHT_R = 3.65f;
+    [SerializeField] private const float ARROW_RENDER_HEIGHT = 2.9f;
+    
+    [Header("Prefabs")]
+    [SerializeField] private GameObject arrowPrefab;
+    [SerializeField] private GameObject segmentPrefab;
 
-    private void Awake(){
+    private Transform _arrow;
+    private readonly List<Transform> segments = new List<Transform>();
+    private readonly List<MeshRenderer> renderers = new List<MeshRenderer>();
+    private bool _hasTarget;
+
+    private void Awake()
+    {
         DropZoneManager.OnDestroyArrows += DestroyArrow;
     }
 
     public void SetOrigin(Vector3 origin) => start = origin;
-    public void SetTarget(){
+    public void SetTarget(Vector3 target)
+    {
+        end = target;
+        _hasTarget = true;
+    }
+
+    public void FollowMouse()
+    {
         var input = new Vector3(Input.mousePosition.x, 0.5f, Input.mousePosition.y);
-
-        // Input range X: [0, 1920], Y: 0, Z: [0, 1080]
-        // Arrow renderer range X: [-9.7, 9.7], Y: 0.5, Z: [-5.5, 5.5]
-        // X: [0, 1920] -> X: [-9.7, 9.7]
-        input.x = ARROW_RENDER_WIDHT * (2 * (input.x / SCREEN_WIDTH) - 1);
-        // Z: [0, 1080] -> Z: [-5.5, 5.5]
-        input.z = ARROW_RENDER_HEIGHT * (2 * (input.z / SCREEN_HEIGHT) - 1);
-
-        // clamp to screen size
-        input.x = Mathf.Clamp(input.x, -ARROW_RENDER_WIDHT, ARROW_RENDER_WIDHT);
-        input.z = Mathf.Clamp(input.z, -ARROW_RENDER_HEIGHT, ARROW_RENDER_HEIGHT);
+        input = ScaleMouseInput(input);
 
         end = input;
     }
 
-    public void SetTarget(Vector3 target) => end = target;
-
-    private void Update(){
+    private void FixedUpdate()
+    {
         if (stopUpdating) return;
         UpdateSegments();
+
+        if (_hasTarget) return;
+        FollowMouse();
+    }
+
+    private Vector3 ScaleMouseInput(Vector3 vec)
+    {
+        var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+        Physics.Raycast(ray, out var hit);
+        vec = hit.point;
+        vec.x = Mathf.Clamp(vec.x, -ARROW_RENDER_WIDHT_L, ARROW_RENDER_WIDHT_R);
+        vec.z = Mathf.Clamp(vec.z, -ARROW_RENDER_HEIGHT, ARROW_RENDER_HEIGHT);
+
+        return vec;
     }
 
     private void UpdateSegments()
@@ -129,18 +141,9 @@ public class ArrowRenderer : MonoBehaviour
         return Mathf.Clamp01(Mathf.Clamp01(distance0 / distanceMax) + Mathf.Clamp01(distance1 / distanceMax) - 1f);
     }
 
-    public void DestroyArrow(){
+    public void DestroyArrow()
+    {
+        DropZoneManager.OnDestroyArrows -= DestroyArrow;
         Destroy(gameObject);
     }
-
-    private void OnDestroy(){
-        DropZoneManager.OnDestroyArrows -= DestroyArrow;
-    }
 }
-
-public enum ArrowType : byte
-{
-    Target,
-    Attacker,
-    Blocker
-} 

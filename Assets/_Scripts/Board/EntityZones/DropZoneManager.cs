@@ -90,7 +90,8 @@ public class DropZoneManager : NetworkBehaviour
         foreach (var player in players)
         {
             // Auto-skip : Local player has no creatures
-            if (entityZones.GetCreatures(player.isLocalPlayer).Count == 0) PlayerFinishedChoosingAttackers(player);
+            if (entityZones.GetCreatures(player.isLocalPlayer).Count == 0) 
+                PlayerFinishedChoosingAttackers(player);
             // else if (player.isAI) PlayerFinishedChoosingAttackers(player);
             else TargetDeclareAttackers(player.connectionToClient);
         }
@@ -193,14 +194,7 @@ public class DropZoneManager : NetworkBehaviour
     }
 
     [Server]
-    public void DestroyTargetArrows()
-    {
-        var entities = entityZones.GetAllEntities();
-        foreach (var entity in entities) entity.RpcResetAfterTarget();
-
-        RpcDestroyArrows();
-    }
-
+    public void DestroyTargetArrows() => RpcDestroyArrows();
     [ClientRpc]
     private void RpcEntityUIReset() => OnResetEntityUI?.Invoke();
     [ClientRpc]

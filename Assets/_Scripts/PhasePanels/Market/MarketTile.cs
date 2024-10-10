@@ -1,13 +1,12 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
-using System.Collections;
 using Cysharp.Threading.Tasks;
+using System;
 
 [System.Serializable]
 public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
     private Market _market;
-    private CardZoomView _cardZoomView;
     public CardInfo cardInfo;
     [SerializeField] private MarketTileUI _ui;
     private int _cost;
@@ -49,11 +48,12 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
 
     public int Index { get; private set; }
     private bool _alreadyChosen;
+    public static event Action<CardInfo> OnMarketTileInspect;
+
 
     private void Awake()
     {
         _market = Market.Instance;
-        _cardZoomView = CardZoomView.Instance;
     }
 
     public void InitializeTile(CardInfo card, int index)
@@ -80,7 +80,7 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     {
         // Right click to preview card only
         if (eventData.button == PointerEventData.InputButton.Right) {
-            _cardZoomView.ZoomCard(cardInfo);
+            OnMarketTileInspect?.Invoke(cardInfo);
             return;
         }
 

@@ -13,7 +13,7 @@ public class MoneyZone : MonoBehaviour
         _cardMover = CardMover.Instance;
     }
 
-    public void DiscardMoney() => _cardMover.MoveTo(GetCards(), myZone, CardLocation.MoneyZone, CardLocation.Discard);
+    public void DiscardMoney() => _cardMover.MoveAllTo(GetCards(), myZone, CardLocation.MoneyZone, CardLocation.Discard);
 
     private List<GameObject> GetCards()
     {

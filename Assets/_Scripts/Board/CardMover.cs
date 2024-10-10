@@ -102,20 +102,22 @@ public class CardMover : MonoBehaviour
         card.SetActive(true);
     }
 
-    public void StartInteraction(CardLocation location, )
-    {
+    // TODO:
+    
+    // public void StartInteraction(CardLocation location, )
+    // {
 
-        GetPiles(location, CardLocation.Interaction, true);
+    //     GetPiles(location, CardLocation.Interaction, true);
 
-        _cardHolder.DOMove(_transformInteractable.position, SorsTimings.cardPileRearrangement);
-        _cardHolder.DOScale(_scaleInteractable, SorsTimings.cardPileRearrangement);
-    }
+    //     _cardHolder.DOMove(_transformInteractable.position, SorsTimings.cardPileRearrangement);
+    //     _cardHolder.DOScale(_scaleInteractable, SorsTimings.cardPileRearrangement);
+    // }
 
-    public void EndInteraction(CardLocation location)
-    {
-        _cardHolder.DOMove(_transformDefault.position, SorsTimings.cardPileRearrangement);
-        _cardHolder.DOScale(Vector3.one, SorsTimings.cardPileRearrangement);
-    }
+    // public void EndInteraction(CardLocation location)
+    // {
+    //     _cardHolder.DOMove(_transformDefault.position, SorsTimings.cardPileRearrangement);
+    //     _cardHolder.DOScale(Vector3.one, SorsTimings.cardPileRearrangement);
+    // }
 
     #region Helpers
     private void ApplyMovement(CardsPileSors pile, GameObject card)
@@ -142,15 +144,15 @@ public class CardMover : MonoBehaviour
     {
         var pile = location switch{
             CardLocation.CardSpawn => hasAuthority ? playerCardSpawn : opponentCardSpawn,
-            CardLocation.EntitySpawn => entitySpawn,
-            CardLocation.Trash => trash,
-            CardLocation.Selection => selection,
-            CardLocation.Interaction => interaction,
             CardLocation.Deck => hasAuthority ? playerDeck : opponentDeck,
             CardLocation.Hand => hasAuthority ? playerHand : opponentHand,
             CardLocation.PlayZone => hasAuthority ? playerPlayZone : opponentPlayZone,
             CardLocation.MoneyZone => hasAuthority ? playerMoneyZone : opponentMoneyZone,
             CardLocation.Discard => hasAuthority ? playerDiscardPile : opponentDiscardPile,
+            CardLocation.EntitySpawn => entitySpawn,
+            CardLocation.Trash => trash,
+            CardLocation.Selection => selection,
+            CardLocation.Interaction => interaction,
             _ => null
         };
 

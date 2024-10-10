@@ -22,7 +22,7 @@ public class CardSelectionHandler : MonoBehaviour
         _cardMover = CardMover.Instance;
         _ui = gameObject.GetComponent<InteractionUI>();
 
-        CardClick.OnCardClicked += ClickedCard;
+        CardClickHandler.OnCardClicked += ClickedCard;
     }
 
     public void GetLocalPlayer() => _player = PlayerManager.GetLocalPlayer();
@@ -134,7 +134,7 @@ public class CardSelectionHandler : MonoBehaviour
 
     private void OnDestroy()
     {
-        CardClick.OnCardClicked -= ClickedCard;
+        CardClickHandler.OnCardClicked -= ClickedCard;
     }
 }
 
