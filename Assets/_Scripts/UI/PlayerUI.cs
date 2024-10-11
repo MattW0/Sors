@@ -29,7 +29,7 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
     {
         _idlePosition = transform.position;
 
-        DropZoneManager.OnCombatStart += StartCombat;
+        DropZoneManager.OnDeclareAttackers += StartCombat;
         DropZoneManager.OnCombatEnd += EndCombat;
     }
 
@@ -39,9 +39,10 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
         _playerEntity.transform.position = p;
     }
 
-    private void StartCombat()
+    private void StartCombat(bool start)
     {
-        // print("Start combat on player UI");
+        if(!start) return;
+
         transform.position += _combatPosition;
         _playerEntity.transform.position += _combatPosition;
     }
@@ -92,7 +93,7 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
 
 
     private void OnDestroy(){
-        DropZoneManager.OnCombatStart -= StartCombat;
+        DropZoneManager.OnDeclareAttackers -= StartCombat;
         DropZoneManager.OnCombatEnd -= EndCombat;
     }
 }

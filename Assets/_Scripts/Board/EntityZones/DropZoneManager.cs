@@ -11,8 +11,7 @@ public class DropZoneManager : NetworkBehaviour
     [SerializeField] private BoardManager _boardManager;
     [SerializeField] private EntityZones entityZones;
     [SerializeField] private MoneyZone playerMoneyZone;
-    [SerializeField] private MoneyZone opponentMoneyZone;    
-    public static event Action OnCombatStart;
+    [SerializeField] private MoneyZone opponentMoneyZone;
     public static event Action<bool> OnDeclareAttackers;
     public static event Action<bool> OnDeclareBlockers;
     public static event Action OnCombatEnd;
@@ -92,17 +91,14 @@ public class DropZoneManager : NetworkBehaviour
             // Auto-skip : Local player has no creatures
             if (entityZones.GetCreatures(player.isLocalPlayer).Count == 0) 
                 PlayerFinishedChoosingAttackers(player);
+
             // else if (player.isAI) PlayerFinishedChoosingAttackers(player);
             else TargetDeclareAttackers(player.connectionToClient);
         }
     }
 
     [TargetRpc]
-    private void TargetDeclareAttackers(NetworkConnection conn)
-    {
-        OnDeclareAttackers?.Invoke(true);
-        OnCombatStart?.Invoke();
-    }
+    private void TargetDeclareAttackers(NetworkConnection conn) => OnDeclareAttackers?.Invoke(true);
 
     [Server]
     public void PlayerFinishedChoosingAttackers(PlayerManager player)

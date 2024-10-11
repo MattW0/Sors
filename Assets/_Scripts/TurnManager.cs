@@ -14,12 +14,12 @@ public class TurnManager : NetworkBehaviour
     private GameManager _gameManager;
     private Market _market;
     private InteractionPanel _interactionPanel;
-    private PhasePanel _phasePanel;
+    [SerializeField] private PhasePanel _phasePanel;
     private PrevailPanel _prevailPanel;
     private PlayerInterfaceManager _logger;
     private BoardManager _boardManager;
     private AbilityQueue _abilityQueue;
-    [SerializeField] private CombatManager combatManager;
+    private CombatManager _combatManager;
 
     [field: Header("Game state")]
     [SerializeField] private TurnState turnState;
@@ -51,6 +51,8 @@ public class TurnManager : NetworkBehaviour
 
         GameManager.OnGameStart += Prepare;
         PlayerManager.OnCashChanged += PlayerCashChanged;
+
+        _combatManager = GetComponent<CombatManager>();
     }
 
     private void Prepare(GameOptions gameOptions)
@@ -76,7 +78,6 @@ public class TurnManager : NetworkBehaviour
         _interactionPanel = InteractionPanel.Instance;
         _interactionPanel.RpcPrepareInteractionPanel();
 
-        _phasePanel = PhasePanel.Instance;
         _phasePanel.RpcPreparePhasePanel(gameOptions.NumberPhases);
 
         _prevailPanel = PrevailPanel.Instance;
@@ -637,7 +638,7 @@ public class TurnManager : NetworkBehaviour
         else if (newState == TurnState.Discard) Discard();
         else if (newState == TurnState.Invent || newState == TurnState.Recruit) StartMarketPhase();
         else if (newState == TurnState.Develop || newState == TurnState.Deploy) StartPlayCard();
-        else if (newState == TurnState.Attackers) combatManager.UpdateCombatState(TurnState.Attackers);
+        else if (newState == TurnState.Attackers) _combatManager.UpdateCombatState(TurnState.Attackers);
         else if (newState == TurnState.Prevail) Prevail();
         else if (newState == TurnState.CleanUp) CleanUp();
         else if (newState == TurnState.Idle) _logger.RpcLog("Game finished", LogType.Standard);
@@ -771,7 +772,7 @@ public class TurnManager : NetworkBehaviour
         _market.RpcEndMarketPhase();
         _boardManager.ShowHolders(false);
 
-        combatManager.CombatCleanUp(true);
+        _combatManager.CombatCleanUp(true);
 
         _prevailPanel.RpcOptionsSelected();
         _prevailPanel.RpcReset();

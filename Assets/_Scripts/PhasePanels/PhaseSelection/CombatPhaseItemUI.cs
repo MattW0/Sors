@@ -8,8 +8,7 @@ public class CombatPhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEn
     [SerializeField] private GameObject _tooltip;
     private bool _selectable;
     public static event Action OnPressedCombatButton;
-
-    public void StartCombatPhase()
+    public void IsSelectable()
     {
         _mesh.SetActive(true);
         _selectable = true;

@@ -3,12 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using Mirror;
 using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
 
 public class PhasePanel : NetworkBehaviour
 {
-    public static PhasePanel Instance { get; private set; }
     [SerializeField] private List<Phase> _selectedPhases = new();
     [SerializeField] private CombatPhaseItemUI attack;
     [SerializeField] private CombatPhaseItemUI block;
@@ -22,8 +19,6 @@ public class PhasePanel : NetworkBehaviour
     
     private void Awake() 
     {
-        if (!Instance) Instance = this;
-
         TurnManager.OnBeginTurn += RpcBeginPhaseSelection;
         TurnManager.OnPhaseChanged += RpcUpdatePhaseHighlight;
         CombatManager.OnCombatStateChanged += RpcUpdatePhaseHighlight;
@@ -39,8 +34,6 @@ public class PhasePanel : NetworkBehaviour
     [ClientRpc]
     public void RpcPreparePhasePanel(int nbPhases)
     {
-        // print("Prepare phase panel: " + nbPhases);
-
         _nbPhasesToChose = nbPhases;
         _localPlayer = PlayerManager.GetLocalPlayer();
         _combatManager = CombatManager.Instance;
@@ -89,19 +82,6 @@ public class PhasePanel : NetworkBehaviour
 
     [ClientRpc]
     private void RpcUpdatePhaseHighlight(TurnState newState) => _phasePanelUI.UpdatePhaseHighlight(newState);
-    
-    // [ClientRpc]
-    // private void RpcCombatStateChanged(TurnState newState) 
-    // {
-    //     var newHighlightIndex = newState switch
-    //     {
-    //         TurnState.Attackers => 4,
-    //         CombatState.Blockers => 5,
-    //         _ => -1
-    //     };
-
-    //     _phasePanelUI.UpdatePhaseHighlight(newHighlightIndex);
-    // }
 
     #endregion
 
@@ -109,26 +89,21 @@ public class PhasePanel : NetworkBehaviour
 
     [ClientRpc]
     public void RpcStartCombatPhase(TurnState state){
-        if (state == TurnState.Attackers) BeginCombatAttack();
-        else if (state == TurnState.Blockers) BeginCombatBlock();
-    }
-    
-    private void BeginCombatAttack(){
-        // actionDescriptionText.text = "Select attackers";
-        attack.StartCombatPhase();
-    }
-    private void BeginCombatBlock(){
-        // actionDescriptionText.text = "Select blockers";
-        block.StartCombatPhase();
+        // actionDescriptionText.text = $"Select {state}";
+
+        if (state == TurnState.Attackers) attack.IsSelectable();
+        else if (state == TurnState.Blockers) block.IsSelectable();
     }
 
     [TargetRpc]
-    public void TargetDisableCombatButtons(NetworkConnection conn){
+    public void TargetDisableCombatButtons(NetworkConnection conn)
+    {
         attack.Reset();
         block.Reset();
     }
 
     private void PlayerPressedCombatButton() => CmdPlayerPressedCombatButton(PlayerManager.GetLocalPlayer());
+    
     [Command(requiresAuthority = false)]
     private void CmdPlayerPressedCombatButton(PlayerManager player) => _combatManager.PlayerPressedReadyButton(player);
 

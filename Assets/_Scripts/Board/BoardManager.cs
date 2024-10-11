@@ -80,15 +80,6 @@ public class BoardManager : NetworkBehaviour
         CombatTransitionAnimation(state).Forget();
     }
 
-    private async UniTaskVoid CombatTransitionAnimation(TurnState state)
-    {
-        await UniTask.Delay(SorsTimings.turnStateTransition);
-
-        if (state == TurnState.Attackers) DeclareAttackers();
-        else if (state == TurnState.Blockers) DeclareBlockers();
-        else if (state == TurnState.CombatCleanUp) CombatCleanUp();
-    }
-
     private void DeclareAttackers() => _dropZone.StartDeclareAttackers(_gameManager.players.Values.ToList());
     public void AttackersDeclared(PlayerManager player)
     {
@@ -118,10 +109,9 @@ public class BoardManager : NetworkBehaviour
 
     private void CombatCleanUp()
     {
+        ClearDeadEntities();
         // Reset entities and destroy blocker arrows
         _dropZone.CombatCleanUp();
-
-        ClearDeadEntities();
     }
     #endregion
 
@@ -223,6 +213,15 @@ public class BoardManager : NetworkBehaviour
         } else {
             _dropZone.RpcResetHolders();
         }
+    }
+
+    private async UniTaskVoid CombatTransitionAnimation(TurnState state)
+    {
+        await UniTask.Delay(SorsTimings.turnStateTransition);
+
+        if (state == TurnState.Attackers) DeclareAttackers();
+        else if (state == TurnState.Blockers) DeclareBlockers();
+        else if (state == TurnState.CombatCleanUp) CombatCleanUp();
     }
 
     private void DisableReadyButton(PlayerManager player) => _phasePanel.TargetDisableCombatButtons(player.connectionToClient);
