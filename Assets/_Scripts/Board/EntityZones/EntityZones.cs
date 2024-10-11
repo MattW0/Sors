@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
-using DG.Tweening;
 
 public class EntityZones : NetworkBehaviour
 {
@@ -106,44 +105,37 @@ public class EntityZones : NetworkBehaviour
     [ClientRpc]
     public void RpcMoveEntityToHolder(BattleZoneEntity entity)
     {
-        var targetTransform = FindHolderTransform(entity);
-        if(!targetTransform) {
+        var targetHolder = FindHolderTransform(entity);
+        if(!targetHolder) {
             // TODO: Should check this at beginning of playCard phase -> dont allow it there
             print("No free holders found! Aborting to play entity...");
             return;
         }
 
-        // TODO: Not so nice doing hard coded scaling here ...
-        entity.transform.DOScale(0.33f, SorsTimings.cardMoveTime);
-        entity.transform.DOMove(targetTransform.position, SorsTimings.cardMoveTime)
-            .SetEase(Ease.InOutCubic)
-            .OnComplete(() => {
-                entity.transform.SetParent(targetTransform, true);
-                entity.transform.localScale = Vector3.one;
-            });
+        targetHolder.EntityEnters(entity);
     }
 
     #region Entity holders
-    private Transform FindHolderTransform(BattleZoneEntity entity)
+    private PlayZoneCardHolder FindHolderTransform(BattleZoneEntity entity)
     {
         var index = 0;
         if(entity.isOwned){
             if(entity.cardType == CardType.Technology){
                 index = GetFirstFreeHolderIndex(_playerTechnologyHolders);
-                return _playerTechnologyHolders[index].transform;
+                return _playerTechnologyHolders[index];
             } else if(entity.cardType == CardType.Creature){
                 index = GetFirstFreeHolderIndex(_playerCreatureHolders);
-                return _playerCreatureHolders[index].transform;
+                return _playerCreatureHolders[index];
             }
         }
         
         // Opponent Entity
         if(entity.cardType == CardType.Technology){
             index = GetFirstFreeHolderIndex(_opponentTechnologyHolders);
-            return _opponentTechnologyHolders[index].transform;
+            return _opponentTechnologyHolders[index];
         } else if(entity.cardType == CardType.Creature){
             index = GetFirstFreeHolderIndex(_opponentCreatureHolders);
-            return _opponentCreatureHolders[index].transform;
+            return _opponentCreatureHolders[index];
         }
         
         // Returning null if no free holders found 

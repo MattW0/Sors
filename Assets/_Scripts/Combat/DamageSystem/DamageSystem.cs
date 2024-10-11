@@ -116,7 +116,7 @@ public class DamageSystem : MonoBehaviour
             await clash.ExecuteCombatClash();
         }
         
-        _combatManager.UpdateCombatState(CombatState.CleanUp);
+        _combatManager.UpdateCombatState(TurnState.CleanUp);
     }
 }
  

@@ -502,7 +502,7 @@ GameObject:
   - component: {fileID: 8499439185509038149}
   - component: {fileID: 5730686120210310641}
   - component: {fileID: 2833760355580576184}
-  - component: {fileID: 2143252996289258121}
+  - component: {fileID: 2650730265661876968}
   m_Layer: 5
   m_Name: Highlight
   m_TagString: Untagged
@@ -568,7 +568,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &2143252996289258121
+--- !u!114 &2650730265661876968
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -577,14 +577,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 3040520162220860118}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f12069492762c9048b6c2edda60be228, type: 3}
+  m_Script: {fileID: 11500000, guid: 7d61b8ef3f6da1d4d9dfea13aec14fd2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  UIManagerAsset: {fileID: 11400000, guid: e1ff3f9789c608b48b7017a47325d8e0, type: 2}
-  imageObject: {fileID: 2833760355580576184}
-  keepAlphaValue: 0
-  useCustomColor: 0
-  colorType: 0
+  colorType: 11
+  image: {fileID: 2833760355580576184}
+  alpha: 1
 --- !u!1 &3885693167868262757
 GameObject:
   m_ObjectHideFlags: 0
@@ -1795,7 +1793,7 @@ GameObject:
   - component: {fileID: 1428484578692564254}
   - component: {fileID: 3079185166725875635}
   - component: {fileID: 5040021501700190059}
-  - component: {fileID: 7655979467577352509}
+  - component: {fileID: 4005881692386717531}
   m_Layer: 5
   m_Name: Content
   m_TagString: Untagged
@@ -1847,7 +1845,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.4, g: 0.67058825, b: 0.34901962, a: 1}
+  m_Color: {r: 0, g: 0.5, b: 0.01, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1864,7 +1862,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &7655979467577352509
+--- !u!114 &4005881692386717531
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1873,14 +1871,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 8708124649626513516}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f12069492762c9048b6c2edda60be228, type: 3}
+  m_Script: {fileID: 11500000, guid: 7d61b8ef3f6da1d4d9dfea13aec14fd2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  UIManagerAsset: {fileID: 11400000, guid: e1ff3f9789c608b48b7017a47325d8e0, type: 2}
-  imageObject: {fileID: 5040021501700190059}
-  keepAlphaValue: 1
-  useCustomColor: 0
-  colorType: 0
+  colorType: 11
+  image: {fileID: 5040021501700190059}
+  alpha: 1
 --- !u!1 &9104417325672587563
 GameObject:
   m_ObjectHideFlags: 0

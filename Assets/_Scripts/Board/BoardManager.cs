@@ -21,7 +21,7 @@ public class BoardManager : NetworkBehaviour
     // Entities, corresponding card object
     private Dictionary<BattleZoneEntity, GameObject> _entitiesObjectsCache = new();
     private List<BattleZoneEntity> _deadEntities = new();
-    private CombatState _combatState;
+    private TurnState _combatState;
     private GameState _gameState;
 
     private void Awake()
@@ -72,7 +72,7 @@ public class BoardManager : NetworkBehaviour
 
     #region Combat
 
-    public void StartCombatPhase(CombatState state)
+    public void StartCombatPhase(TurnState state)
     {
         _combatState = state;
         _phasePanel.RpcStartCombatPhase(state);
@@ -80,13 +80,13 @@ public class BoardManager : NetworkBehaviour
         CombatTransitionAnimation(state).Forget();
     }
 
-    private async UniTaskVoid CombatTransitionAnimation(CombatState state)
+    private async UniTaskVoid CombatTransitionAnimation(TurnState state)
     {
         await UniTask.Delay(SorsTimings.turnStateTransition);
 
-        if (state == CombatState.Attackers) DeclareAttackers();
-        else if (state == CombatState.Blockers) DeclareBlockers();
-        else if (state == CombatState.CleanUp) CombatCleanUp();
+        if (state == TurnState.Attackers) DeclareAttackers();
+        else if (state == TurnState.Blockers) DeclareBlockers();
+        else if (state == TurnState.CombatCleanUp) CombatCleanUp();
     }
 
     private void DeclareAttackers() => _dropZone.StartDeclareAttackers(_gameManager.players.Values.ToList());
@@ -205,11 +205,11 @@ public class BoardManager : NetworkBehaviour
 
     #region UI
     public void PlayerPressedReadyButton(PlayerManager player){
-        if (_combatState == CombatState.Attackers)
+        if (_combatState == TurnState.Attackers)
         {
             _dropZone.PlayerFinishedChoosingAttackers(player);
         }
-        else if (_combatState == CombatState.Blockers)
+        else if (_combatState == TurnState.Blockers)
         {
             _dropZone.PlayerFinishedChoosingBlockers(player);
         }

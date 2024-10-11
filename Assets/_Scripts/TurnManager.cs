@@ -41,6 +41,7 @@ public class TurnManager : NetworkBehaviour
     private Dictionary<GameObject, CardStats> _trashedCards = new();
 
     // Events
+    public static event Action<int> OnBeginTurn;
     public static event Action<TurnState> OnPhaseChanged;
 
     #region Setup
@@ -74,8 +75,10 @@ public class TurnManager : NetworkBehaviour
         // Panels with setup (GameManager handles market setup)
         _interactionPanel = InteractionPanel.Instance;
         _interactionPanel.RpcPrepareInteractionPanel();
+
         _phasePanel = PhasePanel.Instance;
         _phasePanel.RpcPreparePhasePanel(gameOptions.NumberPhases);
+
         _prevailPanel = PrevailPanel.Instance;
         _prevailPanel.RpcPreparePrevailPanel();
     }
@@ -112,7 +115,7 @@ public class TurnManager : NetworkBehaviour
             player.DrawCards(_gameOptions.cardDraw);
         }
 
-        _phasePanel.RpcBeginPhaseSelection(_gameManager.turnNumber);
+        OnBeginTurn?.Invoke(_gameManager.turnNumber);
     }
 
     public void PlayerSelectedPhases(PlayerManager player, Phase[] phases)
@@ -130,7 +133,7 @@ public class TurnManager : NetworkBehaviour
     private void FinishPhaseSelection()
     {
         // Combat each round
-        _phasesToPlay.Add(Phase.Combat);
+        _phasesToPlay.Add(Phase.Attackers);
         _phasesToPlay.Sort();
 
         var msg = $"Phases to play:";
@@ -139,7 +142,7 @@ public class TurnManager : NetworkBehaviour
 
         foreach (var (player, phases) in _playerPhaseChoices)
         {
-            player.RpcShowOpponentChoices(phases);
+            _phasePanel.RpcShowOpponentChoices(player, phases);
         }
 
         UpdateTurnState(TurnState.NextPhase);
@@ -152,15 +155,16 @@ public class TurnManager : NetworkBehaviour
         else {
             nextPhase = _phasesToPlay[0];
             _phasesToPlay.RemoveAt(0);
-            _readyPlayers.Clear();
+            // _readyPlayers.Clear();
         }
 
         // To update SM and Phase Panel
         Enum.TryParse(nextPhase.ToString(), out TurnState nextTurnState);
-        _logger.RpcLog($"------- {nextTurnState} -------", LogType.Phase);
         OnPhaseChanged?.Invoke(nextTurnState);
-
         CheckTriggers(nextTurnState).Forget();
+
+        if (nextTurnState == TurnState.Attackers) _logger.RpcLog($"------- Combat -------", LogType.Phase);
+        else _logger.RpcLog($"------- {nextTurnState} -------", LogType.Phase);
     }
     #endregion
 
@@ -559,8 +563,6 @@ public class TurnManager : NetworkBehaviour
         await UniTask.Delay(10);
 
         // Waiting for all triggers to have resolved
-
-        // TODO: CHECK IF THIS WORKS
         await _abilityQueue.Resolve();
 
         UpdateTurnState(nextTurnState);
@@ -573,7 +575,6 @@ public class TurnManager : NetworkBehaviour
         await UniTask.Delay(SorsTimings.showSpawnedCard);
 
         // Waiting for AbilityQueue to finish resolving Buy triggers
-        // TODO: DOES THIS WORK?
         await _abilityQueue.Resolve();
 
         CheckBuyAnotherCard();
@@ -620,11 +621,10 @@ public class TurnManager : NetworkBehaviour
 
     private void UpdateTurnState(TurnState newState)
     {
-        turnState = newState;
         _skippedPlayers.Clear();
-
-        // TODO: Can probably combine this with OnPhaseChanged event
-        _phasePanel.RpcChangeActionDescriptionText(newState);
+        
+        turnState = newState;
+        OnPhaseChanged?.Invoke(newState);
 
         if(GameEnds()){
             _gameManager.EndGame();
@@ -637,7 +637,7 @@ public class TurnManager : NetworkBehaviour
         else if (newState == TurnState.Discard) Discard();
         else if (newState == TurnState.Invent || newState == TurnState.Recruit) StartMarketPhase();
         else if (newState == TurnState.Develop || newState == TurnState.Deploy) StartPlayCard();
-        else if (newState == TurnState.Combat) combatManager.UpdateCombatState(CombatState.Attackers);
+        else if (newState == TurnState.Attackers) combatManager.UpdateCombatState(TurnState.Attackers);
         else if (newState == TurnState.Prevail) Prevail();
         else if (newState == TurnState.CleanUp) CleanUp();
         else if (newState == TurnState.Idle) _logger.RpcLog("Game finished", LogType.Standard);
@@ -647,8 +647,12 @@ public class TurnManager : NetworkBehaviour
     public void PlayerIsReady(PlayerManager player)
     {
         if (!_readyPlayers.Contains(player)) _readyPlayers.Add(player);
+        print($"{_readyPlayers.Count}/{_nbPlayers} players are ready");
+
         if (_readyPlayers.Count < _nbPlayers) return;
         _readyPlayers.Clear();
+
+        print("Ending turn state: " + turnState);
 
         if (turnState == TurnState.PhaseSelection) FinishPhaseSelection();
         else if (turnState == TurnState.Discard) FinishDiscard();
@@ -807,7 +811,10 @@ public enum TurnState : byte
     Discard,
     Invent,
     Develop,
-    Combat,
+    Attackers,
+    Blockers,
+    CombatDamage,
+    CombatCleanUp,
     Recruit,
     Deploy,
     Prevail,
@@ -823,7 +830,7 @@ public enum Phase : byte
     Draw,
     Invent,
     Develop,
-    Combat,
+    Attackers,
     Recruit,
     Deploy,
     Prevail,

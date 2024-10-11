@@ -11,8 +11,9 @@ public class ArrowManager : NetworkBehaviour
     [SerializeField] private GameObject targetArrowPrefab;
     [SerializeField] private GameObject attackerArrowPrefab;
     [SerializeField] private GameObject blockerArrowPrefab;
-    private CombatState _combatState;
+    private TurnState _combatState;
     private PlayerManager _clicker;
+    private CombatManager _combatManager;
     private List<CreatureEntity> _creatureGroup = new();
     private Dictionary<int, ArrowRenderer> _floatingArrows = new();
     public bool PlayerIsGroupingCreatures { get; set; }
@@ -37,10 +38,11 @@ public class ArrowManager : NetworkBehaviour
         await UniTask.Delay(1000);
 
         _clicker = PlayerManager.GetLocalPlayer();
+        _combatManager = CombatManager.Instance;
     }
 
     [ClientRpc]
-    public void RpcCombatStateChanged(CombatState newState) => _combatState = newState;
+    public void RpcCombatStateChanged(TurnState newState) => _combatState = newState;
 
     private void HandleClickedPlayerEntity(BattleZoneEntity entity)
     {
@@ -51,9 +53,10 @@ public class ArrowManager : NetworkBehaviour
 
         if (entity.isOwned) return;
 
-        if (_combatState != CombatState.Attackers) return;
+        if (_combatState != TurnState.Attackers) return;
         
-        _clicker.CmdPlayerChoosesTargetToAttack(entity, _creatureGroup);
+        // _clicker.CmdPlayerChoosesTargetToAttack(entity, _creatureGroup);
+        _combatManager.PlayerChoosesTargetToAttack(entity, _creatureGroup);
         FinishTargeting(entity.transform.position);
     }
 
@@ -86,7 +89,7 @@ public class ArrowManager : NetworkBehaviour
             _floatingArrows.Remove(creature.GetInstanceID());
         } else {
             _creatureGroup.Add(creature);
-            var prefab = _combatState == CombatState.Attackers ? attackerArrowPrefab : blockerArrowPrefab;
+            var prefab = _combatState == TurnState.Attackers ? attackerArrowPrefab : blockerArrowPrefab;
             SpawnFloatingArrow(prefab, entity.transform, entity.GetInstanceID());
         }
     }
@@ -96,8 +99,8 @@ public class ArrowManager : NetworkBehaviour
         print("Clicked opponent entity");
         if (!entity.IsTargetable) return;
 
-        if (_combatState == CombatState.Attackers) _clicker.CmdPlayerChoosesTargetToAttack(entity, _creatureGroup);
-        else if (_combatState == CombatState.Blockers) _clicker.CmdPlayerChoosesAttackerToBlock(entity.GetComponent<CreatureEntity>(), _creatureGroup);
+        if (_combatState == TurnState.Attackers) _combatManager.PlayerChoosesTargetToAttack(entity, _creatureGroup); // _clicker.CmdPlayerChoosesTargetToAttack(entity, _creatureGroup);
+        else if (_combatState == TurnState.Blockers) _combatManager.PlayerChoosesAttackerToBlock(entity.GetComponent<CreatureEntity>(), _creatureGroup); // _clicker.CmdPlayerChoosesAttackerToBlock(entity.GetComponent<CreatureEntity>(), _creatureGroup);
         
         FinishTargeting(entity.transform.position);
     }

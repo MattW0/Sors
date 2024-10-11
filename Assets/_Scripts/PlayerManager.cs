@@ -12,7 +12,6 @@ public class PlayerManager : NetworkBehaviour
     
     [Header("Entities")]
     private TurnManager _turnManager;
-    private CombatManager _combatManager;
     private AbilityQueue _abilityQueue;
     private CardMover _cardMover;
     private PhasePanelUI _phaseVisualsUI;
@@ -93,7 +92,6 @@ public class PlayerManager : NetworkBehaviour
     public void RpcInitPlayer()
     {
         _cardMover = CardMover.Instance;
-        _phaseVisualsUI = PhasePanelUI.Instance;
         _panelsManager = PanelsManager.Instance;
         CardPileClick.OnLookAtCollection += LookAtCollection;
 
@@ -102,7 +100,7 @@ public class PlayerManager : NetworkBehaviour
         if (!isServer) return;
         _playerInterface = PlayerInterfaceManager.Instance;
         _turnManager = TurnManager.Instance;
-        _combatManager = CombatManager.Instance;
+        // _combatManager = CombatManager.Instance;
         _abilityQueue = AbilityQueue.Instance;
         _entity = GetComponent<BattleZoneEntity>();
     }
@@ -252,16 +250,10 @@ public class PlayerManager : NetworkBehaviour
     [Command]
     public void CmdPhaseSelection(List<Phase> phases)
     {
+        print($"Player {PlayerName} selected phases: {string.Join(", ", phases)}");
         // Saving local player choice
         chosenPhases = phases;
         _turnManager.PlayerSelectedPhases(this, phases.ToArray());
-    }
-
-    [ClientRpc]
-    public void RpcShowOpponentChoices(Phase[] phases)
-    {
-        if (isLocalPlayer) return;
-        _phaseVisualsUI.ShowOpponentChoices(phases);
     }
 
     [Command]
@@ -321,17 +313,17 @@ public class PlayerManager : NetworkBehaviour
 
     #region Combat
 
-    [Command]
-    public void CmdPlayerChoosesTargetToAttack(BattleZoneEntity target, List<CreatureEntity> attackers)
-    {
-        _combatManager.PlayerChoosesTargetToAttack(target, attackers);
-    }
+    // [Command]
+    // public void CmdPlayerChoosesTargetToAttack(BattleZoneEntity target, List<CreatureEntity> attackers)
+    // {
+    //     _combatManager.PlayerChoosesTargetToAttack(target, attackers);
+    // }
 
-    [Command]
-    public void CmdPlayerChoosesAttackerToBlock(CreatureEntity target, List<CreatureEntity> blockers)
-    {
-        _combatManager.PlayerChoosesAttackerToBlock(target, blockers);
-    }
+    // [Command]
+    // public void CmdPlayerChoosesAttackerToBlock(CreatureEntity target, List<CreatureEntity> blockers)
+    // {
+    //     _combatManager.PlayerChoosesAttackerToBlock(target, blockers);
+    // }
 
     #endregion
 
@@ -496,9 +488,9 @@ public class PlayerManager : NetworkBehaviour
         hand.Remove(cardToRemove);
     }
 
-    public void PlayerPressedCombatButton() => CmdPlayerPressedCombatButton(this);
-    [Command]
-    private void CmdPlayerPressedCombatButton(PlayerManager player) => _combatManager.PlayerPressedReadyButton(player);
+    // public void PlayerPressedCombatButton() => CmdPlayerPressedCombatButton(this);
+    // [Command]
+    // public void CmdPlayerPressedCombatButton(PlayerManager player) => _combatManager.PlayerPressedReadyButton(player);
 
     private void LookAtCollection(CardLocation collectionType, bool ownsCollection)
     {

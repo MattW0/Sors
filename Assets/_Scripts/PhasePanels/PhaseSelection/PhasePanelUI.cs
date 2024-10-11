@@ -7,8 +7,6 @@ using UnityEngine.UI;
 
 public class PhasePanelUI : MonoBehaviour
 {
-    public static PhasePanelUI Instance { get; private set; }
-
     [Header("Player Settings")]
     [SerializeField] private float fadeDuration = 1f;
 
@@ -22,44 +20,50 @@ public class PhasePanelUI : MonoBehaviour
     private Image _newHighlight;
     public static event Action<Phase> OnPhaseSelectionConfirmed;
 
-    private void Awake(){
-        if (!Instance) Instance = this;
-        
-        progressBarHighlight.color = SorsColors.phaseHighlight;
-    }
-
-    public void PrepareUI()
+    private void Start()
     {
         // Reset cleanup highlight and start at phase selection (index 0)
         _oldHighlight = phaseHighlights[^1];
         UpdatePhaseHighlight(0);
+        progressBarHighlight.color = SorsColors.phaseHighlight;
     }
 
-    public void ShowOpponentChoices(Phase[] phases){
-        foreach(var phase in phases) OnPhaseSelectionConfirmed?.Invoke(phase);
+    public void ShowOpponentChoices(Phase[] phases)
+    {
+        foreach(var phase in phases) 
+            OnPhaseSelectionConfirmed?.Invoke(phase);
     }
 
     #region Phase Highlights
-    public void UpdatePhaseHighlight(int newHighlightIndex){
-        switch (newHighlightIndex) {
-            case -1:  // No highlightable phase
-                return;
-            default:
-                progressBar.localScale = new Vector3(progressBarCheckpoints[newHighlightIndex], 1f, 1f);
-                break;
-        }
+    public void UpdatePhaseHighlight(TurnState newState)
+    {
+        var newHighlightIndex = newState switch
+        {
+            TurnState.PhaseSelection => 0,
+            TurnState.Draw => 1,
+            TurnState.Invent => 2,
+            TurnState.Develop => 3,
+            TurnState.Attackers => 4,
+            TurnState.Blockers => 5,
+            TurnState.Recruit => 6,
+            TurnState.Deploy => 7,
+            TurnState.Prevail => 8,
+            TurnState.CleanUp => 9,
+            _ => -1
+        };
 
-        _newHighlight = phaseHighlights[newHighlightIndex];
-        HighlightTransition(_oldHighlight, _newHighlight);
-        _oldHighlight = _newHighlight;
+        if (newHighlightIndex == -1) return;
+        
+        HighlightTransition(newHighlightIndex);
     }
     
-    private void HighlightTransition(Graphic oldImg, Graphic newImg, bool phaseSelection=false){
-        oldImg.CrossFadeAlpha(0f, fadeDuration, false);
+    private void HighlightTransition(int newIndex, bool phaseSelection=false)
+    {
+        _oldHighlight.CrossFadeAlpha(0f, fadeDuration, false);
+        if (!phaseSelection) phaseHighlights[newIndex].CrossFadeAlpha(1f, fadeDuration, false);
 
-        if (phaseSelection) return;
-        
-        newImg.CrossFadeAlpha(1f, fadeDuration, false);
+        _oldHighlight = phaseHighlights[newIndex];
+        progressBar.localScale = new Vector3(progressBarCheckpoints[newIndex], 1f, 1f);
     }
     #endregion
 }

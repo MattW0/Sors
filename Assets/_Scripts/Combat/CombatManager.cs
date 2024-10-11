@@ -8,7 +8,7 @@ using UnityEditor;
 public class CombatManager : NetworkBehaviour
 {
     public static CombatManager Instance { get; private set; }
-    public static event Action<CombatState> OnCombatStateChanged;
+    public static event Action<TurnState> OnCombatStateChanged;
 
     private Dictionary<CreatureEntity, BattleZoneEntity> _attackerTarget = new();
     private Dictionary<CreatureEntity, CreatureEntity> _blockerAttacker = new();
@@ -27,16 +27,16 @@ public class CombatManager : NetworkBehaviour
         GameManager.OnGameStart += Prepare;
     }
 
-    public void UpdateCombatState(CombatState newState)
+    public void UpdateCombatState(TurnState newState)
     {
         OnCombatStateChanged?.Invoke(newState);
 
         switch (newState)
         {
-            case CombatState.Damage:
+            case TurnState.CombatDamage:
                 ResolveDamage();
                 break;
-            case CombatState.CleanUp:
+            case TurnState.CombatCleanUp:
                 CombatCleanUp(false);
                 break;
         }
@@ -68,7 +68,7 @@ public class CombatManager : NetworkBehaviour
             _playerInterfaceManager.RpcLog($"  - {a.Title} attacks {t.Title}", LogType.CombatAttacker);
         }
 
-        UpdateCombatState(CombatState.Blockers);
+        UpdateCombatState(TurnState.Blockers);
     }
 
     public void PlayerChoosesAttackerToBlock(CreatureEntity attacker, List<CreatureEntity> blockers)
@@ -88,13 +88,13 @@ public class CombatManager : NetworkBehaviour
             b.RpcDeclaredBlock(a);
             _playerInterfaceManager.RpcLog($"  - {b.Title} blocks {a.Title}", LogType.CombatBlocker);
         }
-        UpdateCombatState(CombatState.Damage);
+        UpdateCombatState(TurnState.CombatDamage);
     }
 
     private void ResolveDamage()
     {
         // Skip damage logic if there are no attackers 
-        if (_attackerTarget.Count == 0) UpdateCombatState(CombatState.CleanUp);
+        if (_attackerTarget.Count == 0) UpdateCombatState(TurnState.CombatCleanUp);
         else _damageSystem.EvaluateBlocks(_attackerTarget, _blockerAttacker);
     }
 
@@ -105,7 +105,7 @@ public class CombatManager : NetworkBehaviour
         _blockerAttacker.Clear();
         _clashes.Clear();
 
-        UpdateCombatState(CombatState.Idle);
+        // UpdateCombatState(CombatState.Idle);
         if(!forced) _turnManager.CombatCleanUp().Forget();
     }
 
@@ -115,11 +115,11 @@ public class CombatManager : NetworkBehaviour
     }
 }
 
-public enum CombatState : byte
-{
-    Idle,
-    Attackers,
-    Blockers,
-    Damage,
-    CleanUp
-}
+// public enum CombatState : byte
+// {
+//     Idle,
+//     Attackers,
+//     Blockers,
+//     Damage,
+//     CleanUp
+// }
