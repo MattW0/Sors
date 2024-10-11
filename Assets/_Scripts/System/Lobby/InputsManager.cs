@@ -21,8 +21,8 @@ public class InputsManager : MonoBehaviour
     {
         SteamPlayerItem.OnSteamPlayerClicked += PlayerClicked;
 
-        ModalWindow.OnAccept += ModalWindowAccept;
-        ModalWindow.OnDecline += ModalWindowDecline;
+        AlertDialogue.OnAccept += AlertDialogueAccept;
+        AlertDialogue.OnDecline += AlertDialogueDecline;
     }
 
     private void Start()
@@ -58,13 +58,13 @@ public class InputsManager : MonoBehaviour
     // private void ReadyUp() => _steamLobbiesManager.ReadyUp();
     private void StartGame() => _steamLobbiesManager.StartGame();
 
-    private void ModalWindowAccept(ModalWindowType type)
+    private void AlertDialogueAccept(ModalWindowType type)
     {
         if (type == ModalWindowType.EXIT) ExitGame();
         else if (type == ModalWindowType.LOBBY_INVITE) JoinLobbyViaInvite();
     }
 
-    private void ModalWindowDecline(ModalWindowType type)
+    private void AlertDialogueDecline(ModalWindowType type)
     {
         if (type == ModalWindowType.LOBBY_INVITE) DeclineLobbyInvite();
     }
@@ -85,7 +85,7 @@ public class InputsManager : MonoBehaviour
     {
         SteamPlayerItem.OnSteamPlayerClicked -= PlayerClicked;
 
-        ModalWindow.OnAccept -= ModalWindowAccept;
-        ModalWindow.OnDecline -= ModalWindowDecline;
+        AlertDialogue.OnAccept -= AlertDialogueAccept;
+        AlertDialogue.OnDecline -= AlertDialogueDecline;
     }
 }

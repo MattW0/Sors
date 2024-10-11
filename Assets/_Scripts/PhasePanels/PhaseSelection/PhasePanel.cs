@@ -14,7 +14,7 @@ public class PhasePanel : NetworkBehaviour
     private PhasePanelUI _phasePanelUI;
     private PlayerManager _localPlayer;
     private CombatManager _combatManager;
-    public static event Action OnPhaseSelectionStarted;
+    public static event Action<int> OnPhaseSelectionStarted;
     public static event Action OnPhaseSelectionConfirmed;
     
     private void Awake() 
@@ -29,8 +29,6 @@ public class PhasePanel : NetworkBehaviour
         _phasePanelUI = GetComponent<PhasePanelUI>();
     }
 
-    #region Prepare and Phase Selection
-
     [ClientRpc]
     public void RpcPreparePhasePanel(int nbPhases)
     {
@@ -39,26 +37,18 @@ public class PhasePanel : NetworkBehaviour
         _combatManager = CombatManager.Instance;
     }
 
-    private void ConfirmButtonPressed()
+    
+    [ClientRpc]
+    public void RpcShowOpponentChoices(PlayerManager player, Phase[] phases)
     {
-        // actionDescriptionText.text = "Wait for opponent...";
-        _localPlayer.CmdPhaseSelection(_selectedPhases);
-
-        _selectedPhases.Clear();
-        OnPhaseSelectionConfirmed?.Invoke();
+        if (player.isLocalPlayer) return;
+        _phasePanelUI.ShowOpponentChoices(phases);
     }
-    #endregion
 
     #region Phases
 
     [ClientRpc]
-    private void RpcBeginPhaseSelection(int turnNumber)
-    {
-        // turnText.text = "Turn " + turnNumber.ToString();
-        OnPhaseSelectionStarted?.Invoke();
-
-        // _turnScreenOverlay.UpdateTurnScreen(turnNumber);
-    }
+    private void RpcBeginPhaseSelection(int turnNumber) => OnPhaseSelectionStarted?.Invoke(turnNumber);
 
     private void UpdateSelectedPhase(Phase phase)
     {
@@ -71,13 +61,6 @@ public class PhasePanel : NetworkBehaviour
         if (_selectedPhases.Count == _nbPhasesToChose){
             ConfirmButtonPressed();
         }
-    }
-
-    [ClientRpc]
-    public void RpcShowOpponentChoices(PlayerManager player, Phase[] phases)
-    {
-        if (player.isLocalPlayer) return;
-        _phasePanelUI.ShowOpponentChoices(phases);
     }
 
     [ClientRpc]
@@ -108,6 +91,15 @@ public class PhasePanel : NetworkBehaviour
     private void CmdPlayerPressedCombatButton(PlayerManager player) => _combatManager.PlayerPressedReadyButton(player);
 
     #endregion
+
+    private void ConfirmButtonPressed()
+    {
+        // actionDescriptionText.text = "Wait for opponent...";
+        _localPlayer.CmdPhaseSelection(_selectedPhases);
+
+        _selectedPhases.Clear();
+        OnPhaseSelectionConfirmed?.Invoke();
+    }
 
     private void OnDestroy() 
     {

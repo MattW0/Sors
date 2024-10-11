@@ -9,6 +9,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
     public static PlayerInterfaceManager Instance { get; private set; }
     [SerializeField] private Logger _logger;
     [SerializeField] private Chat _chat;
+    [SerializeField] private ActionDescription _actionDescription;
     private PlayerInterfaceButtons _buttons;
     public static event Action<string> OnChatMessageReceived;
 
@@ -21,10 +22,13 @@ public class PlayerInterfaceManager : NetworkBehaviour
         
         _buttons = GetComponent<PlayerInterfaceButtons>();
         GameManager.OnGameStart += RpcPrepareUIs;
+        TurnManager.OnPhaseChanged += RpcChangeActionDescriptionText;
     }
 
     [ClientRpc]
-    private void RpcPrepareUIs(GameOptions gameOptions){
+    private void RpcPrepareUIs(GameOptions gameOptions)
+    {
+        _actionDescription.NumberPhases = gameOptions.NumberPhases;
 
         NetworkIdentity networkIdentity = GetComponent<NetworkIdentity>();
         if(connectionToClient != null) networkIdentity.AssignClientAuthority(connectionToClient);
@@ -35,11 +39,14 @@ public class PlayerInterfaceManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcUndoButtonEnabled(bool b) => _buttons.UndoButtonEnabled(b);
+    private void RpcChangeActionDescriptionText(TurnState state) => _actionDescription.ChangeActionDescriptionText(state);
 
-    [TargetRpc]
-    public void TargetUndoButtonEnabled(NetworkConnection conn, bool b) => _buttons.UndoButtonEnabled(b);
-    public void UndoButtonEnabled(bool b) => _buttons.UndoButtonEnabled(b);
+    // [ClientRpc]
+    // public void RpcUndoButtonEnabled(bool b) => _buttons.UndoButtonEnabled(b);
+
+    // [TargetRpc]
+    // public void TargetUndoButtonEnabled(NetworkConnection conn, bool b) => _buttons.UndoButtonEnabled(b);
+    // public void UndoButtonEnabled(bool b) => _buttons.UndoButtonEnabled(b);
 
     [ClientRpc]
     public void RpcLog(string message, LogType type) => _logger.Log(message, type);

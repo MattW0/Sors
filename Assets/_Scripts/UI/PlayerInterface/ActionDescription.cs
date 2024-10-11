@@ -4,17 +4,22 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class NewBehaviourScript : MonoBehaviour
+public class ActionDescription : MonoBehaviour
 {
-    [SerializeField] private TurnScreenOverlay _turnScreenOverlay;
     [SerializeField] private TMP_Text turnText;
     [SerializeField] private TMP_Text actionDescriptionText;
     [SerializeField] private Image phaseIcon;
     [SerializeField] private TMP_Text phaseTitleText;
-    private int _nbPhasesToChose = 2;
+    private TurnScreenOverlay _turnScreenOverlay;
+    public int NumberPhases { get; set; }
 
-    // [ClientRpc]
-    public void RpcChangeActionDescriptionText(TurnState state)
+    private void Awake()
+    {
+        PhasePanel.OnPhaseSelectionStarted += StartTurn;
+        _turnScreenOverlay = GetComponent<TurnScreenOverlay>();
+    }
+
+    public void ChangeActionDescriptionText(TurnState state)
     {
         if (state == TurnState.NextPhase) return;
 
@@ -30,13 +35,19 @@ public class NewBehaviourScript : MonoBehaviour
         phaseIcon.sprite = Resources.Load<Sprite>(iconPath);
     }
 
+    private void StartTurn(int turnNumber)
+    {
+        turnText.text = "Turn " + turnNumber.ToString();
+        _turnScreenOverlay.UpdateTurnScreen(turnNumber);
+    }
+
     private string GetText(TurnState state)
     {
         // TODO: Clean up this stuff... UI elements in playerInterface should have its own class
         // and this is hidden in PhasePanel context.
         // Make it listen to turnManager.OnPhaseChanged ?
         return state switch {
-            TurnState.PhaseSelection => "Select " + _nbPhasesToChose.ToString() + " phases",
+            TurnState.PhaseSelection => "Select " + NumberPhases.ToString() + " phases",
             TurnState.Discard => "Discard cards",
             TurnState.Invent => "Buy technologies",
             TurnState.Develop => "Play technologies",

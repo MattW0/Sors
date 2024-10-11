@@ -36,12 +36,24 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
         outline.color = SorsColors.phaseHighlight;
     }
 
-    public void StartSelection()
+    private void StartSelection(int _)
     {
         _selectable = true;
         IsSelected = false;
         opponentChoice.enabled = false;
         outline.CrossFadeAlpha(0.5f, 1f, false);
+    }
+
+    private void ShowOpponentSelection(Phase phase)
+    {
+        if(phase == _phase) opponentChoice.enabled = true;
+    }
+
+    private void EndSelection()
+    {
+        _selectable = false;
+        outline.CrossFadeAlpha(0f, 1f, false);
+        if(_tooltip) _tooltip.SetActive(false);
     }
 
     public void OnPointerClick(PointerEventData data)
@@ -62,18 +74,6 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
     {
         _tooltip.SetActive(false);
         if(!_isSelected) playerChoice.enabled = false;
-    }
-
-    private void ShowOpponentSelection(Phase phase)
-    {
-        if(phase == _phase) opponentChoice.enabled = true;
-    }
-
-    public void EndSelection()
-    {
-        _selectable = false;
-        outline.CrossFadeAlpha(0f, 1f, false);
-        if(_tooltip) _tooltip.SetActive(false);
     }
 
     private void OnDestroy()

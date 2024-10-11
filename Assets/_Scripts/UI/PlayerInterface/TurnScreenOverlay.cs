@@ -5,32 +5,28 @@ using UnityEngine.UI;
 using TMPro;
 using Cysharp.Threading.Tasks;
 
-public class TurnScreenOverlay : MonoBehaviour
+public class TurnScreenOverlay : ModalWindow
 {
-    [SerializeField] private TMP_Text overlayTurnText;
-    [SerializeField] private Image overlayImage;
+    [SerializeField] private TMP_Text _turnText;
+    // [SerializeField] private Image overlayImage;
 
     public void UpdateTurnScreen(int currentTurn)
     {
-        overlayTurnText.text = "Turn " + currentTurn.ToString();
-        WaitAndFade().Forget();
+        _turnText.text = "Turn " + currentTurn.ToString();
+        ModalWindowIn();
+        // WaitAndFade().Forget();
     }
 
-    private async UniTaskVoid WaitAndFade()
-    {
-        overlayImage.gameObject.SetActive(true);
-        // overlayImage.enabled = true;
+    // private async UniTaskVoid WaitAndFade()
+    // {
+    //     overlayImage.gameObject.SetActive(true);
+    //     await UniTask.Delay(SorsTimings.overlayScreenDisplayTime);
         
-        // Wait and fade
-        await UniTask.Delay(SorsTimings.overlayScreenDisplayTime);
-        overlayImage.CrossFadeAlpha(0f, SorsTimings.overlayScreenFadeTime, false);
-        overlayTurnText.text = "";
+    //     // Wait and fade
+    //     overlayImage.CrossFadeAlpha(0f, SorsTimings.overlayScreenFadeTime, false);
+    //     await UniTask.Delay(SorsTimings.overlayScreenFadeTime);
 
-        // Wait and disable
-        await UniTask.Delay(SorsTimings.overlayScreenFadeTime);
-
-        // overlayImage.enabled = false;
-        overlayImage.gameObject.SetActive(false);
-        overlayImage.CrossFadeAlpha(1f, 0f, false);
-    }
+    //     // Wait and disable
+    //     overlayImage.gameObject.SetActive(false);
+    // }
 }

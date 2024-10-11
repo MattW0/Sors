@@ -21,7 +21,7 @@ public class SteamLobbiesManager : MonoBehaviour
     [SerializeField] private GameObject _headerPrefab;
     [SerializeField] private GameObject _lobbyPrefab;
     [SerializeField] private Transform _lobbiesParent;
-    [SerializeField] private ModalWindow _joinDialogue;
+    [SerializeField] private AlertDialogue _joinDialogue;
 
     private SteamFriendsManager _friendsManager;
     private Lobby _activeLobby;
