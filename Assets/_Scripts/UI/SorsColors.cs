@@ -5,7 +5,9 @@ public static class SorsColors
 {
     // -- Players --
     public static Color player = new Color(0f, 0.5f, 0.01f);
+    public static string playerHex = "#008302";
     public static Color opponent = new Color(0f, 0.08f, 0.54f);
+    public static string opponentHex = "#0014DB";
 
     // -- UI --
     public static Color neutralDark = new Color(0.1f, 0.1f, 0.12f);

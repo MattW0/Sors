@@ -29,15 +29,12 @@ public class Chat : MonoBehaviour
 
         _manager.Send(message);
         _inputField.text = string.Empty;
-
-        // chatLog.text += "\n" + message;
-        // print("message: " + message);
     }
 
     private void HandleNewMessage(string message) 
     {
         var time = System.DateTime.Now.ToString("HH:mm:ss");
-        var originator = "<color=> ORIGINATOR </color>";
+        var originator = $"<color={SorsColors.opponentHex}> ORIGINATOR </color>";
 
         Instantiate(_textMessagePrefab, _chatTransform).SetMessage(new Message(originator, time, message));
     }

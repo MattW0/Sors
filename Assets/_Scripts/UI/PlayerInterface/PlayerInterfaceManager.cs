@@ -69,7 +69,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
     public void Send(string message) => CmdSendMessage(message);
 
     [Command(requiresAuthority = false)]
-    private void CmdSendMessage(string message) => RpcHandleMessage($"[{connectionToServer.connectionId}]: {message}");
+    private void CmdSendMessage(string message) => RpcHandleMessage($"{message}");
 
     [ClientRpc]
     private void RpcHandleMessage(string message) => OnChatMessageReceived?.Invoke(message);

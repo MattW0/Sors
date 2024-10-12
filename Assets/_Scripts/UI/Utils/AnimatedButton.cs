@@ -9,7 +9,7 @@ public class AnimatedButton : MonoBehaviour
     [Header("Settings")]
     public int fontSize = 36;
     public string buttonText = "My Title";
-    public bool useCustomText = false;
+    public bool changeTextOnClick = false;
 
     [Header("Resources")]
     public TMP_Text normalText;
@@ -22,8 +22,8 @@ public class AnimatedButton : MonoBehaviour
         highlightedText.fontSize = fontSize;
         pressedText.fontSize = fontSize;
 
-        if (useCustomText) return;
-        
+        if (changeTextOnClick) return;
+
         if (normalText != null) { normalText.text = buttonText; }
         if (highlightedText != null) { highlightedText.text = buttonText; }
         if (pressedText != null) { pressedText.text = buttonText; }
