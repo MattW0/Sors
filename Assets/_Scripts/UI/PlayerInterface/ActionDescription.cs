@@ -10,13 +10,12 @@ public class ActionDescription : MonoBehaviour
     [SerializeField] private TMP_Text actionDescriptionText;
     [SerializeField] private Image phaseIcon;
     [SerializeField] private TMP_Text phaseTitleText;
-    private TurnScreenOverlay _turnScreenOverlay;
+    [SerializeField] private TurnScreenOverlay _turnScreenOverlay;
     public int NumberPhases { get; set; }
 
     private void Awake()
     {
         PhasePanel.OnPhaseSelectionStarted += StartTurn;
-        _turnScreenOverlay = GetComponent<TurnScreenOverlay>();
     }
 
     public void ChangeActionDescriptionText(TurnState state)

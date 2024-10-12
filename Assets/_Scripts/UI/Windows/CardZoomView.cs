@@ -1,11 +1,9 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class CardZoomView : MonoBehaviour, IPointerClickHandler
+public class CardZoomView : ModalWindow, IPointerClickHandler
 {
-    // public static CardZoomView Instance { get; private set; }
-    [SerializeField] private GameObject _cardZoomView;
-    [SerializeField] private GameObject _cardHolder;
+    [SerializeField] private Transform _cardHolder;
     [SerializeField] private Vector3 _cardHolderOffset;
 
     [Header("Prefabs")]
@@ -18,10 +16,9 @@ public class CardZoomView : MonoBehaviour, IPointerClickHandler
     private GameObject _openedCardObject;
     private GameObject _openedEntityObject;
 
-    private void Awake()
+    private void Start()
     {
-        _cardZoomView.SetActive(false);
-        _cardHolder.transform.localPosition = Vector3.zero;
+        _cardHolder.localPosition = Vector3.zero;
 
         _creatureDetailCard.SetActive(false);
         _technologyDetailCard.SetActive(false);
@@ -36,7 +33,7 @@ public class CardZoomView : MonoBehaviour, IPointerClickHandler
 
     public void ZoomCard(CardInfo card)
     {
-        _cardZoomView.SetActive(true);
+        print("Zooming card: " + card.title);
 
         // Set Card
         _openedCardObject = card.type switch{
@@ -46,10 +43,13 @@ public class CardZoomView : MonoBehaviour, IPointerClickHandler
             _ => null
         };
         
+        _cardHolder.localPosition = Vector3.zero;
         _openedCardObject.SetActive(true);
         var detailCard = _openedCardObject.GetComponent<DetailCard>();
         detailCard.SetCardUI(card);
         detailCard.DisableFocus();
+
+        ModalWindowIn();
 
         // Money card has no entity equivalent
         if(card.type == CardType.Money) return;
@@ -61,7 +61,7 @@ public class CardZoomView : MonoBehaviour, IPointerClickHandler
             _ => null
         };
 
-        _cardHolder.transform.localPosition = _cardHolderOffset;
+        _cardHolder.localPosition = _cardHolderOffset;
         _openedEntityObject.SetActive(true);
         var entityUI = _openedEntityObject.GetComponent<EntityUI>();
         entityUI.SetEntityUI(card);
@@ -72,8 +72,8 @@ public class CardZoomView : MonoBehaviour, IPointerClickHandler
         // Close view on left click
         if (eventData.button != PointerEventData.InputButton.Left) return;
 
-        _cardHolder.transform.localPosition = Vector3.zero;
-        _cardZoomView.SetActive(false);
+        ModalWindowOut();
+
         _openedCardObject.SetActive(false);
         // is null if money card
         if(_openedEntityObject) _openedEntityObject.SetActive(false);

@@ -9,8 +9,7 @@ public class SetColor : MonoBehaviour
     // [SerializeField] private SpriteRenderer spriteRenderer;
     [Range(0, 1), SerializeField] private float alpha = 1f;
     
-// #if UNITY_EDITOR
-    void Start()
+    void OnEnable()
     {
         var color = colorType switch
         {
@@ -37,5 +36,4 @@ public class SetColor : MonoBehaviour
         if (image) image.color = color;
         else Debug.LogWarning("No image found on " + gameObject.name);
     }
-// #endif
 }

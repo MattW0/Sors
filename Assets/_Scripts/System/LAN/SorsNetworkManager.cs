@@ -53,7 +53,7 @@ namespace Sors.Lan
                 await UniTask.Delay(SorsTimings.second);
             }
 
-            await UniTask.Delay(100);
+            await UniTask.Delay(SorsTimings.second);
             OnAllPlayersReady?.Invoke(_gameOptions);
         }
 

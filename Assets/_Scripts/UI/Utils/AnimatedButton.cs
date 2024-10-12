@@ -7,6 +7,7 @@ using TMPro;
 public class AnimatedButton : MonoBehaviour
 {
     [Header("Settings")]
+    public int fontSize = 36;
     public string buttonText = "My Title";
     public bool useCustomText = false;
 
@@ -17,6 +18,10 @@ public class AnimatedButton : MonoBehaviour
 
     void OnEnable()
     {
+        normalText.fontSize = fontSize;
+        highlightedText.fontSize = fontSize;
+        pressedText.fontSize = fontSize;
+
         if (useCustomText) return;
         
         if (normalText != null) { normalText.text = buttonText; }

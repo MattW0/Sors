@@ -648,7 +648,7 @@ public class TurnManager : NetworkBehaviour
     public void PlayerIsReady(PlayerManager player)
     {
         if (!_readyPlayers.Contains(player)) _readyPlayers.Add(player);
-        print($"{_readyPlayers.Count}/{_nbPlayers} players are ready");
+        // print($"{_readyPlayers.Count}/{_nbPlayers} players are ready");
 
         if (_readyPlayers.Count < _nbPlayers) return;
         _readyPlayers.Clear();

@@ -1,28 +1,25 @@
 using UnityEngine;
 using Michsky.UI.Shift;
-using Cysharp.Threading.Tasks;
 
-
+[RequireComponent(typeof(Animator), typeof(CanvasGroup))]
 public class ModalWindow : MonoBehaviour
 {
     public bool sharpAnimations = false;
     private BlurManager _blurManager;
     private Animator _mWindowAnimator;
-    private bool _isOn;
+    private CanvasGroup _canvasGroup;
 
     public void Awake()
     {
-        _mWindowAnimator = gameObject.GetComponent<Animator>();
         _blurManager = GetComponentInParent<BlurManager>();
+        _mWindowAnimator = gameObject.GetComponent<Animator>();
+        _canvasGroup = gameObject.GetComponent<CanvasGroup>();
     }
     
     public void ModalWindowIn()
     {
-        gameObject.SetActive(true);
         _blurManager.BlurInAnim();
-
-        if (_isOn) return;
-        _isOn = true;
+        _canvasGroup.alpha = 1;
 
         if (sharpAnimations == false)
             _mWindowAnimator.CrossFade("Window In", 0.1f);
@@ -32,22 +29,13 @@ public class ModalWindow : MonoBehaviour
 
     public void ModalWindowOut()
     {
-        DisableWindow().Forget();
         _blurManager.BlurOutAnim();
-
-        if (! _isOn) return;
+        _canvasGroup.alpha = 0;
 
         if (sharpAnimations == false)
             _mWindowAnimator.CrossFade("Window Out", 0.1f);
         else
             _mWindowAnimator.Play("Window Out");
 
-        _isOn = false;
-    }
-
-    private async UniTaskVoid DisableWindow()
-    {
-        await UniTask.Delay(500);
-        gameObject.SetActive(false);
     }
 }

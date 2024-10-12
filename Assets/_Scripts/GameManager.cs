@@ -10,8 +10,8 @@ public class GameManager : NetworkBehaviour {
     
     public static GameManager Instance { get; private set; }
     private TurnManager _turnManager;
+    private UIManager _uiManager;
     private Market _market;
-    private EndScreen _endScreen;
     private BoardManager _boardManager;
     private GameOptions _gameOptions;
     public bool isSinglePlayer = false;
@@ -49,7 +49,7 @@ public class GameManager : NetworkBehaviour {
         _turnManager = TurnManager.Instance;
         _boardManager = BoardManager.Instance;
         _market = Market.Instance;
-        _endScreen = EndScreen.Instance;
+        _uiManager = UIManager.Instance;
 
         print(" --- Game starting --- \n" + options.ToString());
         _gameOptions = options;
@@ -224,7 +224,7 @@ public class GameManager : NetworkBehaviour {
     internal void EndGame()
     {
         foreach (var player in players.Values){
-            _endScreen.RpcSetFinalScore(player, player.Health, player.Score);
+            _uiManager.RpcSetPlayerScore(player, player.Health, player.Score);
         }
 
         PlayerManager winner = null;
@@ -257,8 +257,8 @@ public class GameManager : NetworkBehaviour {
             else if (_loosingPlayers[0].Health < _loosingPlayers[1].Health) winner = _loosingPlayers[1];
         }
 
-        if (winner) _endScreen.RpcGameHasWinner(winner);
-        else _endScreen.RpcGameIsDraw();
+        if(winner) _uiManager.RpcSetGameWinner(winner);
+        else _uiManager.RpcSetDraw();
     }
 
     #endregion

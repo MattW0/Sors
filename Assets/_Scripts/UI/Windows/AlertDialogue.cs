@@ -33,8 +33,6 @@ public class AlertDialogue : ModalWindow
 
         _acceptButton.gameObject.GetComponent<Button>().onClick.AddListener(Accept);
         _declineButton.gameObject.GetComponent<Button>().onClick.AddListener(Decline);
-
-        gameObject.SetActive(false);
     }
 
     public void Accept()

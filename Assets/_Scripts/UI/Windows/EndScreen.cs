@@ -1,15 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using Mirror;
 
-public class EndScreen : NetworkBehaviour
+public class EndScreen : ModalWindow
 {
-    [SerializeField] private GameObject endView;
     [SerializeField] private Button exitButton;
-    
     [SerializeField] private TMP_Text resultText; 
     [SerializeField] private TMP_Text playerNameText;
     [SerializeField] private TMP_Text opponentNameText;
@@ -21,19 +16,15 @@ public class EndScreen : NetworkBehaviour
 
     [SerializeField] private Image playerHighlight;
     [SerializeField] private Image opponentHighlight;
-    
-    public static EndScreen Instance { get; private set; }
 
-    private void Awake() {
-        if (!Instance) Instance = this;
-        
-        endView.SetActive(false);
+    private void Start()
+    {
+        exitButton.onClick.AddListener(OnExitButtonPressed);
     }
 
-    [ClientRpc]
-    public void RpcSetFinalScore(PlayerManager player, int health, int score)
+    public void SetPlayerScore(PlayerManager player, int health, int score)
     {
-        endView.SetActive(true);
+        ModalWindowIn();
 
         if (player.isOwned){
             playerNameText.text = player.PlayerName;
@@ -46,8 +37,7 @@ public class EndScreen : NetworkBehaviour
         }
     }
 
-    [ClientRpc]
-    public void RpcGameHasWinner(PlayerManager player)
+    public void SetGameWinner(PlayerManager player)
     {
         if (player.isOwned){
             resultText.text = "Victory";
@@ -58,11 +48,7 @@ public class EndScreen : NetworkBehaviour
         }
     }
 
-    [ClientRpc]
-    public void RpcGameIsDraw()
-    {
-        resultText.text = "Draw";
-    }
+    public void SetDraw() => resultText.text = "Draw";
 
     public void OnExitButtonPressed()
     {

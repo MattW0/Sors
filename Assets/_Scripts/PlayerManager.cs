@@ -16,7 +16,7 @@ public class PlayerManager : NetworkBehaviour
     private CardMover _cardMover;
     private PhasePanelUI _phaseVisualsUI;
     private PlayerInterfaceManager _playerInterface;
-    private PanelsManager _panelsManager;
+    private UIManager _uiManager;
 
     [Header("Game State")]
     public List<Phase> chosenPhases = new();
@@ -92,7 +92,7 @@ public class PlayerManager : NetworkBehaviour
     public void RpcInitPlayer()
     {
         _cardMover = CardMover.Instance;
-        _panelsManager = PanelsManager.Instance;
+        _uiManager = UIManager.Instance;
         CardPileClick.OnLookAtCollection += LookAtCollection;
 
         EntityAndUISetup();
@@ -515,7 +515,7 @@ public class PlayerManager : NetworkBehaviour
         
         // TODO: Still show when empty?
         if (cards.Count == 0) return;
-        _panelsManager.TargetOpenCardCollection(player.connectionToClient, cards, collectionType, ownsCollection);
+        _uiManager.TargetOpenCardCollection(player.connectionToClient, cards, collectionType, ownsCollection);
     }
     
 
