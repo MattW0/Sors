@@ -625,7 +625,7 @@ public class TurnManager : NetworkBehaviour
         _skippedPlayers.Clear();
         
         turnState = newState;
-        OnPhaseChanged?.Invoke(newState);
+        // OnPhaseChanged?.Invoke(newState);
 
         if(GameEnds()){
             _gameManager.EndGame();
@@ -648,12 +648,10 @@ public class TurnManager : NetworkBehaviour
     public void PlayerIsReady(PlayerManager player)
     {
         if (!_readyPlayers.Contains(player)) _readyPlayers.Add(player);
-        // print($"{_readyPlayers.Count}/{_nbPlayers} players are ready");
+        // print($"{_readyPlayers.Count}/{_nbPlayers} players are ready in {turnState}");
 
         if (_readyPlayers.Count < _nbPlayers) return;
         _readyPlayers.Clear();
-
-        print("Ending turn state: " + turnState);
 
         if (turnState == TurnState.PhaseSelection) FinishPhaseSelection();
         else if (turnState == TurnState.Discard) FinishDiscard();

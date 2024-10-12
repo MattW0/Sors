@@ -33,8 +33,6 @@ public class CardZoomView : ModalWindow, IPointerClickHandler
 
     public void ZoomCard(CardInfo card)
     {
-        print("Zooming card: " + card.title);
-
         // Set Card
         _openedCardObject = card.type switch{
             CardType.Creature => _creatureDetailCard,

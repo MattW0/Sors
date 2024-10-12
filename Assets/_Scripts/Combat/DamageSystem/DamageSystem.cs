@@ -110,13 +110,12 @@ public class DamageSystem : MonoBehaviour
 
         foreach (var clash in _clashes)
         {
-            _playerInterfaceManager.RpcLog(clash.IsClash ? "-- Combat Clash --" : "-- Direct Damage --", LogType.Standard);
             _playerInterfaceManager.RpcLog(clash.ToString(), LogType.CombatClash);
 
             await clash.ExecuteCombatClash();
         }
         
-        _combatManager.UpdateCombatState(TurnState.CleanUp);
+        _combatManager.UpdateCombatState(TurnState.CombatCleanUp);
     }
 }
  

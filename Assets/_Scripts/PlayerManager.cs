@@ -100,7 +100,6 @@ public class PlayerManager : NetworkBehaviour
         if (!isServer) return;
         _playerInterface = PlayerInterfaceManager.Instance;
         _turnManager = TurnManager.Instance;
-        // _combatManager = CombatManager.Instance;
         _abilityQueue = AbilityQueue.Instance;
         _entity = GetComponent<BattleZoneEntity>();
     }
@@ -310,22 +309,6 @@ public class PlayerManager : NetworkBehaviour
     public void CmdSkipInteraction() => _turnManager.PlayerSkipsInteraction(this);
 
     #endregion TurnActions
-
-    #region Combat
-
-    // [Command]
-    // public void CmdPlayerChoosesTargetToAttack(BattleZoneEntity target, List<CreatureEntity> attackers)
-    // {
-    //     _combatManager.PlayerChoosesTargetToAttack(target, attackers);
-    // }
-
-    // [Command]
-    // public void CmdPlayerChoosesAttackerToBlock(CreatureEntity target, List<CreatureEntity> blockers)
-    // {
-    //     _combatManager.PlayerChoosesAttackerToBlock(target, blockers);
-    // }
-
-    #endregion
 
     #region Effect Interactions
 

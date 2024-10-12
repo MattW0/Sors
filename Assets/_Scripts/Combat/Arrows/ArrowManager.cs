@@ -55,8 +55,7 @@ public class ArrowManager : NetworkBehaviour
 
         if (_combatState != TurnState.Attackers) return;
         
-        // _clicker.CmdPlayerChoosesTargetToAttack(entity, _creatureGroup);
-        _combatManager.PlayerChoosesTargetToAttack(entity, _creatureGroup);
+        CmdSetGroupTarget(entity, _creatureGroup);
         FinishTargeting(entity.transform.position);
     }
 
@@ -99,8 +98,7 @@ public class ArrowManager : NetworkBehaviour
         print("Clicked opponent entity");
         if (!entity.IsTargetable) return;
 
-        if (_combatState == TurnState.Attackers) _combatManager.PlayerChoosesTargetToAttack(entity, _creatureGroup); // _clicker.CmdPlayerChoosesTargetToAttack(entity, _creatureGroup);
-        else if (_combatState == TurnState.Blockers) _combatManager.PlayerChoosesAttackerToBlock(entity.GetComponent<CreatureEntity>(), _creatureGroup); // _clicker.CmdPlayerChoosesAttackerToBlock(entity.GetComponent<CreatureEntity>(), _creatureGroup);
+        CmdSetGroupTarget(entity, _creatureGroup);
         
         FinishTargeting(entity.transform.position);
     }
@@ -126,6 +124,13 @@ public class ArrowManager : NetworkBehaviour
 
         _creatureGroup.Clear();
         _floatingArrows.Clear();
+    }
+
+    [Command(requiresAuthority = false)]
+    private void CmdSetGroupTarget(BattleZoneEntity target, List<CreatureEntity> creatureGroup)
+    {
+        if (_combatState == TurnState.Attackers) _combatManager.PlayerChoosesTargetToAttack(target, creatureGroup); // _clicker.CmdPlayerChoosesTargetToAttack(entity, _creatureGroup);
+        else if (_combatState == TurnState.Blockers) _combatManager.PlayerChoosesAttackerToBlock(target.GetComponent<CreatureEntity>(), creatureGroup); // _clicker.CmdPlayerChoosesAttackerToBlock(entity.GetComponent<CreatureEntity>(), _creatureGroup);<
     }
 
     private void EntityTargetStart(Transform origin, int creatureId) => SpawnFloatingArrow(targetArrowPrefab, origin, creatureId);

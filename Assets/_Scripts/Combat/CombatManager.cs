@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using Mirror;
-using UnityEditor;
 
 public class CombatManager : NetworkBehaviour
 {
@@ -31,15 +30,8 @@ public class CombatManager : NetworkBehaviour
     {
         OnCombatStateChanged?.Invoke(newState);
 
-        switch (newState)
-        {
-            case TurnState.CombatDamage:
-                ResolveDamage();
-                break;
-            case TurnState.CombatCleanUp:
-                CombatCleanUp(false);
-                break;
-        }
+        if (newState == TurnState.CombatDamage) ResolveDamage();
+        else if (newState == TurnState.CombatCleanUp) CombatCleanUp(false);
     }
 
     private void Prepare(GameOptions options)
@@ -70,7 +62,6 @@ public class CombatManager : NetworkBehaviour
 
         UpdateCombatState(TurnState.Blockers);
     }
-
     public void PlayerChoosesAttackerToBlock(CreatureEntity attacker, List<CreatureEntity> blockers)
     {
         foreach(var b in blockers) 
@@ -105,7 +96,6 @@ public class CombatManager : NetworkBehaviour
         _blockerAttacker.Clear();
         _clashes.Clear();
 
-        // UpdateCombatState(CombatState.Idle);
         if(!forced) _turnManager.CombatCleanUp().Forget();
     }
 
@@ -114,12 +104,3 @@ public class CombatManager : NetworkBehaviour
         GameManager.OnGameStart -= Prepare;
     }
 }
-
-// public enum CombatState : byte
-// {
-//     Idle,
-//     Attackers,
-//     Blockers,
-//     Damage,
-//     CleanUp
-// }

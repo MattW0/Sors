@@ -58,10 +58,10 @@ public class CombatClash
     {
         var log = "";
         if(IsClash) {
-            log += $"{_source.Title} -> {_target.Title} : {_damageFromSource}.\n";
-            log += $"{_target.Title} -> {_source.Title} : {_damageFromTarget}";
+            log += $"{_source.Title} deals {_damageFromSource} to {_target.Title}.\n";
+            log += $"{_target.Title} deals {_damageFromTarget} to {_source.Title}.";
         } else {
-            log = $"{_source.Title} -> {_target.Title} : {_damageFromSource}.";
+            log = $"{_source.Title} deals {_damageFromSource} to {_target.Title}.";
         }
 
         return log;

@@ -27,8 +27,10 @@ public class EffectHandler : MonoBehaviour
         // Sanity check
         if (_abilitySource == null) yield break;
 
+        print($"Executing ability: " + _ability.ToString());
+
         if(_abilityTarget == null) EvaluateTarget();
-        _playerInterfaceManager.RpcLog($"'{_abilitySource.Title}': {_ability.ToString()}\nTarget: {_abilityTarget.Title}", LogType.EffectTrigger);
+        _playerInterfaceManager.RpcLog(_ability.ToString(), LogType.EffectTrigger);
 
         if (_ability.effect == Effect.Damage) yield return HandleDamage();
         else if (_ability.effect == Effect.LifeGain) yield return HandleLifeGain();
@@ -107,6 +109,8 @@ public class EffectHandler : MonoBehaviour
             _abilityTarget = _abilitySource;
             _targetSelf = true;
         }
+
+        else if (_ability.effect == Effect.PriceReduction) _abilityTarget = _abilitySource.Owner.GetEntity();
     }
 
     internal void Reset()

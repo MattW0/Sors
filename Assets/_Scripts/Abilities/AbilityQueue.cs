@@ -27,7 +27,7 @@ public class AbilityQueue : MonoBehaviour
     // Or should this be on entity and then added to queue from externally ?
     public void AddAbility(BattleZoneEntity entity, Ability ability)
     {
-        _playerInterfaceManager.RpcLog($"'{entity.Title}' triggers: {ability.ToString()}", LogType.EffectTrigger);
+        // _playerInterfaceManager.RpcLog($"'{entity.Title}' triggers: {ability.ToString()}", LogType.EffectTrigger);
         _queue.Add(entity, ability);
     }
 
@@ -52,6 +52,7 @@ public class AbilityQueue : MonoBehaviour
             _boardManager.BoardCleanUp();
             _effectHandler.Reset();
         }
+
         _queue.Clear();
     }
 
@@ -85,7 +86,8 @@ public class AbilityQueue : MonoBehaviour
         }
 
         // Only need input for damage and lifegain currently
-        if(!(ability.effect == Effect.Damage || ability.effect == Effect.LifeGain)){
+        if(ability.effect != Effect.Damage 
+           && ability.effect != Effect.LifeGain){
             return true;
         }
 
