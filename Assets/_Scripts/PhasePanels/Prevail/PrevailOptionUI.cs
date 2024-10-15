@@ -7,10 +7,11 @@ using TMPro;
 public class PrevailOptionUI : MonoBehaviour
 {
     private PrevailPanel _prevailPanel;
-    [SerializeField] private PrevailOption _option;
     [SerializeField] private TMP_Text optionDescription;
     [SerializeField] private TMP_Text numberSelectedText;
-    // [SerializeField] private Image outline;
+    [Header("Settings")]
+    [SerializeField] private PrevailOption _option;
+    [SerializeField] private string _placeHolderText;
     private int _timesSelected;
 
     private void Start()
@@ -27,6 +28,7 @@ public class PrevailOptionUI : MonoBehaviour
         if(_timesSelected == 0 || !_prevailPanel.Decrement(_option)) return;
         _timesSelected--;
         numberSelectedText.text = _timesSelected.ToString();
+        
         UpdateDescriptionText();
     }
 
@@ -42,16 +44,18 @@ public class PrevailOptionUI : MonoBehaviour
 
     private void UpdateDescriptionText()
     {
-        if (_option == PrevailOption.Trash){
-            if (_timesSelected == 0) optionDescription.text = "Trash up to X card(s)";
-            else optionDescription.text = $"Trash up to {_timesSelected} card(s)";
-        } else if (_option == PrevailOption.CardSelection){
-            if (_timesSelected == 0) optionDescription.text = "Put X card(s) from your discard into your hand";
-            else optionDescription.text = $"Put {_timesSelected} card(s) from your discard into your hand";
-        } else if (_option == PrevailOption.Score){
-            if (_timesSelected == 0) optionDescription.text = "Score X point(s) until end of turn";
-            else optionDescription.text = $"Score {_timesSelected} point(s) until end of turn";
-        }
+        if (_timesSelected == 0){
+            optionDescription.text = _placeHolderText;
+            return;
+        } 
+        
+        optionDescription.text = _option switch
+        {
+            PrevailOption.Trash => $"Trash up to {_timesSelected} card(s)",
+            PrevailOption.CardSelection => $"Put {_timesSelected} card(s) from your discard into your hand",
+            PrevailOption.Score => $"Score {_timesSelected} point(s) until end of turn",
+            _ => "Error"
+        };
     }
 
     public void Reset()

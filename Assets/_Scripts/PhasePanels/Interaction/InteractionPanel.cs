@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
 using System.Linq;
+using System;
 
 [RequireComponent(typeof(CardSelectionHandler), typeof(CardSelectionHandler))]
 public class InteractionPanel : NetworkBehaviour
@@ -9,11 +10,12 @@ public class InteractionPanel : NetworkBehaviour
     public static InteractionPanel Instance { get; private set; }
     [SerializeField] private CardPileInteraction _playerHand;
     [SerializeField] private CardPileInteraction _playerDiscard;
-    private CardSelectionHandler _selectionHandler; 
+    private CardSelectionHandler _selectionHandler;
 
     [Header("Helper Fields")]
     [SerializeField] private List<CardStats> _selectableCards = new();
     private TurnState _state;
+    public static event Action<TurnState, int, bool> OnInteractionBegin;
 
     private void Awake(){
         if (Instance == null) Instance = this;
@@ -32,7 +34,9 @@ public class InteractionPanel : NetworkBehaviour
         _selectableCards = interactableCards;
 
         bool autoSkip = CheckAutoskip(numberSelections);
-        _selectionHandler.BeginInteraction(turnState, numberSelections, autoSkip);
+
+        OnInteractionBegin?.Invoke(turnState, numberSelections, autoSkip);
+        // _selectionHandler.BeginInteraction(turnState, numberSelections, autoSkip);
         if (autoSkip) return;
 
         // All cards are interactable

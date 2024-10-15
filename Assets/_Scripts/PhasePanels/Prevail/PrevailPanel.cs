@@ -11,41 +11,33 @@ public class PrevailPanel : NetworkBehaviour
     public static PrevailPanel Instance { get; private set; }
     private PlayerManager _player;
     private List<PrevailOption> _selectedOptions = new();
-    private int _nbOptionsToChose;  // Set once from game manager setting
-    private int _nbBonusOptions;
-    private int _nbOptionsThisTurn;
+    private int _numberOptionsAvailable;
     public int _totalSelected;
-    [SerializeField] private GameObject maxView;
-    [SerializeField] private TMP_Text instructions;
-    [SerializeField] private Button confirm;
+    private PrevailUI _ui;
     public static event Action OnPrevailSelectionEnded;
 
     private void Awake()
     {
         if (!Instance) Instance = this;
+        _ui = GetComponent<PrevailUI>();
     }
 
     [ClientRpc]
     public void RpcPreparePrevailPanel()
     {
         _player = PlayerManager.GetLocalPlayer();
-        instructions.text = "Choose up to " + _nbOptionsThisTurn.ToString();
-        maxView.SetActive(false);
     }
 
     [TargetRpc]
-    public void TargetBeginPrevailPhase(NetworkConnection conn, int nbOptions)
+    public void TargetBeginPrevailPhase(NetworkConnection conn, int numberOptions)
     {
-        maxView.SetActive(true);
-        confirm.interactable = true;
-        _nbOptionsThisTurn = nbOptions;
-
-        instructions.text = "Choose up to " + _nbOptionsThisTurn.ToString();
+        _ui.Begin(numberOptions);
+        _numberOptionsAvailable = numberOptions;
     }
 
     public bool Increment(PrevailOption option)
     {
-        if (_totalSelected >= _nbOptionsThisTurn) return false;
+        if (_totalSelected >= _numberOptionsAvailable) return false;
 
         _totalSelected++;
         _selectedOptions.Add(option);
@@ -61,10 +53,8 @@ public class PrevailPanel : NetworkBehaviour
         return true;
     }
 
-    public void OnClickConfirm()
+    public void ConfirmButonClicked()
     {
-        confirm.interactable = false;
-
         var player = PlayerManager.GetLocalPlayer();
         player.CmdPrevailSelection(_selectedOptions);
     }
@@ -73,9 +63,7 @@ public class PrevailPanel : NetworkBehaviour
     public void RpcOptionsSelected()
     {
         _totalSelected = 0;
-        
         OnPrevailSelectionEnded?.Invoke();
-        maxView.SetActive(false);
     }
 
     [ClientRpc]

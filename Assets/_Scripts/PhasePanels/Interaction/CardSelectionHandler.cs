@@ -12,7 +12,6 @@ public class CardSelectionHandler : MonoBehaviour
     private CardMover _cardMover;
     private InteractionUI _ui;
     private int _numberSelections;
-    private bool _isUpToNumber;
     private MarketSelection _marketSelection;
     private TurnState _state;
     public static event Action OnInteractionConfirmed;
@@ -23,15 +22,14 @@ public class CardSelectionHandler : MonoBehaviour
         _ui = gameObject.GetComponent<InteractionUI>();
 
         CardClickHandler.OnCardClicked += ClickedCard;
+        InteractionPanel.OnInteractionBegin += BeginInteraction;
     }
 
     public void GetLocalPlayer() => _player = PlayerManager.GetLocalPlayer();
-    public void BeginInteraction(TurnState turnState, int numberSelections, bool autoSkip, bool isUpToNumber = false)
+    public void BeginInteraction(TurnState turnState, int numberSelections, bool autoSkip)
     {
         _state = turnState;
         _numberSelections = numberSelections;
-        _isUpToNumber = isUpToNumber;
-        _ui.InteractionBegin(turnState, autoSkip, numberSelections);
     }
 
     private void ClickedCard(GameObject card)
@@ -97,7 +95,7 @@ public class CardSelectionHandler : MonoBehaviour
         _cardMover.MoveTo(card, true, CardLocation.Selection, destinationPile);
 
         if (_selectedCards.Count < _numberSelections)
-        _ui.EnableConfirmButton(false);
+            _ui.EnableConfirmButton(false);
     }
 
     public void SelectMarketTile(MarketTile tile)
@@ -118,7 +116,7 @@ public class CardSelectionHandler : MonoBehaviour
         else if (_state == TurnState.Develop || _state == TurnState.Deploy) _player.CmdConfirmPlay(_selectedCards[0]);
         
         _selectedCards.Clear();
-        _ui.ResetPanelUI(false);
+        // _ui.ResetPanelUI(false);
     }
 
     public void EndSelection()
@@ -135,6 +133,7 @@ public class CardSelectionHandler : MonoBehaviour
     private void OnDestroy()
     {
         CardClickHandler.OnCardClicked -= ClickedCard;
+        InteractionPanel.OnInteractionBegin -= BeginInteraction;
     }
 }
 

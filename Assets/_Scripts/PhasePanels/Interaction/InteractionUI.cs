@@ -6,14 +6,9 @@ using UnityEngine.UI;
 using TMPro;
 
 [RequireComponent(typeof(CardSelectionHandler))]
-public class InteractionUI : MonoBehaviour
+public class InteractionUI : AnimatedPanel
 {
-
     [Header("UI")]
-    [SerializeField] private GameObject _interactionView;
-    [SerializeField] private GameObject _waitingText;
-    [SerializeField] private GameObject _buttons;
-    [SerializeField] private GameObject _skipButtonGameObject;
     [SerializeField] private Button _skipButton;
     [SerializeField] private Button _confirmButton;
     [SerializeField] private TMP_Text _displayText;
@@ -36,24 +31,22 @@ public class InteractionUI : MonoBehaviour
         _skipButton.onClick.AddListener(OnSkipButtonPressed);
         _confirmButton.onClick.AddListener(OnConfirmButtonPressed);
 
-        _interactionView.SetActive(false);
-        _buttons.SetActive(false);
-        _skipButtonGameObject.SetActive(false);
-
-        _waitingText.SetActive(false);
         _displayText.text = "";
         
         _creatureCard.SetActive(false);
         _technologyCard.SetActive(false);
         _moneyCard.SetActive(false);
+
+        InteractionPanel.OnInteractionBegin += InteractionBegin;
     }
 
-    public void InteractionBegin(TurnState state, bool autoSkip, int nbCardsToSelectMax)
+    public void InteractionBegin(TurnState state, int nbCardsToSelectMax, bool autoSkip)
     {
         _state = state;
         _nbCardsToSelectMax = nbCardsToSelectMax;
         var actionVerb = StartInteractionUI();
-        _interactionView.SetActive(true);
+        
+        PanelIn();
 
         if(autoSkip){
             _displayText.text = $"You can't {actionVerb} more cards";
@@ -68,7 +61,7 @@ public class InteractionUI : MonoBehaviour
 
     private void MoneyInteraction(string actionVerb)
     {
-        _skipButtonGameObject.SetActive(true);
+        _skipButton.gameObject.SetActive(true);
         var cardType = _state switch {
             TurnState.Invent or TurnState.Develop => " Technology",
             TurnState.Recruit or TurnState.Deploy => " Creature",
@@ -119,24 +112,16 @@ public class InteractionUI : MonoBehaviour
     public void OnConfirmButtonPressed()
     {
         _selectionHandler.ConfirmSelection();
-
-        _buttons.SetActive(false);
-        _waitingText.SetActive(true);
     }
 
     public void OnSkipButtonPressed() => SkipInteraction();
     public void SkipInteraction()
     {
-        _buttons.SetActive(false);
-        _waitingText.SetActive(true);
-
         _selectionHandler.OnSkipInteraction();
     }
 
     private string StartInteractionUI()
     {
-        _buttons.SetActive(true);
-        _waitingText.SetActive(false);
         _confirmButton.interactable = false;
 
         var actionVerb = _state switch{
@@ -152,13 +137,16 @@ public class InteractionUI : MonoBehaviour
 
     internal void ResetPanelUI(bool hard)
     {
-        _buttons.SetActive(true);
-        _waitingText.SetActive(false);
+        _confirmButton.interactable = false;
         if(!hard) return;
         
-        _interactionView.SetActive(false);
-        _skipButtonGameObject.SetActive(false);
+        PanelOut();
     }
 
     internal void EnableConfirmButton(bool isEnabled) => _confirmButton.interactable = isEnabled;
+
+    private void OnDestroy()
+    {
+        InteractionPanel.OnInteractionBegin -= InteractionBegin;
+    }
 }

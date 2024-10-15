@@ -376,9 +376,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6258cf595e6078d4ba866a9250c3c782, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  sharpAnimations: 0
   _createCard: {fileID: 4544408461700118947}
   _cancel: {fileID: 8637387720245726909}
-  sharpAnimations: 0
 --- !u!225 &225803586151488058
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -4677,7 +4677,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9079671754852769520, guid: c03b4501970426844954120ff0362e40, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 27.375
+      value: 33.375
       objectReference: {fileID: 0}
     - target: {fileID: 9079671754852769520, guid: c03b4501970426844954120ff0362e40, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -4711,7 +4711,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2392344606282405972, guid: 602bfeac6c9fdd6489b5238a3d1c076b, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 27.375
+      value: 33.375
       objectReference: {fileID: 0}
     - target: {fileID: 2392344606282405972, guid: 602bfeac6c9fdd6489b5238a3d1c076b, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -5289,6 +5289,18 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1243871921761955718, guid: 9518d54196ff0ed489a7d5d87f5428c1, type: 3}
+      propertyPath: m_Color.b
+      value: 0.28
+      objectReference: {fileID: 0}
+    - target: {fileID: 1243871921761955718, guid: 9518d54196ff0ed489a7d5d87f5428c1, type: 3}
+      propertyPath: m_Color.g
+      value: 0.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 1243871921761955718, guid: 9518d54196ff0ed489a7d5d87f5428c1, type: 3}
+      propertyPath: m_Color.r
+      value: 0.25
+      objectReference: {fileID: 0}
     - target: {fileID: 1813910817443807012, guid: 9518d54196ff0ed489a7d5d87f5428c1, type: 3}
       propertyPath: m_SizeDelta.x
       value: 0
@@ -5307,7 +5319,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2950112713748763720, guid: 9518d54196ff0ed489a7d5d87f5428c1, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 27.375
+      value: 33.375
       objectReference: {fileID: 0}
     - target: {fileID: 2950112713748763720, guid: 9518d54196ff0ed489a7d5d87f5428c1, type: 3}
       propertyPath: m_AnchoredPosition.y

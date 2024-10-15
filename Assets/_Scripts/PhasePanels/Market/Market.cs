@@ -107,7 +107,7 @@ public class Market : NetworkBehaviour
     
     public void PlayerSelectsTile(MarketTile tile)
     {
-        PlayerDeselectsTile();
+        // PlayerDeselectsTile();
 
         _selectedTile = tile;
         _interactionPanel.SelectMarketTile(tile);
