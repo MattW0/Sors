@@ -76,22 +76,21 @@ public class BattleZoneEntity : NetworkBehaviour
         _boardManager = BoardManager.Instance;
     }
 
-    private void CheckTargetable(EffectTarget target)
+    public void CheckTargetable(Target target)
     {
         // TODO: check if this is targetable for target types
         // Any, AnyPlayer, Creature, Technology, Card
         
-        if(target == EffectTarget.None) IsTargetable = false;
-        else if(target == EffectTarget.Entity) IsTargetable = true;
-        else if (target == EffectTarget.AnyPlayer) {
-            if(gameObject.GetComponent<PlayerEntity>() != null) IsTargetable = true;
-        } else if (target == EffectTarget.Creature){
-            if(gameObject.GetComponent<CreatureEntity>() != null) IsTargetable = true;
-        } else if (target == EffectTarget.Technology){
-            if(gameObject.GetComponent<TechnologyEntity>() != null) IsTargetable = true;
-        } else if (target == EffectTarget.Any){
-            // TODO: Remove this ?
-        }
+        if(target == Target.None) 
+            IsTargetable = false;
+        else if(target == Target.Entity) 
+            IsTargetable = true;
+        else if (target == Target.AnyPlayer)
+           IsTargetable = gameObject.GetComponent<PlayerEntity>() != null;
+        else if (target == Target.Creature)
+            IsTargetable = gameObject.GetComponent<CreatureEntity>() != null;
+        else if (target == Target.Technology)
+            IsTargetable = gameObject.GetComponent<TechnologyEntity>() != null;
     }
 
     [Server]

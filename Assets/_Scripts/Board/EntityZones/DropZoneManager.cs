@@ -12,17 +12,18 @@ public class DropZoneManager : NetworkBehaviour
     [SerializeField] private EntityZones entityZones;
     [SerializeField] private MoneyZone playerMoneyZone;
     [SerializeField] private MoneyZone opponentMoneyZone;
+    [SerializeField] private TriggerHandler _triggerHandler;
     public static event Action<bool> OnDeclareAttackers;
     public static event Action<bool> OnDeclareBlockers;
     public static event Action OnCombatEnd;
-    public static event Action<EffectTarget> OnTargetEntities;
+    public static event Action<Target> OnTargetEntities;
     public static event Action OnResetEntityUI;
     public static event Action OnDestroyArrows;
 
     #region Entities ETB and LTB
 
     [Server]
-    public async UniTaskVoid EntitiesEnterDropZone(Dictionary<GameObject, BattleZoneEntity> entities)
+    public async UniTaskVoid EntitiesEnter(Dictionary<GameObject, BattleZoneEntity> entities)
     {   
         foreach (var (card, entity) in entities){
             // Need to await RPC for initialization
@@ -44,11 +45,14 @@ public class DropZoneManager : NetworkBehaviour
             // Score points on ETB if card is a Technology
             if (entity.CardInfo.type == CardType.Technology) 
                 entity.Owner.Score += entity.GetComponent<TechnologyEntity>().Points;
+            
+            // Check for ETB and if phase start trigger gets added to phases being tracked
+            _triggerHandler.EntityEnters(entity);
         }
     }
 
     [Server]
-    public void EntityLeavesPlayZone(BattleZoneEntity entity)
+    public void EntityLeaves(BattleZoneEntity entity)
     {
         if (entity.cardType == CardType.Technology)
         {
@@ -62,24 +66,31 @@ public class DropZoneManager : NetworkBehaviour
             var creature = entity.GetComponent<CreatureEntity>();
             entityZones.RemoveCreature(creature, entity.Owner.isLocalPlayer);
         }
+
+        _triggerHandler.EntityDies(entity);
     }
 
     #endregion
 
     [TargetRpc]
-    public void TargetEntitiesAreTargetable(NetworkConnection conn, EffectTarget target)
+    public void TargetEntitiesAreTargetable(NetworkConnection conn, Target target)
     {
         // TODO: Expand for different possible effect targets and standard combat targeting
 
         var e = entityZones.GetAllEntities();
         var nbTargets = e.Count;
         print("targets count: " + nbTargets);
-        // if (nbTargets == 0)
+        
+        if (nbTargets == 0){
+            print("No targetable entities -> skip ability");
+            return;
+        }
+
         OnTargetEntities?.Invoke(target);
     }
 
     [ClientRpc]
-    public void RpcResetTargeting() => OnTargetEntities?.Invoke(EffectTarget.None);
+    public void RpcResetTargeting() => OnTargetEntities?.Invoke(Target.None);
 
     #region Attackers
 

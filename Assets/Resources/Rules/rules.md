@@ -85,15 +85,15 @@ Cards and entities have abilities. An ability has this structure
 At the beginning of [[Phases]]
 ```
 // At the beginning of [Phase]
-BeginningTurn = 1,
-BeginningDraw = 2,
-BeginningInvent = 3,
-BeginningDevelop = 4,
-BeginningCombat = 5,
-BeginningRecruit = 6,
-BeginningDeploy = 7,
-BeginningPrevail = 8,
-BeginningCleanUp = 9,
+PhaseSelection = 1,
+Draw = 2,
+Invent = 3,
+Develop = 4,
+Combat = 5,
+Recruit = 6,
+Deploy = 7,
+Prevail = 8,
+CleanUp = 9,
 ```
 When ... - State changes and actions of [[Card]] / [[Entity]]
 ```

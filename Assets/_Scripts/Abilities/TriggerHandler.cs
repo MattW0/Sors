@@ -21,38 +21,33 @@ public class TriggerHandler : NetworkBehaviour
         TurnManager.OnPhaseChanged += CheckTurnStateTriggers;
     }
 
-    public async UniTaskVoid CardsArePlayed(List<BattleZoneEntity> entities)
+    public void EntityEnters(BattleZoneEntity entity)
     {
-        // Wait for card initialization
-        await UniTask.Delay(100);
+        var abilities = entity.CardInfo.abilities;
+        if (abilities == null || abilities.Count == 0) return;
 
-        foreach (var entity in entities){
-            var abilities = entity.CardInfo.abilities;
-            if (abilities == null || abilities.Count == 0) continue;
+        var presentAbilities = new List<Ability>();
+        foreach (var ability in abilities){
+            // Triggers and effects have the same index and a 1-1 relation
+            var trigger = ability.trigger;
 
-            var presentAbilities = new List<Ability>();
-            foreach (var ability in abilities){
-                // Triggers and effects have the same index and a 1-1 relation
-                var trigger = ability.trigger;
-
-                // Don't add ETBs to the dict as it resolves immediately and only once
-                if (trigger == Trigger.WhenYouPlay){
-                    _abilityQueue.AddAbility(entity, ability);
-                    continue;
-                }
-                
-                presentAbilities.Add(ability);
-
-                // Beginning of phase triggers
-                var state = TriggerToTurnState(trigger);
-                if (state != TurnState.None && !_turnStateTriggers.Contains(state)){
-                    print($"New turn state trigger: {trigger} in state {state}");
-                    _turnStateTriggers.Add(state);
-                }
+            // Don't add ETBs to the dict as it resolves immediately and only once
+            if (trigger == Trigger.WhenYouPlay){
+                _abilityQueue.AddAbility(entity, ability);
+                continue;
             }
+            
+            presentAbilities.Add(ability);
 
-            _presentAbilities.Add(entity, presentAbilities);
+            // Beginning of phase triggers
+            var state = TriggerToTurnState(trigger);
+            if (state != TurnState.None && !_turnStateTriggers.Contains(state)){
+                print($"New turn state trigger: {trigger} in state {state}");
+                _turnStateTriggers.Add(state);
+            }
         }
+
+        _presentAbilities.Add(entity, presentAbilities);
     }
 
     private void CheckTurnStateTriggers(TurnState state)
@@ -81,15 +76,15 @@ public class TriggerHandler : NetworkBehaviour
         // TODO: Extend triggers to more turn state changes (combat, prevail steps, ...)
         TurnState state = trigger switch
         {
-            Trigger.BeginningTurn => TurnState.PhaseSelection,
-            Trigger.BeginningDraw => TurnState.Draw,
-            Trigger.BeginningInvent => TurnState.Invent,
-            Trigger.BeginningDevelop => TurnState.Develop,
-            Trigger.BeginningCombat => TurnState.Attackers,
-            Trigger.BeginningRecruit => TurnState.Recruit,
-            Trigger.BeginningDeploy => TurnState.Deploy,
-            Trigger.BeginningPrevail => TurnState.Prevail,
-            Trigger.BeginningCleanUp => TurnState.CleanUp,
+            Trigger.PhaseSelection => TurnState.PhaseSelection,
+            Trigger.Draw => TurnState.Draw,
+            Trigger.Invent => TurnState.Invent,
+            Trigger.Develop => TurnState.Develop,
+            Trigger.Combat => TurnState.Attackers,
+            Trigger.Recruit => TurnState.Recruit,
+            Trigger.Deploy => TurnState.Deploy,
+            Trigger.Prevail => TurnState.Prevail,
+            Trigger.CleanUp => TurnState.CleanUp,
             _ => TurnState.None
         };
 
@@ -100,15 +95,15 @@ public class TriggerHandler : NetworkBehaviour
     {
         Trigger trigger = state switch
         {
-            TurnState.PhaseSelection => Trigger.BeginningTurn,
-            TurnState.Draw => Trigger.BeginningDraw,
-            TurnState.Invent => Trigger.BeginningInvent,
-            TurnState.Develop => Trigger.BeginningDevelop,
-            TurnState.Attackers => Trigger.BeginningCombat,
-            TurnState.Recruit => Trigger.BeginningRecruit,
-            TurnState.Deploy => Trigger.BeginningDeploy,
-            TurnState.Prevail => Trigger.BeginningPrevail,
-            TurnState.CleanUp => Trigger.BeginningCleanUp,
+            TurnState.PhaseSelection => Trigger.PhaseSelection,
+            TurnState.Draw => Trigger.Draw,
+            TurnState.Invent => Trigger.Invent,
+            TurnState.Develop => Trigger.Develop,
+            TurnState.Attackers => Trigger.Combat,
+            TurnState.Recruit => Trigger.Recruit,
+            TurnState.Deploy => Trigger.Deploy,
+            TurnState.Prevail => Trigger.Prevail,
+            TurnState.CleanUp => Trigger.CleanUp,
             _ => Trigger.None
         };
 

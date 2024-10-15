@@ -39,6 +39,41 @@ public class EffectHandler : MonoBehaviour
         else if (_ability.effect == Effect.MoneyGain) yield return HandleMoneyGain();
     }
 
+    internal void SetSource(BattleZoneEntity source, Ability ability)
+    {
+        _abilitySource = source;
+        _ability = ability;
+    }
+    internal void SetTarget(BattleZoneEntity target)
+    {
+        _abilityTarget = target;
+        _abilitySource.RpcDeclaredTarget(_abilityTarget);
+    }
+
+    private void EvaluateTarget()
+    {
+        if(_ability.target == Target.Opponent) _abilityTarget = _turnManager.GetOpponentPlayer(_abilitySource.Owner).GetEntity();
+        else if (_ability.target == Target.You) _abilityTarget = _abilitySource.Owner.GetEntity();
+        else if (_ability.target == Target.Self) {
+            _abilityTarget = _abilitySource;
+            _targetSelf = true;
+        }
+
+        else if (_ability.effect == Effect.PriceReduction) _abilityTarget = _abilitySource.Owner.GetEntity();
+    }
+
+    private IEnumerator HandleDamage()
+    {        
+        // Only play projectile if not targeting self
+        if (! _targetSelf){
+            _abilitiesVFXSystem.RpcPlayProjectile(_abilitySource, _abilityTarget, Effect.Damage);
+            yield return _wait;
+        }
+        
+        _abilitiesVFXSystem.RpcPlayHit(_abilityTarget, Effect.Damage);
+        _abilityTarget.EntityTakesDamage(_ability.amount, _abilitySource.CardInfo.traits.Contains(Traits.Deathtouch));
+    }
+
     private IEnumerator HandleCardDraw(){
         _abilitySource.Owner.DrawCards(_ability.amount);
 
@@ -47,7 +82,7 @@ public class EffectHandler : MonoBehaviour
 
     private IEnumerator HandlePriceReduction()
     {
-        // convert _ability.target (EffectTarget enum) to CardType enum
+        // convert _ability.target (Target enum) to CardType enum
         var cardType = (CardType)Enum.Parse(typeof(CardType), _ability.target.ToString());
         var reduction = _ability.amount;
 
@@ -76,41 +111,6 @@ public class EffectHandler : MonoBehaviour
 
         // TODO: Lifegain for creatures and entities
         _abilitySource.Owner.Health += _ability.amount;
-    }
-
-    private IEnumerator HandleDamage()
-    {        
-        // Only play projectile if not targeting self
-        if (! _targetSelf){
-            _abilitiesVFXSystem.RpcPlayProjectile(_abilitySource, _abilityTarget, Effect.Damage);
-            yield return _wait;
-        }
-        
-        _abilitiesVFXSystem.RpcPlayHit(_abilityTarget, Effect.Damage);
-        _abilityTarget.EntityTakesDamage(_ability.amount, _abilitySource.CardInfo.traits.Contains(Traits.Deathtouch));
-    }
-
-    internal void SetSource(BattleZoneEntity source, Ability ability)
-    {
-        _abilitySource = source;
-        _ability = ability;
-    }
-    internal void SetTarget(BattleZoneEntity target)
-    {
-        _abilityTarget = target;
-        _abilitySource.RpcDeclaredTarget(_abilityTarget);
-    }
-
-    private void EvaluateTarget()
-    {
-        if(_ability.target == EffectTarget.Opponent) _abilityTarget = _turnManager.GetOpponentPlayer(_abilitySource.Owner).GetEntity();
-        else if (_ability.target == EffectTarget.You) _abilityTarget = _abilitySource.Owner.GetEntity();
-        else if (_ability.target == EffectTarget.Self) {
-            _abilityTarget = _abilitySource;
-            _targetSelf = true;
-        }
-
-        else if (_ability.effect == Effect.PriceReduction) _abilityTarget = _abilitySource.Owner.GetEntity();
     }
 
     internal void Reset()

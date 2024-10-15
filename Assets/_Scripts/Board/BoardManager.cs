@@ -14,7 +14,6 @@ public class BoardManager : NetworkBehaviour
     public static BoardManager Instance { get; private set; }
     private GameManager _gameManager;
     private CombatManager _combatManager;
-    private TriggerHandler _triggerHandler;
     [SerializeField] private DropZoneManager _dropZone;
     [SerializeField] private PhasePanel _phasePanel;
 
@@ -35,8 +34,6 @@ public class BoardManager : NetworkBehaviour
     {
         _gameManager = GameManager.Instance;
         _combatManager = CombatManager.Instance;
-
-        _triggerHandler = GetComponent<TriggerHandler>();
     }
 
     public void PlayEntities(Dictionary<GameObject, BattleZoneEntity> entities) 
@@ -46,11 +43,8 @@ public class BoardManager : NetworkBehaviour
             _entitiesObjectsCache.Add(entity, card);
         }
 
-        // Check for ETB and if phase start trigger gets added to phases being tracked
-        _triggerHandler.CardsArePlayed(entities.Values.ToList()).Forget();
-
         // Move entities to holders and card into played zone
-        _dropZone.EntitiesEnterDropZone(entities).Forget();
+        _dropZone.EntitiesEnter(entities).Forget();
     }
 
     #region Effects
@@ -83,14 +77,14 @@ public class BoardManager : NetworkBehaviour
     private void DeclareAttackers() => _dropZone.StartDeclareAttackers(_gameManager.players.Values.ToList());
     public void AttackersDeclared(PlayerManager player)
     {
-        DisableReadyButton(player);
+        _phasePanel.TargetDisableCombatButtons(player.connectionToClient);
         _combatManager.PlayerDeclaredAttackers(player);
     }
     
     private void DeclareBlockers() => _dropZone.StartDeclareBlockers(_gameManager.players.Values.ToList());
     public void BlockersDeclared(PlayerManager player)
     {
-        DisableReadyButton(player);
+        _phasePanel.TargetDisableCombatButtons(player.connectionToClient);
         _combatManager.PlayerDeclaredBlockers(player);
     }
     
@@ -135,8 +129,7 @@ public class BoardManager : NetworkBehaviour
         // print("_deadEntities : " + _deadEntities.Count);
         foreach (var dead in _deadEntities)
         {
-            _dropZone.EntityLeavesPlayZone(dead);
-            _triggerHandler.EntityDies(dead);
+            _dropZone.EntityLeaves(dead);
 
             // Move the card object to discard pile
             var cardObject = _entitiesObjectsCache[dead];
@@ -223,8 +216,6 @@ public class BoardManager : NetworkBehaviour
         else if (state == TurnState.Blockers) DeclareBlockers();
         else if (state == TurnState.CombatCleanUp) CombatCleanUp();
     }
-
-    private void DisableReadyButton(PlayerManager player) => _phasePanel.TargetDisableCombatButtons(player.connectionToClient);
     public void DiscardMoney() => _dropZone.RpcDiscardMoney();
     #endregion
     private void OnDestroy()

@@ -9,7 +9,7 @@ public class AbilityQueue : MonoBehaviour
     public static AbilityQueue Instance { get; private set; }
     private BoardManager _boardManager;
     private PlayerInterfaceManager _playerInterfaceManager;
-    [SerializeField] private EffectHandler _effectHandler;
+    private EffectHandler _effectHandler;
     private Dictionary<BattleZoneEntity, Ability> _queue = new();
     private bool _continue = false;
 
@@ -21,13 +21,14 @@ public class AbilityQueue : MonoBehaviour
     {
         _boardManager = BoardManager.Instance;
         _playerInterfaceManager = PlayerInterfaceManager.Instance;
+        _effectHandler = GetComponent<EffectHandler>();
     }
 
     // TODO : Need function to handle triggered Abilities like taking damage, gain health etc.
     // Or should this be on entity and then added to queue from externally ?
     public void AddAbility(BattleZoneEntity entity, Ability ability)
     {
-        // _playerInterfaceManager.RpcLog($"'{entity.Title}' triggers: {ability.ToString()}", LogType.EffectTrigger);
+        print($"'{entity.Title}' triggers: {ability.ToString()}");
         _queue.Add(entity, ability);
     }
 
@@ -73,14 +74,14 @@ public class AbilityQueue : MonoBehaviour
     private bool CanContinueWithoutPlayerInput(BattleZoneEntity entity, Ability ability)
     {
         // No target -> continue immediately
-        if(ability.target == EffectTarget.None){
+        if(ability.target == Target.None){
             return true;
         }
 
         // Some targets are pre-determined
-        if(ability.target == EffectTarget.Self
-           || ability.target == EffectTarget.You
-           || ability.target == EffectTarget.Opponent)
+        if(ability.target == Target.Self
+           || ability.target == Target.You
+           || ability.target == Target.Opponent)
         {
             return true;
         }
