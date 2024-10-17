@@ -1,27 +1,24 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
+using DG.Tweening;
 
-public class MarketUI : MonoBehaviour
+public class MarketUI : AnimatedPanel
 {
-    private Market _market;
-    private InteractionPanel _interactionPanel;
-    [SerializeField] private GameObject maxView;
-    [SerializeField] private GameObject _developPanel;
-    [SerializeField] private GameObject _recruitPanel;
-    [SerializeField] private TMP_Text _switchBtnText;
-    
-    private void Awake()
-    {
-        maxView.SetActive(false);
-    }
+    [SerializeField] private CanvasGroup _canvasGroup;
+    [SerializeField] private RectTransform _panels;
+    [SerializeField] private Button _technologiesButon;
+    [SerializeField] private Button _creaturesButon;
+    [SerializeField] private Button _closeButton;
+    public float creaturePanelOffset = -1252f;
+    [Range(0, 2)] public float panelTransitionTime = 0.7f;
 
     private void Start()
     {
-        _market = Market.Instance;
-        MinButton();
+        _technologiesButon.onClick.AddListener(ShowTechnologyPanel);
+        _creaturesButon.onClick.AddListener(ShowCreaturePanel);
+        _closeButton.onClick.AddListener(MinButton);
+
+        PlayerInterfaceButtons.OnOpenMarket += MaxButton;
     }
 
     public void BeginPhase(Phase phase)
@@ -31,29 +28,27 @@ public class MarketUI : MonoBehaviour
         else ShowTechnologyPanel();
     }
 
-    #region Buttons and UI
-
-    public void SwitchButtonPressed(){
-        if(_developPanel.activeSelf) ShowCreaturePanel();
-        else ShowTechnologyPanel();
+    private void ShowTechnologyPanel()
+    {
+        _panels.DOLocalMoveX(0, panelTransitionTime)
+            .SetEase(Ease.OutQuint);
     }
 
-    private void ShowTechnologyPanel(){
-        _developPanel.SetActive(true);
-        _recruitPanel.SetActive(false);
-        _switchBtnText.text = "Creatures";
+    private void ShowCreaturePanel()
+    {
+        _panels.DOLocalMoveX(creaturePanelOffset, panelTransitionTime)
+            .SetEase(Ease.OutQuint);
     }
 
-    private void ShowCreaturePanel(){
-        _developPanel.SetActive(false);
-        _recruitPanel.SetActive(true);
-        _switchBtnText.text = "Technologies";
+    public void MaxButton()
+    {
+        if (_canvasGroup.alpha == 1) PanelOut();
+        else PanelIn();
     }
+    public void MinButton() => PanelOut();
 
-    public void MaxButton() {
-        if (maxView.activeSelf) MinButton();
-        else maxView.SetActive(true);
+    private void OnDestroy()
+    {
+        PlayerInterfaceButtons.OnOpenMarket -= MaxButton;
     }
-    public void MinButton() => maxView.SetActive(false);
-    #endregion
 }

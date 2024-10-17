@@ -36,7 +36,6 @@ public class InteractionPanel : NetworkBehaviour
         bool autoSkip = CheckAutoskip(numberSelections);
 
         OnInteractionBegin?.Invoke(turnState, numberSelections, autoSkip);
-        // _selectionHandler.BeginInteraction(turnState, numberSelections, autoSkip);
         if (autoSkip) return;
 
         // All cards are interactable
@@ -95,9 +94,7 @@ public class InteractionPanel : NetworkBehaviour
     }
 
     [TargetRpc]
-    // Only used for undo on playing money cards
     public void TargetUndoMoneyPlay(NetworkConnection target) => MoneyCardsAreInteractable();
-    
     public void SelectMarketTile(MarketTile tile) => _selectionHandler.SelectMarketTile(tile);
     public void DeselectMarketTile() => _selectionHandler.DeselectMarketTile();
     private bool ContainsMoney() => _selectableCards.Any(c => c.cardInfo.type == CardType.Money);

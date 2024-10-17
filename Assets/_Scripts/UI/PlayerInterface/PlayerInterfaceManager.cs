@@ -11,10 +11,8 @@ public class PlayerInterfaceManager : NetworkBehaviour
     [SerializeField] private Chat _chat;
     [SerializeField] private ActionDescription _actionDescription;
     private PlayerInterfaceButtons _buttons;
-    public static event Action<string> OnChatMessageReceived;
-
     private PlayerManager _player;
-    private Market _market;
+    public static event Action<string> OnChatMessageReceived;
     
     private void Awake()
     {
@@ -33,7 +31,6 @@ public class PlayerInterfaceManager : NetworkBehaviour
         NetworkIdentity networkIdentity = GetComponent<NetworkIdentity>();
         if(connectionToClient != null) networkIdentity.AssignClientAuthority(connectionToClient);
 
-        _market = Market.Instance;
         _player = PlayerManager.GetLocalPlayer();
         if(!_player.isServer) gameObject.GetComponent<PlayerInterfaceButtons>().DisableUtilityButton();
     }
@@ -73,8 +70,8 @@ public class PlayerInterfaceManager : NetworkBehaviour
 
     [ClientRpc]
     private void RpcHandleMessage(string message) => OnChatMessageReceived?.Invoke(message);
-    
-    public void OpenMarketView() => _market.MaxButton();
+    // Only used for undo on playing money cards
+    // TODO: Redo attackers, blockers choices
     public void Undo() => _player.CmdUndoPlayMoney();
     public void Concede() {} // TODO
     public void ForceEndTurn() => _player.ForceEndTurn();

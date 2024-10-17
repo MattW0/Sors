@@ -42,17 +42,19 @@ public class InteractionUI : AnimatedPanel
 
     public void InteractionBegin(TurnState state, int nbCardsToSelectMax, bool autoSkip)
     {
-        _state = state;
-        _nbCardsToSelectMax = nbCardsToSelectMax;
-        var actionVerb = StartInteractionUI();
-        
-        PanelIn();
-
         if(autoSkip){
-            _displayText.text = $"You can't {actionVerb} more cards";
             SkipInteraction();
             return;
         }
+
+        _state = state;
+        _nbCardsToSelectMax = nbCardsToSelectMax;
+        
+        _confirmButton.interactable = false;
+        _skipButton.interactable = state != TurnState.Discard;
+
+        var actionVerb = InteractionActionVerb();
+        PanelIn();
 
         if (_state == TurnState.Discard) _displayText.text = $"Discard {_nbCardsToSelectMax} card(s)";
         else if (_state == TurnState.CardIntoHand || _state == TurnState.Trash) PrevailInteraction();
@@ -120,10 +122,8 @@ public class InteractionUI : AnimatedPanel
         _selectionHandler.OnSkipInteraction();
     }
 
-    private string StartInteractionUI()
+    private string InteractionActionVerb()
     {
-        _confirmButton.interactable = false;
-
         var actionVerb = _state switch{
             TurnState.Discard => "discard",
             TurnState.Trash => "trash",

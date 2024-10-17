@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System;
 
 public class PlayerInterfaceButtons : MonoBehaviour
 {
@@ -12,18 +13,19 @@ public class PlayerInterfaceButtons : MonoBehaviour
     [SerializeField] private Button _chatButton;
     [SerializeField] private TMP_Text _chatButtonText;
     private bool _chatVisible = false;
+    public static event Action OnOpenMarket;
 
     private void Start(){
         _manager = PlayerInterfaceManager.Instance;
 
         // Add event listeners to the buttons
-        _marketButton.onClick.AddListener(OnMarketButtonPressed);
+        _marketButton.onClick.AddListener(OnMarketButtonClicked);
         _undoButton.onClick.AddListener(OnUndoButtonPressed);
         _concedeButton.onClick.AddListener(OnConcedeButtonPressed);
         _utilityButton.onClick.AddListener(OnUtilityButtonPressed);
         _chatButton.onClick.AddListener(OnChatButtonPressed);
     }
-    public void OnMarketButtonPressed() => _manager.OpenMarketView();
+    public void OnMarketButtonClicked() => OnOpenMarket?.Invoke();
     public void OnUndoButtonPressed() => _manager.Undo();
     public void OnConcedeButtonPressed() => _manager.Concede();
     public void OnUtilityButtonPressed() => _manager.ForceEndTurn();

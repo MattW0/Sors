@@ -6,7 +6,6 @@ using System;
 [System.Serializable]
 public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
-    private Market _market;
     public CardInfo cardInfo;
     [SerializeField] private MarketTileUI _ui;
     private int _cost;
@@ -37,10 +36,10 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         set {
             _isSelected = value;
             if(value) {
-                _market.PlayerSelectsTile(this);
+                OnTileSelected?.Invoke(this);
                 _ui.Highlight(true, SorsColors.tileSelected);
             } else {
-                _market.PlayerDeselectsTile();
+                OnTileDeselected?.Invoke();
                 _ui.Highlight(true, SorsColors.tileSelectable);
             }
         }
@@ -48,13 +47,10 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
 
     public int Index { get; private set; }
     private bool _alreadyChosen;
+    public static event Action<MarketTile> OnTileSelected;
+    public static event Action OnTileDeselected;
     public static event Action<CardInfo> OnMarketTileInspect;
 
-
-    private void Awake()
-    {
-        _market = Market.Instance;
-    }
 
     public void InitializeTile(CardInfo card, int index)
     {
@@ -108,12 +104,14 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         MarketTileHoverPreview.OnHoverExit();
     }
 
-    public void ResetSelected(){
+    public void ResetSelected()
+    {
         if(!IsSelected) return;
         IsSelected = false;
     }
 
-    public void HasBeenChosen(){
+    public void HasBeenChosen()
+    {
         IsSelected = false;
         Interactable = false;
 
@@ -121,7 +119,8 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         _ui.ShowAsChosen();
     }
     
-    private void ResetTile(){
+    private void ResetTile()
+    {
         Interactable = false;
         _isSelected = false;
         _alreadyChosen = false;
@@ -130,7 +129,8 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         Cost = cardInfo.cost;
     }
 
-    private void OnDestroy(){
+    private void OnDestroy()
+    {
         Market.OnMarketPhaseEnded -= ResetTile;
     }
 }

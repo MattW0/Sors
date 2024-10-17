@@ -34,6 +34,9 @@ public class Market : NetworkBehaviour
 
     private void Awake(){
         if (Instance == null) Instance = this;
+
+        MarketTile.OnTileSelected += PlayerSelectsTile;
+        MarketTile.OnTileDeselected += PlayerDeselectsTile;
     }
 
     private void Start(){
@@ -107,18 +110,16 @@ public class Market : NetworkBehaviour
     
     public void PlayerSelectsTile(MarketTile tile)
     {
-        // PlayerDeselectsTile();
-
-        _selectedTile = tile;
-        _interactionPanel.SelectMarketTile(tile);
-
         // Reset all other tiles -> single selection
         foreach (var t in moneyTiles) if (t != tile) t.ResetSelected();
         if (_currentPhase == Phase.Invent){
             foreach (var t in technologyTiles) if (t != tile) t.ResetSelected();
         } else if (_currentPhase == Phase.Recruit){
             foreach (var t in creatureTiles) if (t != tile) t.ResetSelected();
-        }        
+        }
+
+        _selectedTile = tile;
+        _interactionPanel.SelectMarketTile(tile);
     }
 
     public void PlayerDeselectsTile()
@@ -165,15 +166,12 @@ public class Market : NetworkBehaviour
     }
     #endregion
 
-    [ClientRpc]
-    public void RpcMinButton() => _ui.MinButton();
-
-    [ClientRpc]
-    public void RpcMaxButton() => _ui.MaxButton();
+    [ClientRpc] public void RpcMinButton() => _ui.MinButton();
+    [ClientRpc] public void RpcMaxButton() => _ui.MaxButton();
     public void MaxButton() => _ui.MaxButton();
 
-    public List<CardInfo>[] GetTileInfos(){
-
+    public List<CardInfo>[] GetTileInfos()
+    {
         var scriptableTiles = new List<CardInfo>[3];
         scriptableTiles[0] = new List<CardInfo>();
         scriptableTiles[1] = new List<CardInfo>();
@@ -238,4 +236,9 @@ public class Market : NetworkBehaviour
     internal ScriptableCard GetStartMoneyCard() => _moneyCardsDb[0];
     internal ScriptableCard[] GetStartEntities() => _startEntities;
 
+    private void OnDestroy()
+    {
+        MarketTile.OnTileSelected -= PlayerSelectsTile;
+        MarketTile.OnTileDeselected -= PlayerDeselectsTile;
+    }
 }

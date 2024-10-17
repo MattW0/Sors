@@ -11,7 +11,6 @@ public class PrevailUI : AnimatedPanel
     [SerializeField] private Button confirm;
     private PrevailPanel _panel;
     
-
     void Start()
     {
         confirm.onClick.AddListener(OnClickConfirm);
