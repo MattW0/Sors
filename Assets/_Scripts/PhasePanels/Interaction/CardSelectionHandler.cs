@@ -4,14 +4,14 @@ using UnityEngine;
 using System.Linq;
 using System;
 
-[RequireComponent(typeof(InteractionUI))]
 public class CardSelectionHandler : MonoBehaviour
 {
     private PlayerManager _player;
     private List<GameObject> _selectedCards = new();
     private CardMover _cardMover;
     private InteractionUI _ui;
-    private int _numberSelections;
+    [SerializeField] private int _numberSelections;
+    [SerializeField] private int _numberSelected;
     private MarketSelection _marketSelection;
     private TurnState _state;
     public static event Action OnInteractionConfirmed;
@@ -19,7 +19,7 @@ public class CardSelectionHandler : MonoBehaviour
     private void Start()
     {
         _cardMover = CardMover.Instance;
-        _ui = gameObject.GetComponent<InteractionUI>();
+        _ui = gameObject.GetComponentInChildren<InteractionUI>();
 
         CardClickHandler.OnCardClicked += ClickedCard;
         InteractionPanel.OnInteractionBegin += BeginInteraction;
@@ -67,35 +67,21 @@ public class CardSelectionHandler : MonoBehaviour
     private void SelectCard(GameObject card)
     {
         // Remove the previously selected card if user clicks another one
-        if (_selectedCards.Count >= _numberSelections) 
+        if (_selectedCards.Count >= _numberSelections)
             DeselectCard(_selectedCards.Last());
 
-        _selectedCards.Add(card);
-        card.GetComponent<CardStats>().IsSelected = true;
+        MoveCard(card, true);
 
-        var sourcePile = _state switch {
-            TurnState.CardIntoHand => CardLocation.Discard,
-            _ => CardLocation.Hand
-        };
-        _cardMover.MoveTo(card, true, sourcePile, CardLocation.Selection);
-
-        if (_selectedCards.Count >= _numberSelections) 
+        if (_selectedCards.Count == _numberSelections)
             _ui.EnableConfirmButton(true);
     }
 
-    public void DeselectCard(GameObject card)
+    private void DeselectCard(GameObject card)
     {
-        _selectedCards.Remove(card);
-        card.GetComponent<CardStats>().IsSelected = false;
+        MoveCard(card, false);
 
-        var destinationPile = _state switch {
-            TurnState.CardIntoHand => CardLocation.Discard,
-            _ => CardLocation.Hand
-        };
-        _cardMover.MoveTo(card, true, CardLocation.Selection, destinationPile);
-
-        if (_selectedCards.Count < _numberSelections)
-            _ui.EnableConfirmButton(false);
+        if (_state == TurnState.Trash || _state == TurnState.CardIntoHand) _ui.EnableConfirmButton(true);
+        else if (_selectedCards.Count < _numberSelections) _ui.EnableConfirmButton(false);
     }
 
     public void SelectMarketTile(MarketTile tile)
@@ -117,6 +103,27 @@ public class CardSelectionHandler : MonoBehaviour
         
         _selectedCards.Clear();
         // _ui.ResetPanelUI(false);
+    }
+
+    private void MoveCard(GameObject card, bool toSelection)
+    {
+        card.GetComponent<CardStats>().IsSelected = toSelection;
+
+        var pile = _state switch
+        {
+            TurnState.CardIntoHand => CardLocation.Discard,
+            _ => CardLocation.Hand
+        };
+
+        if(toSelection) {
+            _cardMover.MoveTo(card, true, pile, CardLocation.Selection);
+            _selectedCards.Add(card);
+        } else {
+            _cardMover.MoveTo(card, true, CardLocation.Selection, pile);
+            _selectedCards.Remove(card);
+        }
+
+        _numberSelected = _selectedCards.Count;
     }
 
     public void EndSelection()

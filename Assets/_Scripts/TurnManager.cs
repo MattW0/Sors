@@ -426,25 +426,13 @@ public class TurnManager : NetworkBehaviour
             return;
         }
 
+        turnState = TurnState.CardIntoHand;
+
         var nextOption = _prevailOptionsToPlay[0];
         _prevailOptionsToPlay.RemoveAt(0);
 
-        switch (nextOption)
-        {
-            case PrevailOption.CardSelection:
-                turnState = TurnState.CardIntoHand;
-                StartPhaseInteraction(nextOption);
-                break;
-            case PrevailOption.Trash:
-                turnState = TurnState.Trash;
-                StartPhaseInteraction(nextOption);
-                break;
-            case PrevailOption.Score:
-                PrevailScoring();
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
+        if (nextOption == PrevailOption.Score) PrevailScoring();
+        else StartPhaseInteraction(nextOption);
     }
 
     public void PlayerSelectedPrevailCards(PlayerManager player, List<GameObject> selectedCards)
@@ -736,7 +724,7 @@ public class TurnManager : NetworkBehaviour
 
     private int GetNumberOfInteractions(PlayerManager player, PrevailOption currentPrevailOption)
     {
-        int numberInteractions = turnState switch 
+        int numberInteractions = turnState switch
         {
             TurnState.Discard => _gameOptions.phaseDiscard,
             TurnState.Invent or TurnState.Recruit => player.Buys > 0 ? 1 : 0,

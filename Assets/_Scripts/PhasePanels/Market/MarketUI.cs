@@ -4,13 +4,13 @@ using DG.Tweening;
 
 public class MarketUI : AnimatedPanel
 {
-    [SerializeField] private CanvasGroup _canvasGroup;
     [SerializeField] private RectTransform _panels;
     [SerializeField] private Button _technologiesButon;
     [SerializeField] private Button _creaturesButon;
     [SerializeField] private Button _closeButton;
     public float creaturePanelOffset = -1252f;
     [Range(0, 2)] public float panelTransitionTime = 0.7f;
+    private bool _isOpen;
 
     private void Start()
     {
@@ -42,10 +42,16 @@ public class MarketUI : AnimatedPanel
 
     public void MaxButton()
     {
-        if (_canvasGroup.alpha == 1) PanelOut();
+        if (_isOpen) PanelOut();
         else PanelIn();
+
+        _isOpen = !_isOpen;
     }
-    public void MinButton() => PanelOut();
+    public void MinButton()
+    {
+        PanelOut();
+        _isOpen = false;
+    } 
 
     private void OnDestroy()
     {

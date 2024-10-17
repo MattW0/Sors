@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-[RequireComponent(typeof(CardSelectionHandler))]
 public class InteractionUI : AnimatedPanel
 {
     [Header("UI")]
@@ -26,7 +25,7 @@ public class InteractionUI : AnimatedPanel
 
     private void Start()
     {
-        _selectionHandler = GetComponent<CardSelectionHandler>();
+        _selectionHandler = GetComponentInParent<CardSelectionHandler>();
         
         _skipButton.onClick.AddListener(OnSkipButtonPressed);
         _confirmButton.onClick.AddListener(OnConfirmButtonPressed);
@@ -111,16 +110,9 @@ public class InteractionUI : AnimatedPanel
         _confirmButton.interactable = false;
     }
 
-    public void OnConfirmButtonPressed()
-    {
-        _selectionHandler.ConfirmSelection();
-    }
-
+    public void OnConfirmButtonPressed() => _selectionHandler.ConfirmSelection();
     public void OnSkipButtonPressed() => SkipInteraction();
-    public void SkipInteraction()
-    {
-        _selectionHandler.OnSkipInteraction();
-    }
+    public void SkipInteraction() => _selectionHandler.OnSkipInteraction();
 
     private string InteractionActionVerb()
     {
