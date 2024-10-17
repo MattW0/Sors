@@ -1,4 +1,5 @@
 using System;
+using Mirror.Examples.Basic;
 using UnityEngine;
 
 public class Logger : MonoBehaviour
@@ -21,10 +22,21 @@ public class Logger : MonoBehaviour
     {
         // Get timestamp for message
         var time = System.DateTime.Now.ToString("HH:mm:ss");
+        
+        // TODO: How to define originator and get player color?
         var originator = "<color=#AAAAAA> ORIGINATOR </color>";
         var text = $"<color={GetColor(type)}>{message}</color>";
 
         Instantiate(_textMessagePrefab, _logTransform).SetMessage(new Message(originator, time, text));
+    }
+
+    public void LogWithOriginator(string message, int originatorId, LogType type)
+    {
+        // Get timestamp for message
+        var time = System.DateTime.Now.ToString("HH:mm:ss");
+        var text = $"<color={GetColor(type)}>{message}</color>";
+
+        Instantiate(_textMessagePrefab, _logTransform).SetMessage(new Message(originatorId.ToString(), time, text));
     }
 
     private string GetColor(LogType type)

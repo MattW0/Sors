@@ -11,21 +11,25 @@ public struct CardInfo : IEquatable<CardInfo>
     public bool isStartCard;
     public string hash;
     public string resourceName;
-    [Header("General stats")]
+
+    [Header("Base properties")]
     public CardType type;
     public string title;
-    public string description;
     public int cost;
     public int health;
     public int attack;
     public int points;
     public int moneyValue;
 
-    [Header("Triggers and effects")]
+    [Header("Abilities")]
     public List<Ability> abilities;
 
     [Header("Creature properties")]
     public List<Traits> traits;
+
+    [Header("Display Texts")]
+    [TextArea] public string description;
+    [TextArea] public string flavourText;
 
     [Header("Sprites")]
     public string cardSpritePath;
@@ -35,15 +39,13 @@ public struct CardInfo : IEquatable<CardInfo>
     {
         goID = gameObjectID;
 
+        // Base properties
         isStartCard = card.isStartCard;
-        hash = card.hash;
         type = card.type;
-        title = card.title;
-        
-
-        description = card.description;
+        hash = (card.hash != null) ? card.hash : card.resourceName;
+        title = (card.title != null) ? card.title : card.resourceName;
         cost = card.cost;
-
+        
         // Money properties
         moneyValue = card.moneyValue;
 
@@ -57,6 +59,10 @@ public struct CardInfo : IEquatable<CardInfo>
         // Creature properties
         attack = card.attack;
         traits = card.traits;
+        
+        // Text fields
+        description = card.description;
+        flavourText = card.flavourText;
 
         // Resources 
         resourceName = card.resourceName;

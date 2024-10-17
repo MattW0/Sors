@@ -22,7 +22,6 @@ public class InteractionUI : AnimatedPanel
     private int _nbCardsToSelectMax;
     private CardSelectionHandler _selectionHandler;
 
-
     private void Start()
     {
         _selectionHandler = GetComponentInParent<CardSelectionHandler>();
@@ -48,8 +47,6 @@ public class InteractionUI : AnimatedPanel
 
         _state = state;
         _nbCardsToSelectMax = nbCardsToSelectMax;
-        
-        _confirmButton.interactable = false;
         _skipButton.interactable = state != TurnState.Discard;
 
         var actionVerb = InteractionActionVerb();
@@ -110,10 +107,6 @@ public class InteractionUI : AnimatedPanel
         _confirmButton.interactable = false;
     }
 
-    public void OnConfirmButtonPressed() => _selectionHandler.ConfirmSelection();
-    public void OnSkipButtonPressed() => SkipInteraction();
-    public void SkipInteraction() => _selectionHandler.OnSkipInteraction();
-
     private string InteractionActionVerb()
     {
         var actionVerb = _state switch{
@@ -126,17 +119,20 @@ public class InteractionUI : AnimatedPanel
 
         return actionVerb;
     }
-
-    internal void ResetPanelUI(bool hard)
+    private void OnConfirmButtonPressed()
     {
-        _confirmButton.interactable = false;
-        if(!hard) return;
-        
-        PanelOut();
+        _displayText.text = "Wait for opponent...";
+        _selectionHandler.ConfirmSelection();   
     }
-
-    internal void EnableConfirmButton(bool isEnabled) => _confirmButton.interactable = isEnabled;
-
+    private void OnSkipButtonPressed() => SkipInteraction();
+    private void SkipInteraction()
+    {   
+        _displayText.text = "Wait for opponent...";
+        _confirmButton.interactable = false;
+        _skipButton.interactable = false;
+        _selectionHandler.OnSkipInteraction();
+    }
+    internal void SetConfirmButtonEnabled(bool b) => _confirmButton.interactable = b;
     private void OnDestroy()
     {
         InteractionPanel.OnInteractionBegin -= InteractionBegin;

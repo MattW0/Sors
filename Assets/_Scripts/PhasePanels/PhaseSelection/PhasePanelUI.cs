@@ -15,7 +15,6 @@ public class PhasePanelUI : MonoBehaviour
 
     [SerializeField] private List<Image> phaseHighlights;
     private Image _oldHighlight;
-    private Image _newHighlight;
     public static event Action<Phase> OnPhaseSelectionConfirmed;
 
     private void Start()
@@ -62,6 +61,12 @@ public class PhasePanelUI : MonoBehaviour
 
         _oldHighlight = phaseHighlights[newIndex];
         progressBar.localScale = new Vector3(progressBarCheckpoints[newIndex], 1f, 1f);
+    }
+
+    internal void IsPlayedThisTurn(Phase phase)
+    {
+        var index = (int)phase;
+        phaseHighlights[index].CrossFadeAlpha(0.7f, 0f, false);
     }
     #endregion
 }

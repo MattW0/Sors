@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 3002627826134407687}
   - component: {fileID: 8648171791497132065}
   m_Layer: 0
-  m_Name: decrementBtn
+  m_Name: Close
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -34,7 +34,6 @@ RectTransform:
   m_Children:
   - {fileID: 7709660526112745064}
   m_Father: {fileID: 4848216341448729458}
-  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -62,7 +61,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.09411765, g: 0.18039216, b: 0.11372549, a: 1}
+  m_Color: {r: 0.7647059, g: 0.7647059, b: 0.7647059, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -151,7 +150,7 @@ MonoBehaviour:
   imageObject: {fileID: 8118909361341878453}
   keepAlphaValue: 0
   useCustomColor: 0
-  colorType: 4
+  colorType: 1
 --- !u!1 &4848216340887168533
 GameObject:
   m_ObjectHideFlags: 0
@@ -186,7 +185,6 @@ RectTransform:
   - {fileID: 4848216341448729458}
   - {fileID: 4848216341837369320}
   m_Father: {fileID: 4848216341476788863}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -281,7 +279,6 @@ RectTransform:
   - {fileID: 661408328724176975}
   - {fileID: 7086632003995389353}
   m_Father: {fileID: 4848216340887168534}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
@@ -342,7 +339,6 @@ RectTransform:
   m_Children:
   - {fileID: 4848216340887168534}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -365,7 +361,7 @@ MonoBehaviour:
   _technologyDetailCardPrefab: {fileID: 6311120163716661745, guid: 9518d54196ff0ed489a7d5d87f5428c1, type: 3}
   _moneyDetailCardPrefab: {fileID: 6797670194017734125, guid: 602bfeac6c9fdd6489b5238a3d1c076b, type: 3}
   _grid: {fileID: 4232929515747775658}
-  _spawnParentTransform: {fileID: 0}
+  _spawnParentTransform: {fileID: 4848216341837369320}
 --- !u!114 &3205428203614987224
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -380,7 +376,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _background: {fileID: 4848216341837369322}
   _collectionTitle: {fileID: 8354268261712838673}
-  _closeButton: {fileID: 0}
+  _closeButton: {fileID: 3002627826134407687}
 --- !u!114 &4232929515747775658
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -429,7 +425,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4848216340887168534}
-  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -523,7 +518,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7086632003995389353}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -617,7 +611,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4848216341448729458}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 1}
@@ -695,15 +688,17 @@ MonoBehaviour:
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
-  m_enableWordWrapping: 1
+  m_TextWrappingMode: 1
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 1
+  m_ActiveFontFeatures: 6e72656b
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1
+  m_EmojiFallbackSupport: 1
   m_parseCtrlCharacters: 1
   m_isOrthographic: 1
   m_isCullingEnabled: 0

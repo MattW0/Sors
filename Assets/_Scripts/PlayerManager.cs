@@ -5,6 +5,7 @@ using System;
 using Mirror;
 using System.Linq;
 using Cysharp.Threading.Tasks;
+using Unity.VisualScripting;
 
 public class PlayerManager : NetworkBehaviour
 {
@@ -14,7 +15,6 @@ public class PlayerManager : NetworkBehaviour
     private TurnManager _turnManager;
     private AbilityQueue _abilityQueue;
     private CardMover _cardMover;
-    private PhasePanelUI _phaseVisualsUI;
     private PlayerInterfaceManager _playerInterface;
     private UIManager _uiManager;
 
@@ -86,6 +86,8 @@ public class PlayerManager : NetworkBehaviour
         set => SetPrevailValue(value);
     }
 
+    public int ID { get; private set; }
+
     #region GameSetup
 
     [ClientRpc]
@@ -98,6 +100,9 @@ public class PlayerManager : NetworkBehaviour
         EntityAndUISetup();
 
         if (!isServer) return;
+
+        ID = isLocalPlayer ? 1 : 2;
+
         _playerInterface = PlayerInterfaceManager.Instance;
         _turnManager = TurnManager.Instance;
         _abilityQueue = AbilityQueue.Instance;
@@ -500,7 +505,6 @@ public class PlayerManager : NetworkBehaviour
         if (cards.Count == 0) return;
         _uiManager.TargetOpenCardCollection(player.connectionToClient, cards, collectionType, ownsCollection);
     }
-    
 
     [ClientRpc]
     public void RpcSkipCardSpawnAnimations() => SorsTimings.SkipCardSpawnAnimations();

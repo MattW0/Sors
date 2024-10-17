@@ -70,7 +70,7 @@ public class GameManager : NetworkBehaviour {
 
     private void InitPlayers()
     {
-        var playerManagers = FindObjectsOfType<PlayerManager>();
+        var playerManagers = FindObjectsByType<PlayerManager>(FindObjectsSortMode.None);
         foreach (var player in playerManagers)
         {
             player.RpcInitPlayer();

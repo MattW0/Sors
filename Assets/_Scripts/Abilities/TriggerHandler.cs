@@ -1,10 +1,6 @@
-using System.Globalization;
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
-using Cysharp.Threading.Tasks;
 
 public class TriggerHandler : NetworkBehaviour
 {
@@ -110,7 +106,7 @@ public class TriggerHandler : NetworkBehaviour
         return trigger;
     }
 
-    private void Destroy()
+    private void OnDestroy()
     {
         TurnManager.OnPhaseChanged -= CheckTurnStateTriggers;
     }

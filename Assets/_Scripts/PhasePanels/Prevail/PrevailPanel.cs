@@ -57,6 +57,7 @@ public class PrevailPanel : NetworkBehaviour
     {
         var player = PlayerManager.GetLocalPlayer();
         player.CmdPrevailSelection(_selectedOptions);
+        print("Confirm prvail selection: " + _selectedOptions.Count);
     }
 
     [ClientRpc]

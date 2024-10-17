@@ -29,7 +29,7 @@ public class TurnManager : NetworkBehaviour
     private bool _skipCardDrawAnimations;
 
     [Header("Helper Fields")]
-    private List<PlayerManager> _readyPlayers = new();
+    [SerializeField] private List<int> _readyPlayers = new();
     private List<PlayerManager> _skippedPlayers = new();
     private Dictionary<PlayerManager, Phase[]> _playerPhaseChoices = new();
     private List<Phase> _phasesToPlay = new();
@@ -43,6 +43,7 @@ public class TurnManager : NetworkBehaviour
     // Events
     public static event Action<int> OnBeginTurn;
     public static event Action<TurnState> OnPhaseChanged;
+    public static event Action<int, TurnState> OnPlayerIsReady;
 
     #region Setup
     private void Awake()
@@ -133,17 +134,16 @@ public class TurnManager : NetworkBehaviour
 
     private void FinishPhaseSelection()
     {
-        // Combat each round
+        // Combat and Clean-Up each round
         _phasesToPlay.Add(Phase.Attackers);
+        _phasesToPlay.Add(Phase.CleanUp);
         _phasesToPlay.Sort();
 
-        var msg = $"Phases to play:";
-        for (int i = 0; i < _phasesToPlay.Count; i++) msg += $"\n- {_phasesToPlay[i]}";
-        _logger.RpcLog(msg, LogType.Phase);
+        _logger.RpcLogPhaseToPlay(_phasesToPlay);
 
         foreach (var (player, phases) in _playerPhaseChoices)
         {
-            _phasePanel.RpcShowOpponentChoices(player, phases);
+            _phasePanel.RpcShowPhaseSelection(player, phases);
         }
 
         UpdateTurnState(TurnState.NextPhase);
@@ -151,16 +151,10 @@ public class TurnManager : NetworkBehaviour
 
     private void NextPhase()
     {
-        var nextPhase = Phase.None;
-        if (_phasesToPlay.Count == 0) nextPhase = Phase.CleanUp;
-        else {
-            nextPhase = _phasesToPlay[0];
-            _phasesToPlay.RemoveAt(0);
-            // _readyPlayers.Clear();
-        }
+        _phasesToPlay.RemoveAt(0);
+        Enum.TryParse(_phasesToPlay[0].ToString(), out TurnState nextTurnState);
 
         // To update SM and Phase Panel
-        Enum.TryParse(nextPhase.ToString(), out TurnState nextTurnState);
         OnPhaseChanged?.Invoke(nextTurnState);
         CheckTriggers(nextTurnState).Forget();
 
@@ -290,7 +284,6 @@ public class TurnManager : NetworkBehaviour
         }
 
         _market.RpcMaxButton();
-
         StartPhaseInteraction();
     }
 
@@ -420,6 +413,7 @@ public class TurnManager : NetworkBehaviour
     }
     private void NextPrevailOption()
     {
+        _readyPlayers.Clear();
         if (_prevailOptionsToPlay.Count == 0)
         {
             PrevailCleanUp().Forget();
@@ -514,9 +508,7 @@ public class TurnManager : NetworkBehaviour
 
         PlayersDiscardMoney();
         PlayersEmptyResources();
-        _readyPlayers.Clear();
 
-        OnPhaseChanged?.Invoke(TurnState.PhaseSelection);
         CleanUpIntermission().Forget();
     }
     #endregion
@@ -535,7 +527,7 @@ public class TurnManager : NetworkBehaviour
                 player.deck.Shuffle();
                 player.DrawCards(_gameOptions.InitialHandSize);
             }
-            await UniTask.Delay(SorsTimings.second);
+            await UniTask.Delay(SorsTimings.wait);
         }
 
         if(_gameOptions.SaveStates) _boardManager.PrepareGameStateFile(_market.GetTileInfos());
@@ -582,13 +574,13 @@ public class TurnManager : NetworkBehaviour
 
     public async UniTaskVoid CombatCleanUp()
     {
-        await UniTask.Delay(SorsTimings.combatCleanUp);
+        await UniTask.Delay(SorsTimings.waitLong);
         UpdateTurnState(TurnState.NextPhase);
     }
 
     private async UniTaskVoid PrevailCleanUp()
     {
-        await UniTask.Delay(SorsTimings.turnStateTransition);
+        await UniTask.Delay(SorsTimings.wait);
 
         PrevailScoring(true);
         _playerPrevailOptions.Clear();
@@ -599,9 +591,10 @@ public class TurnManager : NetworkBehaviour
 
     private async UniTaskVoid CleanUpIntermission()
     {
-        await UniTask.Delay(SorsTimings.turnStateTransition);
+        await UniTask.Delay(SorsTimings.wait);
 
         CheckTriggers(TurnState.PhaseSelection).Forget();
+        OnPhaseChanged?.Invoke(TurnState.PhaseSelection);
     }
 
     #endregion
@@ -610,33 +603,33 @@ public class TurnManager : NetworkBehaviour
 
     private void UpdateTurnState(TurnState newState)
     {
+        _readyPlayers.Clear();
         _skippedPlayers.Clear();
-        
         turnState = newState;
-        // OnPhaseChanged?.Invoke(newState);
 
         if(GameEnds()){
             _gameManager.EndGame();
             newState = TurnState.Idle;
         }
 
-        if (newState == TurnState.PhaseSelection) PhaseSelection();
-        else if (newState == TurnState.NextPhase) NextPhase();
+        if (newState == TurnState.NextPhase) NextPhase();
+        else if (newState == TurnState.PhaseSelection) PhaseSelection();
         else if (newState == TurnState.Draw) Draw();
         else if (newState == TurnState.Discard) Discard();
         else if (newState == TurnState.Invent || newState == TurnState.Recruit) StartMarketPhase();
         else if (newState == TurnState.Develop || newState == TurnState.Deploy) StartPlayCard();
-        else if (newState == TurnState.Attackers) _combatManager.UpdateCombatState(TurnState.Attackers);
         else if (newState == TurnState.Prevail) Prevail();
         else if (newState == TurnState.CleanUp) CleanUp();
+        else if (newState == TurnState.Attackers) _combatManager.UpdateCombatState(TurnState.Attackers);
         else if (newState == TurnState.Idle) _logger.RpcLog("Game finished", LogType.Standard);
         else throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
     }
 
     public void PlayerIsReady(PlayerManager player)
     {
-        if (!_readyPlayers.Contains(player)) _readyPlayers.Add(player);
-        // print($"{_readyPlayers.Count}/{_nbPlayers} players are ready in {turnState}");
+        if (!_readyPlayers.Contains(player.ID)) _readyPlayers.Add(player.ID);
+        OnPlayerIsReady?.Invoke(player.ID, turnState);
+        print($"{_readyPlayers.Count}/{_nbPlayers} players are ready in {turnState}");
 
         if (_readyPlayers.Count < _nbPlayers) return;
         _readyPlayers.Clear();
@@ -663,9 +656,9 @@ public class TurnManager : NetworkBehaviour
 
         foreach (var player in _gameManager.players.Values) 
         {
-            if (_skippedPlayers.Contains(player)) _readyPlayers.Add(player);
-            else if ((turnState == TurnState.Invent || turnState == TurnState.Recruit) && player.Buys <= 0) _readyPlayers.Add(player);
-            else if ((turnState == TurnState.Develop || turnState == TurnState.Deploy) && player.Plays <= 0) _readyPlayers.Add(player);
+            if (_skippedPlayers.Contains(player)) _readyPlayers.Add(player.ID);
+            else if ((turnState == TurnState.Invent || turnState == TurnState.Recruit) && player.Buys <= 0) _readyPlayers.Add(player.ID);
+            else if ((turnState == TurnState.Develop || turnState == TurnState.Deploy) && player.Plays <= 0) _readyPlayers.Add(player.ID);
         }
 
         return _readyPlayers.Count == _nbPlayers;
@@ -770,7 +763,7 @@ public class TurnManager : NetworkBehaviour
     {
         var players =  _gameManager.players.Values.ToArray();
         if (_gameOptions.SinglePlayer){
-            players = FindObjectsOfType<PlayerManager>();
+            players = FindObjectsByType<PlayerManager>(FindObjectsSortMode.None);
         }
         PlayerManager opponent = null;
         foreach (var p in players){

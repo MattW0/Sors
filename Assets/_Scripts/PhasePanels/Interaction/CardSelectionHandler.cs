@@ -73,15 +73,15 @@ public class CardSelectionHandler : MonoBehaviour
         MoveCard(card, true);
 
         if (_selectedCards.Count == _numberSelections)
-            _ui.EnableConfirmButton(true);
+            _ui.SetConfirmButtonEnabled(true);
     }
 
     private void DeselectCard(GameObject card)
     {
         MoveCard(card, false);
 
-        if (_state == TurnState.Trash || _state == TurnState.CardIntoHand) _ui.EnableConfirmButton(true);
-        else if (_selectedCards.Count < _numberSelections) _ui.EnableConfirmButton(false);
+        if (_state == TurnState.Trash || _state == TurnState.CardIntoHand) _ui.SetConfirmButtonEnabled(true);
+        else if (_selectedCards.Count < _numberSelections) _ui.SetConfirmButtonEnabled(false);
     }
 
     public void SelectMarketTile(MarketTile tile)
@@ -102,7 +102,6 @@ public class CardSelectionHandler : MonoBehaviour
         else if (_state == TurnState.Develop || _state == TurnState.Deploy) _player.CmdConfirmPlay(_selectedCards[0]);
         
         _selectedCards.Clear();
-        // _ui.ResetPanelUI(false);
     }
 
     private void MoveCard(GameObject card, bool toSelection)
@@ -132,7 +131,7 @@ public class CardSelectionHandler : MonoBehaviour
             DeselectCard(card);
         
         _selectedCards.Clear();
-        _ui.ResetPanelUI(true);
+        _ui.PanelOut();
     }
 
     public void OnSkipInteraction() => _player.CmdSkipInteraction();

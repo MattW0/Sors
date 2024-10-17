@@ -76,7 +76,6 @@ namespace CardDecoder {
                     var text = createRelationText(card.title, relation);
                     relationsTexts.Add(text);
                 }
-                scriptableCard.relationsTexts = relationsTexts;
 
                 UnityEditor.AssetDatabase.CreateAsset(scriptableCard, $"Assets/Resources/CreatureCards/{card.title}.asset");
                 UnityEditor.AssetDatabase.SaveAssets();

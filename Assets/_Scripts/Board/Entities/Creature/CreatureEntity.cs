@@ -67,19 +67,21 @@ public class CreatureEntity : BattleZoneEntity
 
     private void DeclareAttackers(bool begin)
     {
-        if(begin) CheckIfCanAct();
+        if(begin) CheckIfCanAct(true);
         else CanAct = false;
     }
 
     private void DeclareBlockers(bool begin)
     {
-        if(begin) {
-            if(isOwned) CheckIfCanAct();
-            else {
-                if(IsAttacking) IsTargetable = true;
-            }
+        if(!begin) {
+            CanAct = false;
+            return;
         }
-        else CanAct = false;
+
+        if(isOwned) CheckIfCanAct(false);
+        else {
+            if(IsAttacking) IsTargetable = true;
+        }
     }
 
     [ClientRpc]
@@ -96,12 +98,14 @@ public class CreatureEntity : BattleZoneEntity
         OnDeclaredBlock?.Invoke(transform, target.transform);
     }
 
-    private void CheckIfCanAct()
+    private void CheckIfCanAct(bool attackStep)
     {
         if (!isOwned) return;
 
         if (IsAttacking) return;
-        CanAct = true;
+
+        // Defensive creatures can only block and offensive creatures can only attack
+        CanAct = attackStep ? ! _traits.Contains(Traits.Devensive) : ! _traits.Contains(Traits.Offensive);
     }
 
     private void ResetCreatureUI(){

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Mirror;
 using UnityEngine;
-using UnityEditor;
 using SorsGameState;
 using Cysharp.Threading.Tasks;
 
@@ -143,7 +142,6 @@ public class BoardManager : NetworkBehaviour
         _deadEntities.Clear();
     }
 
-    [Server]
     public void PrepareGameStateFile(List<CardInfo>[] scriptableTiles)
     {
         _gameState = new GameState(_gameManager.players.Count);
@@ -157,7 +155,6 @@ public class BoardManager : NetworkBehaviour
         SaveGameState(scriptableTiles);
     }
 
-    [Server]
     private void SaveGameState(List<CardInfo>[] scriptableTiles)
     {
         _gameState.market.SaveMarketState(scriptableTiles);
@@ -210,7 +207,7 @@ public class BoardManager : NetworkBehaviour
 
     private async UniTaskVoid CombatTransitionAnimation(TurnState state)
     {
-        await UniTask.Delay(SorsTimings.turnStateTransition);
+        await UniTask.Delay(SorsTimings.wait);
 
         if (state == TurnState.Attackers) DeclareAttackers();
         else if (state == TurnState.Blockers) DeclareBlockers();

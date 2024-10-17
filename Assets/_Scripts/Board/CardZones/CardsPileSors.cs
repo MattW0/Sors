@@ -23,9 +23,9 @@ public class CardsPileSors : MonoBehaviour
 	[Header("Arrangement Settings")]
 	[SerializeField] private static Vector2 _handWidthDefault = new Vector2(400f, 1000f);
 	public CardPileSettings settings;
-	private CardPileSettings handSettings = new CardPileSettings(15f, _handWidthDefault.x, 5f, 2f, -3f);
-	private CardPileSettings selectionSettings = new CardPileSettings(0f, 100f, 0.1f, 0.1f, -1f);
-	private CardPileSettings pileSettings = new CardPileSettings(20f, 20f, 0f, 1f, -1f);
+	private CardPileSettings handSettings = new(15f, _handWidthDefault.x, 5f, 2f, -3f);
+	private CardPileSettings selectionSettings = new(0f, 100f, 0.1f, 0.1f, -1f);
+	private CardPileSettings pileSettings = new(20f, 20f, 0f, 1f, -1f);
 
 	[SerializeField] private readonly List<GameObject> cards = new List<GameObject>();
 	readonly List<GameObject> forceSetPosition = new List<GameObject>();
@@ -161,12 +161,11 @@ public class CardsPileSors : MonoBehaviour
     internal void EndInteraction() => SetDefaultPileSettings();
 	private void SetDefaultPileSettings()
     {
-        settings = pileType switch
-		{
-			CardLocation.Hand => handSettings,
-			CardLocation.Selection => selectionSettings,
-			_ => pileSettings
-		};
+		if (pileType == CardLocation.Selection) settings = selectionSettings;
+		else if (pileType == CardLocation.Discard 
+				|| pileType == CardLocation.Deck
+				|| pileType == CardLocation.Trash) 
+					settings = pileSettings;
     }
 }
 

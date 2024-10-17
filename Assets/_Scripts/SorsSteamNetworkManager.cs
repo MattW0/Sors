@@ -45,7 +45,7 @@ public class SorsSteamNetworkManager : NetworkManager
         var numPlayers = _gameOptions.SinglePlayer ? 1 : 2;
         while (NetworkServer.connections.Count < numPlayers){
             print("Waiting for opponent...");
-            await UniTask.Delay(SorsTimings.second);
+            await UniTask.Delay(SorsTimings.wait);
         }
 
         await UniTask.Delay(100);

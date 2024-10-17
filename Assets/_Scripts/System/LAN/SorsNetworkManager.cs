@@ -6,7 +6,6 @@ using Cysharp.Threading.Tasks;
 
 namespace Sors.Lan
 {
-
     public class SorsNetworkManager : NetworkManager
     {
         private string _playerName;
@@ -50,10 +49,10 @@ namespace Sors.Lan
             var numPlayers = _gameOptions.SinglePlayer ? 1 : 2;
             while (NetworkServer.connections.Count < numPlayers){
                 print("Waiting for opponent...");
-                await UniTask.Delay(SorsTimings.second);
+                await UniTask.Delay(SorsTimings.wait);
             }
 
-            await UniTask.Delay(SorsTimings.second);
+            await UniTask.Delay(SorsTimings.wait);
             OnAllPlayersReady?.Invoke(_gameOptions);
         }
 

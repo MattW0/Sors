@@ -2,6 +2,7 @@ using System;
 using Mirror;
 using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
 
 [RequireComponent(typeof(PlayerInterfaceButtons))]
 public class PlayerInterfaceManager : NetworkBehaviour
@@ -33,6 +34,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
 
         _player = PlayerManager.GetLocalPlayer();
         if(!_player.isServer) gameObject.GetComponent<PlayerInterfaceButtons>().DisableUtilityButton();
+        else TurnManager.OnPlayerIsReady += RpcLogPlayerAction;
     }
 
     [ClientRpc]
@@ -47,6 +49,10 @@ public class PlayerInterfaceManager : NetworkBehaviour
 
     [ClientRpc]
     public void RpcLog(string message, LogType type) => _logger.Log(message, type);
+
+    [ClientRpc]
+    public void RpcLogPlayerAction(int playerId, TurnState turnState) => _logger.LogWithOriginator($" is ready in " + turnState, playerId, LogType.Standard);
+
     [ClientRpc]
     public void RpcLogGameStart(List<string> playerNames)
     {
@@ -57,6 +63,15 @@ public class PlayerInterfaceManager : NetworkBehaviour
         _logger.Log(msg, LogType.Standard);
     }
 
+    [ClientRpc]
+
+    public void RpcLogPhaseToPlay(List<Phase> phases)
+    {
+        var msg = $"Phases to play:";
+        msg += string.Join(", ", phases.Select(phase => phase.ToString()));
+
+        _logger.Log(msg, LogType.Standard);
+    }
     [ClientRpc]
     public void RpcLogPlayingCards(List<BattleZoneEntity> entities){
         foreach (var e in entities) _logger.Log($"{e.Owner.PlayerName} plays {e.Title}", LogType.Play);
@@ -83,5 +98,6 @@ public class PlayerInterfaceManager : NetworkBehaviour
 
     private void OnDestroy(){
         GameManager.OnGameStart -= RpcPrepareUIs;
+        TurnManager.OnPlayerIsReady -= RpcLogPlayerAction;
     }
 }

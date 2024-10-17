@@ -39,8 +39,10 @@ public class PhasePanel : NetworkBehaviour
 
     
     [ClientRpc]
-    public void RpcShowOpponentChoices(PlayerManager player, Phase[] phases)
+    public void RpcShowPhaseSelection(PlayerManager player, Phase[] phases)
     {
+        for (int i = 0; i < phases.Length; i++) _phasePanelUI.IsPlayedThisTurn(phases[i]);
+
         if (player.isLocalPlayer) return;
         _phasePanelUI.ShowOpponentChoices(phases);
     }
