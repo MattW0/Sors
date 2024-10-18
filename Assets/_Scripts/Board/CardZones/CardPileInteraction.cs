@@ -7,6 +7,7 @@ public class CardPileInteraction : MonoBehaviour
     [SerializeField] private Transform _cardHolder;
     [SerializeField] private Transform _transformDefault;
     [SerializeField] private Transform _transformInteractable;
+    [SerializeField] private Vector3 _scaleDefault = Vector3.one;
     [SerializeField] private Vector3 _scaleInteractable = new Vector3(1.2f, 1.2f, 1f);
     private CardsPileSors _pile;
 
@@ -25,7 +26,7 @@ public class CardPileInteraction : MonoBehaviour
     public void EndInteraction()
     {
         _cardHolder.DOMove(_transformDefault.position, SorsTimings.cardPileRearrangement);
-        _cardHolder.DOScale(Vector3.one, SorsTimings.cardPileRearrangement);
+        _cardHolder.DOScale(_scaleDefault, SorsTimings.cardPileRearrangement);
         _pile.EndInteraction();
     }
 }

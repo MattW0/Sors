@@ -6,21 +6,17 @@ using System;
 
 public class UIManager : NetworkBehaviour
 {
-    // Singleton
     public static UIManager Instance { get; private set; }
-    // private TurnManager _turnManager;
     [SerializeField] private EndScreen _endScreen;
     [SerializeField] private GameObject _cardCollectionViewPrefab;
     [SerializeField] private Transform _spawnParentTransform;
+    [SerializeField] private List<CardLocation> _openCardCollections = new();
 
     private void Awake()
     {
         if (!Instance) Instance = this;
-    }
 
-    void Start()
-    {
-        // _turnManager = TurnManager.Instance;
+        CardCollectionUI.OnCloseCardCollection += CloseCardCollection;
     }
 
     [TargetRpc]
@@ -29,9 +25,25 @@ public class UIManager : NetworkBehaviour
         var cardInfos = new List<CardInfo>();
         foreach (var card in cards) cardInfos.Add(card.cardInfo);
 
+        if (_openCardCollections.Contains(collectionType)) return;
+
         var cardCollection = Instantiate(_cardCollectionViewPrefab, _spawnParentTransform);
         cardCollection.GetComponent<CardSpawner>().SpawnDetailCardObjectsInGrid(cardInfos);
         cardCollection.GetComponent<CardCollectionUI>().OpenCardCollection(collectionType, isOwned);
+
+        // TODO: Handle same type for player and opponent 
+        _openCardCollections.Add(collectionType);
+    }
+
+    [ClientRpc]
+    public void UpdateCardCollection(List<CardStats> cards, CardLocation collectionType)
+    {
+        // TODO:
+    }
+
+    private void CloseCardCollection(CardLocation collectionType)
+    {
+        _openCardCollections.Remove(collectionType);
     }
 
     [ClientRpc]
@@ -42,4 +54,9 @@ public class UIManager : NetworkBehaviour
 
     [ClientRpc]
     internal void RpcSetDraw() => _endScreen.SetDraw();
+
+    private void OnDestroy()
+    {
+        CardCollectionUI.OnCloseCardCollection -= CloseCardCollection;
+    }
 }

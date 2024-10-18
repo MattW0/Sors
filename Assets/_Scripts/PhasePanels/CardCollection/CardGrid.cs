@@ -27,7 +27,7 @@ public class CardGrid : MonoBehaviour
     
     internal void SetPanelWidth(int count)
     {
-        _panelWidth = Mathf.Min(_panelMaxWidth, _defaultX * count + 2 * _padding);
+        _panelWidth = Mathf.Min(_panelMaxWidth, _defaultX * (count + 1) + 2 * _padding);
         _maxViewTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, _panelWidth);
     }
 

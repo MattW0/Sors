@@ -28,7 +28,7 @@ public class CardZoomView : ModalWindow, IPointerClickHandler
 
         CardClickHandler.OnCardInspect += ZoomCard;
         EntityClickHandler.OnEntityInspect += ZoomCard;
-        MarketTile.OnMarketTileInspect += ZoomCard;
+        MarketTileUI.OnMarketTileInspect += ZoomCard;
     }
 
     public void ZoomCard(CardInfo card)
@@ -81,6 +81,6 @@ public class CardZoomView : ModalWindow, IPointerClickHandler
     {
         CardClickHandler.OnCardInspect -= ZoomCard;
         EntityClickHandler.OnEntityInspect -= ZoomCard;
-        MarketTile.OnMarketTileInspect -= ZoomCard;
+        MarketTileUI.OnMarketTileInspect -= ZoomCard;
     }
 }

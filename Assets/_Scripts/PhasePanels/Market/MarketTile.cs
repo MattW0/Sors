@@ -1,10 +1,8 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
-using Cysharp.Threading.Tasks;
 using System;
 
 [System.Serializable]
-public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
+public class MarketTile : MonoBehaviour
 {
     public CardInfo cardInfo;
     [SerializeField] private MarketTileUI _ui;
@@ -30,7 +28,7 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     }
 
     private bool _isSelected;
-    private bool IsSelected
+    public bool IsSelected
     {
         get => _isSelected;
         set {
@@ -49,7 +47,6 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     private bool _alreadyChosen;
     public static event Action<MarketTile> OnTileSelected;
     public static event Action OnTileDeselected;
-    public static event Action<CardInfo> OnMarketTileInspect;
 
 
     public void InitializeTile(CardInfo card, int index)
@@ -70,38 +67,6 @@ public class MarketTile : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     {
         if(Cost - priceReduction <= 0) Cost = 0;
         else Cost -= priceReduction;
-    }
-
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        // Right click to preview card only
-        if (eventData.button == PointerEventData.InputButton.Right) {
-            OnMarketTileInspect?.Invoke(cardInfo);
-            return;
-        }
-
-        if (!_isInteractable) return;
-
-        // Reset highlight and preview in market if 2nd click on selected tile
-        IsSelected = !_isSelected;
-    }
-
-    public void OnPointerEnter(PointerEventData eventData)
-    {
-        StopAllCoroutines();
-        HoverPreviewWaitTimer().Forget();
-    }
-
-    private async UniTaskVoid HoverPreviewWaitTimer()
-    {
-        await UniTask.Delay(SorsTimings.hoverPreviewDelay);
-        MarketTileHoverPreview.OnHoverTile(cardInfo);
-    }
-
-    public void OnPointerExit(PointerEventData eventData)
-    {
-        StopAllCoroutines();
-        MarketTileHoverPreview.OnHoverExit();
     }
 
     public void ResetSelected()

@@ -14,31 +14,30 @@ public class TurnManager : NetworkBehaviour
     private GameManager _gameManager;
     private Market _market;
     private InteractionPanel _interactionPanel;
-    [SerializeField] private PhasePanel _phasePanel;
     private PrevailPanel _prevailPanel;
     private PlayerInterfaceManager _logger;
     private BoardManager _boardManager;
     private AbilityQueue _abilityQueue;
     private CombatManager _combatManager;
+    [SerializeField] private PhasePanel _phasePanel;
 
     [field: Header("Game state")]
     [SerializeField] private TurnState turnState;
     public static TurnState TurnState { get; private set; }
     private GameOptions _gameOptions;
     private int _nbPlayers;
-    private bool _skipCardDrawAnimations;
 
     [Header("Helper Fields")]
+    [SerializeField] private List<Phase> _phasesToPlay = new();
     [SerializeField] private List<int> _readyPlayers = new();
-    private List<PlayerManager> _skippedPlayers = new();
+    [SerializeField] private List<int> _skippedPlayers = new();
+    private readonly Dictionary<PlayerManager, List<GameObject>> _selectedCards = new();
+    private readonly Dictionary<PlayerManager, CardInfo> _selectedMarketCards = new();
+    private readonly List<(int, CardType)> _boughtCards = new();
     private Dictionary<PlayerManager, Phase[]> _playerPhaseChoices = new();
-    private List<Phase> _phasesToPlay = new();
-    private Dictionary<PlayerManager, CardInfo> _selectedMarketCards = new();
-    private List<(int, CardType)> _boughtCards = new();
-    private Dictionary<PlayerManager, List<GameObject>> _selectedCards = new();
     private Dictionary<PlayerManager, List<PrevailOption>> _playerPrevailOptions = new();
-    private List<PrevailOption> _prevailOptionsToPlay = new();
-    private Dictionary<GameObject, CardStats> _trashedCards = new();
+    private readonly List<PrevailOption> _prevailOptionsToPlay = new();
+    private readonly Dictionary<GameObject, CardStats> _trashedCards = new();
 
     // Events
     public static event Action<int> OnBeginTurn;
@@ -58,9 +57,8 @@ public class TurnManager : NetworkBehaviour
 
     private void Prepare(GameOptions gameOptions)
     {
-        _nbPlayers = gameOptions.SinglePlayer ? 1 : 2;
-        _skipCardDrawAnimations = gameOptions.SkipCardSpawnAnimations;
         _gameOptions = gameOptions;
+        _nbPlayers = gameOptions.SinglePlayer ? 1 : 2;
 
         SetupInstances(gameOptions);
         VariablesCaching(gameOptions);
@@ -151,8 +149,8 @@ public class TurnManager : NetworkBehaviour
 
     private void NextPhase()
     {
-        _phasesToPlay.RemoveAt(0);
         Enum.TryParse(_phasesToPlay[0].ToString(), out TurnState nextTurnState);
+        _phasesToPlay.RemoveAt(0);
 
         // To update SM and Phase Panel
         OnPhaseChanged?.Invoke(nextTurnState);
@@ -184,13 +182,23 @@ public class TurnManager : NetworkBehaviour
         StartPhaseInteraction();
     }
 
-    public void PlayerSelectedDiscardCards(PlayerManager player) => PlayerIsReady(player);
+    public void PlayerSelectedDiscardCards(PlayerManager player, List<GameObject> selectedCards)
+    {
+        _selectedCards[player] = selectedCards;
+        PlayerIsReady(player);
+    }
 
     private void FinishDiscard()
     {
-        foreach (var player in _gameManager.players.Values)
+        foreach (var (player, cards) in _selectedCards)
         {
             player.DiscardSelection();
+
+            print("Player " + player.PlayerName + " discards " + cards.Count + " cards");
+            foreach (var card in cards)
+            {
+                
+            }
         }
 
         _interactionPanel.RpcResetPanel();
@@ -303,9 +311,8 @@ public class TurnManager : NetworkBehaviour
 
     private void StartPlayCard()
     {
-        // convert current turnState (TurnState enum) to Phase enum
-        var phase = Phase.Develop;
-        if (turnState == TurnState.Deploy) phase = Phase.Deploy;
+        // For Bonus: convert current turnState to Phase enum
+        var phase = turnState == TurnState.Deploy ? Phase.Deploy : Phase.Develop;
 
         _boardManager.ShowHolders(true);
         foreach(var player in _gameManager.players.Values) 
@@ -323,10 +330,7 @@ public class TurnManager : NetworkBehaviour
         PlayCard();
     }
 
-    private void PlayCard()
-    {
-        StartPhaseInteraction();
-    }
+    private void PlayCard() => StartPhaseInteraction();
 
     public void PlayerPlaysCard(PlayerManager player, GameObject card)
     {
@@ -420,10 +424,11 @@ public class TurnManager : NetworkBehaviour
             return;
         }
 
-        turnState = TurnState.CardIntoHand;
-
         var nextOption = _prevailOptionsToPlay[0];
         _prevailOptionsToPlay.RemoveAt(0);
+
+        Enum.TryParse(nextOption.ToString(), out TurnState nextTurnState);
+        turnState = nextTurnState;
 
         if (nextOption == PrevailOption.Score) PrevailScoring();
         else StartPhaseInteraction(nextOption);
@@ -444,7 +449,7 @@ public class TurnManager : NetworkBehaviour
                 var stats = card.GetComponent<CardStats>();
                 player.discard.Remove(stats);
                 player.hand.Add(stats);
-                player.RpcMoveCard(card, CardLocation.Discard, CardLocation.Hand);
+                player.RpcMoveFromInteraction(card, CardLocation.Discard, CardLocation.Hand);
             }
         }
 
@@ -458,13 +463,12 @@ public class TurnManager : NetworkBehaviour
         {
             foreach (var card in cards)
             {
-                card.GetComponent<NetworkIdentity>().RemoveClientAuthority();
-
                 var stats = card.GetComponent<CardStats>();
                 player.hand.Remove(stats);
-                player.RpcMoveCard(card, CardLocation.Hand, CardLocation.Trash);
+                player.RpcMoveFromInteraction(card, CardLocation.Hand, CardLocation.Trash);
 
                 _trashedCards.Add(card, stats);
+                card.GetComponent<NetworkIdentity>().RemoveClientAuthority();
             }
         }
 
@@ -517,7 +521,7 @@ public class TurnManager : NetworkBehaviour
 
     private async UniTaskVoid DrawInitialHand()
     {
-        await UniTask.Delay(TimeSpan.FromSeconds(_skipCardDrawAnimations ? 0.5f : 4f));
+        await UniTask.Delay(TimeSpan.FromSeconds(_gameOptions.SkipCardSpawnAnimations ? 0.5f : 4f));
 
         // StateFile is NOT null or empty if we load from a file eg. state.json
         // Dont want ETB triggers for entities from game state and only draw initial hand in normal game start 
@@ -541,7 +545,7 @@ public class TurnManager : NetworkBehaviour
     public async UniTaskVoid CheckTriggers(TurnState nextTurnState)
     {
         // Wait for evaluation of triggers
-        await UniTask.Delay(10);
+        await UniTask.Delay(SorsTimings.waitShort);
 
         // Waiting for all triggers to have resolved
         await _abilityQueue.Resolve();
@@ -639,14 +643,14 @@ public class TurnManager : NetworkBehaviour
         else if (turnState == TurnState.Invent || turnState == TurnState.Recruit) BuyCards();
         else if (turnState == TurnState.Develop || turnState == TurnState.Deploy) PlayEntities();
         else if (turnState == TurnState.Prevail) StartPrevailOptions();
-        else if (turnState == TurnState.CardIntoHand) FinishPrevailCardIntoHand();
+        else if (turnState == TurnState.CardSelection) FinishPrevailCardIntoHand();
         else if (turnState == TurnState.Trash) FinishPrevailTrash();
         else throw new ArgumentOutOfRangeException(nameof(turnState), turnState, null);
     }
 
     public void PlayerSkipsInteraction(PlayerManager player)
     {
-        _skippedPlayers.Add(player);
+        _skippedPlayers.Add(player.ID);
         PlayerIsReady(player);
     }
 
@@ -656,7 +660,7 @@ public class TurnManager : NetworkBehaviour
 
         foreach (var player in _gameManager.players.Values) 
         {
-            if (_skippedPlayers.Contains(player)) _readyPlayers.Add(player.ID);
+            if (_skippedPlayers.Contains(player.ID)) _readyPlayers.Add(player.ID);
             else if ((turnState == TurnState.Invent || turnState == TurnState.Recruit) && player.Buys <= 0) _readyPlayers.Add(player.ID);
             else if ((turnState == TurnState.Develop || turnState == TurnState.Deploy) && player.Plays <= 0) _readyPlayers.Add(player.ID);
         }
@@ -712,6 +716,7 @@ public class TurnManager : NetworkBehaviour
             var collection = GetCollectionType(player);
 
             _interactionPanel.TargetStartInteraction(player.connectionToClient, collection, turnState, nbInteractions);
+            player.Cash = player.Cash; // Trigger TargetCheckPlayability
         }
     }
 
@@ -722,7 +727,7 @@ public class TurnManager : NetworkBehaviour
             TurnState.Discard => _gameOptions.phaseDiscard,
             TurnState.Invent or TurnState.Recruit => player.Buys > 0 ? 1 : 0,
             TurnState.Develop or TurnState.Deploy => player.Plays > 0 ? 1 : 0,
-            TurnState.CardIntoHand or TurnState.Trash => _playerPrevailOptions[player].Count(option => option == currentPrevailOption),
+            TurnState.CardSelection or TurnState.Trash => _playerPrevailOptions[player].Count(option => option == currentPrevailOption),
             _ => -1
         };
 
@@ -735,7 +740,7 @@ public class TurnManager : NetworkBehaviour
     {
         List<CardStats> collection = turnState switch
         {
-            TurnState.CardIntoHand => player.discard,
+            TurnState.CardSelection => player.discard,
             // TurnState.GetFromTrash => _trashedCards.Values.ToList(),
             _ => player.hand
         };
@@ -799,7 +804,7 @@ public enum TurnState : byte
     Deploy,
     Prevail,
     Trash,
-    CardIntoHand,
+    CardSelection,
     CleanUp,
     None,
 }

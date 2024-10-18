@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using Cysharp.Threading.Tasks;
+using Unity.VisualScripting;
 
 public class AbilityQueue : MonoBehaviour
 {
     public static AbilityQueue Instance { get; private set; }
     private BoardManager _boardManager;
-    private PlayerInterfaceManager _playerInterfaceManager;
     private EffectHandler _effectHandler;
-    private Dictionary<BattleZoneEntity, Ability> _queue = new();
+    [SerializeField] private Dictionary<BattleZoneEntity, Ability> _queue = new();
     private bool _continue = false;
 
     private void Awake() {
@@ -20,7 +20,6 @@ public class AbilityQueue : MonoBehaviour
     public void Start()
     {
         _boardManager = BoardManager.Instance;
-        _playerInterfaceManager = PlayerInterfaceManager.Instance;
         _effectHandler = GetComponent<EffectHandler>();
     }
 

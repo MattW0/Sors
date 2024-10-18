@@ -99,7 +99,6 @@ public class ArrowManager : NetworkBehaviour
         if (!entity.IsTargetable) return;
 
         CmdSetGroupTarget(entity, _creatureGroup);
-        
         FinishTargeting(entity.transform.position);
     }
 
@@ -129,6 +128,7 @@ public class ArrowManager : NetworkBehaviour
     [Command(requiresAuthority = false)]
     private void CmdSetGroupTarget(BattleZoneEntity target, List<CreatureEntity> creatureGroup)
     {
+        print("CmdSetGroupTarget, creatrueGroup count: " + creatureGroup.Count);
         if (_combatState == TurnState.Attackers) _combatManager.PlayerChoosesTargetToAttack(target, creatureGroup); // _clicker.CmdPlayerChoosesTargetToAttack(entity, _creatureGroup);
         else if (_combatState == TurnState.Blockers) _combatManager.PlayerChoosesAttackerToBlock(target.GetComponent<CreatureEntity>(), creatureGroup); // _clicker.CmdPlayerChoosesAttackerToBlock(entity.GetComponent<CreatureEntity>(), _creatureGroup);<
     }

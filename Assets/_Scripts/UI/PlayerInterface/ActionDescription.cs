@@ -24,7 +24,7 @@ public class ActionDescription : MonoBehaviour
 
         actionDescriptionText.text = GetText(state);
 
-        if (state == TurnState.Discard || state == TurnState.CardIntoHand || state == TurnState.Trash) return;
+        if (state == TurnState.Discard || state == TurnState.CardSelection || state == TurnState.Trash) return;
 
         var iconPath = GetIconPath(state);
         var title = state.ToString();
@@ -53,7 +53,7 @@ public class ActionDescription : MonoBehaviour
             TurnState.Recruit => "Buy creatures",
             TurnState.Deploy => "Play creatures",
             TurnState.Prevail => "Choose prevail options",
-            TurnState.CardIntoHand => "Put a card in your hand",
+            TurnState.CardSelection => "Put a card in your hand",
             TurnState.Trash => "Trash cards",
             _ => ""
         };

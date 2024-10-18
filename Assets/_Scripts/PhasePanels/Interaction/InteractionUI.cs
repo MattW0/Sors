@@ -53,13 +53,12 @@ public class InteractionUI : AnimatedPanel
         PanelIn();
 
         if (_state == TurnState.Discard) _displayText.text = $"Discard {_nbCardsToSelectMax} card(s)";
-        else if (_state == TurnState.CardIntoHand || _state == TurnState.Trash) PrevailInteraction();
+        else if (_state == TurnState.CardSelection || _state == TurnState.Trash) PrevailInteraction();
         else MoneyInteraction(actionVerb);
     }
 
     private void MoneyInteraction(string actionVerb)
     {
-        _skipButton.gameObject.SetActive(true);
         var cardType = _state switch {
             TurnState.Invent or TurnState.Develop => " Technology",
             TurnState.Recruit or TurnState.Deploy => " Creature",
@@ -76,7 +75,7 @@ public class InteractionUI : AnimatedPanel
         // "Up to X cards"
         _confirmButton.interactable = true;
 
-        if (_state == TurnState.CardIntoHand)
+        if (_state == TurnState.CardSelection)
             _displayText.text = $"Put up to {_nbCardsToSelectMax} card(s) into your hand";
         else if (_state == TurnState.Trash)
             _displayText.text = $"Trash up to {_nbCardsToSelectMax} card(s)";
@@ -122,6 +121,7 @@ public class InteractionUI : AnimatedPanel
     private void OnConfirmButtonPressed()
     {
         _displayText.text = "Wait for opponent...";
+        _confirmButton.interactable = false;
         _selectionHandler.ConfirmSelection();   
     }
     private void OnSkipButtonPressed() => SkipInteraction();

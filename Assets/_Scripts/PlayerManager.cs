@@ -6,6 +6,7 @@ using Mirror;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using Unity.VisualScripting;
+using System.Security.Cryptography;
 
 public class PlayerManager : NetworkBehaviour
 {
@@ -185,6 +186,17 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [ClientRpc]
+    public void RpcMoveFromInteraction(GameObject card, CardLocation from, CardLocation to)
+    {
+        if(isOwned) from = CardLocation.Selection;
+
+        print("Moving card from " + from + " to " + to);
+        print("isOwned: " + isOwned);
+
+        _cardMover.MoveTo(card, isOwned, from, to);
+    }
+
+    [ClientRpc]
     public void RpcShowSpawnedCard(GameObject card, CardLocation destination) => _cardMover.ShowSpawnedCard(card, isOwned, destination).Forget();
 
     [ClientRpc]
@@ -263,14 +275,15 @@ public class PlayerManager : NetworkBehaviour
     [Command]
     public void CmdDiscardSelection(List<GameObject> cardsToDiscard)
     {
-        _selectedCards.Clear();
         _selectedCards = cardsToDiscard;
-        _turnManager.PlayerSelectedDiscardCards(this);
+        _turnManager.PlayerSelectedDiscardCards(this, cardsToDiscard);
     }
 
     [Server]
     public void DiscardSelection()
     {
+        // TODO: Move this to turnManager ?, should include Other similar functions
+
         // Server calls each player object to discard their selection _selectedCards
         foreach (var card in _selectedCards)
         {
@@ -278,9 +291,10 @@ public class PlayerManager : NetworkBehaviour
 
             RemoveHandCard(stats);
             discard.Add(stats);
-            RpcMoveCard(card, CardLocation.Selection, CardLocation.Discard);
 
-            _playerInterface.RpcLog($"{PlayerName} discards {stats.cardInfo.title}", LogType.Standard);
+            RpcMoveFromInteraction(card, CardLocation.Hand, CardLocation.Discard);
+
+            _playerInterface.RpcLog($"{PlayerName} discards {card.GetComponent<CardStats>().cardInfo.title}", LogType.Standard);
         }
     }
 
@@ -305,7 +319,6 @@ public class PlayerManager : NetworkBehaviour
     [Command]
     public void CmdPrevailCardsSelection(List<GameObject> cards)
     {
-        _selectedCards.Clear();
         _selectedCards = cards;
         _turnManager.PlayerSelectedPrevailCards(this, cards);
     }
@@ -491,7 +504,7 @@ public class PlayerManager : NetworkBehaviour
     [Command]
     private void CmdPlayerOpensCardCollection(PlayerManager player, CardLocation collectionType, bool ownsCollection)
     {
-        print($"Player {player.PlayerName} opens collection {collectionType.ToString()}, owns collection {ownsCollection}");
+        print($"Player {player.PlayerName} opens collection {collectionType}, owns collection {ownsCollection}");
 
         var cards = new List<CardStats>();
         if (collectionType == CardLocation.Discard){

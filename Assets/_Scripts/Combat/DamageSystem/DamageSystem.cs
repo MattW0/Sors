@@ -15,7 +15,9 @@ public class DamageSystem : MonoBehaviour
     public void EvaluateBlocks(Dictionary<CreatureEntity, BattleZoneEntity> aT, Dictionary<CreatureEntity, CreatureEntity> bA)
     {
         _attackerTarget = aT;
-
+        print("Pre blocks attackers: " + _attackerTarget.Count);
+        print("Evaluating blocks: " + bA.Count);
+        
         if (bA.Count == 0){
             EvaluateUnblocked();
             return;
@@ -49,6 +51,7 @@ public class DamageSystem : MonoBehaviour
 
     private void EvaluateUnblocked()
     {
+        print("Post blocks attackers: " + _attackerTarget.Count);
         foreach(var (a, t) in _attackerTarget)
             _clashes.Add(new CombatClash(a, t, a.Attack));
 
@@ -97,13 +100,6 @@ public class DamageSystem : MonoBehaviour
     //     return false;
     // }
 
-    private void ExecuteClashes(List<CombatClash> clashes)
-    {
-        Debug.Log("Number clashes : " + clashes.Count);
-        _clashes = clashes;
-        ExecuteClashes().Forget();
-    }
-
     private async UniTaskVoid ExecuteClashes() 
     {
         // Jänu was here : #@thisIsAComment ##xoxo
@@ -115,6 +111,8 @@ public class DamageSystem : MonoBehaviour
             await clash.ExecuteCombatClash();
         }
         
+        _clashes.Clear();
+        _attackerTarget.Clear();
         _combatManager.UpdateCombatState(TurnState.CombatCleanUp);
     }
 }

@@ -15,22 +15,26 @@ public class MarketTileHoverPreview : MonoBehaviour
     public static Action<CardInfo> OnHoverTile;
     public static Action OnHoverExit;
 
-    private void Awake(){
+    private void Awake()
+    {
         _viewHeight = previewWindow.rect.height;
         _viewWidth = previewWindow.rect.width;
     }
 
-    private void OnEnable(){
+    private void OnEnable()
+    {
         OnHoverTile += ShowPreview;
         OnHoverExit += HidePreview;
     }
 
-    private void OnDisable(){
+    private void OnDisable()
+    {
         OnHoverTile -= ShowPreview;
         OnHoverExit -= HidePreview;
     }
 
-    private void Start(){
+    private void Start()
+    {
         HidePreview();
 
         _creatureDetailCard.SetActive(false);
@@ -39,8 +43,8 @@ public class MarketTileHoverPreview : MonoBehaviour
     }
 
     //TODO: Make sure the whole window is within screen bounds
-    private void ShowPreview(CardInfo cardInfo){
-
+    private void ShowPreview(CardInfo cardInfo)
+    {
         var previewCardObject = cardInfo.type switch{
             CardType.Creature => _creatureDetailCard,
             CardType.Technology => _technologyDetailCard,
@@ -55,13 +59,15 @@ public class MarketTileHoverPreview : MonoBehaviour
         previewCardObject.SetActive(true);
     }
 
-    private void HidePreview(){
+    private void HidePreview()
+    {
         _creatureDetailCard.SetActive(false);
         _technologyDetailCard.SetActive(false);
         _moneyDetailCard.SetActive(false);
     }
 
-    private void SetViewPosition(){
+    private void SetViewPosition()
+    {
         var anchor = Input.mousePosition + _offset;
 
         var endWidth = anchor.x + _viewWidth;

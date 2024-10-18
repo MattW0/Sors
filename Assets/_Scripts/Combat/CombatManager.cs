@@ -46,6 +46,7 @@ public class CombatManager : NetworkBehaviour
     {
         foreach(var a in attackers) 
             _attackerTarget.Add(a, target);
+        print("post adding attackers: " + _attackerTarget.Count);
     }
 
     public void PlayerDeclaredAttackers(PlayerManager player)

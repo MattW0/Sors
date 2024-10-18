@@ -1,12 +1,15 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System;
 
 public class CardCollectionUI : MonoBehaviour
 {
     [SerializeField] private Image _background;
     [SerializeField] private TMP_Text _collectionTitle;
     [SerializeField] private Button _closeButton;
+    private CardLocation _cardCollectionType;
+    public static event Action<CardLocation> OnCloseCardCollection;
 
     private void Start()
     {
@@ -28,7 +31,12 @@ public class CardCollectionUI : MonoBehaviour
         }
 
         _collectionTitle.text = text;
+        _cardCollectionType = cardCollectionType;
     }
 
-    private void OnClose() => Destroy(gameObject);
+    private void OnClose()
+    {
+        OnCloseCardCollection?.Invoke(_cardCollectionType); 
+        Destroy(gameObject);
+    } 
 }

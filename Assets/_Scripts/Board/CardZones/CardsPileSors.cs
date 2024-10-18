@@ -158,7 +158,12 @@ public class CardsPileSors : MonoBehaviour
 		updatePosition = true;
 	}
 
-    internal void EndInteraction() => SetDefaultPileSettings();
+    internal void EndInteraction()
+	{
+		SetDefaultPileSettings();
+		updatePosition = true;	
+	}
+	
 	private void SetDefaultPileSettings()
     {
 		if (pileType == CardLocation.Selection) settings = selectionSettings;

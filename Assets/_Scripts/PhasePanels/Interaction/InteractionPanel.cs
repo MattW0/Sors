@@ -38,15 +38,17 @@ public class InteractionPanel : NetworkBehaviour
         OnInteractionBegin?.Invoke(turnState, numberSelections, autoSkip);
         if (autoSkip) return;
 
-        // All cards are interactable
-        if (_state == TurnState.Discard 
-            || _state == TurnState.Trash 
-            || _state == TurnState.CardIntoHand) 
-            AllCardsAreInteractable(true);
-        else 
+        // Make cards interactable
+        if (_state == TurnState.Invent || _state == TurnState.Develop){
             MoneyCardsAreInteractable();
-
-        if (_state == TurnState.CardIntoHand) _playerDiscard.StartInteraction();
+        }
+        else if (_state == TurnState.Recruit || _state == TurnState.Deploy){
+            MoneyCardsAreInteractable();
+        }
+        else AllCardsAreInteractable(true);
+        
+        // Move card collection
+        if (_state == TurnState.CardSelection) _playerDiscard.StartInteraction();
         else _playerHand.StartInteraction();
     }
 
@@ -105,7 +107,10 @@ public class InteractionPanel : NetworkBehaviour
     public void RpcResetPanel()
     {
         AllCardsAreInteractable(false);
+
         _playerHand.EndInteraction();
+        _playerDiscard.EndInteraction();
+        
         _selectionHandler.EndSelection();
     }
 }

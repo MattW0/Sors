@@ -22,7 +22,7 @@ public class TriggerHandler : NetworkBehaviour
         var abilities = entity.CardInfo.abilities;
         if (abilities == null || abilities.Count == 0) return;
 
-        var presentAbilities = new List<Ability>();
+        var triggeredAbilities = new List<Ability>();
         foreach (var ability in abilities){
             // Triggers and effects have the same index and a 1-1 relation
             var trigger = ability.trigger;
@@ -33,7 +33,7 @@ public class TriggerHandler : NetworkBehaviour
                 continue;
             }
             
-            presentAbilities.Add(ability);
+            triggeredAbilities.Add(ability);
 
             // Beginning of phase triggers
             var state = TriggerToTurnState(trigger);
@@ -43,7 +43,7 @@ public class TriggerHandler : NetworkBehaviour
             }
         }
 
-        _presentAbilities.Add(entity, presentAbilities);
+        _presentAbilities.Add(entity, triggeredAbilities);
     }
 
     private void CheckTurnStateTriggers(TurnState state)

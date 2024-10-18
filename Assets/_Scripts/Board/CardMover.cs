@@ -83,7 +83,7 @@ public class CardMover : MonoBehaviour
 
         foreach(var card in cards){
             MoveTo(card, hasAuthority, CardLocation.CardSpawn, destination);
-            await UniTask.Delay(SorsTimings.waitShort);
+            await UniTask.Delay(SorsTimings.spawnCard);
         }
     }
 

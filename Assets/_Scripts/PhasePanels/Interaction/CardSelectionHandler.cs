@@ -42,7 +42,7 @@ public class CardSelectionHandler : MonoBehaviour
         // print(selection);
 
         // Only select or deselect in these turnStates (all card types behave the same way)
-        if (_state == TurnState.Discard || _state == TurnState.CardIntoHand || _state == TurnState.Trash) {
+        if (_state == TurnState.Discard || _state == TurnState.CardSelection || _state == TurnState.Trash) {
             SelectOrDeselectCard(card, cardStats.IsSelected);
             return;
         }
@@ -80,7 +80,7 @@ public class CardSelectionHandler : MonoBehaviour
     {
         MoveCard(card, false);
 
-        if (_state == TurnState.Trash || _state == TurnState.CardIntoHand) _ui.SetConfirmButtonEnabled(true);
+        if (_state == TurnState.Trash || _state == TurnState.CardSelection) _ui.SetConfirmButtonEnabled(true);
         else if (_selectedCards.Count < _numberSelections) _ui.SetConfirmButtonEnabled(false);
     }
 
@@ -97,7 +97,7 @@ public class CardSelectionHandler : MonoBehaviour
         OnInteractionConfirmed?.Invoke();
 
         if (_state == TurnState.Discard) _player.CmdDiscardSelection(_selectedCards);
-        else if (_state == TurnState.CardIntoHand || _state == TurnState.Trash) _player.CmdPrevailCardsSelection(_selectedCards);
+        else if (_state == TurnState.CardSelection || _state == TurnState.Trash) _player.CmdPrevailCardsSelection(_selectedCards);
         else if (_state == TurnState.Invent || _state == TurnState.Recruit) _player.CmdConfirmBuy(_marketSelection);
         else if (_state == TurnState.Develop || _state == TurnState.Deploy) _player.CmdConfirmPlay(_selectedCards[0]);
         
@@ -110,7 +110,7 @@ public class CardSelectionHandler : MonoBehaviour
 
         var pile = _state switch
         {
-            TurnState.CardIntoHand => CardLocation.Discard,
+            TurnState.CardSelection => CardLocation.Discard,
             _ => CardLocation.Hand
         };
 
@@ -125,14 +125,7 @@ public class CardSelectionHandler : MonoBehaviour
         _numberSelected = _selectedCards.Count;
     }
 
-    public void EndSelection()
-    {
-        foreach(var card in _selectedCards)
-            DeselectCard(card);
-        
-        _selectedCards.Clear();
-        _ui.PanelOut();
-    }
+    public void EndSelection() => _ui.PanelOut();
 
     public void OnSkipInteraction() => _player.CmdSkipInteraction();
 
