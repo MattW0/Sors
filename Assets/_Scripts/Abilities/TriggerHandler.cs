@@ -14,7 +14,7 @@ public class TriggerHandler : NetworkBehaviour
     {
         _abilityQueue = GetComponent<AbilityQueue>();
 
-        TurnManager.OnPhaseChanged += CheckTurnStateTriggers;
+        TurnManager.OnTurnStateChanged += CheckTurnStateTriggers;
     }
 
     public void EntityEnters(BattleZoneEntity entity)
@@ -108,7 +108,7 @@ public class TriggerHandler : NetworkBehaviour
 
     private void OnDestroy()
     {
-        TurnManager.OnPhaseChanged -= CheckTurnStateTriggers;
+        TurnManager.OnTurnStateChanged -= CheckTurnStateTriggers;
     }
     #endregion
 }

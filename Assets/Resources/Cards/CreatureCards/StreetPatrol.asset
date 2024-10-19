@@ -17,12 +17,16 @@ MonoBehaviour:
   resourceName: StreetPatrol
   type: 0
   title: Street Patrol
-  cost: 2
+  cost: 3
   health: 3
   attack: 3
   points: 0
   moneyValue: 0
-  abilities: []
+  abilities:
+  - trigger: 7
+    effect: 10
+    target: 2
+    amount: 2
   traits: 
-  description: 
+  description: 'Deploy: +2 Cash'
   flavourText: Bleep bloop, I'm a cyborg

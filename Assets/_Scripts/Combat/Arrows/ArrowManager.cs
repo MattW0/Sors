@@ -4,6 +4,7 @@ using UnityEngine;
 using Mirror;
 using Cysharp.Threading.Tasks;
 using System;
+using System.Linq;
 
 public class ArrowManager : NetworkBehaviour
 {
@@ -16,8 +17,6 @@ public class ArrowManager : NetworkBehaviour
     private CombatManager _combatManager;
     private List<CreatureEntity> _creatureGroup = new();
     private Dictionary<int, ArrowRenderer> _floatingArrows = new();
-    public bool PlayerIsGroupingCreatures { get; set; }
-
 
     private void Awake()
     {
@@ -82,7 +81,6 @@ public class ArrowManager : NetworkBehaviour
         
         if (_creatureGroup.Contains(creature))
         {
-            print("Creature already in group");
             _creatureGroup.Remove(creature);
             _floatingArrows[creature.GetInstanceID()].DestroyArrow();
             _floatingArrows.Remove(creature.GetInstanceID());
@@ -95,7 +93,6 @@ public class ArrowManager : NetworkBehaviour
 
     private void HandleClickedOpponentEntity(BattleZoneEntity entity)
     {
-        print("Clicked opponent entity");
         if (!entity.IsTargetable) return;
 
         CmdSetGroupTarget(entity, _creatureGroup);
@@ -114,7 +111,8 @@ public class ArrowManager : NetworkBehaviour
         var arrowRenderer = Instantiate(prefab, parentTransform).GetComponent<ArrowRenderer>();
         arrowRenderer.SetOrigin(origin.position);
         
-        _floatingArrows.Add(creatureId, arrowRenderer);
+        if(_floatingArrows.ContainsKey(creatureId)) _floatingArrows[creatureId] = arrowRenderer;
+        else _floatingArrows.Add(creatureId, arrowRenderer);
     }
 
     private void FinishTargeting(Vector3 pos)
@@ -128,9 +126,9 @@ public class ArrowManager : NetworkBehaviour
     [Command(requiresAuthority = false)]
     private void CmdSetGroupTarget(BattleZoneEntity target, List<CreatureEntity> creatureGroup)
     {
-        print("CmdSetGroupTarget, creatrueGroup count: " + creatureGroup.Count);
-        if (_combatState == TurnState.Attackers) _combatManager.PlayerChoosesTargetToAttack(target, creatureGroup); // _clicker.CmdPlayerChoosesTargetToAttack(entity, _creatureGroup);
-        else if (_combatState == TurnState.Blockers) _combatManager.PlayerChoosesAttackerToBlock(target.GetComponent<CreatureEntity>(), creatureGroup); // _clicker.CmdPlayerChoosesAttackerToBlock(entity.GetComponent<CreatureEntity>(), _creatureGroup);<
+        // print("CmdSetGroupTarget, creatrueGroup count: " + creatureGroup.Count);
+        if (_combatState == TurnState.Attackers) _combatManager.PlayerChoosesTargetToAttack(target, creatureGroup);
+        else if (_combatState == TurnState.Blockers) _combatManager.PlayerChoosesAttackerToBlock(target.GetComponent<CreatureEntity>(), creatureGroup);
     }
 
     private void EntityTargetStart(Transform origin, int creatureId) => SpawnFloatingArrow(targetArrowPrefab, origin, creatureId);

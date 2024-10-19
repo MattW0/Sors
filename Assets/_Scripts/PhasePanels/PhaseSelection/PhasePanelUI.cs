@@ -22,7 +22,6 @@ public class PhasePanelUI : MonoBehaviour
         // Reset cleanup highlight and start at phase selection (index 0)
         _oldHighlight = phaseHighlights[^1];
         UpdatePhaseHighlight(0);
-        progressBarHighlight.color = SorsColors.phaseHighlight;
     }
 
     public void ShowOpponentChoices(Phase[] phases)
@@ -30,24 +29,10 @@ public class PhasePanelUI : MonoBehaviour
         foreach(var phase in phases) 
             OnPhaseSelectionConfirmed?.Invoke(phase);
     }
-
-    #region Phase Highlights
+    
     public void UpdatePhaseHighlight(TurnState newState)
     {
-        var newHighlightIndex = newState switch
-        {
-            TurnState.PhaseSelection => 0,
-            TurnState.Draw => 1,
-            TurnState.Invent => 2,
-            TurnState.Develop => 3,
-            TurnState.Attackers => 4,
-            TurnState.Blockers => 5,
-            TurnState.Recruit => 6,
-            TurnState.Deploy => 7,
-            TurnState.Prevail => 8,
-            TurnState.CleanUp => 9,
-            _ => -1
-        };
+        var newHighlightIndex = GetIndex(newState);
 
         if (newHighlightIndex == -1) return;
         
@@ -65,8 +50,26 @@ public class PhasePanelUI : MonoBehaviour
 
     internal void IsPlayedThisTurn(Phase phase)
     {
-        var index = (int)phase;
+        Enum.TryParse(phase.ToString(), out TurnState nextTurnState);
+        var index = GetIndex(nextTurnState);
         phaseHighlights[index].CrossFadeAlpha(0.7f, 0f, false);
     }
-    #endregion
+    
+    private int GetIndex(TurnState state)
+    {
+        return state switch
+        {
+            TurnState.PhaseSelection => 0,
+            TurnState.Draw => 1,
+            TurnState.Invent => 2,
+            TurnState.Develop => 3,
+            TurnState.Attackers => 4,
+            TurnState.Blockers => 5,
+            TurnState.Recruit => 6,
+            TurnState.Deploy => 7,
+            TurnState.Prevail => 8,
+            TurnState.CleanUp => 9,
+            _ => -1
+        };
+    }
 }

@@ -13,6 +13,7 @@ public class EntityUI : MonoBehaviour
     [SerializeField] private TMP_Text _health;
     [SerializeField] private TMP_Text _attack;
     [SerializeField] private TMP_Text _points;
+    [SerializeField] private TMP_Text _moneyValue;
 
     [Header("Body")]
     [SerializeField] private Image _image;
@@ -42,6 +43,8 @@ public class EntityUI : MonoBehaviour
             }
         } else if (cardInfo.type == CardType.Technology){
             _points.text = cardInfo.points.ToString();
+        } else if (cardInfo.type == CardType.Money){ // Ugly but used for market tile (money)
+            _moneyValue.text = cardInfo.moneyValue.ToString();
         }
     }
 

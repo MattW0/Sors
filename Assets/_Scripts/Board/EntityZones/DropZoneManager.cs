@@ -72,22 +72,26 @@ public class DropZoneManager : NetworkBehaviour
 
     #endregion
 
-    [TargetRpc]
-    public void TargetEntitiesAreTargetable(NetworkConnection conn, Target target)
+    [Server]
+    public int GetNumberTargets(Target target)
     {
         // TODO: Expand for different possible effect targets and standard combat targeting
 
-        var e = entityZones.GetAllEntities();
-        var nbTargets = e.Count;
-        print("targets count: " + nbTargets);
-        
-        if (nbTargets == 0){
-            print("No targetable entities -> skip ability");
-            return;
-        }
+        if (target == Target.None) return 0;
+        if (target == Target.Self) return 1;
+        if (target == Target.You || target == Target.Opponent) return 1;
+        if (target == Target.AnyPlayer) return 2;
+        if (target == Target.Creature) return entityZones.GetAllCreatures().Count;
+        if (target == Target.Technology) return entityZones.GetAllTechnologies().Count;
+        if (target == Target.Entity) return entityZones.GetAllEntities().Count;
+        if (target == Target.Any) return entityZones.GetAllEntities().Count + 2;
 
-        OnTargetEntities?.Invoke(target);
+        return -1;
     }
+
+
+    [TargetRpc]
+    public void TargetEntitiesAreTargetable(NetworkConnection conn, Target target) => OnTargetEntities?.Invoke(target);
 
     [ClientRpc]
     public void RpcResetTargeting() => OnTargetEntities?.Invoke(Target.None);

@@ -12,7 +12,6 @@ public class GameManager : NetworkBehaviour {
     private TurnManager _turnManager;
     private UIManager _uiManager;
     private Market _market;
-    private BoardManager _boardManager;
     private GameOptions _gameOptions;
     public bool isSinglePlayer = false;
     public static event Action<GameOptions> OnGameStart;
@@ -47,7 +46,6 @@ public class GameManager : NetworkBehaviour {
     public void GameSetup(GameOptions options)
     {
         _turnManager = TurnManager.Instance;
-        _boardManager = BoardManager.Instance;
         _market = Market.Instance;
         _uiManager = UIManager.Instance;
 

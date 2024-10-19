@@ -42,6 +42,8 @@ public class GameStateLoader : MonoBehaviour
             if(player.isLocalPlayer) p = host;
             else p = client;
 
+            player.Health = p.health;
+
             playerCards.Add(player, p.cards);
             playerEntities.Add(player, p.entities);
         }

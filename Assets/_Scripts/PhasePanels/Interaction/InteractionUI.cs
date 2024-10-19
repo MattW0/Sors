@@ -47,6 +47,7 @@ public class InteractionUI : AnimatedPanel
 
         _state = state;
         _nbCardsToSelectMax = nbCardsToSelectMax;
+        _confirmButton.interactable = false;
         _skipButton.interactable = state != TurnState.Discard;
 
         var actionVerb = InteractionActionVerb();

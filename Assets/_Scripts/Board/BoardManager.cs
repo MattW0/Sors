@@ -48,6 +48,14 @@ public class BoardManager : NetworkBehaviour
 
     #region Effects
 
+    public bool PlayerHasValidTarget(Ability ability)
+    {
+        var numberTargetables = _dropZone.GetNumberTargets(ability.target);
+        print("Ability " + ability.ToString() + " has " + numberTargetables + " targets");
+
+        return numberTargetables > 0;
+    }
+
     public void PlayerStartSelectTarget(BattleZoneEntity entity, Ability ability)
     {
         var owner = entity.Owner;

@@ -20,14 +20,14 @@ public class PlayerInterfaceManager : NetworkBehaviour
         if (!Instance) Instance = this;
         
         _buttons = GetComponent<PlayerInterfaceButtons>();
-        GameManager.OnGameStart += RpcPrepareUIs;
-        TurnManager.OnPhaseChanged += RpcChangeActionDescriptionText;
+        TurnManager.OnTurnStateChanged += RpcChangeActionDescriptionText;
     }
 
     [ClientRpc]
-    private void RpcPrepareUIs(GameOptions gameOptions)
+    public void RpcPrepare(int numberPhasesToChoose)
     {
-        _actionDescription.NumberPhases = gameOptions.NumberPhases;
+        print("Preparing UIs, nbOptions = " + numberPhasesToChoose);
+        _actionDescription.NumberPhases = numberPhasesToChoose;
 
         NetworkIdentity networkIdentity = GetComponent<NetworkIdentity>();
         if(connectionToClient != null) networkIdentity.AssignClientAuthority(connectionToClient);
@@ -96,8 +96,8 @@ public class PlayerInterfaceManager : NetworkBehaviour
         _logger.ToggleVisible();
     }
 
-    private void OnDestroy(){
-        GameManager.OnGameStart -= RpcPrepareUIs;
+    private void OnDestroy()
+    {
         TurnManager.OnPlayerIsReady -= RpcLogPlayerAction;
     }
 }

@@ -17,8 +17,8 @@ MonoBehaviour:
   resourceName: Chemist
   type: 0
   title: Chemist
-  cost: 2
-  health: 4
+  cost: 1
+  health: 3
   attack: 1
   points: 0
   moneyValue: 0
@@ -27,13 +27,6 @@ MonoBehaviour:
     effect: 11
     target: 10
     amount: 1
-  - trigger: 6
-    effect: 11
-    target: 9
-    amount: 1
   traits: 04000000
-  description: 'Invent: Technologies cost 1 lest to buy.
-
-    Recruit: Creatures
-    cost 1 less to buy.'
+  description: 'Invent: Technologies cost 1 lest to buy.'
   flavourText: 

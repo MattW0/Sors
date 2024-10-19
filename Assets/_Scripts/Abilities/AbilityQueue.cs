@@ -36,6 +36,11 @@ public class AbilityQueue : MonoBehaviour
         foreach(var (entity, ability) in _queue)
         {
             _effectHandler.SetSource(entity, ability);
+
+            if (entity == null){
+                print("Entity has been destroyed, skipping ability " + ability.ToString());
+                continue;
+            }
             entity.RpcEffectHighlight(true);
 
             // May need to wait for player to declare target -> set _abilityTarget
@@ -91,14 +96,17 @@ public class AbilityQueue : MonoBehaviour
             return true;
         }
 
+        // No valid target on board -> continue immediately
+        if (! _boardManager.PlayerHasValidTarget(ability)) return true;
+        
         // Else we need input from player and set _continue to true after receiving it
         print($"NEED PLAYER INPUT: " + ability.ToString());
         _boardManager.PlayerStartSelectTarget(entity, ability);
-        
         return false;
     }
 
-    public void PlayerChoosesAbilityTarget(BattleZoneEntity target){
+    public void PlayerChoosesAbilityTarget(BattleZoneEntity target)
+    {
         _boardManager.ResetTargeting();
         _effectHandler.SetTarget(target);
 
@@ -106,7 +114,8 @@ public class AbilityQueue : MonoBehaviour
         _continue = true;
     }
 
-    public void ClearQueue(){
+    public void ClearQueue()
+    {
         _queue.Clear();
     }
 }

@@ -28,6 +28,7 @@ public class SetColor : MonoBehaviour
             ColorType.PrevailOption => SorsColors.prevailColor,
             ColorType.Player => SorsColors.player,
             ColorType.Opponent => SorsColors.opponent,
+            ColorType.Highlight => SorsColors.phaseHighlight,
             _ => Color.white
         };
 

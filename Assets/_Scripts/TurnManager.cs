@@ -41,7 +41,7 @@ public class TurnManager : NetworkBehaviour
 
     // Events
     public static event Action<int> OnBeginTurn;
-    public static event Action<TurnState> OnPhaseChanged;
+    public static event Action<TurnState> OnTurnStateChanged;
     public static event Action<int, TurnState> OnPlayerIsReady;
 
     #region Setup
@@ -71,9 +71,11 @@ public class TurnManager : NetworkBehaviour
         _boardManager = BoardManager.Instance;
         _abilityQueue = AbilityQueue.Instance;
         _market = Market.Instance;
-        _logger = PlayerInterfaceManager.Instance;
 
         // Panels with setup (GameManager handles market setup)
+        _logger = PlayerInterfaceManager.Instance;
+        _logger.RpcPrepare(gameOptions.NumberPhases);
+
         _interactionPanel = InteractionPanel.Instance;
         _interactionPanel.RpcPrepareInteractionPanel();
 
@@ -153,7 +155,7 @@ public class TurnManager : NetworkBehaviour
         _phasesToPlay.RemoveAt(0);
 
         // To update SM and Phase Panel
-        OnPhaseChanged?.Invoke(nextTurnState);
+        OnTurnStateChanged?.Invoke(nextTurnState);
         CheckTriggers(nextTurnState).Forget();
 
         if (nextTurnState == TurnState.Attackers) _logger.RpcLog($"------- Combat -------", LogType.Phase);
@@ -179,6 +181,7 @@ public class TurnManager : NetworkBehaviour
 
     private void Discard()
     {
+        OnTurnStateChanged?.Invoke(TurnState.Discard);
         StartPhaseInteraction();
     }
 
@@ -430,6 +433,8 @@ public class TurnManager : NetworkBehaviour
         Enum.TryParse(nextOption.ToString(), out TurnState nextTurnState);
         turnState = nextTurnState;
 
+        OnTurnStateChanged?.Invoke(nextTurnState);
+
         if (nextOption == PrevailOption.Score) PrevailScoring();
         else StartPhaseInteraction(nextOption);
     }
@@ -538,7 +543,7 @@ public class TurnManager : NetworkBehaviour
         UpdateTurnState(TurnState.PhaseSelection);
 
         // For phase panel
-        OnPhaseChanged?.Invoke(TurnState.PhaseSelection);
+        OnTurnStateChanged?.Invoke(TurnState.PhaseSelection);
     }
 
     // TODO: May want to combine this with other _abilityQueue resolution functions
@@ -598,7 +603,7 @@ public class TurnManager : NetworkBehaviour
         await UniTask.Delay(SorsTimings.wait);
 
         CheckTriggers(TurnState.PhaseSelection).Forget();
-        OnPhaseChanged?.Invoke(TurnState.PhaseSelection);
+        OnTurnStateChanged?.Invoke(TurnState.PhaseSelection);
     }
 
     #endregion
@@ -803,8 +808,8 @@ public enum TurnState : byte
     Recruit,
     Deploy,
     Prevail,
-    Trash,
     CardSelection,
+    Trash,
     CleanUp,
     None,
 }

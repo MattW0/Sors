@@ -20,7 +20,7 @@ public class PhasePanel : NetworkBehaviour
     private void Awake() 
     {
         TurnManager.OnBeginTurn += RpcBeginPhaseSelection;
-        TurnManager.OnPhaseChanged += RpcUpdatePhaseHighlight;
+        TurnManager.OnTurnStateChanged += RpcUpdatePhaseHighlight;
         CombatManager.OnCombatStateChanged += RpcUpdatePhaseHighlight;
 
         PhaseItemUI.OnToggleSelection += UpdateSelectedPhase;
@@ -106,7 +106,7 @@ public class PhasePanel : NetworkBehaviour
     private void OnDestroy() 
     {
         TurnManager.OnBeginTurn -= RpcBeginPhaseSelection;
-        TurnManager.OnPhaseChanged -= RpcUpdatePhaseHighlight;
+        TurnManager.OnTurnStateChanged -= RpcUpdatePhaseHighlight;
         CombatManager.OnCombatStateChanged -= RpcUpdatePhaseHighlight;
 
         PhaseItemUI.OnToggleSelection -= UpdateSelectedPhase;

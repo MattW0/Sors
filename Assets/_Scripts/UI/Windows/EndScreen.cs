@@ -31,7 +31,7 @@ public class EndScreen : ModalWindow
             playerHealthText.text = health.ToString();
             playerPointsText.text = score.ToString();
         } else {
-            playerNameText.text = player.PlayerName;
+            opponentNameText.text = player.PlayerName;
             opponentHealthText.text = health.ToString();
             opponentPointsText.text = score.ToString();
         }
