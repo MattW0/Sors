@@ -45,7 +45,10 @@ public class CombatManager : NetworkBehaviour
     public void PlayerChoosesTargetToAttack(BattleZoneEntity target, List<CreatureEntity> attackers)
     {
         foreach(var a in attackers) 
+        {
             _attackerTarget.Add(a, target);
+            // a.CanAct = false;
+        }
         print("post adding attackers: " + _attackerTarget.Count);
     }
 

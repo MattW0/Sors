@@ -10,20 +10,9 @@ public class TurnManager : NetworkBehaviour
 {
     public static TurnManager Instance { get; private set; }
 
-    [Header("Singletons")]
-    private GameManager _gameManager;
-    private Market _market;
-    private InteractionPanel _interactionPanel;
-    private PrevailPanel _prevailPanel;
-    private PlayerInterfaceManager _logger;
-    private BoardManager _boardManager;
-    private AbilityQueue _abilityQueue;
-    private CombatManager _combatManager;
-    [SerializeField] private PhasePanel _phasePanel;
-
-    [field: Header("Game state")]
-    [SerializeField] private TurnState turnState;
+    [Header("Game state")]
     public static TurnState TurnState { get; private set; }
+    [SerializeField] private TurnState turnState;
     private GameOptions _gameOptions;
     private int _nbPlayers;
 
@@ -31,6 +20,19 @@ public class TurnManager : NetworkBehaviour
     [SerializeField] private List<Phase> _phasesToPlay = new();
     [SerializeField] private List<int> _readyPlayers = new();
     [SerializeField] private List<int> _skippedPlayers = new();
+    
+    // Managers
+    private GameManager _gameManager;
+    private Market _market;
+    private InteractionPanel _interactionPanel;
+    private PrevailPanel _prevailPanel;
+    private PlayerInterfaceManager _logger;
+    private BoardManager _boardManager;
+    private CombatManager _combatManager;
+    [SerializeField] private AbilityQueue _abilityQueue;
+    [SerializeField] private PhasePanel _phasePanel;
+
+    // Other helpers
     private readonly Dictionary<PlayerManager, List<GameObject>> _selectedCards = new();
     private readonly Dictionary<PlayerManager, CardInfo> _selectedMarketCards = new();
     private readonly List<(int, CardType)> _boughtCards = new();
@@ -69,7 +71,6 @@ public class TurnManager : NetworkBehaviour
     {
         _gameManager = GameManager.Instance;
         _boardManager = BoardManager.Instance;
-        _abilityQueue = AbilityQueue.Instance;
         _market = Market.Instance;
 
         // Panels with setup (GameManager handles market setup)

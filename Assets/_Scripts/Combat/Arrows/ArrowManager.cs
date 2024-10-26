@@ -43,19 +43,11 @@ public class ArrowManager : NetworkBehaviour
     [ClientRpc]
     public void RpcCombatStateChanged(TurnState newState) => _combatState = newState;
 
-    private void HandleClickedPlayerEntity(BattleZoneEntity entity)
+    private void HandleClickedPlayerEntity(BattleZoneEntity playerEntity)
     {
-        if (_clicker.PlayerIsChoosingTarget) {
-            _clicker.PlayerChoosesEntityTarget(entity);
-            return;
-        }
-
-        if (entity.isOwned) return;
-
-        if (_combatState != TurnState.Attackers) return;
-        
-        CmdSetGroupTarget(entity, _creatureGroup);
-        FinishTargeting(entity.transform.position);
+        // Can click either player
+        if (_clicker.PlayerIsChoosingTarget) _clicker.PlayerChoosesEntityTarget(playerEntity);
+        else if (_combatState == TurnState.Attackers && ! playerEntity.isOwned) GroupOnTarget(playerEntity);
     }
 
     private void HandleEntityClicked(BattleZoneEntity entity)
@@ -95,8 +87,7 @@ public class ArrowManager : NetworkBehaviour
     {
         if (!entity.IsTargetable) return;
 
-        CmdSetGroupTarget(entity, _creatureGroup);
-        FinishTargeting(entity.transform.position);
+        GroupOnTarget(entity);
     }
 
     private void SpawnArrow(GameObject prefab, Transform origin, Transform target)
@@ -115,9 +106,15 @@ public class ArrowManager : NetworkBehaviour
         else _floatingArrows.Add(creatureId, arrowRenderer);
     }
 
-    private void FinishTargeting(Vector3 pos)
+    private void GroupOnTarget(BattleZoneEntity entity)
     {
-        foreach (var _arrow in _floatingArrows.Values) _arrow.SetTarget(pos);
+        CmdSetGroupTarget(entity, _creatureGroup);
+
+        // Disable creatures from acting
+        foreach (var creature in _creatureGroup) creature.CanAct = false;
+
+        // Set arrows to target
+        foreach (var _arrow in _floatingArrows.Values) _arrow.SetTarget(entity.transform.position);
 
         _creatureGroup.Clear();
         _floatingArrows.Clear();

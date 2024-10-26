@@ -55,7 +55,7 @@ public class EntityUI : MonoBehaviour
 
     public virtual void Highlight(bool enabled, Color color)
     {
-        if(_highlight == null) return;
+        // if(_highlight == null) return;
 
         _highlight.enabled = enabled;
         _highlight.color = color;

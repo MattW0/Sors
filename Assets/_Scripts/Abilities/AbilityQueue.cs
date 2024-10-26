@@ -1,20 +1,17 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using System;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using Unity.VisualScripting;
 
 public class AbilityQueue : MonoBehaviour
 {
-    public static AbilityQueue Instance { get; private set; }
     private BoardManager _boardManager;
     private EffectHandler _effectHandler;
     [SerializeField] private Dictionary<BattleZoneEntity, Ability> _queue = new();
     private bool _continue = false;
 
-    private void Awake() {
-        if (!Instance) Instance = this;
+    private void Awake() 
+    {
+        PlayerManager.OnPlayerChooseEntityTarget += PlayerChoosesAbilityTarget;
     }
 
     public void Start()
@@ -27,7 +24,8 @@ public class AbilityQueue : MonoBehaviour
     // Or should this be on entity and then added to queue from externally ?
     public void AddAbility(BattleZoneEntity entity, Ability ability)
     {
-        print($"'{entity.Title}' triggers: {ability.ToString()}");
+        print($"'{entity.Title}' triggers: {ability}");
+        entity.RpcSetHighlight(true, SorsColors.triggerHighlight);
         _queue.Add(entity, ability);
     }
 
@@ -41,14 +39,14 @@ public class AbilityQueue : MonoBehaviour
                 print("Entity has been destroyed, skipping ability " + ability.ToString());
                 continue;
             }
-            entity.RpcEffectHighlight(true);
+            entity.RpcSetHighlight(true, SorsColors.abilityHighlight);
 
             // May need to wait for player to declare target -> set _abilityTarget
             await EvaluateAbilityTarget(entity, ability);
 
             // Execute effect
             await _effectHandler.Execute();
-            entity.RpcEffectHighlight(false);
+            entity.RpcSetHighlight(false, SorsColors.defaultHighlight);
 
             // Wait some more to prevent too early clean-up (destroying dead entities)
             await UniTask.Delay(100);
@@ -117,5 +115,10 @@ public class AbilityQueue : MonoBehaviour
     public void ClearQueue()
     {
         _queue.Clear();
+    }
+
+    public void OnDestroy()
+    {
+        PlayerManager.OnPlayerChooseEntityTarget += PlayerChoosesAbilityTarget;
     }
 }

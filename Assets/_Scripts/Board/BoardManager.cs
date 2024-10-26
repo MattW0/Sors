@@ -27,6 +27,7 @@ public class BoardManager : NetworkBehaviour
         if (!Instance) Instance = this;
 
         CombatManager.OnCombatStateChanged += StartCombatPhase;
+        BattleZoneEntity.OnEntityDies += EntityDies;
     }
 
     private void Start()
@@ -227,6 +228,7 @@ public class BoardManager : NetworkBehaviour
     {
         // GameManager.OnGameStart -= PrepareGameStateFile;
         CombatManager.OnCombatStateChanged -= StartCombatPhase;
+        BattleZoneEntity.OnEntityDies -= EntityDies;
     }
 
 }

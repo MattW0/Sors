@@ -35,10 +35,11 @@ public static class SorsColors
 
     // -- Entities --
     public static Color targetColor = Color.magenta;
-    public static Color effectTriggerHighlight = Color.white;
-    public static Color creatureHighlight = Color.green;
-    public static Color creatureAttacking = new Color(200, 80, 50);
-    public static Color creatureBlocking = new Color(0, 101, 138);
+    public static Color triggerHighlight = new Color(1f, 1f, 0.7f, .6f); // When ability triggers
+    public static Color abilityHighlight = Color.white; // While choosing target(s) and during execution
+    public static Color defaultHighlight = Color.green;
+    // public static Color creatureAttacking = new Color(200, 80, 50);
+    // public static Color creatureBlocking = new Color(0, 101, 138);
     public static Color combatClash = new Color(150, 0, 0);
     public static Color creatureIdle = new Color(200, 200, 200);
 

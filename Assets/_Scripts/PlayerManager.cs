@@ -14,7 +14,6 @@ public class PlayerManager : NetworkBehaviour
     
     [Header("Entities")]
     private TurnManager _turnManager;
-    private AbilityQueue _abilityQueue;
     private CardMover _cardMover;
     private PlayerInterfaceManager _playerInterface;
     private UIManager _uiManager;
@@ -35,6 +34,8 @@ public class PlayerManager : NetworkBehaviour
     public readonly CardCollection deck = new();
     public readonly CardCollection hand = new();
     public readonly CardCollection discard = new();
+
+    #region Stats
 
     [Header("Game Stats")]
     [SyncVar, SerializeField] private string playerName;
@@ -89,14 +90,22 @@ public class PlayerManager : NetworkBehaviour
 
     public int ID { get; private set; }
 
+    #endregion Stats
+
+    public static event Action<BattleZoneEntity> OnPlayerChooseEntityTarget;
+
     #region GameSetup
+
+    private void Awake()
+    {
+        CardPileClick.OnLookAtCollection += LookAtCollection;
+    }
 
     [ClientRpc]
     public void RpcInitPlayer()
     {
         _cardMover = CardMover.Instance;
         _uiManager = UIManager.Instance;
-        CardPileClick.OnLookAtCollection += LookAtCollection;
 
         EntityAndUISetup();
 
@@ -106,7 +115,6 @@ public class PlayerManager : NetworkBehaviour
 
         _playerInterface = PlayerInterfaceManager.Instance;
         _turnManager = TurnManager.Instance;
-        _abilityQueue = AbilityQueue.Instance;
         _entity = GetComponent<BattleZoneEntity>();
     }
 
@@ -341,14 +349,14 @@ public class PlayerManager : NetworkBehaviour
 
     public void PlayerChoosesEntityTarget(BattleZoneEntity target)
     {
-        if (isServer) _abilityQueue.PlayerChoosesAbilityTarget(target);
+        if (isServer) OnPlayerChooseEntityTarget?.Invoke(target); // _abilityQueue.PlayerChoosesAbilityTarget(target);
         else CmdPlayerChoosesTargetEntity(target);
 
         PlayerIsChoosingTarget = false;
     }
 
     [Command]
-    private void CmdPlayerChoosesTargetEntity(BattleZoneEntity target) => _abilityQueue.PlayerChoosesAbilityTarget(target);
+    private void CmdPlayerChoosesTargetEntity(BattleZoneEntity target) => OnPlayerChooseEntityTarget?.Invoke(target); 
 
     #endregion
 
@@ -535,6 +543,11 @@ public class PlayerManager : NetworkBehaviour
         if (ReferenceEquals(this, other)) return true;
 
         return this.connectionToClient == other.connectionToClient;
+    }
+
+    private void OnDestroy()
+    {
+        CardPileClick.OnLookAtCollection += LookAtCollection;
     }
 
     #endregion
