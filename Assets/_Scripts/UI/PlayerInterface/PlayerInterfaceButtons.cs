@@ -14,6 +14,7 @@ public class PlayerInterfaceButtons : MonoBehaviour
     [SerializeField] private TMP_Text _chatButtonText;
     private bool _chatVisible = false;
     public static event Action OnOpenMarket;
+    public static event Action OnQuitButtonClicked;
 
     private void Start(){
         _manager = PlayerInterfaceManager.Instance;
@@ -26,8 +27,8 @@ public class PlayerInterfaceButtons : MonoBehaviour
         _chatButton.onClick.AddListener(OnChatButtonPressed);
     }
     public void OnMarketButtonClicked() => OnOpenMarket?.Invoke();
+    public void OnConcedeButtonPressed() => OnQuitButtonClicked?.Invoke();
     public void OnUndoButtonPressed() => _manager.Undo();
-    public void OnConcedeButtonPressed() => _manager.Concede();
     public void OnUtilityButtonPressed() => _manager.ForceEndTurn();
     public void DisableUtilityButton() => _utilityButton.interactable = false;
     public void UndoButtonEnabled(bool b) => _undoButton.interactable = b;

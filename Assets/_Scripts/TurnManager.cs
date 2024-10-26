@@ -573,7 +573,7 @@ public class TurnManager : NetworkBehaviour
     private async UniTaskVoid PlayCardsIntermission()
     {
         // Waiting for Entities abilities (ETB) being tracked 
-        await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.cardMoveTime + SorsTimings.showSpawnedCard));
+        await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.cardMoveTime).Add(TimeSpan.FromMilliseconds(SorsTimings.showSpawnedCard)));
 
         // Waiting for AbilityQueue to finish resolving ETB triggers
         await _abilityQueue.Resolve();
@@ -718,6 +718,7 @@ public class TurnManager : NetworkBehaviour
             selection.Clear();
 
             var nbInteractions = GetNumberOfInteractions(player, currentPrevailOption);
+            print("Player " + player.PlayerName + " can play " + nbInteractions);
             var collection = GetCollectionType(player);
 
             _interactionPanel.TargetStartInteraction(player.connectionToClient, collection, turnState, nbInteractions);

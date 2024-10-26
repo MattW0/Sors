@@ -125,9 +125,24 @@ public class CardSelectionHandler : MonoBehaviour
         _numberSelected = _selectedCards.Count;
     }
 
-    public void EndSelection() => _ui.PanelOut();
+    public void EndSelection()
+    {
+        _ui.PanelOut();
+        ClearSelection();
+    }
 
-    public void OnSkipInteraction() => _player.CmdSkipInteraction();
+    public void OnSkipInteraction()
+    {
+        _player.CmdSkipInteraction();
+        ClearSelection();
+    }
+
+    private void ClearSelection()
+    {
+        var tempList = new List<GameObject>(_selectedCards);
+        foreach (var card in tempList) MoveCard(card, false);
+        _selectedCards.Clear();
+    }
 
     private void OnDestroy()
     {

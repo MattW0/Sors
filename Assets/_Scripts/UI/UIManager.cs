@@ -8,6 +8,7 @@ public class UIManager : NetworkBehaviour
 {
     public static UIManager Instance { get; private set; }
     [SerializeField] private EndScreen _endScreen;
+    [SerializeField] private AlertDialogue _quitDialog;
     [SerializeField] private GameObject _cardCollectionViewPrefab;
     [SerializeField] private Transform _spawnParentTransform;
     [SerializeField] private List<CardLocation> _openCardCollections = new();
@@ -17,6 +18,10 @@ public class UIManager : NetworkBehaviour
         if (!Instance) Instance = this;
 
         CardCollectionUI.OnCloseCardCollection += CloseCardCollection;
+        PlayerInterfaceButtons.OnQuitButtonClicked += QuitDialog;
+        
+        AlertDialogue.OnAccept += AlertDialogueAccept;
+        AlertDialogue.OnDecline += AlertDialogueDecline;
     }
 
     [TargetRpc]
@@ -55,8 +60,25 @@ public class UIManager : NetworkBehaviour
     [ClientRpc]
     internal void RpcSetDraw() => _endScreen.SetDraw();
 
+    private void QuitDialog() => _quitDialog.ModalWindowIn();
+
+    private void AlertDialogueAccept(ModalWindowType type)
+    {
+        // TODO: Let other player win 
+        Application.Quit();
+    }
+
+    private void AlertDialogueDecline(ModalWindowType type)
+    {
+        _quitDialog.ModalWindowOut();
+    }
+
     private void OnDestroy()
     {
         CardCollectionUI.OnCloseCardCollection -= CloseCardCollection;
+        PlayerInterfaceButtons.OnQuitButtonClicked += QuitDialog;
+
+        AlertDialogue.OnAccept -= AlertDialogueAccept;
+        AlertDialogue.OnDecline -= AlertDialogueDecline;
     }
 }

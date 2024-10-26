@@ -121,16 +121,19 @@ public class InteractionUI : AnimatedPanel
     }
     private void OnConfirmButtonPressed()
     {
-        _displayText.text = "Wait for opponent...";
         _confirmButton.interactable = false;
-        _selectionHandler.ConfirmSelection();   
+        _skipButton.interactable = false;
+
+        _displayText.text = "Wait for opponent...";
+        _selectionHandler.ConfirmSelection();
     }
     private void OnSkipButtonPressed() => SkipInteraction();
     private void SkipInteraction()
     {   
-        _displayText.text = "Wait for opponent...";
         _confirmButton.interactable = false;
         _skipButton.interactable = false;
+
+        _displayText.text = "Wait for opponent...";
         _selectionHandler.OnSkipInteraction();
     }
     internal void SetConfirmButtonEnabled(bool b) => _confirmButton.interactable = b;

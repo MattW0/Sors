@@ -48,7 +48,8 @@ public class Market : NetworkBehaviour
         // Databases of generated cards
         _startEntities = Resources.LoadAll<ScriptableCard>("Cards/_StartCards/");
         _moneyCardsDb = Resources.LoadAll<ScriptableCard>("Cards/MoneyCards/");
-        _creatureCardsDb = Resources.LoadAll<ScriptableCard>("Cards/CreatureCards/");
+
+        _creatureCardsDb = Resources.LoadAll<ScriptableCard>("Cards/CreatureCards/");        
         _technologyCardsDb = Resources.LoadAll<ScriptableCard>("Cards/TechnologyCards/");
 
         _interactionPanel = InteractionPanel.Instance;
@@ -65,11 +66,11 @@ public class Market : NetworkBehaviour
 
         // Technologies
         for (var i = 0; i < technologyTiles.Length; i++)
-            technologyTiles[i].InitializeTile(new CardInfo(_technologyCardsDb[i]), i);
+            technologyTiles[i].InitializeTile(GetNewTechnologyFromDb(), i);
 
         // Creatures
         for (var i = 0; i < creatureTiles.Length; i++)
-            creatureTiles[i].InitializeTile(new CardInfo(_creatureCardsDb[i]), i);
+            creatureTiles[i].InitializeTile(GetNewCreatureFromDb(), i);
     }
 
     [ClientRpc]
