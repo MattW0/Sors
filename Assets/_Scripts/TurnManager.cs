@@ -53,6 +53,7 @@ public class TurnManager : NetworkBehaviour
 
         GameManager.OnGameStart += Prepare;
         PlayerManager.OnCashChanged += PlayerCashChanged;
+        PriceReduction.OnMarketPriceReduction += PlayerGetsMarketBonus;
 
         _combatManager = GetComponent<CombatManager>();
     }
@@ -245,9 +246,8 @@ public class TurnManager : NetworkBehaviour
         StartPhaseInteraction();
     }
 
-    public void PlayerGetsMarketBonus(PlayerManager player, CardType type, int amount)
+    private void PlayerGetsMarketBonus(PlayerManager player, CardType type, int amount)
     {
-        // Public because EffectHandler needs to call this
         _market.TargetMarketPriceReduction(player.connectionToClient, type, amount);
     }
 
@@ -791,6 +791,7 @@ public class TurnManager : NetworkBehaviour
     {
         GameManager.OnGameStart -= Prepare;
         PlayerManager.OnCashChanged -= PlayerCashChanged;
+        PriceReduction.OnMarketPriceReduction -= PlayerGetsMarketBonus;
     }    
 }
 

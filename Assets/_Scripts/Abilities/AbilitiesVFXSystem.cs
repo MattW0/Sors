@@ -56,6 +56,10 @@ public class AbilitiesVFXSystem : NetworkBehaviour
             Effect.Damage => (damageProjectilePrefab, _damageProjectileVFX),
             Effect.LifeGain => (healProjectilePrefab, _healProjectileVFX),
             Effect.MoneyGain => (moneyProjectilePrefab, _moneyProjectileVFX),
+
+            // TODO: Add more projectile type VFX
+            Effect.CardDraw => (moneyProjectilePrefab, _moneyProjectileVFX),
+            Effect.PriceReduction => (moneyProjectilePrefab, _moneyProjectileVFX),
             _ => (null, null),
         };
         projectilePrefab.transform.position = sourcePosition;
@@ -84,6 +88,10 @@ public class AbilitiesVFXSystem : NetworkBehaviour
             Effect.Damage => (damageHitPrefab, _damageHitVFX),
             Effect.LifeGain => (healHitPrefab, _healHitVFX),
             Effect.MoneyGain => (moneyHitPrefab, _moneyHitVFX),
+
+            // TODO: Add more hit type VFX
+            Effect.CardDraw => (moneyHitPrefab, _moneyHitVFX),
+            Effect.PriceReduction => (moneyHitPrefab, _moneyHitVFX),
             _ => (null, null),
         };
         hitPrefab.transform.position = target.gameObject.transform.position;

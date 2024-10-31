@@ -141,6 +141,13 @@ public class GameStateLoader : MonoBehaviour
         // Get reference to the market object in the game
         var _market = Market.Instance;
 
+        if(market.money.Count == 0 || market.technologies.Count == 0 || market.creatures.Count == 0)
+        {
+            print("Incomplete market data, loading randomized default settings");
+            _market.RpcInitializeMarket();
+            return;
+        }
+
         // Money
         var moneyCards = new CardInfo[market.money.Count];
         for (var i = 0; i < market.money.Count; i++) 

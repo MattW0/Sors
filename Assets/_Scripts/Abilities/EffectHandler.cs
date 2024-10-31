@@ -1,122 +1,84 @@
 using System;
 using System.Collections;
 using UnityEngine;
-using DG.Tweening;
+using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
+using Unity.VisualScripting;
 
 public class EffectHandler : MonoBehaviour
 {
-    private AbilitiesVFXSystem _abilitiesVFXSystem;
     private TurnManager _turnManager;
     private PlayerInterfaceManager _playerInterfaceManager;
-    private Ability _ability;
-    private BattleZoneEntity _abilitySource;
+
+    [Header("Source and Target(s)")]
+    [SerializeField] private BattleZoneEntity _source;
     // TODO: Make this a list for multiple targets
-    private BattleZoneEntity _abilityTarget;
-    private bool _targetSelf = false;
-    private WaitForSeconds _wait = new WaitForSeconds(SorsTimings.effectProjectile);
+    [SerializeField] private BattleZoneEntity _target;
+
+    [Header("Effects")]
+    private WaitForSeconds _wait = new(SorsTimings.effectProjectile);
+    [SerializeReference] private Dictionary<Effect, IEffect> EFFECTS = new()
+    {
+        {Effect.Damage, new Damage()},
+        {Effect.MoneyGain, new Money()},
+        {Effect.LifeGain, new Life()},
+        {Effect.CardDraw, new CardDraw()},
+        {Effect.PriceReduction, new PriceReduction()}
+    };
+
+    public static event Action<BattleZoneEntity, Ability> OnPlayerStartSelectTarget;
 
     private void Start()
     {
         _turnManager = TurnManager.Instance;
-        _abilitiesVFXSystem = AbilitiesVFXSystem.Instance;
         _playerInterfaceManager = PlayerInterfaceManager.Instance;
+
+        foreach (var effect in EFFECTS.Values) effect.Init(AbilitiesVFXSystem.Instance, _wait);
     }
 
-    internal IEnumerator Execute()
+    internal async UniTask Execute(BattleZoneEntity source, Ability ability)
     {
-        // Sanity check
-        if (_abilitySource == null) yield break;
+        print($"Executing ability: " + ability.ToString());
+        _source = source;
 
-        print($"Executing ability: " + _ability.ToString());
-
-        if(_abilityTarget == null) EvaluateTarget();
-        _playerInterfaceManager.RpcLog(_ability.ToString(), LogType.EffectTrigger);
-
-        if (_ability.effect == Effect.Damage) yield return HandleDamage();
-        else if (_ability.effect == Effect.LifeGain) yield return HandleLifeGain();
-        else if (_ability.effect == Effect.CardDraw) yield return HandleCardDraw();
-        else if (_ability.effect == Effect.PriceReduction) yield return HandlePriceReduction();
-        else if (_ability.effect == Effect.MoneyGain) yield return HandleMoneyGain();
-    }
-
-    internal void SetSource(BattleZoneEntity source, Ability ability)
-    {
-        _abilitySource = source;
-        _ability = ability;
-    }
-    internal void SetTarget(BattleZoneEntity target)
-    {
-        _abilityTarget = target;
-        _abilitySource.RpcDeclaredTarget(_abilityTarget);
-    }
-
-    private void EvaluateTarget()
-    {
-        if(_ability.target == Target.Opponent) _abilityTarget = _turnManager.GetOpponentPlayer(_abilitySource.Owner).GetEntity();
-        else if (_ability.target == Target.You) _abilityTarget = _abilitySource.Owner.GetEntity();
-        else if (_ability.target == Target.Self) {
-            _abilityTarget = _abilitySource;
-            _targetSelf = true;
-        }
-
-        else if (_ability.effect == Effect.PriceReduction) _abilityTarget = _abilitySource.Owner.GetEntity();
-    }
-
-    private IEnumerator HandleDamage()
-    {        
-        // Only play projectile if not targeting self
-        if (! _targetSelf){
-            _abilitiesVFXSystem.RpcPlayProjectile(_abilitySource, _abilityTarget, Effect.Damage);
-            yield return _wait;
+        // Wait for player input if needed
+        _target = GetTargetEntity(ability);
+        await UniTask.Delay(SorsTimings.effectTrigger);
+        if (_target == null) {
+            print($"NEED PLAYER INPUT: " + ability.ToString());
+            OnPlayerStartSelectTarget?.Invoke(_source, ability);
         }
         
-        _abilitiesVFXSystem.RpcPlayHit(_abilityTarget, Effect.Damage);
-        _abilityTarget.EntityTakesDamage(_ability.amount, _abilitySource.CardInfo.traits.Contains(Traits.Deathtouch));
+        while(_target == null) { await UniTask.Delay(100); }
+        print("Ability target: " + _target.Title);
+
+        _playerInterfaceManager.RpcLog(ability.ToString(), LogType.EffectTrigger);
+        await EFFECTS[ability.effect].Execute(_source, _target, ability.amount);
     }
 
-    private IEnumerator HandleCardDraw(){
-        _abilitySource.Owner.DrawCards(_ability.amount);
-
-        yield return _wait;
-    }
-
-    private IEnumerator HandlePriceReduction()
+    internal void SetTarget(BattleZoneEntity target)
     {
-        // convert _ability.target (Target enum) to CardType enum
-        var cardType = (CardType)Enum.Parse(typeof(CardType), _ability.target.ToString());
-        var reduction = _ability.amount;
-
-        _turnManager.PlayerGetsMarketBonus(_abilitySource.Owner, cardType, reduction);
-
-        yield return _wait;
+        _target = target;
+        _source.RpcDeclaredTarget(_target);
     }
 
-    private IEnumerator HandleMoneyGain()
+    private BattleZoneEntity GetTargetEntity(Ability ability)
     {
-        _abilityTarget = _abilitySource.Owner.GetEntity();
-        _abilitiesVFXSystem.RpcPlayProjectile(_abilitySource, _abilityTarget, Effect.MoneyGain);
-        yield return _wait;
+        // Some targets are pre-determined
+        if(ability.target == Target.None 
+            || ability.target == Target.Self) 
+            return _source;
+        if(ability.target == Target.Opponent) 
+            return _turnManager.GetOpponentPlayer(_source.Owner).GetEntity();
+        if (ability.target == Target.You) 
+            return _source.Owner.GetEntity();
 
-        _abilitiesVFXSystem.RpcPlayHit(_abilityTarget, Effect.MoneyGain);
-        _abilitySource.Owner.Cash += _ability.amount;
-    }
-
-    private IEnumerator HandleLifeGain()
-    {
-        _abilityTarget = _abilitySource.Owner.GetEntity();
-        _abilitiesVFXSystem.RpcPlayProjectile(_abilitySource, _abilityTarget, Effect.LifeGain);
-        yield return _wait;
-
-        _abilitiesVFXSystem.RpcPlayHit(_abilityTarget, Effect.LifeGain);
-
-        // TODO: Lifegain for creatures and entities
-        _abilitySource.Owner.Health += _ability.amount;
-    }
-
-    internal void Reset()
-    {
-        _abilitySource = null;
-        _abilityTarget = null;
-        _targetSelf = false;
+        // Some effects always target the owner
+        if (ability.effect == Effect.MoneyGain
+            || ability.effect == Effect.CardDraw
+            || ability.effect == Effect.PriceReduction)
+            return _source.Owner.GetEntity();
+        
+        return null;
     }
 }

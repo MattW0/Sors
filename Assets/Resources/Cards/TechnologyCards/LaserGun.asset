@@ -27,6 +27,10 @@ MonoBehaviour:
     effect: 5
     target: 9
     amount: 1
+  - trigger: 9
+    effect: 5
+    target: 7
+    amount: 1
   traits: 
-  description: 'Clean Up: Laser Gun deals 1 damage to a Creature'
+  description: 'Clean Up: Laser Gun deals 1 damage to a Creature and to itself'
   flavourText: 

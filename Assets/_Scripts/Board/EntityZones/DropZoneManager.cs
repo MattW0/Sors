@@ -80,11 +80,11 @@ public class DropZoneManager : NetworkBehaviour
         if (target == Target.None) return 0;
         if (target == Target.Self) return 1;
         if (target == Target.You || target == Target.Opponent) return 1;
-        if (target == Target.AnyPlayer) return 2;
+        if (target == Target.AnyPlayer) return 2; // 2 Players
         if (target == Target.Creature) return entityZones.GetAllCreatures().Count;
         if (target == Target.Technology) return entityZones.GetAllTechnologies().Count;
         if (target == Target.Entity) return entityZones.GetAllEntities().Count;
-        if (target == Target.Any) return entityZones.GetAllEntities().Count + 2;
+        if (target == Target.Any) return entityZones.GetAllEntities().Count + 2; // 2 Players
 
         return -1;
     }

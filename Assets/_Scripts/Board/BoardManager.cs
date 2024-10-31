@@ -28,6 +28,7 @@ public class BoardManager : NetworkBehaviour
 
         CombatManager.OnCombatStateChanged += StartCombatPhase;
         BattleZoneEntity.OnEntityDies += EntityDies;
+        EffectHandler.OnPlayerStartSelectTarget += PlayerStartSelectTarget;
     }
 
     private void Start()
@@ -57,7 +58,7 @@ public class BoardManager : NetworkBehaviour
         return numberTargetables > 0;
     }
 
-    public void PlayerStartSelectTarget(BattleZoneEntity entity, Ability ability)
+    private void PlayerStartSelectTarget(BattleZoneEntity entity, Ability ability)
     {
         var owner = entity.Owner;
 
@@ -229,6 +230,7 @@ public class BoardManager : NetworkBehaviour
         // GameManager.OnGameStart -= PrepareGameStateFile;
         CombatManager.OnCombatStateChanged -= StartCombatPhase;
         BattleZoneEntity.OnEntityDies -= EntityDies;
+        EffectHandler.OnPlayerStartSelectTarget -= PlayerStartSelectTarget;
     }
 
 }
