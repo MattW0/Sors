@@ -14,10 +14,12 @@ public class Money : IEffect
 
     public IEnumerator Execute(BattleZoneEntity source, BattleZoneEntity target, int amount)
     {
-        _abilitiesVFXSystem.RpcPlayProjectile(source, target, Effect.MoneyGain);
+        _abilitiesVFXSystem.RpcPlayProjectile(source.transform.position,
+                                              target.transform.position,
+                                              Effect.MoneyGain);
         yield return _wait;
 
-        _abilitiesVFXSystem.RpcPlayHit(target, Effect.MoneyGain);
+        _abilitiesVFXSystem.RpcPlayHit(target.transform.position, Effect.MoneyGain);
         target.Owner.Cash += amount;
     }
 }

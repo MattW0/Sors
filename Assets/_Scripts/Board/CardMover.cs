@@ -102,23 +102,6 @@ public class CardMover : MonoBehaviour
         card.SetActive(true);
     }
 
-    // TODO:
-    
-    // public void StartInteraction(CardLocation location, )
-    // {
-
-    //     GetPiles(location, CardLocation.Interaction, true);
-
-    //     _cardHolder.DOMove(_transformInteractable.position, SorsTimings.cardPileRearrangement);
-    //     _cardHolder.DOScale(_scaleInteractable, SorsTimings.cardPileRearrangement);
-    // }
-
-    // public void EndInteraction(CardLocation location)
-    // {
-    //     _cardHolder.DOMove(_transformDefault.position, SorsTimings.cardPileRearrangement);
-    //     _cardHolder.DOScale(Vector3.one, SorsTimings.cardPileRearrangement);
-    // }
-
     #region Helpers
     private void ApplyMovement(CardsPileSors pile, GameObject card)
     {

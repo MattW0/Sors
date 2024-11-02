@@ -75,4 +75,9 @@ public class ActionDescription : MonoBehaviour
             _ => ""
         };
     }
+
+    private void OnDestroy()
+    {
+        PhasePanel.OnPhaseSelectionStarted -= StartTurn;
+    }
 }

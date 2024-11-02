@@ -98,5 +98,6 @@ public class PlayerInterfaceManager : NetworkBehaviour
     private void OnDestroy()
     {
         TurnManager.OnPlayerIsReady -= RpcLogPlayerAction;
+        TurnManager.OnTurnStateChanged -= RpcChangeActionDescriptionText;
     }
 }

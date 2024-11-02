@@ -27,7 +27,7 @@ public class DropZoneManager : NetworkBehaviour
     {   
         foreach (var (card, entity) in entities){
             // Need to await RPC for initialization
-            while (!entity.Owner) await UniTask.Delay(100);
+            while (!entity.Owner) await UniTask.Delay(10);
             var owner = entity.Owner;
 
             // To show which card spawns an entity 

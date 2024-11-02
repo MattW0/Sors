@@ -10,8 +10,6 @@ public static class SorsTimings
     // UI Transitions
     public static float cardMoveTime = 0.5f;
     public static int showSpawnedEntity = 1000;
-    public static int overlayScreenDisplayTime = 1000;
-    public static int overlayScreenFadeTime = 500;
     public static int hoverPreviewDelay = 500;
 	public static float cardPileRearrangement = 0.5f;
 

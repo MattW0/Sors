@@ -108,18 +108,12 @@ public class TurnManager : NetworkBehaviour
     #region Phase Selection
     private void PhaseSelection()
     {
+        turnState = TurnState.PhaseSelection;
         _gameManager.turnNumber++;
         _logger.RpcLog($" ------------ Turn {_gameManager.turnNumber} ------------ ", LogType.TurnChange);
 
-        // Reset and draw per turn
-        foreach (var player in _gameManager.players.Values) {
-            player.chosenPhases.Clear();
-            player.chosenPrevailOptions.Clear();
-
-            player.DrawCards(_gameOptions.cardDraw);
-        }
-
-        OnBeginTurn?.Invoke(_gameManager.turnNumber);
+        // Wait for animation and abilities
+        BeginningOfTurn().Forget();
     }
 
     public void PlayerSelectedPhases(PlayerManager player, Phase[] phases)
@@ -519,7 +513,7 @@ public class TurnManager : NetworkBehaviour
         PlayersDiscardMoney();
         PlayersEmptyResources();
 
-        CleanUpIntermission().Forget();
+        PhaseSelection();
     }
     #endregion
 
@@ -541,10 +535,7 @@ public class TurnManager : NetworkBehaviour
         }
 
         if(_gameOptions.SaveStates) _boardManager.PrepareGameStateFile(_market.GetTileInfos());
-        UpdateTurnState(TurnState.PhaseSelection);
-
-        // For phase panel
-        OnTurnStateChanged?.Invoke(TurnState.PhaseSelection);
+        PhaseSelection();
     }
 
     // TODO: May want to combine this with other _abilityQueue resolution functions
@@ -574,10 +565,11 @@ public class TurnManager : NetworkBehaviour
     private async UniTaskVoid PlayCardsIntermission()
     {
         // Waiting for Entities abilities (ETB) being tracked 
-        await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.cardMoveTime).Add(TimeSpan.FromMilliseconds(SorsTimings.showSpawnedCard)));
+        await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.cardMoveTime).Add(TimeSpan.FromMilliseconds(SorsTimings.showSpawnedEntity)));
 
         // Waiting for AbilityQueue to finish resolving ETB triggers
         await _abilityQueue.Resolve();
+        print("PLAY CARDS: Ability queue resolved");
 
         CheckPlayAnotherCard();
     }
@@ -599,12 +591,25 @@ public class TurnManager : NetworkBehaviour
         UpdateTurnState(TurnState.NextPhase);
     }
 
-    private async UniTaskVoid CleanUpIntermission()
+    private async UniTaskVoid BeginningOfTurn()
     {
+        // Update UI
+        OnBeginTurn?.Invoke(_gameManager.turnNumber);
+        OnTurnStateChanged?.Invoke(TurnState.PhaseSelection);
+
+        await UniTask.Delay(SorsTimings.waitLong);
+
+        // Reset players and draw per turn
+        foreach (var player in _gameManager.players.Values) {
+            player.chosenPhases.Clear();
+            player.chosenPrevailOptions.Clear();
+
+            player.DrawCards(_gameOptions.cardDraw);
+        }
+
         await UniTask.Delay(SorsTimings.wait);
 
-        CheckTriggers(TurnState.PhaseSelection).Forget();
-        OnTurnStateChanged?.Invoke(TurnState.PhaseSelection);
+        await _abilityQueue.Resolve();
     }
 
     #endregion
@@ -613,8 +618,6 @@ public class TurnManager : NetworkBehaviour
 
     private void UpdateTurnState(TurnState newState)
     {
-        _readyPlayers.Clear();
-        _skippedPlayers.Clear();
         turnState = newState;
 
         if(GameEnds()){
@@ -622,8 +625,11 @@ public class TurnManager : NetworkBehaviour
             newState = TurnState.Idle;
         }
 
+        _readyPlayers.Clear();
+        _skippedPlayers.Clear();
+
         if (newState == TurnState.NextPhase) NextPhase();
-        else if (newState == TurnState.PhaseSelection) PhaseSelection();
+        // else if (newState == TurnState.PhaseSelection) PhaseSelection();
         else if (newState == TurnState.Draw) Draw();
         else if (newState == TurnState.Discard) Discard();
         else if (newState == TurnState.Invent || newState == TurnState.Recruit) StartMarketPhase();
@@ -639,7 +645,7 @@ public class TurnManager : NetworkBehaviour
     {
         if (!_readyPlayers.Contains(player.ID)) _readyPlayers.Add(player.ID);
         OnPlayerIsReady?.Invoke(player.ID, turnState);
-        print($"{_readyPlayers.Count}/{_nbPlayers} players are ready in {turnState}");
+        print($" - {turnState} Ready: {_readyPlayers.Count} / {_nbPlayers} players ");
 
         if (_readyPlayers.Count < _nbPlayers) return;
         _readyPlayers.Clear();
@@ -719,7 +725,6 @@ public class TurnManager : NetworkBehaviour
             selection.Clear();
 
             var nbInteractions = GetNumberOfInteractions(player, currentPrevailOption);
-            print("Player " + player.PlayerName + " can play " + nbInteractions);
             var collection = GetCollectionType(player);
 
             _interactionPanel.TargetStartInteraction(player.connectionToClient, collection, turnState, nbInteractions);

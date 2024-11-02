@@ -52,19 +52,6 @@ public class PhasePanel : NetworkBehaviour
     [ClientRpc]
     private void RpcBeginPhaseSelection(int turnNumber) => OnPhaseSelectionStarted?.Invoke(turnNumber);
 
-    private void UpdateSelectedPhase(Phase phase)
-    {
-        if (_selectedPhases.Contains(phase)){
-            _selectedPhases.Remove(phase);
-        } else {
-            _selectedPhases.Add(phase);
-        }
-        
-        if (_selectedPhases.Count == _nbPhasesToChose){
-            ConfirmButtonPressed();
-        }
-    }
-
     [ClientRpc]
     private void RpcUpdatePhaseHighlight(TurnState newState) => _phasePanelUI.UpdatePhaseHighlight(newState);
 
@@ -93,6 +80,19 @@ public class PhasePanel : NetworkBehaviour
     private void CmdPlayerPressedCombatButton(PlayerManager player) => _combatManager.PlayerPressedReadyButton(player);
 
     #endregion
+
+    private void UpdateSelectedPhase(Phase phase)
+    {
+        if (_selectedPhases.Contains(phase)){
+            _selectedPhases.Remove(phase);
+        } else {
+            _selectedPhases.Add(phase);
+        }
+        
+        if (_selectedPhases.Count == _nbPhasesToChose){
+            ConfirmButtonPressed();
+        }
+    }
 
     private void ConfirmButtonPressed()
     {

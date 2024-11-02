@@ -14,10 +14,12 @@ public class CardDraw : IEffect
 
     public IEnumerator Execute(BattleZoneEntity source, BattleZoneEntity target, int amount)
     {
-        _abilitiesVFXSystem.RpcPlayProjectile(source, target, Effect.CardDraw);
+        _abilitiesVFXSystem.RpcPlayProjectile(source.transform.position, 
+                                              target.transform.position, 
+                                              Effect.CardDraw);
         yield return _wait;
         
-        _abilitiesVFXSystem.RpcPlayHit(target, Effect.MoneyGain);
+        _abilitiesVFXSystem.RpcPlayHit(target.transform.position, Effect.MoneyGain);
 
         // TODO: Check if it be opponent?
         target.Owner.DrawCards(amount);

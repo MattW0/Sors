@@ -48,9 +48,9 @@ public class AbilitiesVFXSystem : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcPlayProjectile(BattleZoneEntity source, BattleZoneEntity target, Effect effect)
+    public void RpcPlayProjectile(Vector3 sourcePosition, Vector3 targetPosition, Effect effect)
     {
-        var sourcePosition = source.gameObject.transform.position;
+        // var sourcePosition = source.gameObject.transform.position;
         var (projectilePrefab, projectileVFX) = effect switch
         {
             Effect.Damage => (damageProjectilePrefab, _damageProjectileVFX),
@@ -63,16 +63,15 @@ public class AbilitiesVFXSystem : NetworkBehaviour
             _ => (null, null),
         };
         projectilePrefab.transform.position = sourcePosition;
-
-        var tartgetPosition = target.gameObject.transform.position;
-        var dir = Quaternion.LookRotation(tartgetPosition - sourcePosition).eulerAngles;
+        
+        var dir = Quaternion.LookRotation(targetPosition - sourcePosition).eulerAngles;
         projectilePrefab.transform.localRotation = Quaternion.Euler(dir.x, dir.y - 90f, dir.z);
 
         projectilePrefab.SetActive(true);
         projectileVFX.Play();
 
         projectilePrefab.transform
-            .DOMove(tartgetPosition, SorsTimings.effectProjectile)
+            .DOMove(targetPosition, SorsTimings.effectProjectile)
             .SetEase(Ease.InCubic)
             .OnComplete(() => {
                 projectileVFX.Stop();
@@ -81,7 +80,7 @@ public class AbilitiesVFXSystem : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcPlayHit(BattleZoneEntity target, Effect effect)
+    public void RpcPlayHit(Vector3 position, Effect effect)
     {
         var (hitPrefab, hitVFX) = effect switch
         {
@@ -94,7 +93,7 @@ public class AbilitiesVFXSystem : NetworkBehaviour
             Effect.PriceReduction => (moneyHitPrefab, _moneyHitVFX),
             _ => (null, null),
         };
-        hitPrefab.transform.position = target.gameObject.transform.position;
+        hitPrefab.transform.position = position;
 
         RunHitVFX(hitVFX, hitPrefab).Forget();
     }

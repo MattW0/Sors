@@ -14,10 +14,12 @@ public class Life : IEffect
 
     public IEnumerator Execute(BattleZoneEntity source, BattleZoneEntity target, int amount)
     {
-        _abilitiesVFXSystem.RpcPlayProjectile(source, target, Effect.LifeGain);
+        _abilitiesVFXSystem.RpcPlayProjectile(source.transform.position,
+                                              target.transform.position,
+                                              Effect.LifeGain);
         yield return _wait;
 
-        _abilitiesVFXSystem.RpcPlayHit(target, Effect.LifeGain);
+        _abilitiesVFXSystem.RpcPlayHit(target.transform.position, Effect.LifeGain);
 
         // TODO: Lifegain for creatures and entities
         target.Owner.Health += amount;

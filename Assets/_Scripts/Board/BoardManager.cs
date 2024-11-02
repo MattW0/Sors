@@ -102,7 +102,7 @@ public class BoardManager : NetworkBehaviour
         // Catch exception where entity was already dead and received more damage
         if (_deadEntities.Contains(entity)) return;
 
-        print($"{entity.Title} dies");
+        // print($"{entity.Title} dies");
         _deadEntities.Add(entity);
 
         // Somehow NetworkServer.Destroy(this) destroys the GO but does not call OnDestroy(),
@@ -127,9 +127,9 @@ public class BoardManager : NetworkBehaviour
     public void BoardCleanUpEndOfTurn(List<CardInfo>[] scriptableTiles)
     {
         BoardCleanUp();
+        ClearDeadEntities();
 
         // _dropZone.TechnologiesLooseHealth();
-        ClearDeadEntities();
         if(isServer) SaveGameState(scriptableTiles);
     }
 

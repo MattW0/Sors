@@ -103,14 +103,15 @@ public class GameStateLoader : MonoBehaviour
 
         foreach(var e in entities.creatures){
             var scriptableCard = Resources.Load<ScriptableCard>(e.scriptableCard);
-            var cardObject = _gameManager.SpawnCardAndAddToCollection(p, scriptableCard, CardLocation.PlayZone);
             
             // Wait for card initialization
+            var cardObject = _gameManager.SpawnCardAndAddToCollection(p, scriptableCard, CardLocation.PlayZone);
             await UniTask.Delay(10);
-            var entity = _gameManager.SpawnFieldEntity(p, cardObject);
 
             // Wait for entity initialization
+            var entity = _gameManager.SpawnFieldEntity(p, cardObject);
             await UniTask.Delay(10);
+            
             entity.Health = e.health;
             entity.GetComponent<CreatureEntity>().Attack = e.attack;
 

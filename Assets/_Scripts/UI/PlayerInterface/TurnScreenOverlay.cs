@@ -16,7 +16,8 @@ public class TurnScreenOverlay : ModalWindow
     {
         ModalWindowIn();
 
-        await UniTask.Delay(SorsTimings.overlayScreenDisplayTime);
+        // TODO: Has to be equal to the time that TurnManager waits
+        await UniTask.Delay(SorsTimings.waitLong);
         
         ModalWindowOut();
     }
