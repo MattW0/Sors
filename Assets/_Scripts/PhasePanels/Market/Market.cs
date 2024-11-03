@@ -10,7 +10,7 @@ public class Market : NetworkBehaviour
 {
     public static Market Instance { get; private set; }
     private InteractionPanel _interactionPanel;
-    private Phase _currentPhase;
+    private TurnState _currentPhase;
 
     [SerializeField] private MarketUI _ui;
     [SerializeField] private MarketTile[] moneyTiles;
@@ -74,7 +74,7 @@ public class Market : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcBeginMarketPhase(Phase phase){
+    public void RpcBeginMarketPhase(TurnState phase){
         _currentPhase = phase;
         _ui.BeginPhase(phase);
     }
@@ -99,10 +99,10 @@ public class Market : NetworkBehaviour
         // Can always buy money cards
         foreach(var tile in moneyTiles) tile.Interactable = playerCash >= tile.Cost;
 
-        if (_currentPhase == Phase.Invent){
+        if (_currentPhase == TurnState.Invent){
             foreach (var tile in technologyTiles) tile.Interactable = playerCash >= tile.Cost;
             foreach (var tile in creatureTiles) tile.Interactable = false;
-        } else if (_currentPhase == Phase.Recruit){
+        } else if (_currentPhase == TurnState.Recruit){
             foreach (var tile in creatureTiles) tile.Interactable = playerCash >= tile.Cost;
             foreach (var tile in technologyTiles) tile.Interactable = false;
         }
@@ -113,9 +113,9 @@ public class Market : NetworkBehaviour
     {
         // Reset all other tiles -> single selection
         foreach (var t in moneyTiles) if (t != tile) t.ResetSelected();
-        if (_currentPhase == Phase.Invent){
+        if (_currentPhase == TurnState.Invent){
             foreach (var t in technologyTiles) if (t != tile) t.ResetSelected();
-        } else if (_currentPhase == Phase.Recruit){
+        } else if (_currentPhase == TurnState.Recruit){
             foreach (var t in creatureTiles) if (t != tile) t.ResetSelected();
         }
 

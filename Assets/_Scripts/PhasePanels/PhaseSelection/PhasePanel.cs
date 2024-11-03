@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class PhasePanel : NetworkBehaviour
 {
-    [SerializeField] private List<Phase> _selectedPhases = new();
+    [SerializeField] private List<TurnState> _selectedPhases = new();
     [SerializeField] private CombatPhaseItemUI attack;
     [SerializeField] private CombatPhaseItemUI block;
     
@@ -42,7 +42,7 @@ public class PhasePanel : NetworkBehaviour
     private void RpcStartSelection() => OnPhaseSelectionStarted?.Invoke();
     
     [ClientRpc]
-    public void RpcShowPhaseSelection(PlayerManager player, Phase[] phases)
+    public void RpcShowPhaseSelection(PlayerManager player, TurnState[] phases)
     {
         _phasePanelUI.HighlightPhasesToPlay(phases);
 
@@ -81,7 +81,7 @@ public class PhasePanel : NetworkBehaviour
 
     #endregion
 
-    private void UpdateSelectedPhase(Phase phase)
+    private void UpdateSelectedPhase(TurnState phase)
     {
         if (_selectedPhases.Contains(phase)){
             _selectedPhases.Remove(phase);

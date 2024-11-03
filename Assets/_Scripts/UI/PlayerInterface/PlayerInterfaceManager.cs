@@ -68,7 +68,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
 
     [ClientRpc]
 
-    public void RpcLogPhaseToPlay(List<Phase> phases)
+    public void RpcLogPhaseToPlay(List<TurnState> phases)
     {
         var msg = $"Phases to play:";
         msg += string.Join(", ", phases.Select(phase => phase.ToString()));

@@ -15,7 +15,7 @@ public class PhasePanelUI : MonoBehaviour
 
     [SerializeField] private List<Image> phaseHighlights;
     private Image _oldHighlight;
-    public static event Action<Phase> OnPhaseSelectionConfirmed;
+    public static event Action<TurnState> OnPhaseSelectionConfirmed;
 
     private void Start()
     {
@@ -24,7 +24,7 @@ public class PhasePanelUI : MonoBehaviour
         HighlightTransition(0);
     }
 
-    public void ShowOpponentChoices(Phase[] phases)
+    public void ShowOpponentChoices(TurnState[] phases)
     {
         foreach(var phase in phases) 
             OnPhaseSelectionConfirmed?.Invoke(phase);
@@ -48,7 +48,7 @@ public class PhasePanelUI : MonoBehaviour
         progressBar.localScale = new Vector3(progressBarCheckpoints[newIndex], 1f, 1f);
     }
 
-    internal void HighlightPhasesToPlay(Phase[] phases)
+    internal void HighlightPhasesToPlay(TurnState[] phases)
     {
         for (int i = 0; i < phases.Length; i++)
         {

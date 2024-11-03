@@ -7,7 +7,7 @@ using Unity.Multiplayer.Center.Common;
 
 public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
-    private Phase _phase;
+    private TurnState _phase;
     private TooltipWindow _tooltip;
     [SerializeField] private Image _icon;
     [SerializeField] private Graphic outline;
@@ -26,11 +26,11 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
             tooltipBonus.enabled = value;
         }
     }
-    public static event Action<Phase> OnToggleSelection;
+    public static event Action<TurnState> OnToggleSelection;
 
     private void Start()
     {
-        _phase = (Phase) Enum.Parse(typeof(Phase), gameObject.name);
+        _phase = (TurnState) Enum.Parse(typeof(TurnState), gameObject.name);
         _tooltip = GetComponentInChildren<TooltipWindow>();
 
         PhasePanel.OnPhaseSelectionStarted += StartSelection;
@@ -68,7 +68,7 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
         outline.CrossFadeAlpha(0.5f, 1f, false);
     }
 
-    private void ShowOpponentSelection(Phase phase)
+    private void ShowOpponentSelection(TurnState phase)
     {
         if(phase != _phase) return;
         

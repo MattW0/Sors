@@ -17,7 +17,7 @@ public class TurnManager : NetworkBehaviour
     private int _nbPlayers;
 
     [Header("Helper Fields")]
-    [SerializeField] private List<Phase> _phasesToPlay = new();
+    [SerializeField] private List<TurnState> _phasesToPlay = new();
     [SerializeField] private List<int> _readyPlayers = new();
     [SerializeField] private List<int> _skippedPlayers = new();
     
@@ -36,7 +36,7 @@ public class TurnManager : NetworkBehaviour
     private readonly Dictionary<PlayerManager, List<GameObject>> _selectedCards = new();
     private readonly Dictionary<PlayerManager, CardInfo> _selectedMarketCards = new();
     private readonly List<(int, CardType)> _boughtCards = new();
-    private Dictionary<PlayerManager, Phase[]> _playerPhaseChoices = new();
+    private Dictionary<PlayerManager, TurnState[]> _playerPhaseChoices = new();
     private Dictionary<PlayerManager, List<PrevailOption>> _playerPrevailOptions = new();
     private readonly List<PrevailOption> _prevailOptionsToPlay = new();
     private readonly Dictionary<GameObject, CardStats> _trashedCards = new();
@@ -93,7 +93,7 @@ public class TurnManager : NetworkBehaviour
         var playerNames = new List<string>();
         foreach (var player in _gameManager.players.Values)
         {
-            _playerPhaseChoices.Add(player, new Phase[gameOptions.NumberPhases]);
+            _playerPhaseChoices.Add(player, new TurnState[gameOptions.NumberPhases]);
             _playerPrevailOptions.Add(player, new List<PrevailOption>());
             _selectedCards.Add(player, new List<GameObject>());
             playerNames.Add(player.PlayerName);
@@ -117,7 +117,7 @@ public class TurnManager : NetworkBehaviour
         BeginningOfTurn().Forget();
     }
 
-    public void PlayerSelectedPhases(PlayerManager player, Phase[] phases)
+    public void PlayerSelectedPhases(PlayerManager player, TurnState[] phases)
     {
         _playerPhaseChoices[player] = phases;
 
@@ -132,8 +132,8 @@ public class TurnManager : NetworkBehaviour
     private void FinishPhaseSelection()
     {
         // Combat and Clean-Up each round
-        _phasesToPlay.Add(Phase.Attackers);
-        _phasesToPlay.Add(Phase.CleanUp);
+        _phasesToPlay.Add(TurnState.Attackers);
+        _phasesToPlay.Add(TurnState.CleanUp);
         _phasesToPlay.Sort();
 
         _logger.RpcLogPhaseToPlay(_phasesToPlay);
@@ -167,7 +167,7 @@ public class TurnManager : NetworkBehaviour
         foreach (var player in _gameManager.players.Values)
         {
             var nbCardDraw = _gameOptions.cardDraw;
-            if (player.chosenPhases.Contains(Phase.Draw)) nbCardDraw += _gameOptions.extraDraw;
+            if (_playerPhaseChoices[player].Contains(turnState)) nbCardDraw += _gameOptions.extraDraw;
 
             player.DrawCards(nbCardDraw);
             _logger.RpcLog($"{player.PlayerName} draws {nbCardDraw} cards", LogType.Standard);
@@ -212,22 +212,16 @@ public class TurnManager : NetworkBehaviour
     {
         _boughtCards.Clear();
         
-        // convert current turnState (TurnState enum) to Phase enum
-        var phase = Phase.Recruit;
-        var cardType = CardType.Creature;
-        if (turnState == TurnState.Invent){
-            phase = Phase.Invent;
-            cardType = CardType.Technology;
-        }
+        var cardType = turnState == TurnState.Invent ? CardType.Technology : CardType.Creature;
 
-        _market.RpcBeginMarketPhase(phase);
+        _market.RpcBeginMarketPhase(turnState);
         foreach (var player in _gameManager.players.Values)
         {
             // Each player gets +1 Buy
             player.Buys += _gameOptions.buys;
 
             // If player selected Invent or Recruit, they get the market bonus
-            if (player.chosenPhases.Contains(phase))
+            if (_playerPhaseChoices[player].Contains(turnState))
             {
                 player.Buys += _gameOptions.extraBuys;
                 PlayerGetsMarketBonus(player, cardType, _gameOptions.marketPriceReduction);
@@ -310,9 +304,6 @@ public class TurnManager : NetworkBehaviour
 
     private void StartPlayCard()
     {
-        // For Bonus: convert current turnState to Phase enum
-        var phase = turnState == TurnState.Deploy ? Phase.Deploy : Phase.Develop;
-
         _boardManager.ShowHolders(true);
         foreach(var player in _gameManager.players.Values) 
         {
@@ -320,7 +311,7 @@ public class TurnManager : NetworkBehaviour
             player.Plays += _gameOptions.plays;
 
             // If player selected Develop or Deploy, they get bonus Plays
-            if (player.chosenPhases.Contains(phase)){
+            if (_playerPhaseChoices[player].Contains(turnState)){
                 player.Plays += _gameOptions.extraPlays;
                 player.Cash += _gameOptions.extraCash;
             }
@@ -384,7 +375,7 @@ public class TurnManager : NetworkBehaviour
         foreach (var player in _gameManager.players.Values)
         {
             int nbOptions = _gameOptions.prevails;
-            if (player.chosenPhases.Contains(Phase.Prevail)) nbOptions += _gameOptions.extraPrevails;
+            if (_playerPhaseChoices[player].Contains(turnState)) nbOptions += _gameOptions.extraPrevails;
 
             player.Prevails += nbOptions;
             _prevailPanel.TargetBeginPrevailPhase(player.connectionToClient, nbOptions);
@@ -601,12 +592,8 @@ public class TurnManager : NetworkBehaviour
         await UniTask.Delay(SorsTimings.waitLong);
 
         // Reset players and draw per turn
-        foreach (var player in _gameManager.players.Values) {
-            player.chosenPhases.Clear();
-            player.chosenPrevailOptions.Clear();
-
+        foreach (var player in _gameManager.players.Values)
             player.DrawCards(_gameOptions.cardDraw);
-        }
 
         await UniTask.Delay(SorsTimings.wait);
 
@@ -821,20 +808,6 @@ public enum TurnState : byte
     Prevail,
     CardSelection,
     Trash,
-    CleanUp,
-    None,
-}
-
-public enum Phase : byte
-{
-    PhaseSelection,
-    Draw,
-    Invent,
-    Develop,
-    Attackers,
-    Recruit,
-    Deploy,
-    Prevail,
     CleanUp,
     None,
 }

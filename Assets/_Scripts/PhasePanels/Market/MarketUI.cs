@@ -21,10 +21,10 @@ public class MarketUI : AnimatedPanel
         PlayerInterfaceButtons.OnOpenMarket += MaxButton;
     }
 
-    public void BeginPhase(Phase phase)
+    public void BeginPhase(TurnState phase)
     {
         MaxButton();
-        if(phase == Phase.Recruit) ShowCreaturePanel();
+        if(phase == TurnState.Recruit) ShowCreaturePanel();
         else ShowTechnologyPanel();
     }
 

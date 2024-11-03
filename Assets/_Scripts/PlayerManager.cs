@@ -19,10 +19,10 @@ public class PlayerManager : NetworkBehaviour
     private UIManager _uiManager;
 
     [Header("Game State")]
-    public List<Phase> chosenPhases = new();
-    public List<PrevailOption> chosenPrevailOptions = new();
+    [SerializeField] private List<TurnState> _chosenPhases = new();
+    public List<PrevailOption> _chosenPrevailOptions = new();
     private List<GameObject> _selectedCards = new();
-    public Dictionary<GameObject, CardStats> moneyCardsInPlay = new();
+    private Dictionary<GameObject, CardStats> _moneyCardsInPlay = new();
 
     public bool PlayerIsChoosingTarget { get; private set; }
     private PlayerUI _playerUI;
@@ -214,7 +214,7 @@ public class PlayerManager : NetworkBehaviour
     public void CmdPlayMoneyCard(GameObject cardObject, CardStats cardStats)
     {
         Cash += cardStats.cardInfo.moneyValue;
-        moneyCardsInPlay.Add(cardObject, cardStats);
+        _moneyCardsInPlay.Add(cardObject, cardStats);
 
         RemoveHandCard(cardStats);
         RpcPlayMoney(cardObject);
@@ -223,7 +223,7 @@ public class PlayerManager : NetworkBehaviour
     [Command]
     public void CmdUndoPlayMoney()
     {
-        if (moneyCardsInPlay.Count == 0 || Cash <= 0) return;
+        if (_moneyCardsInPlay.Count == 0 || Cash <= 0) return;
         ReturnMoneyToHand();
         _turnManager.PlayerClickedUndoButton(this);
     }
@@ -234,7 +234,7 @@ public class PlayerManager : NetworkBehaviour
         // Don't allow to return already spent money
         var totalMoneyBack = 0;
         var cardsToReturn = new Dictionary<GameObject, CardStats>();
-        foreach (var (card, stats) in moneyCardsInPlay)
+        foreach (var (card, stats) in _moneyCardsInPlay)
         {
             if (totalMoneyBack + stats.cardInfo.moneyValue > Cash) continue;
 
@@ -245,7 +245,7 @@ public class PlayerManager : NetworkBehaviour
         // Return to hand
         foreach (var (card, stats) in cardsToReturn)
         {
-            moneyCardsInPlay.Remove(card);
+            _moneyCardsInPlay.Remove(card);
             Cash -= stats.cardInfo.moneyValue;
             hand.Add(stats);
             RpcReturnMoneyCardToHand(card);
@@ -255,16 +255,16 @@ public class PlayerManager : NetworkBehaviour
     [Server]
     public void DiscardMoneyCards()
     {
-        if (moneyCardsInPlay.Count == 0) return;
+        if (_moneyCardsInPlay.Count == 0) return;
 
-        foreach (var card in moneyCardsInPlay.Keys)
+        foreach (var card in _moneyCardsInPlay.Keys)
         {
-            var cardInfo = moneyCardsInPlay[card];
+            var cardInfo = _moneyCardsInPlay[card];
             RpcDiscardMoneyCard(card);
             discard.Add(cardInfo);
         }
 
-        moneyCardsInPlay.Clear();
+        _moneyCardsInPlay.Clear();
     }
 
     #endregion Cards
@@ -272,11 +272,9 @@ public class PlayerManager : NetworkBehaviour
     #region TurnActions
 
     [Command]
-    public void CmdPhaseSelection(List<Phase> phases)
+    public void CmdPhaseSelection(List<TurnState> phases)
     {
         print($"Player {PlayerName} selected phases: {string.Join(", ", phases)}");
-        // Saving local player choice
-        chosenPhases = phases;
         _turnManager.PlayerSelectedPhases(this, phases.ToArray());
     }
 
@@ -320,7 +318,7 @@ public class PlayerManager : NetworkBehaviour
     public void CmdPrevailSelection(List<PrevailOption> options)
     {
         // Saving local player choice
-        chosenPrevailOptions = options;
+        _chosenPrevailOptions = options;
         _turnManager.PlayerSelectedPrevailOptions(this, options);
     }
 
