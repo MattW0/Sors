@@ -14,11 +14,11 @@ public class TurnScreenOverlay : ModalWindow
 
     private async UniTaskVoid WaitAndFade()
     {
-        ModalWindowIn();
+        WindowIn();
 
         // TODO: Has to be equal to the time that TurnManager waits
         await UniTask.Delay(SorsTimings.waitLong);
         
-        ModalWindowOut();
+        WindowOut();
     }
 }

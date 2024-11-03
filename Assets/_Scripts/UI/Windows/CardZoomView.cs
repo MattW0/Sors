@@ -47,7 +47,7 @@ public class CardZoomView : ModalWindow, IPointerClickHandler
         detailCard.SetCardUI(card);
         detailCard.DisableFocus();
 
-        ModalWindowIn();
+        WindowIn();
 
         // Money card has no entity equivalent
         if(card.type == CardType.Money) return;
@@ -70,7 +70,7 @@ public class CardZoomView : ModalWindow, IPointerClickHandler
         // Close view on left click
         if (eventData.button != PointerEventData.InputButton.Left) return;
 
-        ModalWindowOut();
+        WindowOut();
 
         _openedCardObject.SetActive(false);
         // is null if money card

@@ -21,7 +21,7 @@ public class PhasePanelUI : MonoBehaviour
     {
         // Reset cleanup highlight and start at phase selection (index 0)
         _oldHighlight = phaseHighlights[^1];
-        UpdatePhaseHighlight(0);
+        HighlightTransition(0);
     }
 
     public void ShowOpponentChoices(Phase[] phases)
@@ -39,20 +39,22 @@ public class PhasePanelUI : MonoBehaviour
         HighlightTransition(newHighlightIndex);
     }
     
-    private void HighlightTransition(int newIndex, bool phaseSelection=false)
+    private void HighlightTransition(int newIndex)
     {
         _oldHighlight.CrossFadeAlpha(0f, fadeDuration, false);
-        if (!phaseSelection) phaseHighlights[newIndex].CrossFadeAlpha(1f, fadeDuration, false);
+        phaseHighlights[newIndex].CrossFadeAlpha(1f, fadeDuration, false);
 
         _oldHighlight = phaseHighlights[newIndex];
         progressBar.localScale = new Vector3(progressBarCheckpoints[newIndex], 1f, 1f);
     }
 
-    internal void IsPlayedThisTurn(Phase phase)
+    internal void HighlightPhasesToPlay(Phase[] phases)
     {
-        Enum.TryParse(phase.ToString(), out TurnState nextTurnState);
-        var index = GetIndex(nextTurnState);
-        phaseHighlights[index].CrossFadeAlpha(0.7f, 0f, false);
+        for (int i = 0; i < phases.Length; i++)
+        {
+            Enum.TryParse(phases[i].ToString(), out TurnState nextTurnState);
+            phaseHighlights[GetIndex(nextTurnState)].CrossFadeAlpha(0.7f, 0f, false);
+        }
     }
     
     private int GetIndex(TurnState state)

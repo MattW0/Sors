@@ -2,7 +2,7 @@ using UnityEngine;
 using Michsky.UI.Shift;
 
 [RequireComponent(typeof(Animator), typeof(CanvasGroup))]
-public class ModalWindow : MonoBehaviour
+public class ModalWindow : MonoBehaviour, IModalWindow
 {
     public bool sharpAnimations = false;
     private BlurManager _blurManager;
@@ -16,7 +16,7 @@ public class ModalWindow : MonoBehaviour
         _canvasGroup = gameObject.GetComponent<CanvasGroup>();
     }
     
-    public void ModalWindowIn()
+    public void WindowIn()
     {
         _blurManager.BlurInAnim();
         _canvasGroup.alpha = 1;
@@ -27,7 +27,7 @@ public class ModalWindow : MonoBehaviour
             _mWindowAnimator.Play("Window In");
     }
 
-    public void ModalWindowOut()
+    public void WindowOut()
     {
         _blurManager.BlurOutAnim();
         _canvasGroup.alpha = 0;

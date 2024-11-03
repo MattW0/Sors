@@ -4,61 +4,60 @@ using System.Linq;
 using UnityEngine;
 using SorsGameState;
 using Cysharp.Threading.Tasks;
+using System.Threading.Tasks;
 
 public class GameStateLoader : MonoBehaviour
 {
     private GameManager _gameManager;
 
+    private Dictionary<PlayerManager, Cards> _playerCards = new();
+    private Dictionary<PlayerManager, Entities> _playerEntities = new();
+    private List<GameObject> _cardList = new();
+    private Dictionary<GameObject, BattleZoneEntity> _entitiesDict = new();
+
     public void LoadGameState(string fileName)
     {
         _gameManager = GameManager.Instance;
 
-        var gameState = new GameState(_gameManager.players.Count, fileName).LoadState();
-        if(gameState == null)
-        { 
-            print("Error loading game state");
-            return;
-        }
+        var gameState = new GameState(_gameManager.players.Count, fileName).LoadState() ?? throw new System.Exception("Trying to load invalid GameState constructed from file name " + fileName);
+
         PlayerSetupFromFile(gameState.players);
         LoadMarketFromFile(gameState.market);
     }
 
     private void PlayerSetupFromFile(Player[] playerData)
     {
-        Player host = new Player();
-        Player client = new Player();
+        Player host = new();
+        Player client = new();
 
         foreach (var p in playerData){
             if (p.isHost) host = p;
             else client = p;
         }
 
-        Dictionary<PlayerManager, Cards> playerCards = new();
-        Dictionary<PlayerManager, Entities> playerEntities = new();
         foreach (var player in _gameManager.players.Values)
         {
             // p has player info and game state 
-            Player p = new Player();
+            Player p;
             if(player.isLocalPlayer) p = host;
             else p = client;
 
             player.Health = p.health;
 
-            playerCards.Add(player, p.cards);
-            playerEntities.Add(player, p.entities);
+            _playerCards.Add(player, p.cards);
+            _playerEntities.Add(player, p.entities);
         }
 
-        SpawningFromFile(playerCards, playerEntities).Forget();
+        SpawningFromFile().Forget();
     }
 
-    private async UniTaskVoid SpawningFromFile(Dictionary<PlayerManager, Cards> playerCards, 
-                                               Dictionary<PlayerManager, Entities> playerEntities)
+    private async UniTaskVoid SpawningFromFile()
     {
-        foreach(var (player, cards) in playerCards){
+        foreach(var (player, cards) in _playerCards){
             await SpawnCardsFromFile(player, cards);
         }
 
-        foreach(var (player, entities) in playerEntities){
+        foreach(var (player, entities) in _playerEntities){
             await SpawnEntitiesFromFile(player, entities);
         }
 
@@ -69,72 +68,61 @@ public class GameStateLoader : MonoBehaviour
 
     private async UniTask SpawnCardsFromFile(PlayerManager p, Cards cards)
     {
-        List<GameObject> cardList = new();
-        foreach(var c in cards.handCards){
-            var scriptableCard = Resources.Load<ScriptableCard>(c);
-            cardList.Add(_gameManager.SpawnCardAndAddToCollection(p, scriptableCard, CardLocation.Hand));
-        }
-        p.RpcShowSpawnedCards(cardList, CardLocation.Hand, true);
-        cardList.Clear();
-
+        SpawnCardCollection(p, cards, CardLocation.Hand);
         await UniTask.Delay(SorsTimings.waitForSpawnFromFile);
 
-        foreach(var c in cards.deckCards){
-            var scriptableCard = Resources.Load<ScriptableCard>(c);
-            cardList.Add(_gameManager.SpawnCardAndAddToCollection(p, scriptableCard, CardLocation.Deck));
-        }
-        p.RpcShowSpawnedCards(cardList, CardLocation.Deck, true);
-        cardList.Clear();
-
+        SpawnCardCollection(p, cards, CardLocation.Deck);
         await UniTask.Delay(SorsTimings.waitForSpawnFromFile);
 
-        foreach(var c in cards.discardCards){
-            var scriptableCard = Resources.Load<ScriptableCard>(c);
-            cardList.Add(_gameManager.SpawnCardAndAddToCollection(p, scriptableCard, CardLocation.Discard));
-        }
-        p.RpcShowSpawnedCards(cardList, CardLocation.Discard, true);
-        
+        SpawnCardCollection(p, cards, CardLocation.Discard);
         await UniTask.Delay(SorsTimings.waitForSpawnFromFile);
+    }
+
+    private void SpawnCardCollection(PlayerManager p, Cards cards, CardLocation location)
+    {
+        List<string> collection = location switch
+        {
+            CardLocation.Deck => cards.deckCards,
+            CardLocation.Discard => cards.discardCards,
+            CardLocation.Hand => cards.handCards,
+            _ => throw new System.Exception("Invalid card location to spawn cards from file: " + location) 
+        };
+
+        foreach (var c in collection)
+        {
+            var scriptableCard = Resources.Load<ScriptableCard>(c);
+            _cardList.Add(_gameManager.SpawnCardAndAddToCollection(p, scriptableCard, location));
+        }
+        p.RpcShowSpawnedCards(_cardList, CardLocation.Hand, true);
+        _cardList.Clear();
     }
 
     private async UniTask SpawnEntitiesFromFile(PlayerManager p, Entities entities)
     {
-        var entitiesDict = new Dictionary<GameObject, BattleZoneEntity>();
+        foreach(var e in entities.creatures) await SpawnEntity(p, e, true);
 
-        foreach(var e in entities.creatures){
-            var scriptableCard = Resources.Load<ScriptableCard>(e.scriptableCard);
-            
-            // Wait for card initialization
-            var cardObject = _gameManager.SpawnCardAndAddToCollection(p, scriptableCard, CardLocation.PlayZone);
-            await UniTask.Delay(10);
+        foreach (var e in entities.technologies) await SpawnEntity(p, e, false);
 
-            // Wait for entity initialization
-            var entity = _gameManager.SpawnFieldEntity(p, cardObject);
-            await UniTask.Delay(10);
-            
-            entity.Health = e.health;
-            entity.GetComponent<CreatureEntity>().Attack = e.attack;
+        p.RpcShowSpawnedCards(_entitiesDict.Keys.ToList(), CardLocation.PlayZone, true);
+        BoardManager.Instance.PlayEntities(_entitiesDict);
+    }
 
-            entitiesDict.Add(cardObject, entity);
-        }
+    private async UniTask SpawnEntity(PlayerManager p, Entity e, bool isCreature)
+    {
+        var scriptableCard = Resources.Load<ScriptableCard>(e.scriptableCard);
 
-        foreach(var e in entities.technologies){
-            var scriptableCard = Resources.Load<ScriptableCard>(e.scriptableCard);
-            var cardObject = _gameManager.SpawnCardAndAddToCollection(p, scriptableCard, CardLocation.PlayZone);
-            
-            // Wait for card initialization
-            await UniTask.Delay(10);
-            var entity = _gameManager.SpawnFieldEntity(p, cardObject);
-            
-            // Wait for entity initialization
-            await UniTask.Delay(10);
-            entity.Health = e.health;
+        // Wait for card initialization
+        var cardObject = _gameManager.SpawnCardAndAddToCollection(p, scriptableCard, CardLocation.PlayZone);
+        await UniTask.Delay(10);
 
-            entitiesDict.Add(cardObject, entity);
-        }
+        // Wait for entity initialization
+        var entity = _gameManager.SpawnFieldEntity(p, cardObject);
+        await UniTask.Delay(10);
 
-        p.RpcShowSpawnedCards(entitiesDict.Keys.ToList(), CardLocation.PlayZone, true);
-        BoardManager.Instance.PlayEntities(entitiesDict);
+        entity.Health = e.health;
+        if (isCreature) entity.GetComponent<CreatureEntity>().Attack = e.attack;
+
+        _entitiesDict.Add(cardObject, entity);
     }
 
     private void LoadMarketFromFile(SorsGameState.Market market)

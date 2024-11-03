@@ -14,11 +14,7 @@ public class ActionDescription : MonoBehaviour
     [SerializeField] private TurnScreenOverlay _turnScreenOverlay;
     public int NumberPhases { get; set; }
 
-    private void Awake()
-    {
-        PhasePanel.OnPhaseSelectionStarted += StartTurn;
-    }
-    private void StartTurn(int turnNumber)
+    public void StartTurn(int turnNumber)
     {
         turnText.text = "Turn " + turnNumber.ToString();
         _turnScreenOverlay.UpdateTurnScreen(turnNumber);
@@ -74,10 +70,5 @@ public class ActionDescription : MonoBehaviour
             TurnState.Prevail => "Sprites/UI/Icons/Phases/prevail",
             _ => ""
         };
-    }
-
-    private void OnDestroy()
-    {
-        PhasePanel.OnPhaseSelectionStarted -= StartTurn;
     }
 }

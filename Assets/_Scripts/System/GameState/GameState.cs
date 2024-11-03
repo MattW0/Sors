@@ -14,7 +14,7 @@ public class GameState
     public int turn;
     public Market market;
     public Player[] players;
-    private string _dataDirPath = Application.persistentDataPath;
+    private readonly string _dataDirPath = Application.persistentDataPath;
     private const string _testStatesDir = "TestStates";
 
     public GameState(int playerCount) 
@@ -44,29 +44,22 @@ public class GameState
         }
         var fullPath = Path.Combine(dirPath, fileName);
 
-        GameState state = null;
-        if(File.Exists(fullPath))
+        try
         {
-            try
+            string dataToLoad = "";
+            using (FileStream stream = new(fullPath, FileMode.Open))
             {
-                string dataToLoad = "";
-                using (FileStream stream = new FileStream(fullPath, FileMode.Open))
-                {
-                    using (StreamReader reader = new StreamReader(stream))
-                    {
-                        dataToLoad = reader.ReadToEnd();
-                    }
-                }
+                using StreamReader reader = new(stream);
+                dataToLoad = reader.ReadToEnd();
+            }
 
-                state = JsonUtility.FromJson<GameState>(dataToLoad);
-            }
-            catch
-            {
-                Debug.LogError($"GameState: Could not load game state from file: {fullPath}");
-            }
+            return JsonUtility.FromJson<GameState>(dataToLoad);
         }
-
-        return state;
+        catch
+        {
+            Debug.LogError($"Could not find or read file: {fullPath}");
+            return null;
+        }
     }
 
     public void SaveState(int turnNumber)

@@ -60,7 +60,7 @@ public class UIManager : NetworkBehaviour
     [ClientRpc]
     internal void RpcSetDraw() => _endScreen.SetDraw();
 
-    private void QuitDialog() => _quitDialog.ModalWindowIn();
+    private void QuitDialog() => _quitDialog.WindowIn();
 
     private void AlertDialogueAccept(ModalWindowType type)
     {
@@ -70,7 +70,7 @@ public class UIManager : NetworkBehaviour
 
     private void AlertDialogueDecline(ModalWindowType type)
     {
-        _quitDialog.ModalWindowOut();
+        _quitDialog.WindowOut();
     }
 
     private void OnDestroy()

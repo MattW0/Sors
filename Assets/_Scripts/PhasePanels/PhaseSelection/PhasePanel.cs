@@ -14,19 +14,20 @@ public class PhasePanel : NetworkBehaviour
     private PhasePanelUI _phasePanelUI;
     private PlayerManager _localPlayer;
     private CombatManager _combatManager;
-    public static event Action<int> OnPhaseSelectionStarted;
+    public static event Action OnPhaseSelectionStarted;
     public static event Action OnPhaseSelectionConfirmed;
     
     private void Awake() 
     {
-        TurnManager.OnBeginTurn += RpcBeginPhaseSelection;
-        TurnManager.OnTurnStateChanged += RpcUpdatePhaseHighlight;
-        CombatManager.OnCombatStateChanged += RpcUpdatePhaseHighlight;
+        _phasePanelUI = GetComponent<PhasePanelUI>();
 
-        PhaseItemUI.OnToggleSelection += UpdateSelectedPhase;
+        TurnManager.OnStartPhaseSelection += RpcStartSelection;
+        TurnManager.OnTurnStateChanged += RpcUpdatePhaseHighlight;
+
+        CombatManager.OnCombatStateChanged += RpcUpdatePhaseHighlight;
         CombatPhaseItemUI.OnPressedCombatButton += PlayerPressedCombatButton;
 
-        _phasePanelUI = GetComponent<PhasePanelUI>();
+        PhaseItemUI.OnToggleSelection += UpdateSelectedPhase;
     }
 
     [ClientRpc]
@@ -37,20 +38,19 @@ public class PhasePanel : NetworkBehaviour
         _combatManager = CombatManager.Instance;
     }
 
+    [ClientRpc]
+    private void RpcStartSelection() => OnPhaseSelectionStarted?.Invoke();
     
     [ClientRpc]
     public void RpcShowPhaseSelection(PlayerManager player, Phase[] phases)
     {
-        for (int i = 0; i < phases.Length; i++) _phasePanelUI.IsPlayedThisTurn(phases[i]);
+        _phasePanelUI.HighlightPhasesToPlay(phases);
 
         if (player.isLocalPlayer) return;
         _phasePanelUI.ShowOpponentChoices(phases);
     }
 
     #region Phases
-
-    [ClientRpc]
-    private void RpcBeginPhaseSelection(int turnNumber) => OnPhaseSelectionStarted?.Invoke(turnNumber);
 
     [ClientRpc]
     private void RpcUpdatePhaseHighlight(TurnState newState) => _phasePanelUI.UpdatePhaseHighlight(newState);
@@ -105,11 +105,12 @@ public class PhasePanel : NetworkBehaviour
 
     private void OnDestroy() 
     {
-        TurnManager.OnBeginTurn -= RpcBeginPhaseSelection;
+        TurnManager.OnStartPhaseSelection -= RpcStartSelection;
         TurnManager.OnTurnStateChanged -= RpcUpdatePhaseHighlight;
-        CombatManager.OnCombatStateChanged -= RpcUpdatePhaseHighlight;
 
-        PhaseItemUI.OnToggleSelection -= UpdateSelectedPhase;
+        CombatManager.OnCombatStateChanged -= RpcUpdatePhaseHighlight;
         CombatPhaseItemUI.OnPressedCombatButton -= PlayerPressedCombatButton;
+        
+        PhaseItemUI.OnToggleSelection -= UpdateSelectedPhase;
     }
 }

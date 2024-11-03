@@ -63,6 +63,6 @@ public class CardsSceneManager : MonoBehaviour
 
     internal void OpenCardCreateWindow()
     {
-        _cardCreateWindow.ModalWindowIn();
+        _cardCreateWindow.WindowIn();
     }
 }

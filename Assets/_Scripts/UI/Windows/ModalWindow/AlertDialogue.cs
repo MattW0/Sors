@@ -38,13 +38,13 @@ public class AlertDialogue : ModalWindow
     public void Accept()
     {
         OnAccept?.Invoke(_windowType);
-        ModalWindowOut();
+        WindowOut();
     }
 
     private void Decline()
     {
         OnDecline?.Invoke(_windowType);
-        ModalWindowOut();
+        WindowOut();
     }
 
     public void SetMessage(string message)

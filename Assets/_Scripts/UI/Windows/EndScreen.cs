@@ -24,7 +24,7 @@ public class EndScreen : ModalWindow
 
     public void SetPlayerScore(PlayerManager player, int health, int score)
     {
-        ModalWindowIn();
+        WindowIn();
 
         if (player.isOwned){
             playerNameText.text = player.PlayerName;

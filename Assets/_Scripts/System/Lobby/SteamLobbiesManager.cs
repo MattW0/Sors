@@ -130,7 +130,7 @@ public class SteamLobbiesManager : MonoBehaviour
         _invitedLobby = lobby;
 
         _joinDialogue.SetMessage("You have been invited to " + lobby.GetData("name") + " by " + friend.Name);
-        _joinDialogue.ModalWindowIn();
+        _joinDialogue.WindowIn();
     }
 
     internal void LeaveLobby()

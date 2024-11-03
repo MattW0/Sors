@@ -43,6 +43,7 @@ public class TurnManager : NetworkBehaviour
 
     // Events
     public static event Action<int> OnBeginTurn;
+    public static event Action OnStartPhaseSelection;
     public static event Action<TurnState> OnTurnStateChanged;
     public static event Action<int, TurnState> OnPlayerIsReady;
 
@@ -206,7 +207,7 @@ public class TurnManager : NetworkBehaviour
 
     #endregion
 
-    #region Buy cards (Invent, Recruit)
+    #region Buy cards
     private void StartMarketPhase()
     {
         _boughtCards.Clear();
@@ -305,7 +306,7 @@ public class TurnManager : NetworkBehaviour
 
     #endregion
 
-    #region Play Cards (Develop, Deploy)
+    #region Play Cards
 
     private void StartPlayCard()
     {
@@ -610,6 +611,8 @@ public class TurnManager : NetworkBehaviour
         await UniTask.Delay(SorsTimings.wait);
 
         await _abilityQueue.Resolve();
+
+        OnStartPhaseSelection?.Invoke();
     }
 
     #endregion

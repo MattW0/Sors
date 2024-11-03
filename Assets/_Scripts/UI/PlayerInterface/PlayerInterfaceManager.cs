@@ -20,6 +20,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
         if (!Instance) Instance = this;
         
         _buttons = GetComponent<PlayerInterfaceButtons>();
+        TurnManager.OnBeginTurn += RpcBeginTurn;
         TurnManager.OnTurnStateChanged += RpcChangeActionDescriptionText;
     }
 
@@ -40,6 +41,8 @@ public class PlayerInterfaceManager : NetworkBehaviour
     [ClientRpc]
     private void RpcChangeActionDescriptionText(TurnState state) => _actionDescription.ChangeActionDescriptionText(state);
 
+    [ClientRpc]
+    private void RpcBeginTurn(int turnNumber) => _actionDescription.StartTurn(turnNumber);
     // [ClientRpc]
     // public void RpcUndoButtonEnabled(bool b) => _buttons.UndoButtonEnabled(b);
 

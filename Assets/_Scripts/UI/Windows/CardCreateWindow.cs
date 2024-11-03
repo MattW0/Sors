@@ -14,7 +14,7 @@ public class CardCreateWindow : ModalWindow
     void Start()
     {
         _createCard.onClick.AddListener(CreateCard);
-        _cancel.onClick.AddListener(ModalWindowOut);
+        _cancel.onClick.AddListener(WindowOut);
     }
 
     private void CreateCard()
