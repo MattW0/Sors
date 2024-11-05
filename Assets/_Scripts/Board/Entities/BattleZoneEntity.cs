@@ -39,10 +39,16 @@ public class BattleZoneEntity : NetworkBehaviour
         }
     }
 
+    public PlayZoneCardHolder EntityHolder { get; internal set; }
+
+    [ClientRpc]
+    public void RpcMoveToHolder() => EntityHolder.EntityEnters(transform);
+
     [SerializeField] private PlayerUI _playerUI;
     private EntityUI _entityUI;
+
     public static event Action<Transform, int> OnTargetStart;
-    public static event Action<Transform, Transform> OnTargetFinish;
+    public static event Action<bool, Transform, Transform> OnTargetFinish;
     public static event Action<BattleZoneEntity> OnEntityDies;
 
     private void Awake()
@@ -73,23 +79,6 @@ public class BattleZoneEntity : NetworkBehaviour
         _entityUI.SetEntityUI(cardInfo);
     }
 
-    public void CheckTargetable(Target target)
-    {
-        // TODO: check if this is targetable for target types
-        // Any, AnyPlayer, Creature, Technology, Card
-        
-        if(target == Target.None) 
-            IsTargetable = false;
-        else if(target == Target.Entity) 
-            IsTargetable = true;
-        else if (target == Target.AnyPlayer)
-           IsTargetable = gameObject.GetComponent<PlayerEntity>() != null;
-        else if (target == Target.Creature)
-            IsTargetable = gameObject.GetComponent<CreatureEntity>() != null;
-        else if (target == Target.Technology)
-            IsTargetable = gameObject.GetComponent<TechnologyEntity>() != null;
-    }
-
     [Server]
     public void EntityTakesDamage(int value, bool deathtouch)
     {
@@ -114,12 +103,29 @@ public class BattleZoneEntity : NetworkBehaviour
     [ClientRpc]
     public void RpcSetHighlight(bool enabled, Color color) => _entityUI.Highlight(enabled, color);
     
-    #region UI Target Arrows
+    #region Targeting
+    public void CheckTargetable(Target target)
+    {
+        // TODO: check if this is targetable for target types
+        // Any, AnyPlayer, Creature, Technology, Card
+        
+        if(target == Target.None) 
+            IsTargetable = false;
+        else if(target == Target.Entity) 
+            IsTargetable = true;
+        else if (target == Target.AnyPlayer)
+           IsTargetable = gameObject.GetComponent<PlayerEntity>() != null;
+        else if (target == Target.Creature)
+            IsTargetable = gameObject.GetComponent<CreatureEntity>() != null;
+        else if (target == Target.Technology)
+            IsTargetable = gameObject.GetComponent<TechnologyEntity>() != null;
+    }
 
     [TargetRpc]
     public void TargetSpawnTargetArrow(NetworkConnection conn) => OnTargetStart?.Invoke(transform, GetInstanceID());
     [ClientRpc]
-    public void RpcDeclaredTarget(BattleZoneEntity target) => OnTargetFinish?.Invoke(transform, target.transform);
+    public void RpcDeclaredTarget(BattleZoneEntity target) => OnTargetFinish?.Invoke(isOwned, transform, target.transform);
+
     #endregion
 
     // Need this for player UI highlights : attackable, targetable, ...

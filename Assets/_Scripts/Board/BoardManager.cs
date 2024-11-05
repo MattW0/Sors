@@ -16,8 +16,6 @@ public class BoardManager : NetworkBehaviour
     [SerializeField] private DropZoneManager _dropZone;
     [SerializeField] private PhasePanel _phasePanel;
 
-    // Entities, corresponding card object
-    private Dictionary<BattleZoneEntity, GameObject> _entitiesObjectsCache = new();
     private List<BattleZoneEntity> _deadEntities = new();
     private TurnState _combatState;
     private GameState _gameState;
@@ -37,24 +35,16 @@ public class BoardManager : NetworkBehaviour
         _combatManager = CombatManager.Instance;
     }
 
-    public void PlayEntities(Dictionary<GameObject, BattleZoneEntity> entities) 
-    {
-        foreach(var (card, entity) in entities){
-            // Initialize and keep track which card object corresponds to which entity
-            _entitiesObjectsCache.Add(entity, card);
-        }
-
-        // Move entities to holders and card into played zone
-        _dropZone.EntitiesEnter(entities).Forget();
-    }
+    // Move entities to holders and card into played zone
+    // Async for game state loader
+    public async UniTask PlayEntities(Dictionary<GameObject, BattleZoneEntity> entities) => await _dropZone.EntitiesEnter(entities);
 
     #region Effects
 
     public bool PlayerHasValidTarget(Ability ability)
     {
         var numberTargetables = _dropZone.GetNumberTargets(ability.target);
-        print("Ability " + ability.ToString() + " has " + numberTargetables + " targets");
-
+        // print("Ability " + ability.ToString() + " has " + numberTargetables + " targets");
         return numberTargetables > 0;
     }
 
@@ -110,43 +100,36 @@ public class BoardManager : NetworkBehaviour
         entity.RpcUnsubscribeEvents();
     }
 
-    private void CombatCleanUp()
+    private async void CombatCleanUp()
     {
-        ClearDeadEntities();
-        // Reset entities and destroy blocker arrows
+        await ClearDeadEntities();
         _dropZone.CombatCleanUp();
     }
     #endregion
 
-    public void BoardCleanUp()
+    public async void BoardCleanUp()
     {
-        ClearDeadEntities();
+        await ClearDeadEntities();
         _dropZone.DestroyTargetArrows();
     }
 
-    public void BoardCleanUpEndOfTurn(List<CardInfo>[] scriptableTiles)
+    public async void BoardCleanUpEndOfTurn(List<CardInfo>[] scriptableTiles)
     {
         BoardCleanUp();
-        ClearDeadEntities();
+        await ClearDeadEntities();
 
         // _dropZone.TechnologiesLooseHealth();
         if(isServer) SaveGameState(scriptableTiles);
     }
 
-    public void ClearDeadEntities()
+    private async UniTask ClearDeadEntities()
     {
-        // print("_deadEntities : " + _deadEntities.Count);
+        await _dropZone.EntitiesLeave(_deadEntities);
+        print("Clearing dead entities");
+
         foreach (var dead in _deadEntities)
         {
-            _dropZone.EntityLeaves(dead);
-
-            // Move the card object to discard pile
-            var cardObject = _entitiesObjectsCache[dead];
-            dead.Owner.discard.Add(cardObject.GetComponent<CardStats>());
-            dead.Owner.RpcMoveCard(cardObject, CardLocation.PlayZone, CardLocation.Discard);
-
             dead.UnsubscribeEvents();
-            _entitiesObjectsCache.Remove(dead);
             NetworkServer.Destroy(dead.gameObject);
         }
         _deadEntities.Clear();
@@ -179,11 +162,11 @@ public class BoardManager : NetworkBehaviour
             _gameState.players[i].entities.technologies.Clear();
 
             foreach(var entity in creatures){
-                var e = new SorsGameState.Entity(entity.CardInfo, entity.Health, entity.Attack);
+                var e = new Entity(entity.CardInfo, entity.Health, entity.Attack);
                 _gameState.players[i].entities.creatures.Add(e);
             }
             foreach(var entity in technologies){
-                var e = new SorsGameState.Entity(entity.CardInfo, entity.Health);
+                var e = new Entity(entity.CardInfo, entity.Health);
                 _gameState.players[i].entities.technologies.Add(e);
             }
 
@@ -205,15 +188,9 @@ public class BoardManager : NetworkBehaviour
         }
     }
 
-    public void ShowHolders(bool active)
-    {
-        if(active) { 
-            var turnState = TurnManager.TurnState;
-            _dropZone.RpcHighlightCardHolders(turnState);
-        } else {
-            _dropZone.RpcResetHolders();
-        }
-    }
+    public int CheckNumberOfFreeSlots(bool isServer, TurnState state) => _dropZone.GetNumberOfFreeSlots(isServer, state);
+
+    public void ResetHolders() => _dropZone.RpcResetHolders();
 
     private async UniTaskVoid CombatTransitionAnimation(TurnState state)
     {

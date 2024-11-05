@@ -1,22 +1,28 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
+using System.Linq;
 
 public class EntityZones : NetworkBehaviour
 {
-    [SerializeField] private List<CreatureEntity> _hostCreatures = new();
-    [SerializeField] private List<CreatureEntity> _clientCreatures = new();
-    [SerializeField] private List<TechnologyEntity> _hostTechnologies = new();
-    [SerializeField] private List<TechnologyEntity> _clientTechnologies = new();
     [SerializeField] private Transform _spawnedEntityTransform;
-    [SerializeField] private PlayZoneCardHolder[] _playerTechnologyHolders;
-    [SerializeField] private PlayZoneCardHolder[] _playerCreatureHolders;
+    [SerializeField] private List<TechnologyEntity> _clientTechnologies = new();
+    [SerializeField] private List<CreatureEntity> _clientCreatures = new();
+    [SerializeField] private List<CreatureEntity> _hostCreatures = new();
+    [SerializeField] private List<TechnologyEntity> _hostTechnologies = new();
+    
     [SerializeField] private PlayZoneCardHolder[] _opponentTechnologyHolders;
     [SerializeField] private PlayZoneCardHolder[] _opponentCreatureHolders;
+    [SerializeField] private PlayZoneCardHolder[] _playerCreatureHolders;
+    [SerializeField] private PlayZoneCardHolder[] _playerTechnologyHolders;
 
-    [Server]
-    public void AddEntity(BattleZoneEntity entity, bool isHost)
+    [ClientRpc]
+    public void RpcAddEntity(BattleZoneEntity entity, bool isHost)
     {
+        // Assign free holder to later make entity move there
+        entity.EntityHolder = GetFirstFreeHolder(entity);
+        entity.EntityHolder.IsOccupied = true;
+
         if (entity.cardType == CardType.Technology)
         {
             var technology = entity.GetComponent<TechnologyEntity>();
@@ -29,23 +35,30 @@ public class EntityZones : NetworkBehaviour
             if(isHost) _hostCreatures.Add(creature);
             else _clientCreatures.Add(creature);
         }
-
-        ResetHolders();
     }
 
-    [Server]
-    public void RemoveTechnology(TechnologyEntity technology, bool isHost)
+    [ClientRpc]
+    public void RpcRemoveEntity(BattleZoneEntity entity, bool isHost)
     {
-        if(isHost) _hostTechnologies.Remove(technology);
-        else _clientTechnologies.Remove(technology);
+        entity.EntityHolder.IsOccupied = false;
+        entity.EntityHolder = null;
+
+        if (entity.cardType == CardType.Technology)
+        {
+            var technology = entity.GetComponent<TechnologyEntity>();
+            if(isHost) _hostTechnologies.Remove(technology);
+            else _clientTechnologies.Remove(technology);
+        }
+        else if (entity.cardType == CardType.Creature)
+        {
+            var creature = entity.GetComponent<CreatureEntity>();
+            if(isHost) _hostCreatures.Remove(creature);
+            else _clientCreatures.Remove(creature);
+        }
     }
 
-    [Server]
-    public void RemoveCreature(CreatureEntity creature, bool isHost)
-    {
-        if(isHost) _hostCreatures.Remove(creature);
-        else _clientCreatures.Remove(creature);
-    }
+
+    #region Getters
 
     [Server]
     public List<CreatureEntity> GetCreatures(bool isHost)
@@ -54,11 +67,11 @@ public class EntityZones : NetworkBehaviour
         else return _clientCreatures;
     }
 
+    [Server]
     public List<CreatureEntity> GetAllCreatures()
     {
-        var creatures = new List<CreatureEntity>();
-        creatures.AddRange(_hostCreatures);
-        creatures.AddRange(_clientCreatures);
+        var creatures = GetCreatures(true);
+        creatures.AddRange(GetCreatures(false));
 
         return creatures;
     }
@@ -70,15 +83,16 @@ public class EntityZones : NetworkBehaviour
         else return _clientTechnologies;
     }
 
+    [Server]
     public List<TechnologyEntity> GetAllTechnologies()
     {
-        var technologies = new List<TechnologyEntity>();
-        technologies.AddRange(_hostTechnologies);
-        technologies.AddRange(_clientTechnologies);
+        var technologies = GetTechnologies(true);
+        technologies.AddRange(GetTechnologies(false));
 
         return technologies;
     }
 
+    [Server]
     public List<BattleZoneEntity> GetAllEntities()
     {
         var technologies = GetAllTechnologies();
@@ -94,6 +108,9 @@ public class EntityZones : NetworkBehaviour
 
         return entities;
     }
+    #endregion
+
+    #region Entity holders
 
     [ClientRpc]
     public void RpcMoveEntityToSpawned(BattleZoneEntity e)
@@ -102,79 +119,32 @@ public class EntityZones : NetworkBehaviour
         e.gameObject.SetActive(true);
     }
 
-    [ClientRpc]
-    public void RpcMoveEntityToHolder(BattleZoneEntity entity)
-    {
-        var targetHolder = FindHolderTransform(entity);
-        if(!targetHolder) {
-            // TODO: Should check this at beginning of playCard phase -> dont allow it there
-            print("No free holders found! Aborting to play entity...");
-            return;
-        }
-
-        targetHolder.EntityEnters(entity);
-    }
-
-    #region Entity holders
-    private PlayZoneCardHolder FindHolderTransform(BattleZoneEntity entity)
-    {
-        var index = 0;
-        if(entity.isOwned){
-            if(entity.cardType == CardType.Technology){
-                index = GetFirstFreeHolderIndex(_playerTechnologyHolders);
-                return _playerTechnologyHolders[index];
-            } else if(entity.cardType == CardType.Creature){
-                index = GetFirstFreeHolderIndex(_playerCreatureHolders);
-                return _playerCreatureHolders[index];
-            }
-        }
-        
-        // Opponent Entity
-        if(entity.cardType == CardType.Technology){
-            index = GetFirstFreeHolderIndex(_opponentTechnologyHolders);
-            return _opponentTechnologyHolders[index];
-        } else if(entity.cardType == CardType.Creature){
-            index = GetFirstFreeHolderIndex(_opponentCreatureHolders);
-            return _opponentCreatureHolders[index];
-        }
-        
-        // Returning null if no free holders found 
-        return null;
-    }
-
-    private int GetFirstFreeHolderIndex(PlayZoneCardHolder[] holders)
-    {
-        for (int i = 0; i < holders.Length; i++)
-        {
-            // Holder has Entity -> continue
-            if(holders[i].transform.GetComponentInChildren<BattleZoneEntity>()) continue;
-            
-            return i;
-        }
-        
-        return -1;
-    }
-
+    [Client]
     public void HighlightCardHolders(TurnState state)
     {
         if(state == TurnState.Develop) HighlightTechnologyHolders();
         else if (state == TurnState.Deploy) HighlightCreatureHolders();
     }
 
+    [Client]
     public void HighlightTechnologyHolders()
     {
         foreach (var holder in _playerTechnologyHolders) {
+            if(holder.IsOccupied) continue;
             holder.SetHighlight();
         }
     }
 
+    [Client]
     public void HighlightCreatureHolders()
     {
         foreach (var holder in _playerCreatureHolders) {
+            if(holder.IsOccupied) continue;
             holder.SetHighlight();
         }
     }
-    
+
+    [Client]
     public void ResetHolders()
     {
         foreach (var holder in _playerTechnologyHolders) {
@@ -184,5 +154,35 @@ public class EntityZones : NetworkBehaviour
             holder.ResetHighlight();
         }
     }
+
+    // [Server]
+    private PlayZoneCardHolder GetFirstFreeHolder(BattleZoneEntity entity)
+    {
+        PlayZoneCardHolder holder = null;
+        if(entity.isOwned){
+            if(entity.cardType == CardType.Technology) holder = _playerTechnologyHolders.FirstOrDefault(h => !h.IsOccupied);
+            if(entity.cardType == CardType.Creature) holder = _playerCreatureHolders.FirstOrDefault(h => !h.IsOccupied);
+        } else {
+            if(entity.cardType == CardType.Technology) holder = _opponentTechnologyHolders.FirstOrDefault(h => !h.IsOccupied);
+            if(entity.cardType == CardType.Creature) holder = _opponentCreatureHolders.FirstOrDefault(h => !h.IsOccupied);
+        }
+        
+        return holder;
+    }
+
+    [Server]
+    internal int GetNumberOfFreeHolders(bool isHost, TurnState state)
+    {
+        if(isHost){
+            if(state == TurnState.Develop) return _playerTechnologyHolders.Count(h => !h.IsOccupied);
+            if(state == TurnState.Deploy) return _playerCreatureHolders.Count(h => !h.IsOccupied);
+        } else {
+            if(state == TurnState.Develop) return _opponentTechnologyHolders.Count(h => !h.IsOccupied);
+            if(state == TurnState.Deploy) return _opponentCreatureHolders.Count(h => !h.IsOccupied);
+        }
+
+        return -1;
+    }
+
     #endregion
 }

@@ -16,13 +16,11 @@ public class Damage : IEffect
     {
         // Only play projectile if not targeting self
         if (source != target){
-            _abilitiesVFXSystem.RpcPlayProjectile(source.transform.position, 
-                                                  target.transform.position, 
-                                                  Effect.Damage);
+            _abilitiesVFXSystem.RpcPlayProjectile(source, target, Effect.Damage);
             yield return _wait;
         }
         
-        _abilitiesVFXSystem.RpcPlayHit(target.transform.position, Effect.Damage);
+        _abilitiesVFXSystem.RpcPlayHit(target, Effect.Damage);
         target.EntityTakesDamage(amount, source.CardInfo.traits.Contains(Traits.Deathtouch));
     }
 }

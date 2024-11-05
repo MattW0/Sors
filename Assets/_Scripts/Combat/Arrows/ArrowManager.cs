@@ -129,7 +129,15 @@ public class ArrowManager : NetworkBehaviour
     }
 
     private void EntityTargetStart(Transform origin, int creatureId) => SpawnFloatingArrow(targetArrowPrefab, origin, creatureId);
-    private void EntityTargetFinish(Transform origin, Transform target) => SpawnArrow(targetArrowPrefab, origin, target);
+    private void EntityTargetFinish(bool isOwned, Transform origin, Transform target)
+    {
+        if (isOwned) {
+            foreach (var _arrow in _floatingArrows.Values) _arrow.SetTarget(target.position);
+            _floatingArrows.Clear();
+        } else {
+            SpawnArrow(targetArrowPrefab, origin, target);
+        }
+    }
     private void DeclaredAttack(Transform origin, Transform target) => SpawnArrow(attackerArrowPrefab, origin, target);
     private void DeclaredBlock(Transform origin, Transform target) => SpawnArrow(blockerArrowPrefab, origin, target);
 

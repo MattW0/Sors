@@ -65,7 +65,7 @@ public class TriggerHandler : NetworkBehaviour
     }
 
     #region Helper Functions
-    public void EntityDies(BattleZoneEntity entity) => _presentAbilities.Remove(entity);
+    public void EntityLeaves(BattleZoneEntity entity) => _presentAbilities.Remove(entity);
 
     private TurnState TriggerToTurnState(Trigger trigger)
     {

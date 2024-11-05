@@ -23,7 +23,7 @@ public class AbilityQueue : MonoBehaviour
     // Or should this be on entity and then added to queue from externally ?
     public void AddAbility(BattleZoneEntity entity, Ability ability)
     {
-        print($"'{entity.Title}' triggers: {ability}");
+        print($" - {ability} ({entity.Title})");
         entity.RpcSetHighlight(true, SorsColors.triggerHighlight);
 
         if (!_queue.ContainsKey(entity)) _queue.Add(entity, new() { ability });

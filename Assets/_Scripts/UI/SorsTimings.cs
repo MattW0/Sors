@@ -24,7 +24,7 @@ public static class SorsTimings
     public static int spawnCard = 50;
     public static int showSpawnedCard = 2000;
     public static int moveSpawnedCard = 100;
-    public static int waitForSpawnFromFile = 2000; // Game state loading
+    public static int waitForSpawnFromFile = 1000; // Game state loading
 
     public static void SkipCardSpawnAnimations(){
         spawnCard = 1;

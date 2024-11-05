@@ -16,12 +16,10 @@ public class PriceReduction : IEffect
 
     public IEnumerator Execute(BattleZoneEntity source, BattleZoneEntity target, int amount)
     {
-        _abilitiesVFXSystem.RpcPlayProjectile(source.transform.position, 
-                                              target.transform.position,
-                                              Effect.PriceReduction);
+        _abilitiesVFXSystem.RpcPlayProjectile(source, target, Effect.PriceReduction);
         yield return _wait;
 
-        _abilitiesVFXSystem.RpcPlayHit(target.transform.position, Effect.PriceReduction);
+        _abilitiesVFXSystem.RpcPlayHit(target, Effect.PriceReduction);
         var cardType = (CardType) Enum.Parse(typeof(CardType), target.cardType.ToString());
         OnMarketPriceReduction?.Invoke(source.Owner, cardType, amount);
     }

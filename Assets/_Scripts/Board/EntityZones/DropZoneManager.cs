@@ -5,14 +5,19 @@ using System.Collections.Generic;
 using Mirror;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using System.Linq;
+using Unity.VisualScripting;
 
+[RequireComponent(typeof(EntityZones))]
 public class DropZoneManager : NetworkBehaviour
 {
     [SerializeField] private BoardManager _boardManager;
-    [SerializeField] private EntityZones entityZones;
     [SerializeField] private MoneyZone playerMoneyZone;
     [SerializeField] private MoneyZone opponentMoneyZone;
     [SerializeField] private TriggerHandler _triggerHandler;
+    private EntityZones _entityZones;
+    // Entities and corresponding card object (for dying)
+    private Dictionary<BattleZoneEntity, GameObject> _entitiesCardsCache = new();
     public static event Action<bool> OnDeclareAttackers;
     public static event Action<bool> OnDeclareBlockers;
     public static event Action OnCombatEnd;
@@ -22,25 +27,35 @@ public class DropZoneManager : NetworkBehaviour
 
     #region Entities ETB and LTB
 
+    private void Awake()
+    {
+        _entityZones = GetComponent<EntityZones>();
+    }
+
     [Server]
-    public async UniTaskVoid EntitiesEnter(Dictionary<GameObject, BattleZoneEntity> entities)
-    {   
-        foreach (var (card, entity) in entities){
+    public async UniTask EntitiesEnter(Dictionary<GameObject, BattleZoneEntity> entities)
+    {
+        foreach (var (card, entity) in entities)
+        {
+            // Initialize and keep track which card object corresponds to which entity
+            _entitiesCardsCache.Add(entity, card);
+
             // Need to await RPC for initialization
             while (!entity.Owner) await UniTask.Delay(10);
             var owner = entity.Owner;
 
-            // To show which card spawns an entity 
+            // Track entity and evaluate where it will be placed
+            _entityZones.RpcAddEntity(entity, entity.Owner.isLocalPlayer);
+
+            // To show which card spawns an entity -> move to spawn
             owner.RpcMoveCard(card, CardLocation.Hand, CardLocation.EntitySpawn);
-            entityZones.RpcMoveEntityToSpawned(entity);
-
-            // Keep track of entity objects for combat interactions
-            entityZones.AddEntity(entity, owner.isLocalPlayer);
-
-            // Spawning animation
+            _entityZones.RpcMoveEntityToSpawned(entity);
             await UniTask.Delay(SorsTimings.showSpawnedEntity);
-            entityZones.RpcMoveEntityToHolder(entity);
+
+            // _entityZones.MoveToHolder(entity);
+            entity.RpcMoveToHolder();
             owner.RpcMoveCard(card, CardLocation.EntitySpawn, CardLocation.PlayZone);
+            await UniTask.Delay(SorsTimings.moveSpawnedCard);
 
             // Score points on ETB if card is a Technology
             if (entity.CardInfo.type == CardType.Technology) 
@@ -52,22 +67,30 @@ public class DropZoneManager : NetworkBehaviour
     }
 
     [Server]
-    public void EntityLeaves(BattleZoneEntity entity)
+    public async UniTask EntitiesLeave(List<BattleZoneEntity> entities)
     {
-        if (entity.cardType == CardType.Technology)
+        foreach(var dead in entities)
         {
-            var technology = entity.GetComponent<TechnologyEntity>();
-            entityZones.RemoveTechnology(technology, entity.Owner.isLocalPlayer);
+            // Remove triggers 
+            _triggerHandler.EntityLeaves(dead);
+            _entityZones.RpcRemoveEntity(dead, dead.Owner.isLocalPlayer);
 
-            technology.Owner.Score -= technology.Points;
-        }
-        else if (entity.cardType == CardType.Creature)
-        {
-            var creature = entity.GetComponent<CreatureEntity>();
-            entityZones.RemoveCreature(creature, entity.Owner.isLocalPlayer);
-        }
+            // Get corresponding card object and remove from cache
+            var cardObject = _entitiesCardsCache[dead];
+            _entitiesCardsCache.Remove(dead);
 
-        _triggerHandler.EntityDies(entity);
+            // Substract points on LTB if card is a Technology
+            if (dead.CardInfo.type == CardType.Technology) 
+                dead.Owner.Score -= dead.GetComponent<TechnologyEntity>().Points;
+
+            // TODO: Dying animation here
+            await UniTask.Delay(10);
+
+            // Move the card object to discard pile
+            dead.Owner.discard.Add(cardObject.GetComponent<CardStats>());
+            dead.Owner.RpcMoveCard(cardObject, CardLocation.PlayZone, CardLocation.Discard);
+            await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.cardMoveTime));
+        }
     }
 
     #endregion
@@ -81,10 +104,10 @@ public class DropZoneManager : NetworkBehaviour
         if (target == Target.Self) return 1;
         if (target == Target.You || target == Target.Opponent) return 1;
         if (target == Target.AnyPlayer) return 2; // 2 Players
-        if (target == Target.Creature) return entityZones.GetAllCreatures().Count;
-        if (target == Target.Technology) return entityZones.GetAllTechnologies().Count;
-        if (target == Target.Entity) return entityZones.GetAllEntities().Count;
-        if (target == Target.Any) return entityZones.GetAllEntities().Count + 2; // 2 Players
+        if (target == Target.Creature) return _entityZones.GetAllCreatures().Count;
+        if (target == Target.Technology) return _entityZones.GetAllTechnologies().Count;
+        if (target == Target.Entity) return _entityZones.GetAllEntities().Count;
+        if (target == Target.Any) return _entityZones.GetAllEntities().Count + 2; // 2 Players
 
         return -1;
     }
@@ -104,7 +127,7 @@ public class DropZoneManager : NetworkBehaviour
         foreach (var player in players)
         {
             // Auto-skip : Local player has no creatures
-            if (entityZones.GetCreatures(player.isLocalPlayer).Count == 0) 
+            if (_entityZones.GetCreatures(player.isLocalPlayer).Count == 0) 
                 PlayerFinishedChoosingAttackers(player);
 
             // else if (player.isAI) PlayerFinishedChoosingAttackers(player);
@@ -136,7 +159,7 @@ public class DropZoneManager : NetworkBehaviour
         foreach (var player in players)
         {
             // Inverting isLocalPlayer because we want opponent creatures
-            var opponentCreatures = entityZones.GetCreatures(!player.isLocalPlayer);
+            var opponentCreatures = _entityZones.GetCreatures(!player.isLocalPlayer);
 
             // Auto-skip : No attacking opponent creature
             var isAttacked = opponentCreatures.Exists(entity => entity.IsAttacking);
@@ -146,7 +169,7 @@ public class DropZoneManager : NetworkBehaviour
             }
             
             // Auto-skip : No creature able to block
-            var playerCreatures = entityZones.GetCreatures(player.isLocalPlayer);
+            var playerCreatures = _entityZones.GetCreatures(player.isLocalPlayer);
             var hasBlocker = playerCreatures.Exists(entity => !entity.IsAttacking);
             if(!hasBlocker) {
                 PlayerFinishedChoosingBlockers(player);
@@ -187,7 +210,7 @@ public class DropZoneManager : NetworkBehaviour
     [Server]
     public void TechnologiesLooseHealth()
     {
-        var technologies = entityZones.GetAllTechnologies();
+        var technologies = _entityZones.GetAllTechnologies();
 
         foreach (var technology in technologies)
         {
@@ -196,6 +219,16 @@ public class DropZoneManager : NetworkBehaviour
     }
 
     #region UI and utils
+
+    // For GameState saving
+    [Server]
+    internal (List<CreatureEntity> creatures, List<TechnologyEntity> technologies) GetPlayerEntities(PlayerManager player)
+    {
+        var creatures = _entityZones.GetCreatures(player.isLocalPlayer);
+        var technologies = _entityZones.GetTechnologies(player.isLocalPlayer);
+
+        return (creatures, technologies);
+    }
 
     [ClientRpc]
     public void RpcDiscardMoney()
@@ -207,21 +240,22 @@ public class DropZoneManager : NetworkBehaviour
     [Server]
     public void DestroyTargetArrows() => RpcDestroyArrows();
     [ClientRpc]
+    public void RpcResetHolders() => _entityZones.ResetHolders();
+    [ClientRpc]
     private void RpcEntityUIReset() => OnResetEntityUI?.Invoke();
     [ClientRpc]
     private void RpcDestroyArrows() => OnDestroyArrows?.Invoke();
     [ClientRpc]
-    public void RpcHighlightCardHolders(TurnState state) => entityZones.HighlightCardHolders(state);
-    [ClientRpc]
-    public void RpcResetHolders() => entityZones.ResetHolders();
+    private void RpcHighlightCardHolders(TurnState state) => _entityZones.HighlightCardHolders(state);
 
-    internal (List<CreatureEntity> creatures, List<TechnologyEntity> technologies) GetPlayerEntities(PlayerManager player)
+    [Server]
+    internal int GetNumberOfFreeSlots(bool isServer, TurnState state)
     {
-        var creatures = entityZones.GetCreatures(player.isLocalPlayer);
-        var technologies = entityZones.GetTechnologies(player.isLocalPlayer);
-
-        return (creatures, technologies);
-    }
+        var numberSlotsAvailable = _entityZones.GetNumberOfFreeHolders(isServer, state);
+        if (numberSlotsAvailable > 0) RpcHighlightCardHolders(state);
+        
+        return numberSlotsAvailable;
+    } 
 
     #endregion
 }

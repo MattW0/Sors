@@ -48,7 +48,7 @@ public class AbilitiesVFXSystem : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcPlayProjectile(Vector3 sourcePosition, Vector3 targetPosition, Effect effect)
+    public void RpcPlayProjectile(BattleZoneEntity source, BattleZoneEntity target, Effect effect)
     {
         // var sourcePosition = source.gameObject.transform.position;
         var (projectilePrefab, projectileVFX) = effect switch
@@ -62,9 +62,12 @@ public class AbilitiesVFXSystem : NetworkBehaviour
             Effect.PriceReduction => (moneyProjectilePrefab, _moneyProjectileVFX),
             _ => (null, null),
         };
-        projectilePrefab.transform.position = sourcePosition;
-        
+
+        var sourcePosition = source.transform.position;
+        var targetPosition = target.transform.position;
         var dir = Quaternion.LookRotation(targetPosition - sourcePosition).eulerAngles;
+
+        projectilePrefab.transform.position = sourcePosition;
         projectilePrefab.transform.localRotation = Quaternion.Euler(dir.x, dir.y - 90f, dir.z);
 
         projectilePrefab.SetActive(true);
@@ -80,7 +83,7 @@ public class AbilitiesVFXSystem : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcPlayHit(Vector3 position, Effect effect)
+    public void RpcPlayHit(BattleZoneEntity target, Effect effect)
     {
         var (hitPrefab, hitVFX) = effect switch
         {
@@ -93,7 +96,7 @@ public class AbilitiesVFXSystem : NetworkBehaviour
             Effect.PriceReduction => (moneyHitPrefab, _moneyHitVFX),
             _ => (null, null),
         };
-        hitPrefab.transform.position = position;
+        hitPrefab.transform.position = target.transform.position;
 
         RunHitVFX(hitVFX, hitPrefab).Forget();
     }

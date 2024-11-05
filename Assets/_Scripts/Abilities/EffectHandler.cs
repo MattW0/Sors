@@ -38,19 +38,19 @@ public class EffectHandler : MonoBehaviour
 
     internal async UniTask Execute(BattleZoneEntity source, Ability ability)
     {
-        print($"Executing ability: " + ability.ToString());
+        print($" - {ability} (executing)");
         _source = source;
 
         // Wait for player input if needed
         _target = GetTargetEntity(ability);
         await UniTask.Delay(SorsTimings.effectTrigger);
         if (_target == null) {
-            print($"NEED PLAYER INPUT: " + ability.ToString());
+            // print($"NEED PLAYER INPUT: " + ability.ToString());
             OnPlayerStartSelectTarget?.Invoke(_source, ability);
         }
         
         while(_target == null) { await UniTask.Delay(100); }
-        print("Ability target: " + _target.Title);
+        // print("Ability target: " + _target.Title);
 
         _playerInterfaceManager.RpcLog(ability.ToString(), LogType.EffectTrigger);
         await EFFECTS[ability.effect].Execute(_source, _target, ability.amount);

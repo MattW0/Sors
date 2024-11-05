@@ -61,11 +61,11 @@ public struct GameOptions
         phaseDiscard = 1;
 
         // Phase Boni
-        extraDraw = 2;
+        extraDraw = 1;
         extraBuys = 1;
         extraPlays = 1;
         extraPrevails = 2;
-        extraCash = 2;
+        extraCash = 1;
         marketPriceReduction = 1;
 
         // Configurable options

@@ -304,7 +304,6 @@ public class TurnManager : NetworkBehaviour
 
     private void StartPlayCard()
     {
-        _boardManager.ShowHolders(true);
         foreach(var player in _gameManager.players.Values) 
         {
             // Each player gets +1 Play
@@ -320,7 +319,21 @@ public class TurnManager : NetworkBehaviour
         PlayCard();
     }
 
-    private void PlayCard() => StartPhaseInteraction();
+    private void PlayCard()
+    {
+        StartPhaseInteraction();
+    }
+
+    private int CheckNumberOfPossiblePlays(PlayerManager player)
+    {
+        int numberPlays = player.Plays > 0 ? 1 : 0;
+        int numberSlots = _boardManager.CheckNumberOfFreeSlots(player.isServer, turnState);
+        print($" - {turnState}: {player.PlayerName} has {numberSlots} free slots");
+
+        if (numberSlots == -1) throw new Exception("Trying to access entity holders in invalid phase: " + turnState);
+
+        return Math.Min(numberPlays, numberSlots);
+    }
 
     public void PlayerPlaysCard(PlayerManager player, GameObject card)
     {
@@ -340,7 +353,7 @@ public class TurnManager : NetworkBehaviour
         }
 
         // Keeps track of card <-> entity relation
-        _boardManager.PlayEntities(entities);
+        _boardManager.PlayEntities(entities).Forget();
         _logger.RpcLogPlayingCards(entities.Values.ToList());
 
         // Skip waiting for entity ability checks
@@ -361,7 +374,7 @@ public class TurnManager : NetworkBehaviour
     private void FinishPlayCard()
     {
         _interactionPanel.RpcResetPanel();
-        _boardManager.ShowHolders(false);
+        _boardManager.ResetHolders();
         PlayersDiscardMoney();
 
         UpdateTurnState(TurnState.NextPhase);
@@ -635,7 +648,7 @@ public class TurnManager : NetworkBehaviour
     {
         if (!_readyPlayers.Contains(player.ID)) _readyPlayers.Add(player.ID);
         OnPlayerIsReady?.Invoke(player.ID, turnState);
-        print($" - {turnState} Ready: {_readyPlayers.Count} / {_nbPlayers} players ");
+        print($"   - Ready: {_readyPlayers.Count} / {_nbPlayers} players ");
 
         if (_readyPlayers.Count < _nbPlayers) return;
         _readyPlayers.Clear();
@@ -717,6 +730,7 @@ public class TurnManager : NetworkBehaviour
             var nbInteractions = GetNumberOfInteractions(player, currentPrevailOption);
             var collection = GetCollectionType(player);
 
+            print($" - {turnState}: phase interaction - {player.PlayerName} has {nbInteractions} options available");
             _interactionPanel.TargetStartInteraction(player.connectionToClient, collection, turnState, nbInteractions);
             player.Cash = player.Cash; // Trigger TargetCheckPlayability
         }
@@ -728,7 +742,7 @@ public class TurnManager : NetworkBehaviour
         {
             TurnState.Discard => _gameOptions.phaseDiscard,
             TurnState.Invent or TurnState.Recruit => player.Buys > 0 ? 1 : 0,
-            TurnState.Develop or TurnState.Deploy => player.Plays > 0 ? 1 : 0,
+            TurnState.Develop or TurnState.Deploy => CheckNumberOfPossiblePlays(player),
             TurnState.CardSelection or TurnState.Trash => _playerPrevailOptions[player].Count(option => option == currentPrevailOption),
             _ => -1
         };
@@ -754,14 +768,15 @@ public class TurnManager : NetworkBehaviour
 
     public void ForceEndTurn()
     { // experimental
-        _interactionPanel.RpcResetPanel();
-        _market.RpcEndMarketPhase();
-        _boardManager.ShowHolders(false);
+        _abilityQueue.ClearQueue();
 
+        _boardManager.ResetHolders();
         _combatManager.CombatCleanUp(true);
 
         _prevailPanel.RpcOptionsSelected();
         _prevailPanel.RpcReset();
+        _interactionPanel.RpcResetPanel();
+        _market.RpcEndMarketPhase();
 
         CleanUp();
     }

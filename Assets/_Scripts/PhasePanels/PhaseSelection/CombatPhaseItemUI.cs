@@ -5,9 +5,14 @@ using System;
 public class CombatPhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
     [SerializeField] private GameObject _mesh;
-    [SerializeField] private GameObject _tooltip;
+    private TooltipWindow _tooltip;
     private bool _selectable;
     public static event Action OnPressedCombatButton;
+    private void Start()
+    {
+        _tooltip = GetComponentInChildren<TooltipWindow>();
+    }
+
     public void IsSelectable()
     {
         _mesh.SetActive(true);
@@ -21,14 +26,13 @@ public class CombatPhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEn
         OnPressedCombatButton?.Invoke();
     }
 
-    public void OnPointerEnter(PointerEventData eventData) => _tooltip.SetActive(true);
-    public void OnPointerExit(PointerEventData eventData) => _tooltip.SetActive(false);
+    public void OnPointerEnter(PointerEventData eventData) => _tooltip.WindowIn();
+    public void OnPointerExit(PointerEventData eventData) => _tooltip.WindowOut();
 
     public void Reset()
     {
         _selectable = false;
         _mesh.SetActive(false);
-        _tooltip.SetActive(false);
     }
 
 }

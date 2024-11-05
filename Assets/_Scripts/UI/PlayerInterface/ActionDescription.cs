@@ -22,7 +22,7 @@ public class ActionDescription : MonoBehaviour
 
     public void ChangeActionDescriptionText(TurnState state)
     {
-        print("Changing action description in state " + state.ToString());
+        print($" - {state}: Changing action description");
 
         if (state == TurnState.NextPhase) return;
         actionDescriptionText.text = GetText(state);

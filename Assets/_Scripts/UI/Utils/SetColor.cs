@@ -21,7 +21,6 @@ public class SetColor : MonoBehaviour
             ColorType.Attack => SorsColors.attackValue,
             ColorType.Health => SorsColors.healthValue,
             ColorType.Points => SorsColors.pointsValue,
-            ColorType.MoneyValue => SorsColors.moneyValue,
             ColorType.Neutral => SorsColors.neutral,
             ColorType.NeutralDark => SorsColors.neutralDark,
             ColorType.NeutralLight => SorsColors.neutralLight,
