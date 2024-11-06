@@ -188,7 +188,7 @@ public class BoardManager : NetworkBehaviour
         }
     }
 
-    public int CheckNumberOfFreeSlots(bool isServer, TurnState state) => _dropZone.GetNumberOfFreeSlots(isServer, state);
+    public int CheckNumberOfFreeSlots(bool isHost, TurnState state) => _dropZone.GetNumberOfFreeSlots(isHost, state);
 
     public void ResetHolders() => _dropZone.RpcResetHolders();
 

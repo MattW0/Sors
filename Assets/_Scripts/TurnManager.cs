@@ -327,7 +327,7 @@ public class TurnManager : NetworkBehaviour
     private int CheckNumberOfPossiblePlays(PlayerManager player)
     {
         int numberPlays = player.Plays > 0 ? 1 : 0;
-        int numberSlots = _boardManager.CheckNumberOfFreeSlots(player.isServer, turnState);
+        int numberSlots = _boardManager.CheckNumberOfFreeSlots(player.isLocalPlayer, turnState);
         print($" - {turnState}: {player.PlayerName} has {numberSlots} free slots");
 
         if (numberSlots == -1) throw new Exception("Trying to access entity holders in invalid phase: " + turnState);
@@ -344,7 +344,7 @@ public class TurnManager : NetworkBehaviour
         PlayerIsReady(player);
     }
 
-    private void PlayEntities()
+    private async UniTaskVoid PlayEntities()
     {
         Dictionary<GameObject, BattleZoneEntity> entities = new();
         foreach (var (player, cards) in _selectedCards)
@@ -353,7 +353,10 @@ public class TurnManager : NetworkBehaviour
         }
 
         // Keeps track of card <-> entity relation
-        _boardManager.PlayEntities(entities).Forget();
+        print($"Pre play entities: { _abilityQueue.GetQueueCount()} abilities in queue");
+        await _boardManager.PlayEntities(entities);
+
+        print($"After play entities: { _abilityQueue.GetQueueCount()} abilities in queue");
         _logger.RpcLogPlayingCards(entities.Values.ToList());
 
         // Skip waiting for entity ability checks
@@ -656,7 +659,7 @@ public class TurnManager : NetworkBehaviour
         if (turnState == TurnState.PhaseSelection) FinishPhaseSelection();
         else if (turnState == TurnState.Discard) FinishDiscard();
         else if (turnState == TurnState.Invent || turnState == TurnState.Recruit) BuyCards();
-        else if (turnState == TurnState.Develop || turnState == TurnState.Deploy) PlayEntities();
+        else if (turnState == TurnState.Develop || turnState == TurnState.Deploy) PlayEntities().Forget();
         else if (turnState == TurnState.Prevail) StartPrevailOptions();
         else if (turnState == TurnState.CardSelection) FinishPrevailCardIntoHand();
         else if (turnState == TurnState.Trash) FinishPrevailTrash();

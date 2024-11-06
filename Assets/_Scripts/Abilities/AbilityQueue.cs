@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using Unity.VisualScripting;
 
 public class AbilityQueue : MonoBehaviour
 {
@@ -75,6 +76,11 @@ public class AbilityQueue : MonoBehaviour
     {
         _queue.Clear();
     }
+
+    public int GetQueueCount()
+    {
+        return _queue.Count;
+    } 
 
     public void OnDestroy()
     {

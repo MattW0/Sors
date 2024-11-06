@@ -249,9 +249,9 @@ public class DropZoneManager : NetworkBehaviour
     private void RpcHighlightCardHolders(TurnState state) => _entityZones.HighlightCardHolders(state);
 
     [Server]
-    internal int GetNumberOfFreeSlots(bool isServer, TurnState state)
+    internal int GetNumberOfFreeSlots(bool isHost, TurnState state)
     {
-        var numberSlotsAvailable = _entityZones.GetNumberOfFreeHolders(isServer, state);
+        var numberSlotsAvailable = _entityZones.GetNumberOfFreeHolders(isHost, state);
         if (numberSlotsAvailable > 0) RpcHighlightCardHolders(state);
         
         return numberSlotsAvailable;
