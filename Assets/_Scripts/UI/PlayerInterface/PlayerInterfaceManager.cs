@@ -13,7 +13,8 @@ public class PlayerInterfaceManager : NetworkBehaviour
     [SerializeField] private ActionDescription _actionDescription;
     private PlayerInterfaceButtons _buttons;
     private PlayerManager _player;
-    public static event Action<string> OnChatMessageReceived;
+    private Dictionary<int, string> _messageOrigin = new();
+    public static event Action<string, string> OnChatMessageReceived;
     
     private void Awake()
     {
@@ -25,17 +26,21 @@ public class PlayerInterfaceManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcPrepare(int numberPhasesToChoose)
+    public void RpcPrepare(PlayerManager[] players, int numberPhasesToChoose)
     {
-        print("Preparing UIs, nbOptions = " + numberPhasesToChoose);
         _actionDescription.NumberPhases = numberPhasesToChoose;
 
-        NetworkIdentity networkIdentity = GetComponent<NetworkIdentity>();
-        if(connectionToClient != null) networkIdentity.AssignClientAuthority(connectionToClient);
+        _messageOrigin.Add(0, "Game"); // Engine actions like phase changes etc.
+        foreach (var p in players) {
+            if(p.ID == 1) _messageOrigin.Add(p.ID, p.PlayerName.AddColor(SorsColors.player));
+            else _messageOrigin.Add(p.ID, p.PlayerName.AddColor(SorsColors.opponent));
+        }
 
         _player = PlayerManager.GetLocalPlayer();
         if(!_player.isServer) gameObject.GetComponent<PlayerInterfaceButtons>().DisableUtilityButton();
         else TurnManager.OnPlayerIsReady += RpcLogPlayerAction;
+
+        PrintGameStart();
     }
 
     [ClientRpc]
@@ -50,44 +55,41 @@ public class PlayerInterfaceManager : NetworkBehaviour
     // public void TargetUndoButtonEnabled(NetworkConnection conn, bool b) => _buttons.UndoButtonEnabled(b);
     // public void UndoButtonEnabled(bool b) => _buttons.UndoButtonEnabled(b);
 
-    [ClientRpc]
-    public void RpcLog(string message, LogType type) => _logger.Log(message, type);
+    [ClientRpc] public void RpcLog(string message, LogType type) => _logger.Log(message, _messageOrigin[0], type);
 
-    [ClientRpc]
-    public void RpcLogPlayerAction(int playerId, TurnState turnState) => _logger.LogWithOriginator($" is ready in " + turnState, playerId, LogType.Standard);
+    [ClientRpc] public void RpcLogPlayerAction(int playerId, TurnState turnState) => _logger.Log($"is ready", _messageOrigin[playerId], LogType.Standard);
+    [ClientRpc] public void RpcLogTurnStart(int turnNumber) => _logger.Log($"Turn {turnNumber}", _messageOrigin[0], LogType.TurnChange);
 
-    [ClientRpc]
-    public void RpcLogGameStart(List<string> playerNames)
-    {
-        var msg = "";
-        if (playerNames.Count == 1)  msg += $" --- {playerNames[0]} vs Computer --- ";
-        else msg += $" --- {playerNames[0]} vs {playerNames[1]} --- ";
-
-        _logger.Log(msg, LogType.Standard);
-    }
-
-    [ClientRpc]
-
-    public void RpcLogPhaseToPlay(List<TurnState> phases)
+    [ClientRpc] public void RpcLogPhaseToPlay(List<TurnState> phases)
     {
         var msg = $"Phases to play:";
         msg += string.Join(", ", phases.Select(phase => phase.ToString()));
 
-        _logger.Log(msg, LogType.Standard);
+        _logger.Log(msg, _messageOrigin[0], LogType.Standard);
     }
-    [ClientRpc]
-    public void RpcLogPlayingCards(List<BattleZoneEntity> entities){
-        foreach (var e in entities) _logger.Log($"{e.Owner.PlayerName} plays {e.Title}", LogType.Play);
+
+    [ClientRpc] public void RpcLogPhaseChange(TurnState phase){
+        var text = phase.ToString();
+        if (phase == TurnState.Attackers) text = "Combat";
+
+        _logger.Log(text, _messageOrigin[0], LogType.Phase);
     }
+
+    [ClientRpc] internal void RpcBuyCard(int playerId, string cardName, int cost) => _logger.Log($"Buys {cardName} for {cost} cash", _messageOrigin[playerId], LogType.Buy);
+
+    [ClientRpc] public void RpcPlayCard(int playerId, string cardName, int cost) => _logger.Log($"Plays {cardName} for {cost} cash", _messageOrigin[playerId], LogType.Play);
 
     [Client]
-    public void Send(string message) => CmdSendMessage(message);
+    public void Send(string message) => CmdSendMessage(isServer, message);
 
     [Command(requiresAuthority = false)]
-    private void CmdSendMessage(string message) => RpcHandleMessage($"{message}");
+    private void CmdSendMessage(bool isHost, string message) {
+        RpcHandleMessage(isHost ? _messageOrigin[1] : _messageOrigin[2], message);
+    }
 
     [ClientRpc]
-    private void RpcHandleMessage(string message) => OnChatMessageReceived?.Invoke(message);
+    private void RpcHandleMessage(string originator, string message) => OnChatMessageReceived?.Invoke(originator, message);
+
     // Only used for undo on playing money cards
     // TODO: Redo attackers, blockers choices
     public void Undo() => _player.CmdUndoPlayMoney();
@@ -96,6 +98,14 @@ public class PlayerInterfaceManager : NetworkBehaviour
     {
         _chat.ToggleVisible();
         _logger.ToggleVisible();
+    }
+
+    private void PrintGameStart()
+    {
+        var msg = "";
+        if (_messageOrigin.Count == 2)  msg += $" --- {_messageOrigin[1]} vs Computer --- ";
+        else msg += $" --- {_messageOrigin[1]} vs {_messageOrigin[2]} --- ";
+        _logger.Log(msg, _messageOrigin[0], LogType.Standard);
     }
 
     private void OnDestroy()

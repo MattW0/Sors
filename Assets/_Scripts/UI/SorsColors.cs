@@ -1,25 +1,19 @@
 using UnityEngine;
-// using System.Drawing;
 
 public static class SorsColors
 {
     // -- Players --
-    public static Color player = new(0.35f, 0f, 0.5f);
-    public static string playerHex = "#540080";
-    public static Color opponent = new(0f, 0.08f, 0.54f);
-    public static string opponentHex = "#0014DB";
+    public static Color player = new(0.65f, 0.3f, 0.95f);
+    public static Color opponent = new(0.1f, 0.26f, 0.78f);
 
     // -- UI --
     public static Color neutralDark = new(0.1f, 0.1f, 0.12f);
     public static Color neutral = new(0.15f, 0.15f, 0.16f);
     public static Color neutralLight = new(0.25f, 0.25f, 0.28f);
-    public static Color text = new(240, 243, 219);
-    // public static Color primary = new Color(27, 68, 28);
     public static Color primary = new(0.16f, 0.27f, 0.12f);
     public static Color primaryLight = new(172, 203, 124);
     // public static Color secondary = new Color(0.2f, 0.2f, 0.2f);
-    public static Color warn = new(230, 197, 36);
-    public static Color error = new(216, 56, 20);
+
 
     // -- Play Board --
     public static Color creature = new(0.34f, 0f, 0f);
@@ -54,12 +48,32 @@ public static class SorsColors
     public static Color trashHighlight = Color.red;
 
     // -- Log Messages --
-    public static Color effectTrigger = new(210, 230, 200);
-    public static Color buy = new(200, 200, 90);
-    public static Color play = new(130, 130, 200);
-    public static Color combatClash = new(150, 0, 0);
+    public static string text = "#F0F0DC";
+    public static string textLight = "#C0C0CC";
+    public static string warn = "#F06688";
+    public static string effectTrigger = "#8282C8";
+    public static string buy = "#C7C759";
+    public static string play = "#C19759";
+    public static string combatClash = "#C87272";
 
+    public static string AddColorByType(string msg, LogType type)
+    {
+        var color = type switch{
+            LogType.EffectTrigger => SorsColors.effectTrigger,
+            LogType.TurnChange => SorsColors.text,
+            LogType.Phase => SorsColors.textLight,
+            LogType.Buy => SorsColors.buy,
+            LogType.Play => SorsColors.play,
+            LogType.Combat => SorsColors.warn,
+            LogType.CombatAttacker => SorsColors.warn,
+            LogType.CombatBlocker => SorsColors.warn,
+            LogType.CombatClash => SorsColors.combatClash,
+            LogType.Standard => SorsColors.textLight,
+            _ => SorsColors.text
+        };
 
+        return msg.AddColorFromHex(color);
+    }
 }
 
 // Never change order of these

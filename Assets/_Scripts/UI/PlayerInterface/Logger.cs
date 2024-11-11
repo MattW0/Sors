@@ -13,28 +13,15 @@ public class Logger : MonoBehaviour
         if(!printLine) return;
         printLine = false;
 
-        Log($"This is a test message", lineType);
+        Log($"This is a test message", "Origin", lineType);
     }
 
-    public void Log(string message, LogType type)
-    {
-        // Get timestamp for message
-        var time = System.DateTime.Now.ToString("HH:mm:ss");
-        var text = message.AddColorByType(type);
-        
-        // TODO: How to define originator and get player color?
-        var originator = "ORIGINATOR".AddColor(Color.grey);
-        Instantiate(_textMessagePrefab, _logTransform).SetMessage(
-            new Message(originator, time, text)
-        );
-    }
-
-    public void LogWithOriginator(string message, int originatorId, LogType type)
+    public void Log(string message, string originator, LogType type)
     {
         // Get timestamp for message
         var time = System.DateTime.Now.ToString("HH:mm:ss");
         Instantiate(_textMessagePrefab, _logTransform).SetMessage(
-            new Message(originatorId.ToString(), time, message.AddColorByType(type))
+            new Message(originator, time, SorsColors.AddColorByType(message, type))
         );
     }
 

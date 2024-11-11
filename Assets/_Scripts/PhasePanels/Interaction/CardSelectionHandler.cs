@@ -35,11 +35,6 @@ public class CardSelectionHandler : MonoBehaviour
     private void ClickedCard(GameObject card)
     {
         var cardStats = card.GetComponent<CardStats>();
-        // string selection = "Current Selection: ";
-        // foreach(var selectedCard in _selectedCards) {
-        //     selection += $"{selectedCard.GetComponent<CardStats>().cardInfo.title}, ";
-        // }
-        // print(selection);
 
         // Only select or deselect in these turnStates (all card types behave the same way)
         if (_state == TurnState.Discard || _state == TurnState.CardSelection || _state == TurnState.Trash) {

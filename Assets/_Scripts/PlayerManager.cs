@@ -109,10 +109,10 @@ public class PlayerManager : NetworkBehaviour
 
         EntityAndUISetup();
 
-        if (!isServer) return;
-
         ID = isLocalPlayer ? 1 : 2;
+        print("Player ID: " + ID);
 
+        if (!isServer) return;
         _playerInterface = PlayerInterfaceManager.Instance;
         _turnManager = TurnManager.Instance;
         _entity = GetComponent<BattleZoneEntity>();

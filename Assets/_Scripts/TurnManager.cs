@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -77,7 +76,7 @@ public class TurnManager : NetworkBehaviour
 
         // Panels with setup (GameManager handles market setup)
         _logger = PlayerInterfaceManager.Instance;
-        _logger.RpcPrepare(gameOptions.NumberPhases);
+        _logger.RpcPrepare(_gameManager.players.Values.ToArray(), gameOptions.NumberPhases);
 
         _interactionPanel = InteractionPanel.Instance;
         _interactionPanel.RpcPrepareInteractionPanel();
@@ -98,7 +97,6 @@ public class TurnManager : NetworkBehaviour
             _selectedCards.Add(player, new List<GameObject>());
             playerNames.Add(player.PlayerName);
         }
-        _logger.RpcLogGameStart(playerNames);
 
         // reverse order of _playerPhaseChoices to have host first
         _playerPhaseChoices = _playerPhaseChoices.Reverse().ToDictionary(x => x.Key, x => x.Value);
@@ -111,7 +109,7 @@ public class TurnManager : NetworkBehaviour
     {
         turnState = TurnState.PhaseSelection;
         _gameManager.turnNumber++;
-        _logger.RpcLog($" ------------ Turn {_gameManager.turnNumber} ------------ ", LogType.TurnChange);
+        _logger.RpcLogTurnStart(_gameManager.turnNumber);
 
         // Wait for animation and abilities
         BeginningOfTurn().Forget();
@@ -155,8 +153,7 @@ public class TurnManager : NetworkBehaviour
         OnTurnStateChanged?.Invoke(nextTurnState);
         CheckTriggers(nextTurnState).Forget();
 
-        if (nextTurnState == TurnState.Attackers) _logger.RpcLog($"------- Combat -------", LogType.Phase);
-        else _logger.RpcLog($"------- {nextTurnState} -------", LogType.Phase);
+        _logger.RpcLogPhaseChange(nextTurnState);
     }
     #endregion
 
@@ -262,9 +259,8 @@ public class TurnManager : NetworkBehaviour
         {
             if (card.title == null) continue;
 
-            // print($"{owner.PlayerName} buys '{card.title}'");
-            _logger.RpcLog($"{owner.PlayerName} buys '{card.title}'", LogType.Buy);
             _gameManager.PlayerGainCard(owner, card);
+            _logger.RpcBuyCard(owner.ID, card.title, card.cost);
         }
 
         _selectedMarketCards.Clear();
@@ -349,15 +345,17 @@ public class TurnManager : NetworkBehaviour
         Dictionary<GameObject, BattleZoneEntity> entities = new();
         foreach (var (player, cards) in _selectedCards)
         {
-            foreach (var card in cards) entities.Add(card, _gameManager.SpawnFieldEntity(player, card));
+            foreach (var card in cards) {
+                var cardInfo = card.GetComponent<CardStats>().cardInfo;
+                entities.Add(card, _gameManager.SpawnFieldEntity(player, cardInfo));
+                _logger.RpcPlayCard(player.ID, cardInfo.title, cardInfo.cost);
+            }
         }
 
         // Keeps track of card <-> entity relation
-        print($"Pre play entities: { _abilityQueue.GetQueueCount()} abilities in queue");
+        // print($"Pre play entities: { _abilityQueue.GetQueueCount()} abilities in queue");
         await _boardManager.PlayEntities(entities);
-
-        print($"After play entities: { _abilityQueue.GetQueueCount()} abilities in queue");
-        _logger.RpcLogPlayingCards(entities.Values.ToList());
+        // print($"After play entities: { _abilityQueue.GetQueueCount()} abilities in queue");
 
         // Skip waiting for entity ability checks
         if (entities.Count == 0) CheckPlayAnotherCard();

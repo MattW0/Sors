@@ -186,15 +186,13 @@ public class GameManager : NetworkBehaviour {
         else if(destination == CardLocation.Hand) owner.hand.Add(card);
     }
 
-    public BattleZoneEntity SpawnFieldEntity(PlayerManager owner, GameObject card)
+    public BattleZoneEntity SpawnFieldEntity(PlayerManager owner, CardInfo cardInfo)
     {
-        var cardInfo = card.GetComponent<CardStats>().cardInfo;
-
         // Entity prefab depending on type
         GameObject entityObject = cardInfo.type switch
         {
-            CardType.Creature => Instantiate(creatureEntityPrefab) as GameObject,
-            CardType.Technology => Instantiate(technologyEntityPrefab) as GameObject,
+            CardType.Creature => Instantiate(creatureEntityPrefab),
+            CardType.Technology => Instantiate(technologyEntityPrefab),
             _ => null
         };
         

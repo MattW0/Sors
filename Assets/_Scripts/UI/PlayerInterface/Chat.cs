@@ -31,11 +31,9 @@ public class Chat : MonoBehaviour
         _inputField.text = string.Empty;
     }
 
-    private void HandleNewMessage(string message) 
+    private void HandleNewMessage(string originator, string message) 
     {
-        var time = System.DateTime.Now.ToString("HH:mm:ss");
-        var originator = $"<color={SorsColors.opponentHex}> ORIGINATOR </color>";
-
+        var time = DateTime.Now.ToString("HH:mm:ss");
         Instantiate(_textMessagePrefab, _chatTransform).SetMessage(new Message(originator, time, message));
     }
 

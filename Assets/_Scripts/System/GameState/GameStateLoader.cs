@@ -121,7 +121,7 @@ public class GameStateLoader : MonoBehaviour
         await UniTask.Delay(10);
 
         // Wait for entity initialization
-        var entity = _gameManager.SpawnFieldEntity(p, cardObject);
+        var entity = _gameManager.SpawnFieldEntity(p, cardObject.GetComponent<CardStats>().cardInfo);
         await UniTask.Delay(10);
 
         entity.Health = e.health;
