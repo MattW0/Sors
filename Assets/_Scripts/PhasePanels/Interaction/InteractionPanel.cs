@@ -28,7 +28,7 @@ public class InteractionPanel : NetworkBehaviour
     [TargetRpc]
     public void TargetStartInteraction(NetworkConnection target, List<CardStats> interactableCards, TurnState turnState, int numberSelections)
     {
-        print($"    - clientnteraction: Choose {numberSelections} / {interactableCards.Count} cards");
+        print($"    - InteractionPanel: Choose {numberSelections} / {interactableCards.Count} cards");
 
         _state = turnState;
         _selectableCards = interactableCards;
@@ -39,12 +39,8 @@ public class InteractionPanel : NetworkBehaviour
         if (autoSkip) return;
 
         // Make cards interactable
-        if (_state == TurnState.Invent || _state == TurnState.Develop){
-            MoneyCardsAreInteractable();
-        }
-        else if (_state == TurnState.Recruit || _state == TurnState.Deploy){
-            MoneyCardsAreInteractable();
-        }
+        if (_state == TurnState.Invent || _state == TurnState.Develop) MoneyCardsAreInteractable();
+        else if (_state == TurnState.Recruit || _state == TurnState.Deploy) MoneyCardsAreInteractable();
         else AllCardsAreInteractable(true);
         
         // Move card collection
@@ -84,6 +80,7 @@ public class InteractionPanel : NetworkBehaviour
 
     private void AllCardsAreInteractable(bool b)
     {
+        print("    - InteractionPanel: Selectable cards count: " + _selectableCards.Count);
         foreach(var card in _selectableCards) 
             card.IsInteractable = b;
     }
@@ -95,17 +92,10 @@ public class InteractionPanel : NetworkBehaviour
                 card.IsInteractable = true;
     }
 
-    [TargetRpc]
-    public void TargetUndoMoneyPlay(NetworkConnection target) => MoneyCardsAreInteractable();
-    public void SelectMarketTile(MarketTile tile) => _selectionHandler.SelectMarketTile(tile);
-    public void DeselectMarketTile() => _selectionHandler.DeselectMarketTile();
-    private bool ContainsMoney() => _selectableCards.Any(c => c.cardInfo.type == CardType.Money);
-    private bool ContainsTechnology() => _selectableCards.Any(c => c.cardInfo.type == CardType.Technology);
-    private bool ContainsCreature() => _selectableCards.Any(c => c.cardInfo.type == CardType.Creature);
-
     [ClientRpc]
     public void RpcResetPanel()
     {
+        print("    - InteractionPanel: Reset panel");
         AllCardsAreInteractable(false);
 
         _playerHand.EndInteraction();
@@ -113,4 +103,12 @@ public class InteractionPanel : NetworkBehaviour
         
         _selectionHandler.EndSelection();
     }
+
+    [TargetRpc]
+    public void TargetUndoMoneyPlay(NetworkConnection target) => MoneyCardsAreInteractable();
+    public void SelectMarketTile(MarketTile tile) => _selectionHandler.SelectMarketTile(tile);
+    public void DeselectMarketTile() => _selectionHandler.DeselectMarketTile();
+    private bool ContainsMoney() => _selectableCards.Any(c => c.cardInfo.type == CardType.Money);
+    private bool ContainsTechnology() => _selectableCards.Any(c => c.cardInfo.type == CardType.Technology);
+    private bool ContainsCreature() => _selectableCards.Any(c => c.cardInfo.type == CardType.Creature);
 }

@@ -32,6 +32,7 @@ public enum LogType : byte
 {
     Standard,
     EffectTrigger,
+    AbilityExecution,
     TurnChange,
     Phase,
     Buy,
@@ -39,5 +40,6 @@ public enum LogType : byte
     Combat,
     CombatAttacker,
     CombatBlocker,
-    CombatClash
+    CombatClash,
+    AbilityTarget
 }

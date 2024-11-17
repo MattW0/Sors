@@ -8,6 +8,7 @@ public class CombatClash
     public CreatureEntity _source;
     public BattleZoneEntity _target;
     public bool IsClash => _target is CreatureEntity;
+    public int AggressorID => _source.Owner.ID;
     private int _damageFromSource;
     private int _damageFromTarget;
 

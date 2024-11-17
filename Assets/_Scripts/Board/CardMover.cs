@@ -107,11 +107,13 @@ public class CardMover : MonoBehaviour
     {
         var destinationTransform = pile.cardHolderTransform;
 
-        card.transform.DOMove(destinationTransform.position, SorsTimings.cardMoveTime).SetEase(Ease.InOutCubic).OnComplete(() => {
-            card.transform.SetParent(destinationTransform, true);
-            // card.transform.localScale = Vector3.one;
-            pile.CardHasArrived(card);
-        });
+        card.transform.DOMove(destinationTransform.position, SorsTimings.cardMoveTime)
+            .SetEase(Ease.InOutCubic)
+            .OnComplete(() => {
+                card.transform.SetParent(destinationTransform, true);
+                // card.transform.localScale = Vector3.one;
+                pile.CardHasArrived(card);
+            });
     }
 
     private (CardsPileSors, CardsPileSors) GetPiles(CardLocation from, CardLocation to, bool hasAuthority)

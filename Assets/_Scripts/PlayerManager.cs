@@ -15,7 +15,6 @@ public class PlayerManager : NetworkBehaviour
     [Header("Entities")]
     private TurnManager _turnManager;
     private CardMover _cardMover;
-    private PlayerInterfaceManager _playerInterface;
     private UIManager _uiManager;
 
     [Header("Game State")]
@@ -113,7 +112,6 @@ public class PlayerManager : NetworkBehaviour
         print("Player ID: " + ID);
 
         if (!isServer) return;
-        _playerInterface = PlayerInterfaceManager.Instance;
         _turnManager = TurnManager.Instance;
         _entity = GetComponent<BattleZoneEntity>();
     }
@@ -138,6 +136,12 @@ public class PlayerManager : NetworkBehaviour
 
     #region Cards
 
+    [ClientRpc]
+    public void RpcMoveCard(GameObject card, CardLocation from, CardLocation to)
+    {
+        _cardMover.MoveTo(card, isOwned, from, to);
+    }
+
     [Server]
     public void DrawCards(int amount)
     {
@@ -156,18 +160,37 @@ public class PlayerManager : NetworkBehaviour
             cards.Add(GameManager.GetCardObject(card.cardInfo.goID));
         }
 
-        // The draw cards on Clients, moving the card objects with movement durations
+        // The draw cards on Clients, draw animation
         ClientDrawing(cards).Forget();
     }
 
     private async UniTaskVoid ClientDrawing(List<GameObject> cards)
     {
+        // Opposing destination, moving the card objects with movement durations
         foreach(var card in cards)
         {
             RpcMoveCard(card, CardLocation.Deck, CardLocation.Hand);
             await UniTask.Delay(SorsTimings.draw);
         }
     }
+
+    [Server]
+    public void DiscardSelection()
+    {
+        // TODO: Move this to turnManager ?, should include Other similar functions
+
+        // Server calls each player object to discard their selection _selectedCards
+        foreach (var card in _selectedCards)
+        {
+            var stats = card.GetComponent<CardStats>();
+
+            RemoveHandCard(stats);
+            discard.Add(stats);
+
+            RpcMoveFromInteraction(card, CardLocation.Hand, CardLocation.Discard);
+        }
+    }
+
 
     [Server]
     private void ShuffleDiscardIntoDeck()
@@ -185,12 +208,6 @@ public class PlayerManager : NetworkBehaviour
         foreach (var card in temp) discard.Remove(card);
 
         deck.Shuffle();
-    }
-
-    [ClientRpc]
-    public void RpcMoveCard(GameObject card, CardLocation from, CardLocation to)
-    {
-        _cardMover.MoveTo(card, isOwned, from, to);
     }
 
     [ClientRpc]
@@ -269,12 +286,12 @@ public class PlayerManager : NetworkBehaviour
 
     #endregion Cards
 
-    #region TurnActions
+    #region Turn Actions
 
     [Command]
     public void CmdPhaseSelection(List<TurnState> phases)
     {
-        print($"Player {PlayerName} selected phases: {string.Join(", ", phases)}");
+        print($"    - {PlayerName} selection: {string.Join(", ", phases)}");
         _turnManager.PlayerSelectedPhases(this, phases.ToArray());
     }
 
@@ -283,25 +300,6 @@ public class PlayerManager : NetworkBehaviour
     {
         _selectedCards = cardsToDiscard;
         _turnManager.PlayerSelectedDiscardCards(this, cardsToDiscard);
-    }
-
-    [Server]
-    public void DiscardSelection()
-    {
-        // TODO: Move this to turnManager ?, should include Other similar functions
-
-        // Server calls each player object to discard their selection _selectedCards
-        foreach (var card in _selectedCards)
-        {
-            var stats = card.GetComponent<CardStats>();
-
-            RemoveHandCard(stats);
-            discard.Add(stats);
-
-            RpcMoveFromInteraction(card, CardLocation.Hand, CardLocation.Discard);
-
-            _playerInterface.RpcLog($"{PlayerName} discards {card.GetComponent<CardStats>().cardInfo.title}", LogType.Standard);
-        }
     }
 
     [Command]

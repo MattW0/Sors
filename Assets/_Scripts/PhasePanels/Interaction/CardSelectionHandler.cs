@@ -11,7 +11,6 @@ public class CardSelectionHandler : MonoBehaviour
     private CardMover _cardMover;
     private InteractionUI _ui;
     [SerializeField] private int _numberSelections;
-    [SerializeField] private int _numberSelected;
     private MarketSelection _marketSelection;
     private TurnState _state;
     public static event Action OnInteractionConfirmed;
@@ -30,6 +29,8 @@ public class CardSelectionHandler : MonoBehaviour
     {
         _state = turnState;
         _numberSelections = numberSelections;
+
+        if (_state == TurnState.Trash || _state == TurnState.CardSelection) _ui.SetConfirmButtonEnabled(true);
     }
 
     private void ClickedCard(GameObject card)
@@ -66,17 +67,13 @@ public class CardSelectionHandler : MonoBehaviour
             DeselectCard(_selectedCards.Last());
 
         MoveCard(card, true);
-
-        if (_selectedCards.Count == _numberSelections)
-            _ui.SetConfirmButtonEnabled(true);
+        CheckConfirmButtonState();
     }
 
     private void DeselectCard(GameObject card)
     {
         MoveCard(card, false);
-
-        if (_state == TurnState.Trash || _state == TurnState.CardSelection) _ui.SetConfirmButtonEnabled(true);
-        else if (_selectedCards.Count < _numberSelections) _ui.SetConfirmButtonEnabled(false);
+        CheckConfirmButtonState();
     }
 
     public void SelectMarketTile(MarketTile tile)
@@ -116,8 +113,12 @@ public class CardSelectionHandler : MonoBehaviour
             _cardMover.MoveTo(card, true, CardLocation.Selection, pile);
             _selectedCards.Remove(card);
         }
+    }
 
-        _numberSelected = _selectedCards.Count;
+    private void CheckConfirmButtonState()
+    {
+        if (_state == TurnState.Trash || _state == TurnState.CardSelection) return;
+        _ui.SetConfirmButtonEnabled(_selectedCards.Count == _numberSelections);
     }
 
     public void EndSelection()
@@ -126,7 +127,7 @@ public class CardSelectionHandler : MonoBehaviour
         ClearSelection();
     }
 
-    public void OnSkipInteraction()
+    public void SkipInteraction()
     {
         _player.CmdSkipInteraction();
         ClearSelection();

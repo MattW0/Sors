@@ -21,6 +21,7 @@ public class InteractionUI : AnimatedPanel
     private TurnState _state;
     private int _nbCardsToSelectMax;
     private CardSelectionHandler _selectionHandler;
+    private bool _isWaiting;
 
     private void Start()
     {
@@ -47,40 +48,27 @@ public class InteractionUI : AnimatedPanel
 
         _state = state;
         _nbCardsToSelectMax = nbCardsToSelectMax;
+        _isWaiting = false;
+        
         _confirmButton.interactable = false;
         _skipButton.interactable = state != TurnState.Discard;
+        _displayText.text = GetInteractionString();
 
-        var actionVerb = InteractionActionVerb();
         PanelIn();
-
-        if (_state == TurnState.Discard) _displayText.text = $"Discard {_nbCardsToSelectMax} card(s)";
-        else if (_state == TurnState.CardSelection || _state == TurnState.Trash) PrevailInteraction();
-        else MoneyInteraction(actionVerb);
     }
 
-    private void MoneyInteraction(string actionVerb)
+    private void OnConfirmButtonPressed()
     {
-        var cardType = _state switch {
-            TurnState.Invent or TurnState.Develop => " Technology",
-            TurnState.Recruit or TurnState.Deploy => " Creature",
-            _ => ""
-        };
-
-        if (_state == TurnState.Invent || _state == TurnState.Recruit) cardType += " or Money";
-        
-        _displayText.text = $"You may {actionVerb} a{cardType} card";
+        Wait();
+        _selectionHandler.ConfirmSelection();
     }
-
-    private void PrevailInteraction()
-    {
-        // "Up to X cards"
-        _confirmButton.interactable = true;
-
-        if (_state == TurnState.CardSelection)
-            _displayText.text = $"Put up to {_nbCardsToSelectMax} card(s) into your hand";
-        else if (_state == TurnState.Trash)
-            _displayText.text = $"Trash up to {_nbCardsToSelectMax} card(s)";
+    private void OnSkipButtonPressed() => SkipInteraction();
+    private void SkipInteraction()
+    {   
+        Wait();
+        _selectionHandler.SkipInteraction();
     }
+    internal void SetConfirmButtonEnabled(bool b) => _confirmButton.interactable = b;
 
     public void SelectMarketTile(CardInfo cardInfo)
     {
@@ -95,6 +83,7 @@ public class InteractionUI : AnimatedPanel
         detailCard.SetCardUI(cardInfo);
         previewCardObject.SetActive(true);
 
+        if (_isWaiting) return;
         _confirmButton.interactable = true;
     }
 
@@ -105,6 +94,39 @@ public class InteractionUI : AnimatedPanel
         _moneyCard.SetActive(false);
 
         _confirmButton.interactable = false;
+    }
+
+    private string GetInteractionString()
+    {
+        if (_state == TurnState.Discard) return $"Discard {_nbCardsToSelectMax} card(s)";
+        if (_state == TurnState.CardSelection || _state == TurnState.Trash) 
+        {
+            // "Up to X cards"
+            _confirmButton.interactable = true;
+            if (_state == TurnState.CardSelection) return $"Put up to {_nbCardsToSelectMax} card(s) into your hand";
+            if (_state == TurnState.Trash) return $"Trash up to {_nbCardsToSelectMax} card(s)";
+        }
+
+        // Buy, play, select
+        return $"You may {InteractionActionVerb()} a {CardTypeString()} card";
+    }
+    private void Wait()
+    {
+        _isWaiting = true;
+        _confirmButton.interactable = false;
+        _skipButton.interactable = false;
+        _displayText.text = "Wait for opponent...";
+    }
+
+    private string CardTypeString()
+    {
+        var cardTypes = _state switch {
+            TurnState.Invent or TurnState.Develop => "Technology",
+            TurnState.Recruit or TurnState.Deploy => "Creature",
+            _ => ""
+        };
+        if (_state == TurnState.Invent || _state == TurnState.Recruit) cardTypes += " or Money";
+        return cardTypes;
     }
 
     private string InteractionActionVerb()
@@ -119,24 +141,6 @@ public class InteractionUI : AnimatedPanel
 
         return actionVerb;
     }
-    private void OnConfirmButtonPressed()
-    {
-        _confirmButton.interactable = false;
-        _skipButton.interactable = false;
-
-        _displayText.text = "Wait for opponent...";
-        _selectionHandler.ConfirmSelection();
-    }
-    private void OnSkipButtonPressed() => SkipInteraction();
-    private void SkipInteraction()
-    {   
-        _confirmButton.interactable = false;
-        _skipButton.interactable = false;
-
-        _displayText.text = "Wait for opponent...";
-        _selectionHandler.OnSkipInteraction();
-    }
-    internal void SetConfirmButtonEnabled(bool b) => _confirmButton.interactable = b;
     private void OnDestroy()
     {
         InteractionPanel.OnInteractionBegin -= InteractionBegin;

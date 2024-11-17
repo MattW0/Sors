@@ -58,10 +58,9 @@ public class CombatManager : NetworkBehaviour
         if (_readyPlayers.Count != _gameManager.players.Count) return;
         _readyPlayers.Clear();
 
-        foreach(var (a, t) in _attackerTarget)
-        {
+        foreach(var (a, t) in _attackerTarget) {
             a.RpcDeclaredAttack(t);
-            _playerInterfaceManager.RpcLog($"  - {a.Title} attacks {t.Title}", LogType.CombatAttacker);
+            _playerInterfaceManager.RpcPlayerTargeting(a.Owner.ID, a.Title, t.Title, LogType.CombatAttacker);
         }
 
         UpdateCombatState(TurnState.Blockers);
@@ -81,7 +80,7 @@ public class CombatManager : NetworkBehaviour
         foreach (var (b, a) in _blockerAttacker)
         {
             b.RpcDeclaredBlock(a);
-            _playerInterfaceManager.RpcLog($"  - {b.Title} blocks {a.Title}", LogType.CombatBlocker);
+            _playerInterfaceManager.RpcPlayerTargeting(a.Owner.ID, b.Title, a.Title, LogType.CombatBlocker);
         }
         UpdateCombatState(TurnState.CombatDamage);
     }

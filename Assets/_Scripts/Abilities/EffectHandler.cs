@@ -44,15 +44,10 @@ public class EffectHandler : MonoBehaviour
         // Wait for player input if needed
         _target = GetTargetEntity(ability);
         await UniTask.Delay(SorsTimings.effectTrigger);
-        if (_target == null) {
-            // print($"NEED PLAYER INPUT: " + ability.ToString());
-            OnPlayerStartSelectTarget?.Invoke(_source, ability);
-        }
-        
+        if (_target == null) OnPlayerStartSelectTarget?.Invoke(_source, ability);
         while(_target == null) { await UniTask.Delay(100); }
-        // print("Ability target: " + _target.Title);
-
-        _playerInterfaceManager.RpcLog(ability.ToString(), LogType.EffectTrigger);
+        
+        _playerInterfaceManager.RpcAbility(_source.Owner.ID, _source.Title, _target.Title , LogType.AbilityExecution);
         await EFFECTS[ability.effect].Execute(_source, _target, ability.amount);
     }
 

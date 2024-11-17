@@ -7410,10 +7410,9 @@ MonoBehaviour:
   headlessStartMode: 1
   editorAutoStart: 0
   sendRate: 30
-  autoStartServerBuild: 0
-  autoConnectClientBuild: 0
   offlineScene: Assets/_Scenes/LanConnect.unity
   onlineScene: Assets/_Scenes/Game.unity
+  offlineSceneLoadDelay: 0
   transport: {fileID: 510329398151949647}
   networkAddress: 192.168.1.1
   maxConnections: 2

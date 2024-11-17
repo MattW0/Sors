@@ -57,7 +57,6 @@ public class EntityZones : NetworkBehaviour
         }
     }
 
-
     #region Getters
 
     [Server]
@@ -172,7 +171,6 @@ public class EntityZones : NetworkBehaviour
     [Server]
     internal int GetNumberOfFreeHolders(bool isHost, TurnState state)
     {
-        print("Is host: " + isHost + " State: " + state);
         if(isHost){
             if(state == TurnState.Develop) return _playerTechnologyHolders.Count(h => !h.IsOccupied);
             if(state == TurnState.Deploy) return _playerCreatureHolders.Count(h => !h.IsOccupied);

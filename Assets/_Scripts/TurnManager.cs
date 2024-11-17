@@ -44,7 +44,7 @@ public class TurnManager : NetworkBehaviour
     public static event Action<int> OnBeginTurn;
     public static event Action OnStartPhaseSelection;
     public static event Action<TurnState> OnTurnStateChanged;
-    public static event Action<int, TurnState> OnPlayerIsReady;
+    // public static event Action<int, TurnState> OnPlayerIsReady;
 
     #region Setup
     private void Awake()
@@ -109,7 +109,7 @@ public class TurnManager : NetworkBehaviour
     {
         turnState = TurnState.PhaseSelection;
         _gameManager.turnNumber++;
-        _logger.RpcLogTurnStart(_gameManager.turnNumber);
+        _logger.RpcTurnStart(_gameManager.turnNumber);
 
         // Wait for animation and abilities
         BeginningOfTurn().Forget();
@@ -134,7 +134,7 @@ public class TurnManager : NetworkBehaviour
         _phasesToPlay.Add(TurnState.CleanUp);
         _phasesToPlay.Sort();
 
-        _logger.RpcLogPhaseToPlay(_phasesToPlay);
+        _logger.RpcPhasesToPlay(_phasesToPlay);
 
         foreach (var (player, phases) in _playerPhaseChoices)
         {
@@ -153,7 +153,7 @@ public class TurnManager : NetworkBehaviour
         OnTurnStateChanged?.Invoke(nextTurnState);
         CheckTriggers(nextTurnState).Forget();
 
-        _logger.RpcLogPhaseChange(nextTurnState);
+        _logger.RpcPhaseChange(nextTurnState);
     }
     #endregion
 
@@ -167,7 +167,7 @@ public class TurnManager : NetworkBehaviour
             if (_playerPhaseChoices[player].Contains(turnState)) nbCardDraw += _gameOptions.extraDraw;
 
             player.DrawCards(nbCardDraw);
-            _logger.RpcLog($"{player.PlayerName} draws {nbCardDraw} cards", LogType.Standard);
+            _logger.RpcCardDraw(player.ID, nbCardDraw);
         }
 
         UpdateTurnState(TurnState.Discard);
@@ -190,12 +190,7 @@ public class TurnManager : NetworkBehaviour
         foreach (var (player, cards) in _selectedCards)
         {
             player.DiscardSelection();
-
-            print("Player " + player.PlayerName + " discards " + cards.Count + " cards");
-            foreach (var card in cards)
-            {
-                
-            }
+            _logger.RpcDiscardCards(player.ID, cards.Select(card => card.GetComponent<CardStats>().cardInfo.title).ToString());
         }
 
         _interactionPanel.RpcResetPanel();
@@ -641,16 +636,17 @@ public class TurnManager : NetworkBehaviour
         else if (newState == TurnState.Prevail) Prevail();
         else if (newState == TurnState.CleanUp) CleanUp();
         else if (newState == TurnState.Attackers) _combatManager.UpdateCombatState(TurnState.Attackers);
-        else if (newState == TurnState.Idle) _logger.RpcLog("Game finished", LogType.Standard);
+        else if (newState == TurnState.Idle) {}
         else throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
     }
 
     public void PlayerIsReady(PlayerManager player)
     {
         if (!_readyPlayers.Contains(player.ID)) _readyPlayers.Add(player.ID);
-        OnPlayerIsReady?.Invoke(player.ID, turnState);
-        print($"   - Ready: {_readyPlayers.Count} / {_nbPlayers} players ");
+        // OnPlayerIsReady?.Invoke(player.ID, turnState);
+        print($"    - {player.PlayerName} ready ({_readyPlayers.Count} / {_nbPlayers})");
 
+        // All players are ready
         if (_readyPlayers.Count < _nbPlayers) return;
         _readyPlayers.Clear();
 

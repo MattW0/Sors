@@ -51,7 +51,7 @@ public static class SorsColors
     public static string text = "#F0F0DC";
     public static string textLight = "#C0C0CC";
     public static string warn = "#F06688";
-    public static string effectTrigger = "#8282C8";
+    public static string abilityExecution = "#8282C8";
     public static string buy = "#C7C759";
     public static string play = "#C19759";
     public static string combatClash = "#C87272";
@@ -59,14 +59,12 @@ public static class SorsColors
     public static string AddColorByType(string msg, LogType type)
     {
         var color = type switch{
-            LogType.EffectTrigger => SorsColors.effectTrigger,
+            LogType.AbilityExecution => SorsColors.abilityExecution,
             LogType.TurnChange => SorsColors.text,
             LogType.Phase => SorsColors.textLight,
             LogType.Buy => SorsColors.buy,
             LogType.Play => SorsColors.play,
             LogType.Combat => SorsColors.warn,
-            LogType.CombatAttacker => SorsColors.warn,
-            LogType.CombatBlocker => SorsColors.warn,
             LogType.CombatClash => SorsColors.combatClash,
             LogType.Standard => SorsColors.textLight,
             _ => SorsColors.text
