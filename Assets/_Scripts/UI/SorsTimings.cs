@@ -9,7 +9,7 @@ public static class SorsTimings
 
     // UI Transitions
     public static float cardMoveTime = 0.5f;
-    public static int showSpawnedEntity = 1000;
+    public static int showSpawnedEntity = 800;
     public static int hoverPreviewDelay = 500;
 	public static float cardPileRearrangement = 0.5f;
 
@@ -22,7 +22,7 @@ public static class SorsTimings
     
     // Card Spawning
     public static int spawnCard = 50;
-    public static int showSpawnedCard = 2000;
+    public static int showSpawnedCard = 1000;
     public static int moveSpawnedCard = 100;
     public static int waitForSpawnFromFile = 1000; // Game state loading
 

@@ -109,8 +109,14 @@ public class TurnManager : NetworkBehaviour
         turnState = TurnState.PhaseSelection;
         _gameManager.turnNumber++;
 
+        // Update UI
+        _logger.RpcBeginTurn(_gameManager.turnNumber);
+        OnTurnStateChanged?.Invoke(TurnState.PhaseSelection);
+
         // Wait for animation and abilities
-        BeginningOfTurn().Forget();
+        BeginningOfTurn()
+            .ContinueWith(() => OnStartPhaseSelection?.Invoke())
+            .Forget();
     }
 
     public void PlayerSelectedPhases(PlayerManager player, TurnState[] phases)
@@ -149,9 +155,14 @@ public class TurnManager : NetworkBehaviour
 
         // To update SM and Phase Panel
         OnTurnStateChanged?.Invoke(nextTurnState);
-        CheckTriggers(nextTurnState).Forget();
 
-        _logger.RpcLog(nextTurnState);
+        AsyncAwaitQueue(SorsTimings.waitShort)
+            .ContinueWith(() => {
+                UpdateTurnState(nextTurnState);
+                _logger.RpcLog(nextTurnState);
+            })
+            .Forget();
+
     }
     #endregion
 
@@ -259,7 +270,9 @@ public class TurnManager : NetworkBehaviour
         _selectedMarketCards.Clear();
         _market.RpcMinButton();
 
-        BuyCardsIntermission().Forget();
+        AsyncAwaitQueue(SorsTimings.showSpawnedCard)
+            .ContinueWith(CheckBuyAnotherCard)
+            .Forget();
     }
 
     private void CheckBuyAnotherCard()
@@ -333,7 +346,7 @@ public class TurnManager : NetworkBehaviour
         PlayerIsReady(player);
     }
 
-    private async UniTaskVoid PlayEntities()
+    private void PlayEntities()
     {
         Dictionary<GameObject, BattleZoneEntity> entities = new();
         foreach (var (player, cards) in _selectedCards)
@@ -345,14 +358,9 @@ public class TurnManager : NetworkBehaviour
             }
         }
 
-        // Keeps track of card <-> entity relation
-        // print($"Pre play entities: { _abilityQueue.GetQueueCount()} abilities in queue");
-        await _boardManager.PlayEntities(entities);
-        // print($"After play entities: { _abilityQueue.GetQueueCount()} abilities in queue");
-
         // Skip waiting for entity ability checks
         if (entities.Count == 0) CheckPlayAnotherCard();
-        else PlayCardsIntermission().Forget();
+        else AsyncPlayEntities(entities).ContinueWith(CheckPlayAnotherCard).Forget();
     }
 
     private void CheckPlayAnotherCard()
@@ -537,40 +545,34 @@ public class TurnManager : NetworkBehaviour
         PhaseSelection();
     }
 
-    // TODO: May want to combine this with other _abilityQueue resolution functions
-    public async UniTaskVoid CheckTriggers(TurnState nextTurnState)
+    private async UniTask BeginningOfTurn()
     {
-        // Wait for evaluation of triggers
-        await UniTask.Delay(SorsTimings.waitShort);
+        await UniTask.Delay(SorsTimings.waitLong);
 
-        // Waiting for all triggers to have resolved
+        // Reset players and draw per turn
+        foreach (var player in _gameManager.players.Values)
+            player.DrawCards(_gameOptions.cardDraw);
+
+        await UniTask.Delay(SorsTimings.wait);
+
         await _abilityQueue.Resolve();
-
-        UpdateTurnState(nextTurnState);
     }
 
-    private async UniTaskVoid BuyCardsIntermission()
+    private async UniTask AsyncAwaitQueue(int delayMiliseconds)
     {
-        // Waiting for CardMover to move cards to discard, should end before money is discarded
-        // TODO: Can this be time independent and await resolution of card move in CardMover?
-        await UniTask.Delay(SorsTimings.showSpawnedCard);
+        await UniTask.Delay(delayMiliseconds);
 
         // Waiting for AbilityQueue to finish resolving Buy triggers
         await _abilityQueue.Resolve();
-
-        CheckBuyAnotherCard();
     }
 
-    private async UniTaskVoid PlayCardsIntermission()
+    private async UniTask AsyncPlayEntities(Dictionary<GameObject, BattleZoneEntity> entities)
     {
-        // Waiting for Entities abilities (ETB) being tracked 
-        await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.cardMoveTime).Add(TimeSpan.FromMilliseconds(SorsTimings.showSpawnedEntity)));
+        // Keeps track of card <-> entity relation
+        await _boardManager.PlayEntities(entities);
 
         // Waiting for AbilityQueue to finish resolving ETB triggers
         await _abilityQueue.Resolve();
-        print("PLAY CARDS: Ability queue resolved");
-
-        CheckPlayAnotherCard();
     }
 
     public async UniTaskVoid CombatCleanUp()
@@ -588,25 +590,6 @@ public class TurnManager : NetworkBehaviour
         _prevailPanel.RpcReset();
 
         UpdateTurnState(TurnState.NextPhase);
-    }
-
-    private async UniTaskVoid BeginningOfTurn()
-    {
-        // Update UI
-        _logger.RpcBeginTurn(_gameManager.turnNumber);
-        OnTurnStateChanged?.Invoke(TurnState.PhaseSelection);
-
-        await UniTask.Delay(SorsTimings.waitLong);
-
-        // Reset players and draw per turn
-        foreach (var player in _gameManager.players.Values)
-            player.DrawCards(_gameOptions.cardDraw);
-
-        await UniTask.Delay(SorsTimings.wait);
-
-        await _abilityQueue.Resolve();
-
-        OnStartPhaseSelection?.Invoke();
     }
 
     #endregion
@@ -651,7 +634,7 @@ public class TurnManager : NetworkBehaviour
         if (turnState == TurnState.PhaseSelection) FinishPhaseSelection();
         else if (turnState == TurnState.Discard) FinishDiscard();
         else if (turnState == TurnState.Invent || turnState == TurnState.Recruit) BuyCards();
-        else if (turnState == TurnState.Develop || turnState == TurnState.Deploy) PlayEntities().Forget();
+        else if (turnState == TurnState.Develop || turnState == TurnState.Deploy) PlayEntities();
         else if (turnState == TurnState.Prevail) StartPrevailOptions();
         else if (turnState == TurnState.CardSelection) FinishPrevailCardIntoHand();
         else if (turnState == TurnState.Trash) FinishPrevailTrash();
