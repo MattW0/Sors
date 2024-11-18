@@ -41,7 +41,6 @@ public class TurnManager : NetworkBehaviour
     private readonly Dictionary<GameObject, CardStats> _trashedCards = new();
 
     // Events
-    public static event Action<int> OnBeginTurn;
     public static event Action OnStartPhaseSelection;
     public static event Action<TurnState> OnTurnStateChanged;
     // public static event Action<int, TurnState> OnPlayerIsReady;
@@ -109,7 +108,6 @@ public class TurnManager : NetworkBehaviour
     {
         turnState = TurnState.PhaseSelection;
         _gameManager.turnNumber++;
-        _logger.RpcTurnStart(_gameManager.turnNumber);
 
         // Wait for animation and abilities
         BeginningOfTurn().Forget();
@@ -134,7 +132,7 @@ public class TurnManager : NetworkBehaviour
         _phasesToPlay.Add(TurnState.CleanUp);
         _phasesToPlay.Sort();
 
-        _logger.RpcPhasesToPlay(_phasesToPlay);
+        _logger.RpcLog(_phasesToPlay);
 
         foreach (var (player, phases) in _playerPhaseChoices)
         {
@@ -153,7 +151,7 @@ public class TurnManager : NetworkBehaviour
         OnTurnStateChanged?.Invoke(nextTurnState);
         CheckTriggers(nextTurnState).Forget();
 
-        _logger.RpcPhaseChange(nextTurnState);
+        _logger.RpcLog(nextTurnState);
     }
     #endregion
 
@@ -167,7 +165,7 @@ public class TurnManager : NetworkBehaviour
             if (_playerPhaseChoices[player].Contains(turnState)) nbCardDraw += _gameOptions.extraDraw;
 
             player.DrawCards(nbCardDraw);
-            _logger.RpcCardDraw(player.ID, nbCardDraw);
+            _logger.RpcLog(player.ID, nbCardDraw);
         }
 
         UpdateTurnState(TurnState.Discard);
@@ -190,7 +188,7 @@ public class TurnManager : NetworkBehaviour
         foreach (var (player, cards) in _selectedCards)
         {
             player.DiscardSelection();
-            _logger.RpcDiscardCards(player.ID, cards.Select(card => card.GetComponent<CardStats>().cardInfo.title).ToString());
+            _logger.RpcLog(player.ID, cards);
         }
 
         _interactionPanel.RpcResetPanel();
@@ -255,7 +253,7 @@ public class TurnManager : NetworkBehaviour
             if (card.title == null) continue;
 
             _gameManager.PlayerGainCard(owner, card);
-            _logger.RpcBuyCard(owner.ID, card.title, card.cost);
+            _logger.RpcLog(owner.ID, card.title, card.cost, LogType.Buy);
         }
 
         _selectedMarketCards.Clear();
@@ -343,7 +341,7 @@ public class TurnManager : NetworkBehaviour
             foreach (var card in cards) {
                 var cardInfo = card.GetComponent<CardStats>().cardInfo;
                 entities.Add(card, _gameManager.SpawnFieldEntity(player, cardInfo));
-                _logger.RpcPlayCard(player.ID, cardInfo.title, cardInfo.cost);
+                _logger.RpcLog(player.ID, cardInfo.title, cardInfo.cost, LogType.Play);
             }
         }
 
@@ -595,7 +593,7 @@ public class TurnManager : NetworkBehaviour
     private async UniTaskVoid BeginningOfTurn()
     {
         // Update UI
-        OnBeginTurn?.Invoke(_gameManager.turnNumber);
+        _logger.RpcBeginTurn(_gameManager.turnNumber);
         OnTurnStateChanged?.Invoke(TurnState.PhaseSelection);
 
         await UniTask.Delay(SorsTimings.waitLong);

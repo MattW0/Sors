@@ -60,7 +60,7 @@ public class CombatManager : NetworkBehaviour
 
         foreach(var (a, t) in _attackerTarget) {
             a.RpcDeclaredAttack(t);
-            _playerInterfaceManager.RpcPlayerTargeting(a.Owner.ID, a.Title, t.Title, LogType.CombatAttacker);
+            _playerInterfaceManager.RpcLog(a.Owner.ID, a.Title, t.Title, LogType.CombatAttacker);
         }
 
         UpdateCombatState(TurnState.Blockers);
@@ -80,7 +80,7 @@ public class CombatManager : NetworkBehaviour
         foreach (var (b, a) in _blockerAttacker)
         {
             b.RpcDeclaredBlock(a);
-            _playerInterfaceManager.RpcPlayerTargeting(a.Owner.ID, b.Title, a.Title, LogType.CombatBlocker);
+            _playerInterfaceManager.RpcLog(a.Owner.ID, b.Title, a.Title, LogType.CombatBlocker);
         }
         UpdateCombatState(TurnState.CombatDamage);
     }

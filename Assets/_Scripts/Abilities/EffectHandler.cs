@@ -49,7 +49,7 @@ public class EffectHandler : MonoBehaviour
         if (_target == null) OnPlayerStartSelectTarget?.Invoke(_source, ability);
         while(_target == null) { await UniTask.Delay(100); }
         
-        _playerInterfaceManager.RpcAbility(_source.Owner.ID, _source.Title, _target.Title , LogType.AbilityExecution);
+        _playerInterfaceManager.RpcLog(_source.Owner.ID, _source.Title, _target.Title , LogType.AbilityExecution);
         await EFFECTS[ability.effect].Execute(_source, _target, ability.amount);
     }
 
@@ -64,6 +64,7 @@ public class EffectHandler : MonoBehaviour
         // Some targets are pre-determined
         if(ability.target == Target.None) throw new Exception("Ability " + ability + " has no target!");
         
+        // Some targets only have one option
         if(ability.target == Target.Self) return _source;
         if(ability.target == Target.You) return _source.Owner.GetEntity();
         if(ability.target == Target.Opponent) return _turnManager.GetOpponentPlayer(_source.Owner).GetEntity();

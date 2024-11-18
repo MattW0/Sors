@@ -71,10 +71,11 @@ public class GameManager : NetworkBehaviour {
         var playerManagers = FindObjectsByType<PlayerManager>(FindObjectsSortMode.None);
         foreach (var player in playerManagers)
         {
-            player.RpcInitPlayer();
+            var networkId = player.GetComponent<NetworkIdentity>();
+            player.RpcInitPlayer((int) networkId.netId);
 
             // TODO: Most things break if we actually want an AI opponent
-            if(!player.isAI) players.Add(player.GetComponent<NetworkIdentity>(), player);
+            if(!player.isAI) players.Add(networkId, player);
             
             // Player stats
             player.PlayerName = player.gameObject.name; // Object name is set after instantiation in NetworkManager

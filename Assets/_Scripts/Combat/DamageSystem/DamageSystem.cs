@@ -106,7 +106,7 @@ public class DamageSystem : MonoBehaviour
 
         foreach (var clash in _clashes)
         {
-            _playerInterfaceManager.RpcCombatClash(clash.AggressorID, clash.ToString());
+            _playerInterfaceManager.RpcLog(clash.AggressorID, clash.ToString());
             await clash.ExecuteCombatClash();
         }
         

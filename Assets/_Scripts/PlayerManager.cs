@@ -101,14 +101,14 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcInitPlayer()
+    public void RpcInitPlayer(int playerId)
     {
         _cardMover = CardMover.Instance;
         _uiManager = UIManager.Instance;
 
         EntityAndUISetup();
 
-        ID = isLocalPlayer ? 1 : 2;
+        ID = playerId;
         print("Player ID: " + ID);
 
         if (!isServer) return;
@@ -214,10 +214,6 @@ public class PlayerManager : NetworkBehaviour
     public void RpcMoveFromInteraction(GameObject card, CardLocation from, CardLocation to)
     {
         if(isOwned) from = CardLocation.Selection;
-
-        print("Moving card from " + from + " to " + to);
-        print("isOwned: " + isOwned);
-
         _cardMover.MoveTo(card, isOwned, from, to);
     }
 
