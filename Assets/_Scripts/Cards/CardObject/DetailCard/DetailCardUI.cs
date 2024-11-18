@@ -3,8 +3,8 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
 
-public class DetailCardUI : CardUI, IPointerEnterHandler, IPointerExitHandler {
-    
+public class DetailCardUI : CardUI, IPointerEnterHandler, IPointerExitHandler 
+{
     [Header("Card UI")]
     private bool _enableFocus = true;
     public bool EnableFocus { get => _enableFocus; set => _enableFocus = value; }

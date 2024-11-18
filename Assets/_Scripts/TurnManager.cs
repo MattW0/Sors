@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using Mirror;
 using Cysharp.Threading.Tasks;
+using System.Runtime.CompilerServices;
 
 public class TurnManager : NetworkBehaviour
 {
@@ -52,7 +53,10 @@ public class TurnManager : NetworkBehaviour
 
         GameManager.OnGameStart += Prepare;
         PlayerManager.OnCashChanged += PlayerCashChanged;
+
+        // Effects
         PriceReduction.OnMarketPriceReduction += PlayerGetsMarketBonus;
+        Curse.OnPlayerGainsCurses += PlayerGainsCurses;
 
         _combatManager = GetComponent<CombatManager>();
     }
@@ -273,6 +277,26 @@ public class TurnManager : NetworkBehaviour
         AsyncAwaitQueue(SorsTimings.showSpawnedCard)
             .ContinueWith(CheckBuyAnotherCard)
             .Forget();
+    }
+
+    private void PlayerGainsCurses(PlayerManager player, int amount)
+    {
+        // TODO: In singleplayer, player is null
+        CardInfo card = new(_gameManager.CurseCard);
+        for(int i=0; i<amount; i++)
+        {
+            _gameManager.PlayerGainCard(player, _gameManager.CurseCard);
+            _logger.RpcLog(player.ID, card.title, card.cost, LogType.Buy);
+        }
+
+        AsyncAwaitQueue(SorsTimings.showSpawnedCard + SorsTimings.waitShort).Forget();
+    }
+
+    public void PlayerGainsCard(PlayerManager player, CardInfo cardInfo)
+    {
+        _gameManager.PlayerGainCard(player, cardInfo);
+        _logger.RpcLog(player.ID, cardInfo.title, cardInfo.cost, LogType.Buy);
+        AsyncAwaitQueue(SorsTimings.showSpawnedCard).Forget();
     }
 
     private void CheckBuyAnotherCard()
@@ -780,6 +804,7 @@ public class TurnManager : NetworkBehaviour
         GameManager.OnGameStart -= Prepare;
         PlayerManager.OnCashChanged -= PlayerCashChanged;
         PriceReduction.OnMarketPriceReduction -= PlayerGetsMarketBonus;
+        Curse.OnPlayerGainsCurses -= PlayerGainsCurses;
     }    
 }
 

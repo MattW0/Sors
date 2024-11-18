@@ -29,6 +29,9 @@ public class GameManager : NetworkBehaviour {
     [SerializeField] private GameObject creatureEntityPrefab;
     [SerializeField] private GameObject technologyEntityPrefab;
 
+    [Header("Special Cards")]
+    public ScriptableCard CurseCard;
+
     // Caching all gameObjects of cards in game
     private static Dictionary<int, GameObject> CardsCache { get; set; } = new();
     public static GameObject GetCardObject(int goID) { return CardsCache[goID]; }
@@ -135,7 +138,7 @@ public class GameManager : NetworkBehaviour {
         };
 
         // Assign client authority and put in cache
-        var instanceID = SpawnAndCacheCard(player, cardObject, scriptableCard);
+        var instanceID = SpawnAndCacheCard(player, cardObject);
 
         // RPC: Setup gameobject and card UI
         var cardStats = IntitializeCardOnClients(cardObject, scriptableCard, instanceID);
@@ -161,27 +164,36 @@ public class GameManager : NetworkBehaviour {
         var cardObject = SpawnCardAndAddToCollection(player, scriptableCard, CardLocation.Discard);
         player.RpcShowSpawnedCard(cardObject, CardLocation.Discard);
     }
+
+    public void PlayerGainCard(PlayerManager player, ScriptableCard scriptableCard)
+    {
+        // Resolve card gain
+        var cardObject = SpawnCardAndAddToCollection(player, scriptableCard, CardLocation.Discard);
+        player.RpcShowSpawnedCard(cardObject, CardLocation.Discard);
+    }
     
-    private int SpawnAndCacheCard(PlayerManager owner, GameObject cardObject, ScriptableCard scriptableCard){
+    private int SpawnAndCacheCard(PlayerManager owner, GameObject cardObject){
         // Using the unique gameObject instance ID ()
         var instanceID = cardObject.GetInstanceID();
         cardObject.name = instanceID.ToString();
         CardsCache.Add(instanceID, cardObject);
 
         NetworkServer.Spawn(cardObject, connectionToClient);
-        cardObject.GetComponent<NetworkIdentity>().AssignClientAuthority(owner.connectionToClient);
+        if(owner.connectionToClient != null) cardObject.GetComponent<NetworkIdentity>().AssignClientAuthority(owner.connectionToClient);
 
         return instanceID;
     }
 
-    private CardStats IntitializeCardOnClients(GameObject cardObject, ScriptableCard scriptableCard, int instanceID){
+    private CardStats IntitializeCardOnClients(GameObject cardObject, ScriptableCard scriptableCard, int instanceID)
+    {
         // Client RPC : Init card UI and disable gameObject (cause not yet on UI layer)
         cardObject.GetComponent<CardStats>().RpcSetCardStats(new CardInfo(scriptableCard, instanceID));
 
         return cardObject.GetComponent<CardStats>();
     }
 
-    private void AddCardToPlayerCollection(PlayerManager owner, CardStats card, CardLocation destination){
+    private void AddCardToPlayerCollection(PlayerManager owner, CardStats card, CardLocation destination)
+    {
         if (destination == CardLocation.Deck) owner.deck.Add(card);
         else if(destination == CardLocation.Discard) owner.discard.Add(card);
         else if(destination == CardLocation.Hand) owner.hand.Add(card);

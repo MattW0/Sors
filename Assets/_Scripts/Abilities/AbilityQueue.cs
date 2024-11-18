@@ -8,6 +8,7 @@ public class AbilityQueue : MonoBehaviour
     private BoardManager _boardManager;
     private EffectHandler _effectHandler;
     [SerializeField] private Dictionary<BattleZoneEntity, List<Ability>> _queue = new();
+    
 
     private void Awake() 
     {
@@ -24,7 +25,7 @@ public class AbilityQueue : MonoBehaviour
     // Or should this be on entity and then added to queue from externally ?
     public void AddAbility(BattleZoneEntity entity, Ability ability)
     {
-        print($" - {ability} ({entity.Title})");
+        print($" - Adding ability {ability} ({entity.Title})");
         entity.RpcSetHighlight(true, SorsColors.triggerHighlight);
 
         if (!_queue.ContainsKey(entity)) _queue.Add(entity, new() { ability });

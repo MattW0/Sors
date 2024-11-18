@@ -62,7 +62,8 @@ public class AbilitiesVFXSystem : NetworkBehaviour
             // TODO: Add more projectile type VFX
             Effect.CardDraw => (moneyProjectilePrefab, _moneyProjectileVFX),
             Effect.PriceReduction => (moneyProjectilePrefab, _moneyProjectileVFX),
-            _ => (null, null),
+            Effect.Curse => (damageProjectilePrefab, _damageProjectileVFX),
+            _ => throw new NotImplementedException("Projectile VFX not implemented for effect: " + effect),
         };
 
         var sourcePosition = source.transform.position;
@@ -96,7 +97,8 @@ public class AbilitiesVFXSystem : NetworkBehaviour
             // TODO: Add more hit type VFX
             Effect.CardDraw => (moneyHitPrefab, _moneyHitVFX),
             Effect.PriceReduction => (moneyHitPrefab, _moneyHitVFX),
-            _ => (null, null),
+            Effect.Curse => (damageHitPrefab, _damageHitVFX),
+            _ => throw new NotImplementedException("Hit VFX not implemented for effect: " + effect),
         };
         hitPrefab.transform.position = target.transform.position;
 

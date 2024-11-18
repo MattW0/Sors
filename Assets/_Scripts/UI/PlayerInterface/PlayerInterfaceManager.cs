@@ -15,7 +15,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
     private PlayerInterfaceButtons _buttons;
     private PlayerManager _player;
     private Dictionary<int, string> _messageOrigin = new() {{0, "Game"}};
-    private const int COMPUTER_PLAYER_ID = -1;
+    private const int COMPUTER_PLAYER_ID = 1;
     private const string COMPUTER_PLAYER_NAME = "Computer";
     public static event Action<string, string> OnChatMessageReceived;
     
