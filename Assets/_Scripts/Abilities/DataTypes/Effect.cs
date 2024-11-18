@@ -7,4 +7,5 @@ public enum Effect
     // Destroy = 7,
     MoneyGain = 10,
     PriceReduction = 11,
+    Curse = 15,
 }

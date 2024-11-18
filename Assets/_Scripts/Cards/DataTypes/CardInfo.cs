@@ -1,10 +1,8 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using UnityEngine.UI;
 
-[System.Serializable]
+[Serializable]
 public struct CardInfo : IEquatable<CardInfo>
 {
     public int goID;
@@ -42,9 +40,9 @@ public struct CardInfo : IEquatable<CardInfo>
         // Base properties
         isStartCard = card.isStartCard;
         type = card.type;
-        hash = (card.hash != null) ? card.hash : card.resourceName;
-        title = (card.title != null) ? card.title : card.resourceName;
         cost = card.cost;
+        hash = card.hash ?? card.resourceName;
+        title = card.title ?? card.resourceName;
         
         // Money properties
         moneyValue = card.moneyValue;
@@ -66,40 +64,14 @@ public struct CardInfo : IEquatable<CardInfo>
 
         // Resources 
         resourceName = card.resourceName;
-        var path = $"Sprites/Cards/{type.ToString()}/{resourceName}";
+        var path = $"Sprites/Cards/{type}/{resourceName}";
         cardSpritePath = path + "/c";
         entitySpritePath = path + "/e";
     }
 
-    public void Destroy(){
-        this.hash = null;
-        this.title = null;
-        this.cost = 0;
-        // this.image = null;
-
-        this.attack = 0;
-        this.health = 0;
-        this.goID = 0;
-
-        // this.type = CardType.Technology;
-        this.moneyValue = 0;
-
-        this.traits = null;
-    }
-
-    public bool Equals(CardInfo other)
+    public readonly bool Equals(CardInfo other)
     {
         // if (other == null) return false;
         return goID == other.goID && title == other.title && hash == other.hash;
     }
-}
-
-public enum CardType : byte
-{
-    Creature,
-    Money,
-    Technology,
-    Player,
-    None,
-    All
 }

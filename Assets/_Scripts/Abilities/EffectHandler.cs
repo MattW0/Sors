@@ -16,14 +16,14 @@ public class EffectHandler : MonoBehaviour
     [SerializeField] private BattleZoneEntity _target;
 
     [Header("Effects")]
-    private WaitForSeconds _wait = new(SorsTimings.effectProjectile);
     [SerializeReference] private Dictionary<Effect, IEffect> EFFECTS = new()
     {
         {Effect.Damage, new Damage()},
         {Effect.MoneyGain, new Money()},
         {Effect.LifeGain, new Life()},
         {Effect.CardDraw, new CardDraw()},
-        {Effect.PriceReduction, new PriceReduction()}
+        {Effect.PriceReduction, new PriceReduction()},
+        {Effect.Curse, new Curse()},
     };
 
     public static event Action<BattleZoneEntity, Ability> OnPlayerStartSelectTarget;
@@ -33,7 +33,7 @@ public class EffectHandler : MonoBehaviour
         _turnManager = TurnManager.Instance;
         _playerInterfaceManager = PlayerInterfaceManager.Instance;
 
-        foreach (var effect in EFFECTS.Values) effect.Init(AbilitiesVFXSystem.Instance, _wait);
+        foreach (var effect in EFFECTS.Values) effect.VFXSystem = AbilitiesVFXSystem.Instance;
     }
 
     internal async UniTask Execute(BattleZoneEntity source, Ability ability)
@@ -41,9 +41,11 @@ public class EffectHandler : MonoBehaviour
         print($" - {ability} (executing)");
         _source = source;
 
-        // Wait for player input if needed
+        // Evaluate target (some are obvious, some require player input)
         _target = GetTargetEntity(ability);
         await UniTask.Delay(SorsTimings.effectTrigger);
+        
+        // Wait for player input if needed
         if (_target == null) OnPlayerStartSelectTarget?.Invoke(_source, ability);
         while(_target == null) { await UniTask.Delay(100); }
         
@@ -60,15 +62,14 @@ public class EffectHandler : MonoBehaviour
     private BattleZoneEntity GetTargetEntity(Ability ability)
     {
         // Some targets are pre-determined
-        if(ability.target == Target.None 
-            || ability.target == Target.Self) 
-            return _source;
-        if(ability.target == Target.Opponent) 
-            return _turnManager.GetOpponentPlayer(_source.Owner).GetEntity();
-        if (ability.target == Target.You) 
-            return _source.Owner.GetEntity();
+        if(ability.target == Target.None) throw new Exception("Ability " + ability + " has no target!");
+        
+        if(ability.target == Target.Self) return _source;
+        if(ability.target == Target.You) return _source.Owner.GetEntity();
+        if(ability.target == Target.Opponent) return _turnManager.GetOpponentPlayer(_source.Owner).GetEntity();
 
-        // Some effects always target the owner
+        // Some effects always target the owner 
+        //TODO: could let opponent benefit from these too
         if (ability.effect == Effect.MoneyGain
             || ability.effect == Effect.CardDraw
             || ability.effect == Effect.PriceReduction)

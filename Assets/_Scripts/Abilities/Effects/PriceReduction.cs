@@ -1,25 +1,16 @@
-using UnityEngine;
 using System.Collections;
 using System;
 
 public class PriceReduction : IEffect
 {
-    private WaitForSeconds _wait = new WaitForSeconds(SorsTimings.effectProjectile);
-    private AbilitiesVFXSystem _abilitiesVFXSystem;
+    public AbilitiesVFXSystem VFXSystem { get; set; }
     public static event Action<PlayerManager, CardType, int> OnMarketPriceReduction;
-
-    public void Init(AbilitiesVFXSystem abilitiesVFXSystem, WaitForSeconds wait)
-    {
-        _abilitiesVFXSystem = abilitiesVFXSystem;
-        _wait = wait;
-    }
-
     public IEnumerator Execute(BattleZoneEntity source, BattleZoneEntity target, int amount)
     {
-        _abilitiesVFXSystem.RpcPlayProjectile(source, target, Effect.PriceReduction);
-        yield return _wait;
+        VFXSystem.RpcPlayProjectile(source, target, Effect.PriceReduction);
+        yield return VFXSystem.Wait();
 
-        _abilitiesVFXSystem.RpcPlayHit(target, Effect.PriceReduction);
+        VFXSystem.RpcPlayHit(target, Effect.PriceReduction);
         var cardType = (CardType) Enum.Parse(typeof(CardType), target.cardType.ToString());
         OnMarketPriceReduction?.Invoke(source.Owner, cardType, amount);
     }

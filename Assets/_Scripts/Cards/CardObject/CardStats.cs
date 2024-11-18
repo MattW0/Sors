@@ -1,7 +1,5 @@
 using Mirror;
 using System;
-using UnityEngine;
-
 
 public class CardStats : NetworkBehaviour
 {
@@ -63,7 +61,7 @@ public class CardStats : NetworkBehaviour
         return cardInfo.Equals(other.cardInfo);
     }
 
-    private void Destroy()
+    private void OnDestroy()
     {
         CardSelectionHandler.OnInteractionConfirmed -= ResetCard;
     }

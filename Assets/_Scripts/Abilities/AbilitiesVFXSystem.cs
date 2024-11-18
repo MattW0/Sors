@@ -24,6 +24,8 @@ public class AbilitiesVFXSystem : NetworkBehaviour
     private ParticleSystem _healHitVFX;
     private ParticleSystem _moneyHitVFX;
 
+    private WaitForSeconds _wait = new WaitForSeconds(SorsTimings.effectProjectile);
+    public WaitForSeconds Wait() => _wait;
 
     private void Awake()
     {
