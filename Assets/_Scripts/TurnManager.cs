@@ -301,9 +301,6 @@ public class TurnManager : NetworkBehaviour
 
     private void CheckBuyAnotherCard()
     {
-        // Reset abilities and dead entities, needs market tiles for game state saving
-        _boardManager.BoardCleanUp();
-
         // Play another card if not all players have skipped
         if (AllPlayersSkipped()) {
             FinishBuyCard();
@@ -389,9 +386,6 @@ public class TurnManager : NetworkBehaviour
 
     private void CheckPlayAnotherCard()
     {
-        // Reset abilities and dead entities
-        _boardManager.BoardCleanUp();
-
         // Play another card if not all players have skipped
         if (AllPlayersSkipped()) FinishPlayCard();
         else PlayCard();
@@ -519,34 +513,7 @@ public class TurnManager : NetworkBehaviour
         if (deducePoints) return;
         NextPrevailOption();
     }
-    #endregion
-    
-    #region Clean Up
-    private bool GameEnds()
-    {
-        var gameEnds = false;
-        foreach (var player in _gameManager.players.Values)
-        {
-            if (player.Health > 0 && player.Score < _gameOptions.winScore) continue;
-            if (player.Health <= 0) _gameManager.PlayerIsDead(player);
-            if (player.Score >= _gameOptions.winScore) _gameManager.PlayerHasWinScore(player);
-            gameEnds = true;
-        }
-
-        return gameEnds;
-    }
-    
-    private void CleanUp()
-    {
-        // TODO: Should not use _market here but access it from _boardManager directly
-        _boardManager.BoardCleanUpEndOfTurn(_market.GetTileInfos());
-
-        PlayersDiscardMoney();
-        PlayersEmptyResources();
-
-        PhaseSelection();
-    }
-    #endregion
+    #endregion    
 
     #region Async Functions
 
@@ -571,8 +538,6 @@ public class TurnManager : NetworkBehaviour
 
     private async UniTask BeginningOfTurn()
     {
-        await UniTask.Delay(SorsTimings.waitLong);
-
         // Reset players and draw per turn
         foreach (var player in _gameManager.players.Values)
             player.DrawCards(_gameOptions.cardDraw);
@@ -616,6 +581,19 @@ public class TurnManager : NetworkBehaviour
         UpdateTurnState(TurnState.NextPhase);
     }
 
+    private async UniTaskVoid CleanUp()
+    {
+        // TODO: Should not use _market here but access it from _boardManager directly
+        await _boardManager.BoardCleanUpEndOfTurn(_market.GetTileInfos());
+
+        PlayersDiscardMoney();
+        PlayersEmptyResources();
+
+        await UniTask.Delay(SorsTimings.waitLong);
+    
+        PhaseSelection();
+    }
+
     #endregion
 
     #region Helpers
@@ -639,7 +617,7 @@ public class TurnManager : NetworkBehaviour
         else if (newState == TurnState.Invent || newState == TurnState.Recruit) StartMarketPhase();
         else if (newState == TurnState.Develop || newState == TurnState.Deploy) StartPlayCard();
         else if (newState == TurnState.Prevail) Prevail();
-        else if (newState == TurnState.CleanUp) CleanUp();
+        else if (newState == TurnState.CleanUp) CleanUp().Forget();
         else if (newState == TurnState.Attackers) _combatManager.UpdateCombatState(TurnState.Attackers);
         else if (newState == TurnState.Idle) {}
         else throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
@@ -780,7 +758,7 @@ public class TurnManager : NetworkBehaviour
         _interactionPanel.RpcResetPanel();
         _market.RpcEndMarketPhase();
 
-        CleanUp();
+        CleanUp().Forget();
     }
 
     public PlayerManager GetOpponentPlayer(PlayerManager player)
@@ -796,6 +774,20 @@ public class TurnManager : NetworkBehaviour
             break;
         }
         return opponent;
+    }
+
+    private bool GameEnds()
+    {
+        var gameEnds = false;
+        foreach (var player in _gameManager.players.Values)
+        {
+            if (player.Health > 0 && player.Score < _gameOptions.winScore) continue;
+            if (player.Health <= 0) _gameManager.PlayerIsDead(player);
+            if (player.Score >= _gameOptions.winScore) _gameManager.PlayerHasWinScore(player);
+            gameEnds = true;
+        }
+
+        return gameEnds;
     }
     #endregion
 

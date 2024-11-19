@@ -5,7 +5,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 
 
-[RequireComponent(typeof(EntityClickHandler))]
+[Serializable, RequireComponent(typeof(EntityClickHandler))]
 public class BattleZoneEntity : NetworkBehaviour
 {
     public PlayerManager Owner { get; private set; }

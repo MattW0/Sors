@@ -7,6 +7,7 @@ using UnityEngine;
 using Cysharp.Threading.Tasks;
 using System.Linq;
 using Unity.VisualScripting;
+using UnityEngine.Rendering;
 
 [RequireComponent(typeof(EntityZones))]
 public class DropZoneManager : NetworkBehaviour
@@ -17,7 +18,7 @@ public class DropZoneManager : NetworkBehaviour
     [SerializeField] private TriggerHandler _triggerHandler;
     private EntityZones _entityZones;
     // Entities and corresponding card object (for dying)
-    private Dictionary<BattleZoneEntity, GameObject> _entitiesCardsCache = new();
+    [SerializeReference] private EntitiesCardsDictionary _entitiesCardsCache = new();
     public static event Action<bool> OnDeclareAttackers;
     public static event Action<bool> OnDeclareBlockers;
     public static event Action OnCombatEnd;

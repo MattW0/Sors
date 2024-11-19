@@ -100,22 +100,21 @@ public class BoardManager : NetworkBehaviour
         entity.RpcUnsubscribeEvents();
     }
 
-    private async void CombatCleanUp()
+    private async UniTask CombatCleanUp()
     {
         await ClearDeadEntities();
         _dropZone.CombatCleanUp();
     }
     #endregion
 
-    public async void BoardCleanUp()
+    public async UniTask BoardCleanUp()
     {
         await ClearDeadEntities();
         _dropZone.DestroyTargetArrows();
     }
 
-    public async void BoardCleanUpEndOfTurn(List<CardInfo>[] scriptableTiles)
+    public async UniTask BoardCleanUpEndOfTurn(List<CardInfo>[] scriptableTiles)
     {
-        BoardCleanUp();
         await ClearDeadEntities();
 
         // _dropZone.TechnologiesLooseHealth();
