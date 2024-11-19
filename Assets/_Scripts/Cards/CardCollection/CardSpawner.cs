@@ -17,7 +17,7 @@ public class CardSpawner : MonoBehaviour
 
     public void SpawnDetailCardObjectsInGrid(List<CardInfo> cards)
     {
-        _grid.SetPanelWidth(cards.Count);
+        _grid.SetPanelDimension(cards.Count);
 
         var transforms = new List<Transform>();
         foreach (var cardInfo in cards){

@@ -54,6 +54,7 @@ public class AbilityQueueUI : NetworkBehaviour, IModalWindow
         
         _queue.Enqueue(abilityItemUI);
         _grid.Add(abilityItemUI.transform);
+        _grid.SetPanelDimension(_queue.Count);
     }
 
     public void WindowIn()

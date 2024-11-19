@@ -33,6 +33,9 @@ public class AbilityQueue : MonoBehaviour
 
     public async UniTask Resolve()
     {
+        // Destroy dead entities and target arrows, at least once because is inbetween transitions
+        await _boardManager.BoardCleanUp();
+
         while(_queue.Count > 0)
         {
             var (entity, ability) = _queue.Dequeue();
@@ -61,7 +64,7 @@ public class AbilityQueue : MonoBehaviour
             _ui.RpcRemoveAbility();
 
             // Destroy dead entities and target arrows
-            _boardManager.BoardCleanUp();
+            await _boardManager.BoardCleanUp();
         }
         
         _queue.Clear();
