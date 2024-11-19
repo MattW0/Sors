@@ -1,15 +1,19 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
 
+[RequireComponent(typeof(CardGrid))]
 public class CardSpawner : MonoBehaviour
 {
     [SerializeField] private GameObject _creatureDetailCardPrefab;
     [SerializeField] private GameObject _technologyDetailCardPrefab;
     [SerializeField] private GameObject _moneyDetailCardPrefab;
-    [SerializeField] private CardGrid _grid;
     [SerializeField] private Transform _spawnParentTransform;
+    private CardGrid _grid;
+
+    private void Awake()
+    {
+        _grid = GetComponent<CardGrid>();
+    }
 
     public void SpawnDetailCardObjectsInGrid(List<CardInfo> cards)
     {
@@ -20,9 +24,10 @@ public class CardSpawner : MonoBehaviour
             transforms.Add(InstantiateCard(cardInfo));
         }
 
-        _grid.AddCards(transforms);
+        _grid.Add(transforms);
     }
 
+    // Only for cards scene
     public List<GameObject> SpawnDetailCardObjects(List<CardInfo> cards)
     {
         var cardObjects = new List<GameObject>();
@@ -36,12 +41,13 @@ public class CardSpawner : MonoBehaviour
     }
 
     private Transform InstantiateCard(CardInfo cardInfo){
-        var detailCardObject = cardInfo.type switch{
-                CardType.Creature => Instantiate(_creatureDetailCardPrefab) as GameObject,
-                CardType.Technology => Instantiate(_technologyDetailCardPrefab) as GameObject,
-                CardType.Money => Instantiate(_moneyDetailCardPrefab) as GameObject,
-                _ => throw new System.Exception("Card type not found")
-            };
+        var detailCardObject = cardInfo.type switch
+        {
+            CardType.Creature => Instantiate(_creatureDetailCardPrefab),
+            CardType.Technology => Instantiate(_technologyDetailCardPrefab),
+            CardType.Money => Instantiate(_moneyDetailCardPrefab),
+            _ => throw new System.Exception("Trying to spawn detail card with invalid type: " + cardInfo.type)
+        };
 
         // Initialize detail card
         var detailCard = detailCardObject.GetComponent<DetailCard>();

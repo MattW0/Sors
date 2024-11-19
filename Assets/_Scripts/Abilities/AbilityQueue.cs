@@ -1,14 +1,13 @@
 using UnityEngine;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using Unity.VisualScripting;
 
 public class AbilityQueue : MonoBehaviour
 {
     private BoardManager _boardManager;
     private EffectHandler _effectHandler;
-    [SerializeField] private Dictionary<BattleZoneEntity, List<Ability>> _queue = new();
-    
+    [SerializeField] private AbilityQueueUI _ui;
+    [SerializeField] private Queue<(BattleZoneEntity, Ability)> _queue = new();
 
     private void Awake() 
     {
@@ -28,43 +27,45 @@ public class AbilityQueue : MonoBehaviour
         print($" - Adding ability {ability} ({entity.Title})");
         entity.RpcSetHighlight(true, SorsColors.triggerHighlight);
 
-        if (!_queue.ContainsKey(entity)) _queue.Add(entity, new() { ability });
-        else _queue[entity].Add(ability);
+        _queue.Enqueue((entity, ability));
+        _ui.RpcAddAbility(entity, ability);
     }
 
     public async UniTask Resolve()
     {
-        foreach(var (entity, abilities) in _queue)
+        while(_queue.Count > 0)
         {
-            foreach(var ability in abilities)
-            {
-                if (entity == null){
-                    print("Entity has been destroyed, skipping ability");
-                    continue;
-                }
-
-                // Highlight entity
-                entity.RpcSetHighlight(true, SorsColors.abilityHighlight);
-
-                // No valid target on board -> continue
-                if (! _boardManager.PlayerHasValidTarget(ability)){
-                    entity.RpcSetHighlight(false, SorsColors.defaultHighlight);
-                    continue;
-                }
-
-                // Execute effect
-                await _effectHandler.Execute(entity, ability);
-                entity.RpcSetHighlight(false, SorsColors.defaultHighlight);
-
-                // Wait some more to prevent too early clean-up (destroying dead entities)
-                await UniTask.Delay(100);
-
-                // Destroy dead entities and target arrows
-                _boardManager.BoardCleanUp();
+            var (entity, ability) = _queue.Dequeue();
+        
+            if (entity == null){
+                print("Entity has been destroyed, skipping ability");
+                continue;
             }
-        }
 
+            // Highlight entity
+            entity.RpcSetHighlight(true, SorsColors.abilityHighlight);
+            _ui.RpcStartNextAbility();
+
+            // No valid target on board -> continue
+            if (! _boardManager.PlayerHasValidTarget(ability)){
+                entity.RpcSetHighlight(false, SorsColors.defaultHighlight);
+                continue;
+            }
+
+            // Execute effect
+            await _effectHandler.Execute(entity, ability);
+            entity.RpcSetHighlight(false, SorsColors.defaultHighlight);
+
+            // Wait some more to prevent too early clean-up (destroying dead entities)
+            await UniTask.Delay(100);
+            _ui.RpcRemoveAbility();
+
+            // Destroy dead entities and target arrows
+            _boardManager.BoardCleanUp();
+        }
+        
         _queue.Clear();
+        _ui.WindowOut();
     }
 
     public void PlayerChoosesAbilityTarget(BattleZoneEntity target)

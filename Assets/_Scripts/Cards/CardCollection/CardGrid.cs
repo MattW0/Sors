@@ -8,7 +8,7 @@ public class CardGrid : MonoBehaviour
 {
     public bool updateGrid;
     [SerializeField] private RectTransform _maxViewTransform;
-    [SerializeField] private Transform _cardHolder;
+    [SerializeField] private Transform _parentTransform;
     public float scaleFactor = 0.7f;
     private const float _panelMaxWidth = 1300f;
     private const float _defaultX = 120f;
@@ -31,21 +31,28 @@ public class CardGrid : MonoBehaviour
         _maxViewTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, _panelWidth);
     }
 
-    public void AddCards(List<Transform> transforms)
+    public void Add(List<Transform> transforms)
     {
         foreach (var t in transforms) {
-            t.SetParent(_cardHolder, false);
+            t.SetParent(_parentTransform, false);
             t.localScale = Vector3.one * scaleFactor;
         }
 
         updateGrid = true;
     }
 
+    public void Add(Transform transform)
+    {
+        transform.SetParent(_parentTransform, false);
+        transform.localScale = Vector3.one * scaleFactor;
+        updateGrid = true;
+    }
+
     private void UpdateGrid()
     {
-        if (_cardHolder.childCount == 1) {
-            _cardHolder.GetChild(0).localPosition = Vector3.zero;
-            _cardHolder.GetChild(0).localEulerAngles = Vector3.zero;
+        if (_parentTransform.childCount == 1) {
+            _parentTransform.GetChild(0).localPosition = Vector3.zero;
+            _parentTransform.GetChild(0).localEulerAngles = Vector3.zero;
             return;
         }
 
@@ -53,8 +60,8 @@ public class CardGrid : MonoBehaviour
         var limitMax = _panelWidth / 2f - _cardWidth / 2f - _padding;
 
         int i = 0;
-        foreach (Transform child in _cardHolder) {
-            var x = Mathf.Lerp(limitMin, limitMax, (float) i / (_cardHolder.childCount-1));
+        foreach (Transform child in _parentTransform) {
+            var x = Mathf.Lerp(limitMin, limitMax, (float) i / (_parentTransform.childCount-1));
 
             child.localPosition = new Vector3(x, 0, 0);
             child.localEulerAngles = Vector3.zero;

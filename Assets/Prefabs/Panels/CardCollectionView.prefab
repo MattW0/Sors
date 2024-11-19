@@ -360,7 +360,6 @@ MonoBehaviour:
   _creatureDetailCardPrefab: {fileID: 100210463679007561, guid: c03b4501970426844954120ff0362e40, type: 3}
   _technologyDetailCardPrefab: {fileID: 6311120163716661745, guid: 9518d54196ff0ed489a7d5d87f5428c1, type: 3}
   _moneyDetailCardPrefab: {fileID: 6797670194017734125, guid: 602bfeac6c9fdd6489b5238a3d1c076b, type: 3}
-  _grid: {fileID: 4232929515747775658}
   _spawnParentTransform: {fileID: 4848216341837369320}
 --- !u!114 &3205428203614987224
 MonoBehaviour:
@@ -391,7 +390,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   updateGrid: 0
   _maxViewTransform: {fileID: 4848216340887168534}
-  _cardHolder: {fileID: 4848216341837369320}
+  _parentTransform: {fileID: 4848216341837369320}
   scaleFactor: 0.7
 --- !u!1 &4848216341837369319
 GameObject:
