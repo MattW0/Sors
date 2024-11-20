@@ -10,7 +10,7 @@ public class CardDraw : IEffect
         VFXSystem.RpcPlayProjectile(source, target, Effect.CardDraw);
         yield return VFXSystem.Wait();
         
-        VFXSystem.RpcPlayHit(target, Effect.MoneyGain);
+        VFXSystem.RpcPlayHit(target, Effect.Cash);
 
         // TODO: Check if it be opponent?
         target.Owner.DrawCards(amount);

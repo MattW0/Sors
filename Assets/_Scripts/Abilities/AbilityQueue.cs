@@ -28,7 +28,7 @@ public class AbilityQueue : MonoBehaviour
         entity.RpcSetHighlight(true, SorsColors.triggerHighlight);
 
         _queue.Enqueue((entity, ability));
-        _ui.RpcAddAbility(entity, ability);
+        _ui.RpcAddAbility(entity.CardInfo, ability);
     }
 
     public async UniTask Resolve()
@@ -68,7 +68,7 @@ public class AbilityQueue : MonoBehaviour
         }
         
         _queue.Clear();
-        _ui.WindowOut();
+        _ui.RpcWindowOut();
     }
 
     public void PlayerChoosesAbilityTarget(BattleZoneEntity target)

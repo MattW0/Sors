@@ -2838,7 +2838,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 224633099051342902, guid: 60163bc4b1f0ef54e9bcc329aa406bce, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 109.3
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 224633099051342902, guid: 60163bc4b1f0ef54e9bcc329aa406bce, type: 3}
       propertyPath: m_LocalPosition.x
@@ -3946,10 +3946,9 @@ MonoBehaviour:
   headlessStartMode: 1
   editorAutoStart: 0
   sendRate: 60
-  autoStartServerBuild: 0
-  autoConnectClientBuild: 0
   offlineScene: Assets/_Scenes/Lobby.unity
   onlineScene: Assets/_Scenes/Game.unity
+  offlineSceneLoadDelay: 0
   transport: {fileID: 164906012}
   networkAddress: localhost
   maxConnections: 2
@@ -23266,7 +23265,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 224633099051342902, guid: 60163bc4b1f0ef54e9bcc329aa406bce, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 109.3
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 224633099051342902, guid: 60163bc4b1f0ef54e9bcc329aa406bce, type: 3}
       propertyPath: m_LocalPosition.x
@@ -54430,6 +54429,7 @@ GameObject:
   - component: {fileID: 2048916809}
   - component: {fileID: 2048916808}
   - component: {fileID: 2048916807}
+  - component: {fileID: 2048916813}
   m_Layer: 5
   m_Name: Cards
   m_TagString: Untagged
@@ -54529,7 +54529,6 @@ MonoBehaviour:
   _creatureDetailCardPrefab: {fileID: 100210463679007561, guid: c03b4501970426844954120ff0362e40, type: 3}
   _technologyDetailCardPrefab: {fileID: 6311120163716661745, guid: 9518d54196ff0ed489a7d5d87f5428c1, type: 3}
   _moneyDetailCardPrefab: {fileID: 6797670194017734125, guid: 602bfeac6c9fdd6489b5238a3d1c076b, type: 3}
-  _grid: {fileID: 0}
   _spawnParentTransform: {fileID: 79787679}
 --- !u!114 &2048916812
 MonoBehaviour:
@@ -54548,6 +54547,25 @@ MonoBehaviour:
   moneyCards: []
   creatureCards: []
   technologyCards: []
+--- !u!114 &2048916813
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2048916803}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb66145ac6117c342856fa3d92fd8a82, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  updateGrid: 0
+  _maxViewTransform: {fileID: 578048980}
+  _parentTransform: {fileID: 79787679}
+  itemDimensions: {x: 220, y: 360}
+  itemScaleFactor: 0.7
+  padding: {x: 20, y: 10}
+  gap: 10
 --- !u!1 &2057408287
 GameObject:
   m_ObjectHideFlags: 0
@@ -57869,7 +57887,7 @@ MonoBehaviour:
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 1
-  m_ActiveFontFeatures: 00000000
+  m_ActiveFontFeatures: 6e72656b
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1

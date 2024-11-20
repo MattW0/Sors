@@ -4528,6 +4528,16 @@ MonoBehaviour:
   playerMoneyZone: {fileID: 2249326278289284919}
   opponentMoneyZone: {fileID: 874206397205993127}
   _triggerHandler: {fileID: 36506473}
+  _entitiesCardsCache:
+    rid: 5173510517181907081
+  references:
+    version: 2
+    RefIds:
+    - rid: 5173510517181907081
+      type: {class: EntitiesCardsDictionary, ns: , asm: Assembly-CSharp}
+      data:
+        m_Keys: []
+        m_Values: []
 --- !u!1 &250358610
 GameObject:
   m_ObjectHideFlags: 0
@@ -11674,7 +11684,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1195688591216859507, guid: f12073e701e66c14993565fcb0a31f75, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -279
+      value: -195
       objectReference: {fileID: 0}
     - target: {fileID: 1195688591216859507, guid: f12073e701e66c14993565fcb0a31f75, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -19995,7 +20005,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 1591974162}
   m_Direction: 2
   m_Value: 1
-  m_Size: 0.9880092
+  m_Size: 0.9943968
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -23212,7 +23222,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1195688591216859507, guid: f12073e701e66c14993565fcb0a31f75, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 93.00001
+      value: 65.00001
       objectReference: {fileID: 0}
     - target: {fileID: 1195688591216859507, guid: f12073e701e66c14993565fcb0a31f75, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -25849,7 +25859,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 0, y: -0.0007324219}
+  m_AnchoredPosition: {x: 0, y: -0.0001373291}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &1301497656
@@ -33096,7 +33106,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1195688591216859507, guid: f12073e701e66c14993565fcb0a31f75, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 279
+      value: 195
       objectReference: {fileID: 0}
     - target: {fileID: 1195688591216859507, guid: f12073e701e66c14993565fcb0a31f75, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -39426,7 +39436,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1195688591216859507, guid: f12073e701e66c14993565fcb0a31f75, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -92.99999
+      value: -64.99999
       objectReference: {fileID: 0}
     - target: {fileID: 1195688591216859507, guid: f12073e701e66c14993565fcb0a31f75, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -48682,7 +48692,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 35.610962, y: 89.680725}
+  m_AnchoredPosition: {x: 381, y: -442}
   m_SizeDelta: {x: 800, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!225 &8118705875392923850
@@ -48891,7 +48901,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 774, y: 348}
+  m_SizeDelta: {x: 550, y: 180}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &8118705876984472737
 MonoBehaviour:

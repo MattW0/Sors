@@ -19,8 +19,8 @@ public class EffectHandler : MonoBehaviour
     [SerializeReference] private Dictionary<Effect, IEffect> EFFECTS = new()
     {
         {Effect.Damage, new Damage()},
-        {Effect.MoneyGain, new Money()},
-        {Effect.LifeGain, new Life()},
+        {Effect.Cash, new Cash()},
+        {Effect.Life, new Life()},
         {Effect.CardDraw, new CardDraw()},
         {Effect.PriceReduction, new PriceReduction()},
         {Effect.Curse, new Curse()},
@@ -71,7 +71,7 @@ public class EffectHandler : MonoBehaviour
 
         // Some effects always target the owner 
         //TODO: could let opponent benefit from these too
-        if (ability.effect == Effect.MoneyGain
+        if (ability.effect == Effect.Cash
             || ability.effect == Effect.CardDraw
             || ability.effect == Effect.PriceReduction)
             return _source.Owner.GetEntity();

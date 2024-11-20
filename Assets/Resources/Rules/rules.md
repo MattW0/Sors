@@ -112,8 +112,8 @@ WhenDealsDamage,
 ```
 CardDraw = 1,
 Damage = 5,
-LifeGain = 6,
-MoneyGain = 10,
+Life = 6,
+Cash = 10,
 PriceReduction = 11,
 Destroy,
 ```

@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using UnityUtils;
 
 public class CardUI : MonoBehaviour
 {
@@ -8,19 +9,18 @@ public class CardUI : MonoBehaviour
     [SerializeField] private TMP_Text _titleText;
     [SerializeField] private TMP_Text _cost;
     [SerializeField] private TMP_Text _health;
-    [SerializeField] private TMP_Text _description;
     [SerializeField] private Image _image;
 
     [Header("Card Type Specific")]
     [SerializeField] private TMP_Text _attack;
     [SerializeField] private TMP_Text _points;
     [SerializeField] private TMP_Text _moneyValue;
-    [SerializeField] private TMP_Text _traitsText;
-    [SerializeField] private GameObject _traitsBox;
+    [SerializeField] private TraitsUI _traits;
 
     [Header("UI Elements")]
     public Image highlight;
-    public GameObject titleBox;
+    [SerializeField] private Transform _abilitiesParent;
+    [SerializeField] private GameObject _abilityPrefab;
 
     public virtual void SetCardUI(CardInfo cardInfo)
     {
@@ -35,16 +35,20 @@ public class CardUI : MonoBehaviour
 
         // Entity properties
         _health.text = cardInfo.health.ToString();
-        _description.text = cardInfo.description;
+
+        // TODO: Pictos
+        _abilitiesParent.DestroyChildren();
+        foreach (var ability in cardInfo.abilities)
+        {
+            var abilityItem = Instantiate(_abilityPrefab, _abilitiesParent);
+            // abilityItem.transform.position = Vector3.zero;
+            abilityItem.GetComponent<AbilityUI>().SetPictos(ability);
+        }
+        // _description.text = cardInfo.description;
 
         if (cardInfo.type == CardType.Creature){
             _attack.text = cardInfo.attack.ToString();
-            if(cardInfo.traits.Count > 0){
-                _traitsBox.SetActive(true);
-                _traitsText.text = string.Join(", ", cardInfo.traits.ConvertAll(f => f.ToString()));
-            } else { 
-                _traitsBox.SetActive(false);
-            }
+            _traits.SetTraits(cardInfo.traits);
         } else if (cardInfo.type == CardType.Technology) {
             _points.text = cardInfo.points.ToString();
         }

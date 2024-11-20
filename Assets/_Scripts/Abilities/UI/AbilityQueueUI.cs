@@ -22,11 +22,11 @@ public class AbilityQueueUI : NetworkBehaviour, IModalWindow
     }
 
     [ClientRpc]
-    public void RpcAddAbility(BattleZoneEntity entity, Ability ability)
+    public void RpcAddAbility(CardInfo cardInfo, Ability ability)
     {
         if (! _isOpen) WindowIn();
 
-        InstantiateAbility(entity.CardInfo, ability);
+        InstantiateAbility(cardInfo, ability);
     }
 
     [ClientRpc]
@@ -44,8 +44,10 @@ public class AbilityQueueUI : NetworkBehaviour, IModalWindow
         if (_queue.Count == 0) return;
 
         var abilityUI = _queue.Dequeue();
-        Destroy(abilityUI.gameObject);
+        abilityUI.SetInactive();
     }
+
+    [ClientRpc] internal void RpcWindowOut() => WindowOut();
 
     private void InstantiateAbility(CardInfo cardInfo, Ability ability)
     {

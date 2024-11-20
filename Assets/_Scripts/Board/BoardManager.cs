@@ -197,7 +197,7 @@ public class BoardManager : NetworkBehaviour
 
         if (state == TurnState.Attackers) DeclareAttackers();
         else if (state == TurnState.Blockers) DeclareBlockers();
-        else if (state == TurnState.CombatCleanUp) CombatCleanUp();
+        else if (state == TurnState.CombatCleanUp) CombatCleanUp().Forget();
     }
     public void DiscardMoney() => _dropZone.RpcDiscardMoney();
     #endregion

@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -26,12 +27,12 @@ public class CardZoomView : ModalWindow, IPointerClickHandler
         _creatureEntity.SetActive(false);
         _technologyEntity.SetActive(false);
 
-        CardClickHandler.OnCardInspect += ZoomCard;
-        EntityClickHandler.OnEntityInspect += ZoomCard;
-        MarketTileUI.OnMarketTileInspect += ZoomCard;
+        CardClickHandler.OnInspect += InspectCardInfo;
+        EntityClickHandler.OnInspect += InspectCardInfo;
+        MarketTileUI.OnInspect += InspectCardInfo;
     }
 
-    public void ZoomCard(CardInfo card)
+    public void InspectCardInfo(CardInfo card)
     {
         // Set Card
         _openedCardObject = card.type switch{
@@ -79,8 +80,8 @@ public class CardZoomView : ModalWindow, IPointerClickHandler
 
     private void OnDestroy()
     {
-        CardClickHandler.OnCardInspect -= ZoomCard;
-        EntityClickHandler.OnEntityInspect -= ZoomCard;
-        MarketTileUI.OnMarketTileInspect -= ZoomCard;
+        CardClickHandler.OnInspect -= InspectCardInfo;
+        EntityClickHandler.OnInspect -= InspectCardInfo;
+        MarketTileUI.OnInspect -= InspectCardInfo;
     }
 }

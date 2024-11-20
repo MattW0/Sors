@@ -56,8 +56,8 @@ public class AbilitiesVFXSystem : NetworkBehaviour
         var (projectilePrefab, projectileVFX) = effect switch
         {
             Effect.Damage => (damageProjectilePrefab, _damageProjectileVFX),
-            Effect.LifeGain => (healProjectilePrefab, _healProjectileVFX),
-            Effect.MoneyGain => (moneyProjectilePrefab, _moneyProjectileVFX),
+            Effect.Life => (healProjectilePrefab, _healProjectileVFX),
+            Effect.Cash => (moneyProjectilePrefab, _moneyProjectileVFX),
 
             // TODO: Add more projectile type VFX
             Effect.CardDraw => (moneyProjectilePrefab, _moneyProjectileVFX),
@@ -91,8 +91,8 @@ public class AbilitiesVFXSystem : NetworkBehaviour
         var (hitPrefab, hitVFX) = effect switch
         {
             Effect.Damage => (damageHitPrefab, _damageHitVFX),
-            Effect.LifeGain => (healHitPrefab, _healHitVFX),
-            Effect.MoneyGain => (moneyHitPrefab, _moneyHitVFX),
+            Effect.Life => (healHitPrefab, _healHitVFX),
+            Effect.Cash => (moneyHitPrefab, _moneyHitVFX),
 
             // TODO: Add more hit type VFX
             Effect.CardDraw => (moneyHitPrefab, _moneyHitVFX),

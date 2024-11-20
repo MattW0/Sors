@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
+using System;
 
 public class TriggerHandler : NetworkBehaviour
 {
@@ -69,41 +70,45 @@ public class TriggerHandler : NetworkBehaviour
 
     private TurnState TriggerToTurnState(Trigger trigger)
     {
+        return Enum.TryParse(trigger.ToString(), out TurnState state) ? state : TurnState.None;
         // TODO: Extend triggers to more turn state changes (combat, prevail steps, ...)
-        TurnState state = trigger switch
-        {
-            Trigger.PhaseSelection => TurnState.PhaseSelection,
-            Trigger.Draw => TurnState.Draw,
-            Trigger.Invent => TurnState.Invent,
-            Trigger.Develop => TurnState.Develop,
-            Trigger.Combat => TurnState.Attackers,
-            Trigger.Recruit => TurnState.Recruit,
-            Trigger.Deploy => TurnState.Deploy,
-            Trigger.Prevail => TurnState.Prevail,
-            Trigger.CleanUp => TurnState.CleanUp,
-            _ => TurnState.None
-        };
+        // TurnState s = trigger switch
+        // {
+        //     Trigger.PhaseSelection => TurnState.PhaseSelection,
+        //     Trigger.Draw => TurnState.Draw,
+        //     Trigger.Invent => TurnState.Invent,
+        //     Trigger.Develop => TurnState.Develop,
+        //     Trigger.Attackers => TurnState.Attackers,
+        //     Trigger.Blockers => TurnState.Blockers,
+        //     Trigger.Recruit => TurnState.Recruit,
+        //     Trigger.Deploy => TurnState.Deploy,
+        //     Trigger.Prevail => TurnState.Prevail,
+        //     Trigger.CleanUp => TurnState.CleanUp,
+        //     _ => TurnState.None
+        // };
 
-        return state;
+        // return s;
     }
 
     private Trigger TurnStateToTrigger(TurnState state)
     {
-        Trigger trigger = state switch
-        {
-            TurnState.PhaseSelection => Trigger.PhaseSelection,
-            TurnState.Draw => Trigger.Draw,
-            TurnState.Invent => Trigger.Invent,
-            TurnState.Develop => Trigger.Develop,
-            TurnState.Attackers => Trigger.Combat,
-            TurnState.Recruit => Trigger.Recruit,
-            TurnState.Deploy => Trigger.Deploy,
-            TurnState.Prevail => Trigger.Prevail,
-            TurnState.CleanUp => Trigger.CleanUp,
-            _ => Trigger.None
-        };
+        return Enum.TryParse(state.ToString(), out Trigger trigger) ? trigger : Trigger.None;
+        // Trigger trigger = state switch
+        // {
+        //     TurnState.PhaseSelection => Trigger.PhaseSelection,
+        //     TurnState.Draw => Trigger.Draw,
+        //     TurnState.Invent => Trigger.Invent,
+        //     TurnState.Develop => Trigger.Develop,
+        //     TurnState.Attackers => Trigger.Attackers,
+        //     TurnState.Blockers => Trigger.Blockers,
+        //     TurnState.Recruit => Trigger.Recruit,
+        //     TurnState.Deploy => Trigger.Deploy,
+        //     TurnState.Prevail => Trigger.Prevail,
+        //     TurnState.CleanUp => Trigger.CleanUp,
+        //     _ => Trigger.None
+        // };
 
-        return trigger;
+        // return trigger;
     }
 
     private void OnDestroy()

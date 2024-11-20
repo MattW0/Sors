@@ -6,12 +6,11 @@ public class Life : IEffect
     public AbilitiesVFXSystem VFXSystem { get; set; }
     public IEnumerator Execute(BattleZoneEntity source, BattleZoneEntity target, int amount)
     {
-        VFXSystem.RpcPlayProjectile(source, target, Effect.LifeGain);
+        VFXSystem.RpcPlayProjectile(source, target, Effect.Life);
         yield return VFXSystem.Wait();
 
-        VFXSystem.RpcPlayHit(target, Effect.LifeGain);
+        VFXSystem.RpcPlayHit(target, Effect.Life);
 
-        // TODO: Lifegain for creatures and entities
-        target.Owner.Health += amount;
+        target.EntityTakesDamage(- amount, false);
     }
 }

@@ -4,12 +4,13 @@ using UnityEngine.EventSystems;
 using Cysharp.Threading.Tasks;
 using System;
 using System.Threading;
+using Sirenix.OdinInspector;
 
 public class MarketTileUI : EntityUI, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
     private MarketTile _tile;
     [SerializeField] private Image _overlay;
-    public static event Action<CardInfo> OnMarketTileInspect;
+    public static event Action<CardInfo> OnInspect;
     private CancellationTokenSource _cts = new();
 
     private void Awake()
@@ -21,7 +22,7 @@ public class MarketTileUI : EntityUI, IPointerClickHandler, IPointerEnterHandler
     {
         // Right click to preview card only
         if (eventData.button == PointerEventData.InputButton.Right) {
-            OnMarketTileInspect?.Invoke(_tile.cardInfo);
+            OnInspect?.Invoke(_tile.cardInfo);
             return;
         }
 
