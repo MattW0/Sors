@@ -1,37 +1,59 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using TMPro;
+using System;
+using DG.Tweening;
 
-public class DetailCardUI : CardUI, IPointerEnterHandler, IPointerExitHandler 
+public class DetailCardUI : CardUI, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler 
 {
     [Header("Card UI")]
     private bool _enableFocus = true;
     public bool EnableFocus { get => _enableFocus; set => _enableFocus = value; }
     private Canvas _tempCanvas;
     private GraphicRaycaster _tempRaycaster;
+    public static event Action<CardInfo> OnInspect;
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        // Right click to preview card only
+        if (eventData.button != PointerEventData.InputButton.Right) return;
+
+        DefocusCard();
+        OnInspect?.Invoke(cardInfo);
+    }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
         if(!_enableFocus) return;
 
-        // Puts the card on top of others
+        FocusCard();
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        DefocusCard();    
+    }
+
+    private void FocusCard()
+    {
+        // Creates a canvas on top of others
         _tempCanvas = gameObject.AddComponent<Canvas>();
         _tempCanvas.overrideSorting = true;
         _tempCanvas.sortingOrder = 1;
         _tempRaycaster = gameObject.AddComponent<GraphicRaycaster>();
         
         highlight.enabled = true;
-        // _highlight.DOColor(standardHighlight, 0.2f);
+        highlight.DOColor(SorsColors.standardHighlight, 0.2f);
     }
 
-    public void OnPointerExit(PointerEventData eventData){
+    private void DefocusCard()
+    {
         // Removes focus from the card
         Destroy(_tempRaycaster);
         Destroy(_tempCanvas);
         
+        highlight.DOColor(SorsColors.transparent, 0.2f);
         highlight.enabled = false;
-        // _highlight.DOColor(standardHighlight, 0.2f);
     }
     
     public void EnableHighlight() => highlight.enabled = true;

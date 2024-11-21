@@ -5,6 +5,8 @@ using UnityUtils;
 
 public class CardUI : MonoBehaviour
 {
+    public CardInfo cardInfo;
+
     [Header("General Card Properties")]
     [SerializeField] private TMP_Text _titleText;
     [SerializeField] private TMP_Text _cost;
@@ -24,6 +26,8 @@ public class CardUI : MonoBehaviour
 
     public virtual void SetCardUI(CardInfo cardInfo)
     {
+        this.cardInfo = cardInfo;
+
         _titleText.text = cardInfo.title;
         _cost.text = cardInfo.cost.ToString();
         _image.sprite = Resources.Load<Sprite>(cardInfo.cardSpritePath);

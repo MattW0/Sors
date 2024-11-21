@@ -26,13 +26,10 @@ public class AbilityUI : MonoBehaviour
     {
         var path = BASE_PATH + "Trigger/";
         path += trigger.ToString().StartsWith("When") ?  "When/" : "AtTheBeginningOf/";
-        path += trigger;
+        path += (int) trigger;
        
         // print("Load trigger: " + trigger + " from path: " + path);
-        var sp = Resources.Load<Sprite>(path);
-
-        print("Loaded: " + sp);
-        _trigger.sprite = sp;
+        _trigger.sprite = Resources.Load<Sprite>(path);
     }
 
     private void SetAmount(int amount)
@@ -50,6 +47,6 @@ public class AbilityUI : MonoBehaviour
 
     private void SetTarget(Target target)
     {
-        //TODO
+        _target.sprite = Resources.Load<Sprite>(BASE_PATH + "Target/" + (int) target);
     }
 }

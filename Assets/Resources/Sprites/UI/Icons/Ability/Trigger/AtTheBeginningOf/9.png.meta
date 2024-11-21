@@ -1,13 +1,25 @@
 fileFormatVersion: 2
-guid: 82d733e6291de7b47974f96f1158012f
+guid: 13255d970f5f5a145a61f5bf02e9cc33
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8611762409675251252
-    second: WhenYouPlay_0
+      213: -7336102744047900723
+    second: prevail_0
   - first:
-      213: -6623669983585259122
-    second: WhenYouPlay_1
+      213: 9039428570688597110
+    second: prevail_1
+  - first:
+      213: -6935173536808131584
+    second: prevail_2
+  - first:
+      213: -5966567242212947647
+    second: prevail_3
+  - first:
+      213: -2513328070344098102
+    second: prevail_4
+  - first:
+      213: -843155635150909479
+    second: prevail_5
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -49,7 +61,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -103,13 +115,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: WhenYouPlay_0
+      name: prevail_0
       rect:
         serializedVersion: 2
-        x: 38
-        y: 255
-        width: 438
-        height: 257
+        x: 70
+        y: 367
+        width: 75
+        height: 75
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -118,20 +130,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: cc1ae3927bfdc7880800000000000000
-      internalID: -8611762409675251252
+      spriteID: dc7a1413c6de03a90800000000000000
+      internalID: -7336102744047900723
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: WhenYouPlay_1
+      name: prevail_1
       rect:
         serializedVersion: 2
-        x: 38
-        y: 0
-        width: 438
-        height: 257
+        x: 240
+        y: 420
+        width: 32
+        height: 92
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -140,8 +152,96 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e81bbfe5e3ff314a0800000000000000
-      internalID: -6623669983585259122
+      spriteID: 67c29606460827d70800000000000000
+      internalID: 9039428570688597110
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: prevail_2
+      rect:
+        serializedVersion: 2
+        x: 367
+        y: 367
+        width: 75
+        height: 75
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 004acd2996051cf90800000000000000
+      internalID: -6935173536808131584
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: prevail_3
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 240
+        width: 92
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1494a6794be723da0800000000000000
+      internalID: -5966567242212947647
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: prevail_4
+      rect:
+        serializedVersion: 2
+        x: 120
+        y: 0
+        width: 272
+        height: 392
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ace3f1baf6dde1dd0800000000000000
+      internalID: -2513328070344098102
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: prevail_5
+      rect:
+        serializedVersion: 2
+        x: 420
+        y: 240
+        width: 92
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9df0674ca628c44f0800000000000000
+      internalID: -843155635150909479
       vertices: []
       indices: 
       edges: []
@@ -150,7 +250,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -160,8 +260,12 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      WhenYouPlay_0: -8611762409675251252
-      WhenYouPlay_1: -6623669983585259122
+      prevail_0: -7336102744047900723
+      prevail_1: 9039428570688597110
+      prevail_2: -6935173536808131584
+      prevail_3: -5966567242212947647
+      prevail_4: -2513328070344098102
+      prevail_5: -843155635150909479
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
