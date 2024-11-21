@@ -1,11 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
+[RequireComponent(typeof(DetailCardUI))]
 public class DetailCard : MonoBehaviour
 {
-    [SerializeField] private DetailCardUI _ui;
+    private DetailCardUI _ui;
+    private void Awake() => _ui = GetComponent<DetailCardUI>();
     public void SetCardUI(CardInfo card) => _ui.SetCardUI(card);
-    public void DisableFocus() => _ui.EnableFocus = false;
 }

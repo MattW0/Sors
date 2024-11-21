@@ -1,6 +1,8 @@
 using Mirror;
 using System;
+using UnityEngine;
 
+[RequireComponent(typeof(HandCardUI))]
 public class CardStats : NetworkBehaviour
 {
     public CardInfo cardInfo;
@@ -11,7 +13,7 @@ public class CardStats : NetworkBehaviour
         get => _interactable;
         set {
             _interactable = value;
-            _cardUI.Highlight(value, SorsColors.interactionHighlight);
+            _cardUI.Highlight(HighlightType.InteractionPositive);
         }
     }
 
@@ -44,14 +46,14 @@ public class CardStats : NetworkBehaviour
         if (cash < cardInfo.cost) return;
 
         IsInteractable = true;
-        _cardUI.Highlight(true, SorsColors.playableHighlight);
+        _cardUI.Highlight(HighlightType.InteractionPositive);
     }
 
     private void ResetCard()
     {
         IsInteractable = false;
         IsSelected = false;
-        _cardUI.Highlight(false, SorsColors.interactionHighlight);
+        _cardUI.Highlight(HighlightType.None);
     }
 
     public bool Equals(CardStats other)

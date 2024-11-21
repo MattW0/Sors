@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba2a78e39390ae94ba18b963605b5cdd, type: 3}
+  m_Name: Sors Colors
+  m_EditorClassIdentifier: 
+  enableDynamicUpdate: 1
+  player: {r: 0.65, g: 0.3, b: 0.95, a: 1}
+  opponent: {r: 0.1, g: 0.26, b: 0.78, a: 1}
+  creature: {r: 0.34, g: 0, b: 0, a: 1}
+  technology: {r: 0.65, g: 0.45, b: 0.25, a: 1}
+  money: {r: 0.77, g: 0.95, b: 1, a: 1}
+  costValue: {r: 1, g: 0.9, b: 0.3, a: 1}
+  attackValue: {r: 0.96, g: 0.27, b: 0.25, a: 1}
+  healthValue: {r: 0.2, g: 0.44, b: 0.92, a: 1}
+  pointsValue: {r: 0.37, g: 0.77, b: 0.29, a: 1}
+  defaultHighlight: {r: 0.95, g: 0.95, b: 0, a: 0.8}
+  interactionPositiveHighlight: {r: 0, g: 1, b: 0, a: 1}
+  InteractionNegativeHighlight: {r: 1, g: 0, b: 0, a: 1}
+  targetHighlight: {r: 1, g: 0, b: 1, a: 1}
+  triggerHighlight: {r: 1, g: 1, b: 0.7, a: 0.6}
+  abilityHighlight: {r: 1, g: 1, b: 1, a: 1}

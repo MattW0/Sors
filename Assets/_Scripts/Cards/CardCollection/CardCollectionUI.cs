@@ -5,7 +5,6 @@ using System;
 
 public class CardCollectionUI : MonoBehaviour
 {
-    [SerializeField] private Image _background;
     [SerializeField] private TMP_Text _collectionTitle;
     [SerializeField] private Button _closeButton;
     private CardLocation _cardCollectionType;
@@ -27,7 +26,6 @@ public class CardCollectionUI : MonoBehaviour
         // Nobody owns these collections
         else if (cardCollectionType == CardLocation.Trash) {
             text = "Trash";
-            _background.color = SorsColors.trashHighlight;
         }
 
         _collectionTitle.text = text;

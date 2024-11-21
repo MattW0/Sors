@@ -5,30 +5,30 @@ using UnityUtils;
 
 public class CardUI : MonoBehaviour
 {
-    public CardInfo cardInfo;
+    public CardInfo CardInfo { get ; private set; }
 
-    [Header("General Card Properties")]
-    [SerializeField] private TMP_Text _titleText;
+    [Header("Card Properties")]
+    [SerializeField] private TMP_Text _title;
+    [SerializeField] private TraitsUI _traits;
+    [SerializeField] private AbilitiesUI _abilities;
+    
+
+    [Header("Stats")]
     [SerializeField] private TMP_Text _cost;
     [SerializeField] private TMP_Text _health;
-    [SerializeField] private Image _image;
-
-    [Header("Card Type Specific")]
     [SerializeField] private TMP_Text _attack;
     [SerializeField] private TMP_Text _points;
     [SerializeField] private TMP_Text _moneyValue;
-    [SerializeField] private TraitsUI _traits;
 
     [Header("UI Elements")]
     public Image highlight;
-    [SerializeField] private Transform _abilitiesParent;
-    [SerializeField] private GameObject _abilityPrefab;
+    [SerializeField] private Image _image;
 
     public virtual void SetCardUI(CardInfo cardInfo)
     {
-        this.cardInfo = cardInfo;
+        CardInfo = cardInfo;
 
-        _titleText.text = cardInfo.title;
+        _title.text = cardInfo.title;
         _cost.text = cardInfo.cost.ToString();
         _image.sprite = Resources.Load<Sprite>(cardInfo.cardSpritePath);
 
@@ -41,14 +41,7 @@ public class CardUI : MonoBehaviour
         _health.text = cardInfo.health.ToString();
 
         // TODO: Pictos
-        _abilitiesParent.DestroyChildren();
-        foreach (var ability in cardInfo.abilities)
-        {
-            var abilityItem = Instantiate(_abilityPrefab, _abilitiesParent);
-            // abilityItem.transform.position = Vector3.zero;
-            abilityItem.GetComponent<AbilityUI>().SetPictos(ability);
-        }
-        // _description.text = cardInfo.description;
+        _abilities.SetAbilities(cardInfo.abilities);
 
         if (cardInfo.type == CardType.Creature){
             _attack.text = cardInfo.attack.ToString();
@@ -57,4 +50,10 @@ public class CardUI : MonoBehaviour
             _points.text = cardInfo.points.ToString();
         }
     }
+
+    // Currently only used for entities
+    public void SetCost(int newValue) => _cost.text = newValue.ToString();
+    public void SetHealth(int newValue) => _health.text = newValue.ToString();
+    public void SetAttack(int newValue) => _attack.text = newValue.ToString();
+    public void SetPoints(int newValue) => _points.text = newValue.ToString();
 }

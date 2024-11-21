@@ -57,15 +57,15 @@ public class MarketTileUI : EntityUI, IPointerClickHandler, IPointerEnterHandler
         // MarketTileHoverPreview.OnHoverExit();
     }
 
-    public override void Highlight(bool enabled, Color color)
+    public override void Highlight(HighlightType type)
     {
-        base.Highlight(enabled, color);
-        _overlay.enabled = !enabled;
+        base.Highlight(type);
+        _overlay.enabled = type == HighlightType.None;
     }
 
     public void ShowAsChosen()
     {
-        base.Highlight(false, SorsColors.tileSelectable);
+        base.Highlight(HighlightType.None);
         _overlay.enabled = true;
     }
 }

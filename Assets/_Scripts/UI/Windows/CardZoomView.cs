@@ -47,7 +47,6 @@ public class CardZoomView : ModalWindow, IPointerClickHandler
         _openedCardObject.SetActive(true);
         var detailCard = _openedCardObject.GetComponent<DetailCard>();
         detailCard.SetCardUI(card);
-        detailCard.DisableFocus();
 
         WindowIn();
 
@@ -64,7 +63,7 @@ public class CardZoomView : ModalWindow, IPointerClickHandler
         _cardHolder.localPosition = _cardHolderOffset;
         _openedEntityObject.SetActive(true);
         var entityUI = _openedEntityObject.GetComponent<EntityUI>();
-        entityUI.SetEntityUI(card);
+        entityUI.SetCardUI(card);
     }
 
     public void OnPointerClick(PointerEventData eventData)

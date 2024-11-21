@@ -23,7 +23,8 @@ public class MarketTile : MonoBehaviour
         set {
             if(_alreadyChosen) return;
             _isInteractable = value;
-            _ui.Highlight(value, SorsColors.tileSelectable);
+            if (value) _ui.Highlight(HighlightType.InteractionPositive);
+            else _ui.Highlight(HighlightType.None);
         }
     }
 
@@ -35,10 +36,10 @@ public class MarketTile : MonoBehaviour
             _isSelected = value;
             if(value) {
                 OnTileSelected?.Invoke(this);
-                _ui.Highlight(true, SorsColors.tileSelected);
+                _ui.Highlight(HighlightType.Default);
             } else {
                 OnTileDeselected?.Invoke();
-                _ui.Highlight(true, SorsColors.tileSelectable);
+                _ui.Highlight(HighlightType.InteractionPositive);
             }
         }
     }
@@ -60,7 +61,7 @@ public class MarketTile : MonoBehaviour
     {
         cardInfo = card;
         Cost = card.cost;
-        _ui.SetEntityUI(card);
+        _ui.SetCardUI(card);
     }
 
     public void SetBonus(int priceReduction)

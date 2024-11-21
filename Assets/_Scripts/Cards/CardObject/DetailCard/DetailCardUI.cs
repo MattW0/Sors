@@ -7,8 +7,7 @@ using DG.Tweening;
 public class DetailCardUI : CardUI, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler 
 {
     [Header("Card UI")]
-    private bool _enableFocus = true;
-    public bool EnableFocus { get => _enableFocus; set => _enableFocus = value; }
+    public bool disableFocus = false;
     private Canvas _tempCanvas;
     private GraphicRaycaster _tempRaycaster;
     public static event Action<CardInfo> OnInspect;
@@ -19,12 +18,12 @@ public class DetailCardUI : CardUI, IPointerClickHandler, IPointerEnterHandler, 
         if (eventData.button != PointerEventData.InputButton.Right) return;
 
         DefocusCard();
-        OnInspect?.Invoke(cardInfo);
+        OnInspect?.Invoke(CardInfo);
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if(!_enableFocus) return;
+        if(disableFocus) return;
 
         FocusCard();
     }
@@ -42,8 +41,8 @@ public class DetailCardUI : CardUI, IPointerClickHandler, IPointerEnterHandler, 
         _tempCanvas.sortingOrder = 1;
         _tempRaycaster = gameObject.AddComponent<GraphicRaycaster>();
         
-        highlight.enabled = true;
-        highlight.DOColor(SorsColors.standardHighlight, 0.2f);
+        // highlight.enabled = true;
+        // highlight.DOColor(SorsColors.standardHighlight, 0.2f);
     }
 
     private void DefocusCard()

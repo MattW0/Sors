@@ -35,7 +35,7 @@ public class BattleZoneEntity : NetworkBehaviour
         set {
             _targetable = value;
             if(cardType == CardType.Player) _playerUI.TargetHighlight(value, isOwned);
-            else _entityUI.Highlight(value, SorsColors.targetColor);
+            else _entityUI.Highlight(HighlightType.Target);
         }
     }
 
@@ -76,7 +76,7 @@ public class BattleZoneEntity : NetworkBehaviour
         if(cardType == CardType.Creature) gameObject.GetComponent<CreatureEntity>().InitializeCreature(cardInfo.attack, cardInfo.traits);
         else if (cardType == CardType.Technology) gameObject.GetComponent<TechnologyEntity>().InitializeTechnology(cardInfo.points);
 
-        _entityUI.SetEntityUI(cardInfo);
+        _entityUI.SetCardUI(cardInfo);
     }
 
     [Server]
@@ -98,10 +98,10 @@ public class BattleZoneEntity : NetworkBehaviour
     private void RpcSetHealth(int value) => _entityUI.SetHealth(value);
     [ClientRpc] // Public because from creatureEntity
     public void RpcSetAttack(int value) => _entityUI.SetAttack(value);
-    [ClientRpc] // Public because from technologyEntity§
+    [ClientRpc] // Public because from technologyEntity
     public void RpcSetPoints(int value) => _entityUI.SetPoints(value);
     [ClientRpc]
-    public void RpcSetHighlight(bool enabled, Color color) => _entityUI.Highlight(enabled, color);
+    public void RpcSetHighlight(HighlightType type) => _entityUI.Highlight(type);
     
     #region Targeting
     public void CheckTargetable(Target target)

@@ -10,7 +10,6 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
     private Vector3 _idlePosition;
     [SerializeField] private Vector3 _combatPosition;
 
-
     [Header("Player Stats")]
     [SerializeField] private TMP_Text playerName;
     [SerializeField] private TMP_Text playerHealth;
@@ -29,8 +28,8 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
     {
         _idlePosition = transform.position;
 
-        DropZoneManager.OnDeclareAttackers += StartCombat;
-        DropZoneManager.OnCombatEnd += EndCombat;
+        // DropZoneManager.OnDeclareAttackers += StartCombat;
+        // DropZoneManager.OnCombatEnd += EndCombat;
     }
 
     public void SetEntity(BattleZoneEntity e, Vector3 p) 
@@ -39,19 +38,19 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
         _playerEntity.transform.position = p;
     }
 
-    private void StartCombat(bool start)
-    {
-        if(!start) return;
+    // private void StartCombat(bool start)
+    // {
+    //     if(!start) return;
 
-        transform.position += _combatPosition;
-        _playerEntity.transform.position += _combatPosition;
-    }
+    //     transform.position += _combatPosition;
+    //     _playerEntity.transform.position += _combatPosition;
+    // }
 
-    private void EndCombat()
-    {
-        transform.position -= _combatPosition;
-        _playerEntity.transform.position -= _combatPosition;
-    }
+    // private void EndCombat()
+    // {
+    //     transform.position -= _combatPosition;
+    //     _playerEntity.transform.position -= _combatPosition;
+    // }
 
     public void OnPointerClick(PointerEventData eventData)
     {
@@ -64,8 +63,8 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
     {
         _isTargetable = targetable;
 
-        if(targetable) highlight.color = SorsColors.targetColor;
-        else ResetHighlight(isOwned);
+        // if(targetable) highlight.color = colors.targetHighlight;
+        // else ResetHighlight(isOwned);
     }
 
     public void Highlight(bool enabled, Color color)
@@ -79,8 +78,8 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
 
     private void ResetHighlight(bool isOwned)
     {
-        if(isOwned) highlight.color = SorsColors.player;
-        else highlight.color = SorsColors.opponent;
+        // if(isOwned) highlight.color = colors.player;
+        // else highlight.color = colors.opponent;
     }
 
     public void SetName(string name) => playerName.text = name;
@@ -92,8 +91,8 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
     public void SetPrevails(int value) => turnPrevails.text = value.ToString();
 
 
-    private void OnDestroy(){
-        DropZoneManager.OnDeclareAttackers -= StartCombat;
-        DropZoneManager.OnCombatEnd -= EndCombat;
-    }
+    // private void OnDestroy(){
+    //     DropZoneManager.OnDeclareAttackers -= StartCombat;
+    //     DropZoneManager.OnCombatEnd -= EndCombat;
+    // }
 }

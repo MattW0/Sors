@@ -25,7 +25,7 @@ public class AbilityQueue : MonoBehaviour
     public void AddAbility(BattleZoneEntity entity, Ability ability)
     {
         print($" - Adding ability {ability} ({entity.Title})");
-        entity.RpcSetHighlight(true, SorsColors.triggerHighlight);
+        entity.RpcSetHighlight(HighlightType.Trigger);
 
         _queue.Enqueue((entity, ability));
         _ui.RpcAddAbility(entity.CardInfo, ability);
@@ -46,18 +46,18 @@ public class AbilityQueue : MonoBehaviour
             }
 
             // Highlight entity
-            entity.RpcSetHighlight(true, SorsColors.abilityHighlight);
+            entity.RpcSetHighlight(HighlightType.Ability);
             _ui.RpcStartNextAbility();
 
             // No valid target on board -> continue
             if (! _boardManager.PlayerHasValidTarget(ability)){
-                entity.RpcSetHighlight(false, SorsColors.defaultHighlight);
+                entity.RpcSetHighlight(HighlightType.None);
                 continue;
             }
 
             // Execute effect
             await _effectHandler.Execute(entity, ability);
-            entity.RpcSetHighlight(false, SorsColors.defaultHighlight);
+            entity.RpcSetHighlight(HighlightType.None);
 
             // Wait some more to prevent too early clean-up (destroying dead entities)
             await UniTask.Delay(100);
