@@ -1,9 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine.EventSystems;
 using UnityEngine;
-using Mirror;
-using System;
 
 public class TechnologyEntity : BattleZoneEntity
 {

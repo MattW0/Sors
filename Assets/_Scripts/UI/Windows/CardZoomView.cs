@@ -63,7 +63,7 @@ public class CardZoomView : ModalWindow, IPointerClickHandler
         _cardHolder.localPosition = _cardHolderOffset;
         _openedEntityObject.SetActive(true);
         var entityUI = _openedEntityObject.GetComponent<EntityUI>();
-        entityUI.SetCardUI(card);
+        entityUI.SetCardUI(card, card.entitySpritePath);
     }
 
     public void OnPointerClick(PointerEventData eventData)

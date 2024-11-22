@@ -12,7 +12,7 @@ public class SorsColors : ScriptableObject
     // -- Cards Types --
     public Color creature = new(0.34f, 0f, 0f, 1f);
     public Color technology = new(0.65f, 0.45f, 0.25f, 1f);
-    public Color money = new(0.77f, 0.95f, 1f, 1f);
+    public Color money = new(.35f, .35f, .35f, 1f);
 
     // -- Cards & Entities --
     public Color costValue = new(1f, 0.9f, 0.3f, 1f);

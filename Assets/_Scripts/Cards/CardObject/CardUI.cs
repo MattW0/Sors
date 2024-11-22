@@ -12,7 +12,6 @@ public class CardUI : MonoBehaviour
     [SerializeField] private TraitsUI _traits;
     [SerializeField] private AbilitiesUI _abilities;
     
-
     [Header("Stats")]
     [SerializeField] private TMP_Text _cost;
     [SerializeField] private TMP_Text _health;
@@ -24,13 +23,13 @@ public class CardUI : MonoBehaviour
     public Image highlight;
     [SerializeField] private Image _image;
 
-    public virtual void SetCardUI(CardInfo cardInfo)
+    public virtual void SetCardUI(CardInfo cardInfo, string spritePath)
     {
         CardInfo = cardInfo;
 
         _title.text = cardInfo.title;
         _cost.text = cardInfo.cost.ToString();
-        _image.sprite = Resources.Load<Sprite>(cardInfo.cardSpritePath);
+        _image.sprite = Resources.Load<Sprite>(spritePath);
 
         if (cardInfo.type == CardType.Money) {
             _moneyValue.text = cardInfo.moneyValue.ToString();

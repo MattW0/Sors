@@ -3,9 +3,10 @@ using UnityEngine;
 using Mirror;
 using System;
 
+[RequireComponent(typeof(EntityUI))]
 public class CreatureEntity : BattleZoneEntity
 {
-    [SerializeField] private EntityUI _ui;
+    private EntityUI _ui;
     private List<Traits> _traits;
     public List<Traits> GetTraits() => _traits;
     public static event Action<Transform, Transform> OnDeclaredAttack;
@@ -54,6 +55,8 @@ public class CreatureEntity : BattleZoneEntity
 
     private void Start()
     {
+        _ui = GetComponent<EntityUI>();
+        
         DropZoneManager.OnDeclareAttackers += DeclareAttackers;
         DropZoneManager.OnDeclareBlockers += DeclareBlockers;
         DropZoneManager.OnResetEntityUI += ResetCreatureUI;

@@ -38,7 +38,7 @@ public class CardStats : NetworkBehaviour
         gameObject.SetActive(false);
 
         cardInfo = card;
-        _cardUI.SetCardUI(card);
+        _cardUI.SetCardUI(card, card.cardSpritePath);
     }
 
     public void CheckPlayability(int cash)

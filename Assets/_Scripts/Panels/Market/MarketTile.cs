@@ -61,7 +61,7 @@ public class MarketTile : MonoBehaviour
     {
         cardInfo = card;
         Cost = card.cost;
-        _ui.SetCardUI(card);
+        _ui.SetCardUI(card, card.entitySpritePath);
     }
 
     public void SetBonus(int priceReduction)
