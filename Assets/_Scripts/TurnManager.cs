@@ -33,7 +33,7 @@ public class TurnManager : NetworkBehaviour
     [SerializeField] private PhasePanel _phasePanel;
 
     // Other helpers
-    private readonly Dictionary<PlayerManager, List<GameObject>> _selectedCards = new();
+    private readonly Dictionary<PlayerManager, List<CardStats>> _selectedCards = new();
     private readonly Dictionary<PlayerManager, CardInfo> _selectedMarketCards = new();
     private readonly List<(int, CardType)> _boughtCards = new();
     private Dictionary<PlayerManager, TurnState[]> _playerPhaseChoices = new();
@@ -97,7 +97,7 @@ public class TurnManager : NetworkBehaviour
         {
             _playerPhaseChoices.Add(player, new TurnState[gameOptions.NumberPhases]);
             _playerPrevailOptions.Add(player, new List<PrevailOption>());
-            _selectedCards.Add(player, new List<GameObject>());
+            _selectedCards.Add(player, new List<CardStats>());
             playerNames.Add(player.PlayerName);
         }
 
@@ -192,7 +192,7 @@ public class TurnManager : NetworkBehaviour
         StartPhaseInteraction();
     }
 
-    public void PlayerSelectedDiscardCards(PlayerManager player, List<GameObject> selectedCards)
+    public void PlayerSelectedDiscardCards(PlayerManager player, List<CardStats> selectedCards)
     {
         _selectedCards[player] = selectedCards;
         PlayerIsReady(player);
@@ -358,10 +358,10 @@ public class TurnManager : NetworkBehaviour
         return Math.Min(numberPlays, numberSlots);
     }
 
-    public void PlayerPlaysCard(PlayerManager player, GameObject card)
+    public void PlayerPlaysCard(PlayerManager player, CardStats card)
     {
         player.Plays--;
-        player.Cash -= card.GetComponent<CardStats>().cardInfo.cost;
+        player.Cash -= card.cardInfo.cost;
 
         _selectedCards[player].Add(card);
         PlayerIsReady(player);
@@ -373,8 +373,8 @@ public class TurnManager : NetworkBehaviour
         foreach (var (player, cards) in _selectedCards)
         {
             foreach (var card in cards) {
-                var cardInfo = card.GetComponent<CardStats>().cardInfo;
-                entities.Add(card, _gameManager.SpawnFieldEntity(player, cardInfo));
+                var cardInfo = card.cardInfo;
+                entities.Add(card.gameObject, _gameManager.SpawnFieldEntity(player, cardInfo));
                 _logger.RpcLog(player.ID, cardInfo.title, cardInfo.cost, LogType.Play);
             }
         }
@@ -459,7 +459,7 @@ public class TurnManager : NetworkBehaviour
         else StartPhaseInteraction(nextOption);
     }
 
-    public void PlayerSelectedPrevailCards(PlayerManager player, List<GameObject> selectedCards)
+    public void PlayerSelectedPrevailCards(PlayerManager player, List<CardStats> selectedCards)
     {
         _selectedCards[player] = selectedCards;
         PlayerIsReady(player);
@@ -471,10 +471,9 @@ public class TurnManager : NetworkBehaviour
         {
             foreach (var card in cards)
             {
-                var stats = card.GetComponent<CardStats>();
-                player.discard.Remove(stats);
-                player.hand.Add(stats);
-                player.RpcMoveFromInteraction(card, CardLocation.Discard, CardLocation.Hand);
+                player.discard.Remove(card);
+                player.hand.Add(card);
+                player.RpcMoveFromInteraction(card.gameObject, CardLocation.Discard, CardLocation.Hand);
             }
         }
 
@@ -488,11 +487,10 @@ public class TurnManager : NetworkBehaviour
         {
             foreach (var card in cards)
             {
-                var stats = card.GetComponent<CardStats>();
-                player.hand.Remove(stats);
-                player.RpcMoveFromInteraction(card, CardLocation.Hand, CardLocation.Trash);
+                player.hand.Remove(card);
+                player.RpcMoveFromInteraction(card.gameObject, CardLocation.Hand, CardLocation.Trash);
 
-                _trashedCards.Add(card, stats);
+                _trashedCards.Add(card.gameObject, card);
                 card.GetComponent<NetworkIdentity>().RemoveClientAuthority();
             }
         }

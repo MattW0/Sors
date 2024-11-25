@@ -8,6 +8,7 @@ public class CardStats : NetworkBehaviour
     public CardInfo cardInfo;
     private HandCardUI _cardUI;
 
+    public bool IsSelected { get; set; }
     public bool IsInteractable { get; private set; }
     public void SetInteractable(bool value, TurnState state = TurnState.None)
     {
@@ -15,14 +16,6 @@ public class CardStats : NetworkBehaviour
         _cardUI.Highlight(value, state);
     }
 
-    private bool _selected;
-    public bool IsSelected {
-        get => _selected;
-        set {
-            _selected = value;
-            _cardUI.Highlight(value ? HighlightType.Selected : HighlightType.None);
-        }
-    }
     
     private void Awake()
     {        

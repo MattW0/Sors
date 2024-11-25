@@ -63,8 +63,8 @@ public class PhasePanel : NetworkBehaviour
     public void RpcStartCombatPhase(TurnState state){
         // actionDescriptionText.text = $"Select {state}";
 
-        if (state == TurnState.Attackers) attack.IsSelectable();
-        else if (state == TurnState.Blockers) block.IsSelectable();
+        if (state == TurnState.Attackers) attack.IsSelectable = true;
+        else if (state == TurnState.Blockers) block.IsSelectable = true;
     }
 
     [TargetRpc]

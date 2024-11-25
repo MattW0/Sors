@@ -6,22 +6,16 @@ public class CombatPhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEn
 {
     [SerializeField] private GameObject _mesh;
     private TooltipWindow _tooltip;
-    private bool _selectable;
+    public bool IsSelectable { get; set; }
     public static event Action OnPressedCombatButton;
     private void Start()
     {
         _tooltip = GetComponentInChildren<TooltipWindow>();
     }
 
-    public void IsSelectable()
-    {
-        _mesh.SetActive(true);
-        _selectable = true;
-    }
-
     public void OnPointerClick(PointerEventData data)
     {
-        if (!_selectable) return;
+        if (!IsSelectable) return;
         
         OnPressedCombatButton?.Invoke();
     }
@@ -31,7 +25,7 @@ public class CombatPhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEn
 
     public void Reset()
     {
-        _selectable = false;
+        IsSelectable = false;
         _mesh.SetActive(false);
     }
 

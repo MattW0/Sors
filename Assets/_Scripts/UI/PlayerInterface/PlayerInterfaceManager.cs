@@ -77,7 +77,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
     [ClientRpc] public void RpcLog(TurnState newState) => _logger.PhaseChange(_messageOrigin[0], newState);
     [ClientRpc] public void RpcLog(int playerId, int number) => _logger.PlayerDrawsCards(_messageOrigin[playerId], number);
     [ClientRpc] public void RpcLog(int playerId, string clash) => _logger.Log(clash, _messageOrigin[playerId], LogType.CombatClash);
-    [ClientRpc] public void RpcLog(int playerId, List<GameObject> cards) => _logger.PlayerDiscardsCards(_messageOrigin[playerId], cards.Select(c => c.GetComponent<CardStats>().cardInfo.title).ToList());
+    [ClientRpc] public void RpcLog(int playerId, List<CardStats> cards) => _logger.PlayerDiscardsCards(_messageOrigin[playerId], cards.Select(c => c.cardInfo.title).ToList());
     [ClientRpc] public void RpcLog(int playerId, string cardName, int cost, LogType type) => _logger.PlayerSpendsCash(_messageOrigin[playerId], cardName, cost, type);
     [ClientRpc] public void RpcLog(int playerId, string sourceTitle, string targetTitle, LogType type) => _logger.PlayerTargeting(_messageOrigin[playerId], sourceTitle, targetTitle, type);
 

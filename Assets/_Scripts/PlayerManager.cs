@@ -20,8 +20,8 @@ public class PlayerManager : NetworkBehaviour
     [Header("Game State")]
     [SerializeField] private List<TurnState> _chosenPhases = new();
     public List<PrevailOption> _chosenPrevailOptions = new();
-    private List<GameObject> _selectedCards = new();
-    private Dictionary<GameObject, CardStats> _moneyCardsInPlay = new();
+    private List<CardStats> _selectedCards = new();
+    private List<CardStats> _moneyCardsInPlay = new();
 
     public bool PlayerIsChoosingTarget { get; private set; }
     private PlayerUI _playerUI;
@@ -182,12 +182,10 @@ public class PlayerManager : NetworkBehaviour
         // Server calls each player object to discard their selection _selectedCards
         foreach (var card in _selectedCards)
         {
-            var stats = card.GetComponent<CardStats>();
+            RemoveHandCard(card);
+            discard.Add(card);
 
-            RemoveHandCard(stats);
-            discard.Add(stats);
-
-            RpcMoveFromInteraction(card, CardLocation.Hand, CardLocation.Discard);
+            RpcMoveFromInteraction(card.gameObject, CardLocation.Hand, CardLocation.Discard);
         }
     }
 
@@ -224,13 +222,13 @@ public class PlayerManager : NetworkBehaviour
     public void RpcShowSpawnedCards(List<GameObject> cards, CardLocation destination, bool fromFile) => _cardMover.ShowSpawnedCards(cards, isOwned, destination, fromFile).Forget();
 
     [Command]
-    public void CmdPlayMoneyCard(GameObject cardObject, CardStats cardStats)
+    public void CmdPlayMoneyCard(CardStats card)
     {
-        Cash += cardStats.cardInfo.moneyValue;
-        _moneyCardsInPlay.Add(cardObject, cardStats);
+        Cash += card.cardInfo.moneyValue;
+        _moneyCardsInPlay.Add(card);
 
-        RemoveHandCard(cardStats);
-        RpcPlayMoney(cardObject);
+        RemoveHandCard(card);
+        RpcPlayMoney(card.gameObject);
     }
 
     [Command]
@@ -246,22 +244,22 @@ public class PlayerManager : NetworkBehaviour
     {
         // Don't allow to return already spent money
         var totalMoneyBack = 0;
-        var cardsToReturn = new Dictionary<GameObject, CardStats>();
-        foreach (var (card, stats) in _moneyCardsInPlay)
+        var cardsToReturn = new List<CardStats>();
+        foreach (var card in _moneyCardsInPlay)
         {
-            if (totalMoneyBack + stats.cardInfo.moneyValue > Cash) continue;
+            if (totalMoneyBack + card.cardInfo.moneyValue > Cash) continue;
 
-            cardsToReturn.Add(card, stats);
-            totalMoneyBack += stats.cardInfo.moneyValue;
+            cardsToReturn.Add(card);
+            totalMoneyBack += card.cardInfo.moneyValue;
         }
 
         // Return to hand
-        foreach (var (card, stats) in cardsToReturn)
+        foreach (var card in cardsToReturn)
         {
             _moneyCardsInPlay.Remove(card);
-            Cash -= stats.cardInfo.moneyValue;
-            hand.Add(stats);
-            RpcReturnMoneyCardToHand(card);
+            Cash -= card.cardInfo.moneyValue;
+            hand.Add(card);
+            RpcReturnMoneyCardToHand(card.gameObject);
         }
     }
 
@@ -270,11 +268,10 @@ public class PlayerManager : NetworkBehaviour
     {
         if (_moneyCardsInPlay.Count == 0) return;
 
-        foreach (var card in _moneyCardsInPlay.Keys)
+        foreach (var card in _moneyCardsInPlay)
         {
-            var cardInfo = _moneyCardsInPlay[card];
-            RpcDiscardMoneyCard(card);
-            discard.Add(cardInfo);
+            discard.Add(card);
+            RpcDiscardMoneyCard(card.gameObject);
         }
 
         _moneyCardsInPlay.Clear();
@@ -292,7 +289,7 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Command]
-    public void CmdDiscardSelection(List<GameObject> cardsToDiscard)
+    public void CmdDiscardSelection(List<CardStats> cardsToDiscard)
     {
         _selectedCards = cardsToDiscard;
         _turnManager.PlayerSelectedDiscardCards(this, cardsToDiscard);
@@ -302,10 +299,10 @@ public class PlayerManager : NetworkBehaviour
     public void CmdConfirmBuy(MarketSelection card) => _turnManager.PlayerConfirmBuy(this, card);
 
     [Command]
-    public void CmdConfirmPlay(GameObject card)
+    public void CmdConfirmPlay(CardStats card)
     {
         _turnManager.PlayerPlaysCard(this, card);
-        RemoveHandCard(card.GetComponent<CardStats>());
+        RemoveHandCard(card);
     }
 
     [Command]
@@ -317,7 +314,7 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Command]
-    public void CmdPrevailCardsSelection(List<GameObject> cards)
+    public void CmdPrevailCardsSelection(List<CardStats> cards)
     {
         _selectedCards = cards;
         _turnManager.PlayerSelectedPrevailCards(this, cards);

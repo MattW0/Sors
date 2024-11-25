@@ -31,9 +31,10 @@ public class SorsColors : ScriptableObject
 
 
     // -- UI Elements --
-    public static Color neutralDark = new(0.1f, 0.1f, 0.12f, 1f);
-    public static Color neutral = new(0.15f, 0.15f, 0.16f, 1f);
-    public static Color neutralLight = new(0.25f, 0.25f, 0.28f, 1f);
+    public Color callToAction = new(.95f, .95f, .6f, 1f);
+    public Color neutralDark = new(0.1f, 0.1f, 0.12f, 1f);
+    public Color neutral = new(0.15f, 0.15f, 0.16f, 1f);
+    public Color neutralLight = new(0.25f, 0.25f, 0.28f, 1f);
 
     // -- Utility --
     public static readonly Color transparent = new(0, 0, 0, 0);
@@ -81,6 +82,7 @@ public enum ColorType : byte
     Neutral = 20,
     NeutralDark = 21,
     NeutralLight = 22,
+    CallToAction = 30,
 }
 
 public enum HighlightType : byte

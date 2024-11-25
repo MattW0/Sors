@@ -41,10 +41,10 @@ public class SetColor : MonoBehaviour
             ColorType.Attack => _colorPalette.attackValue,
             ColorType.Health => _colorPalette.healthValue,
             ColorType.Points => _colorPalette.pointsValue,
-
-            ColorType.Neutral => SorsColors.neutral,
-            ColorType.NeutralDark => SorsColors.neutralDark,
-            ColorType.NeutralLight => SorsColors.neutralLight,
+            ColorType.CallToAction => _colorPalette.callToAction,
+            ColorType.Neutral => _colorPalette.neutral,
+            ColorType.NeutralDark => _colorPalette.neutralDark,
+            ColorType.NeutralLight => _colorPalette.neutralLight,
             _ => Color.white
         };
 

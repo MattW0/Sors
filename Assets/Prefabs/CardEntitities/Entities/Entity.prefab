@@ -206,7 +206,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d61b8ef3f6da1d4d9dfea13aec14fd2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SorsColorPalette: {fileID: 11400000, guid: 34758a2075f7a5a4da0da917848493cf, type: 2}
   colorType: 5
   image: {fileID: 140034960745397291}
   alpha: 1
@@ -269,7 +268,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 2}
-  m_LocalScale: {x: 17.9, y: 1, z: 11.95159}
+  m_LocalScale: {x: 17.451605, y: 1, z: 11.224694}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 734262037555017071}
@@ -835,7 +834,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d61b8ef3f6da1d4d9dfea13aec14fd2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SorsColorPalette: {fileID: 11400000, guid: 34758a2075f7a5a4da0da917848493cf, type: 2}
   colorType: 0
   image: {fileID: 7343485652349478471}
   alpha: 1
@@ -1028,7 +1026,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d61b8ef3f6da1d4d9dfea13aec14fd2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SorsColorPalette: {fileID: 11400000, guid: 34758a2075f7a5a4da0da917848493cf, type: 2}
   colorType: 5
   image: {fileID: 2880821907124947277}
   alpha: 1
@@ -1580,6 +1577,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9072014795304773102, guid: ad01724df6d23d448b807205b76acbd0, type: 3}
+      propertyPath: SorsColorPalette
+      value: 
+      objectReference: {fileID: 11400000, guid: 34758a2075f7a5a4da0da917848493cf, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

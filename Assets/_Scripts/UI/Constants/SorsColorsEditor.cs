@@ -10,9 +10,10 @@ public class SorsColorsEditor : Editor
     protected static float foldoutItemSpace = 2;
     protected static float foldoutTopSpace = 5;
     protected static float foldoutBottomSpace = 2;
-    protected static bool showColors = true;
+    protected static bool showPlayers = true;
     protected static bool showTypes = true;
     protected static bool showStats = true;
+    protected static bool showUIColors = true;
     protected static bool showHighlights = true;
 
     void OnEnable()
@@ -35,12 +36,12 @@ public class SorsColorsEditor : Editor
 
         GUILayout.Space(foldoutTopSpace);
         GUILayout.BeginHorizontal();
-        showColors = EditorGUILayout.Foldout(showColors, "Players", true, foldoutStyle);
-        showColors = GUILayout.Toggle(showColors, new GUIContent(""), customSkin.FindStyle("Toggle Helper"));
+        showPlayers = EditorGUILayout.Foldout(showPlayers, "Players", true, foldoutStyle);
+        showPlayers = GUILayout.Toggle(showPlayers, new GUIContent(""), customSkin.FindStyle("Toggle Helper"));
         GUILayout.EndHorizontal();
         GUILayout.Space(foldoutBottomSpace);
 
-        if (showColors)
+        if (showPlayers)
         {
             EditorDrawer.DrawProperty(player, customSkin, "Player");
             EditorDrawer.DrawProperty(opponent, customSkin, "Opponent");
@@ -87,6 +88,29 @@ public class SorsColorsEditor : Editor
             EditorDrawer.DrawProperty(health, customSkin, "Health");
             EditorDrawer.DrawProperty(points, customSkin, "Points");
         }
+        #endregion
+
+        #region UI
+        var callToAction = serializedObject.FindProperty("callToAction");
+        var neutralDark = serializedObject.FindProperty("neutralDark");
+        var neutral = serializedObject.FindProperty("neutral");
+        var neutralLight = serializedObject.FindProperty("neutralLight");
+
+        GUILayout.Space(foldoutTopSpace);
+        GUILayout.BeginHorizontal();
+        showUIColors = EditorGUILayout.Foldout(showUIColors, "UI Colors", true, foldoutStyle);
+        showUIColors = GUILayout.Toggle(showUIColors, new GUIContent(""), customSkin.FindStyle("Toggle Helper"));
+        GUILayout.EndHorizontal();
+        GUILayout.Space(foldoutBottomSpace);
+
+        if (showUIColors)
+        {
+            EditorDrawer.DrawProperty(callToAction, customSkin, "Call to Action");
+            EditorDrawer.DrawProperty(neutralDark, customSkin, "Neutral Dark");
+            EditorDrawer.DrawProperty(neutral, customSkin, "Neutral");
+            EditorDrawer.DrawProperty(neutralLight, customSkin, "Neutral Light");
+        }
+
         #endregion
 
         #region Highlights

@@ -7,7 +7,7 @@ using System;
 public class CardSelectionHandler : MonoBehaviour
 {
     private PlayerManager _player;
-    private List<GameObject> _selectedCards = new();
+    private List<CardStats> _selectedCards = new();
     private CardMover _cardMover;
     private InteractionUI _ui;
     [SerializeField] private int _numberSelections;
@@ -36,42 +36,46 @@ public class CardSelectionHandler : MonoBehaviour
     private void ClickedCard(GameObject card)
     {
         var cardStats = card.GetComponent<CardStats>();
+        print("Clicked " + card.name + " in state " + _state);
 
         // Only select or deselect in these turnStates (all card types behave the same way)
         if (_state == TurnState.Discard || _state == TurnState.CardSelection || _state == TurnState.Trash) {
-            SelectOrDeselectCard(card, cardStats.IsSelected);
+            SelectOrDeselectCard(cardStats);
             return;
         }
 
         // Have to check if playing money card
         if (cardStats.cardInfo.type == CardType.Money) {
-            _player.CmdPlayMoneyCard(card, cardStats);
+            _player.CmdPlayMoneyCard(cardStats);
             cardStats.SetInteractable(false);
             return;
         }
 
         // Else we can select or deselect entity card
-        SelectOrDeselectCard(card, cardStats.IsSelected);
+        SelectOrDeselectCard(cardStats);
     }
 
-    private void SelectOrDeselectCard(GameObject card, bool isSelected)
+    private void SelectOrDeselectCard(CardStats card)
     {
-        if (isSelected) DeselectCard(card);
+        print("Selecting or deselecting card, isSelected: " + card.IsSelected);
+        if (card.IsSelected) DeselectCard(card);
         else SelectCard(card);
     }
 
-    private void SelectCard(GameObject card)
+    private void SelectCard(CardStats card)
     {
         // Remove the previously selected card if user clicks another one
         if (_selectedCards.Count >= _numberSelections)
             DeselectCard(_selectedCards.Last());
 
+        card.IsSelected = true;
         MoveCard(card, true);
         CheckConfirmButtonState();
     }
 
-    private void DeselectCard(GameObject card)
+    private void DeselectCard(CardStats card)
     {
+        card.IsSelected = false;
         MoveCard(card, false);
         CheckConfirmButtonState();
     }
@@ -96,10 +100,8 @@ public class CardSelectionHandler : MonoBehaviour
         _selectedCards.Clear();
     }
 
-    private void MoveCard(GameObject card, bool toSelection)
+    private void MoveCard(CardStats card, bool toSelection)
     {
-        card.GetComponent<CardStats>().IsSelected = toSelection;
-
         var pile = _state switch
         {
             TurnState.CardSelection => CardLocation.Discard,
@@ -107,10 +109,10 @@ public class CardSelectionHandler : MonoBehaviour
         };
 
         if(toSelection) {
-            _cardMover.MoveTo(card, true, pile, CardLocation.Selection);
+            _cardMover.MoveTo(card.gameObject, true, pile, CardLocation.Selection);
             _selectedCards.Add(card);
         } else {
-            _cardMover.MoveTo(card, true, CardLocation.Selection, pile);
+            _cardMover.MoveTo(card.gameObject, true, CardLocation.Selection, pile);
             _selectedCards.Remove(card);
         }
     }
@@ -138,7 +140,7 @@ public class CardSelectionHandler : MonoBehaviour
 
     private void ClearSelection()
     {
-        var tempList = new List<GameObject>(_selectedCards);
+        var tempList = new List<CardStats>(_selectedCards);
         foreach (var card in tempList) MoveCard(card, false);
         _selectedCards.Clear();
     }

@@ -65,7 +65,7 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
         
         opponentChoice.enabled = false;
         tooltipEffect.enabled = false;
-        outline.CrossFadeAlpha(0.5f, 1f, false);
+        outline.CrossFadeAlpha(1f, 1f, false);
     }
 
     private void ShowOpponentSelection(TurnState phase)
@@ -79,7 +79,7 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
     private void EndSelection()
     {
         _selectable = false;
-        outline.CrossFadeAlpha(0f, 1f, false);
+        outline.CrossFadeAlpha(0.1f, 1f, false);
     }
 
     private void OnDestroy()

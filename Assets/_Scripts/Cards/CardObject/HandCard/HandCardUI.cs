@@ -24,7 +24,6 @@ public class HandCardUI : CardUI, IPointerEnterHandler, IPointerExitHandler
 
     public void Highlight(bool value, TurnState state)
     {
-             
         if (!value || state == TurnState.None) {
             highlight.enabled = false;
             return;
@@ -32,6 +31,7 @@ public class HandCardUI : CardUI, IPointerEnterHandler, IPointerExitHandler
 
         var color = state switch
         {
+            // TurnState.Develop or TurnState.Deploy => ColorPalette.interactionPositiveHighlight,
             TurnState.Trash or TurnState.Discard => ColorPalette.interactionNegativeHighlight,
             TurnState.CardSelection => ColorPalette.interactionPositiveHighlight,
             _ => ColorPalette.defaultHighlight
