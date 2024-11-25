@@ -9,11 +9,16 @@ using UnityEngine;
 public class BattleZoneEntity : NetworkBehaviour
 {
     public PlayerManager Owner { get; private set; }
-    public string Title { get; private set; }
 
-    [field: Header("Stats")]
+    [Header("Stats")]
     public CardType cardType;
+    public string Title { get; private set; }
     public CardInfo CardInfo { get; private set; }
+
+    [Header("UI")]
+    public PlayZoneCardHolder EntityHolder { get; internal set; }
+    [SerializeField] private PlayerUI _playerUI;
+    private EntityUI _entityUI;
     [SerializeField] private int _health;
     public int Health
     {
@@ -38,14 +43,6 @@ public class BattleZoneEntity : NetworkBehaviour
             else _entityUI.Highlight(HighlightType.Target);
         }
     }
-
-    public PlayZoneCardHolder EntityHolder { get; internal set; }
-
-    [ClientRpc]
-    public void RpcMoveToHolder() => EntityHolder.EntityEnters(transform);
-
-    [SerializeField] private PlayerUI _playerUI;
-    private EntityUI _entityUI;
 
     public static event Action<Transform, int> OnTargetStart;
     public static event Action<bool, Transform, Transform> OnTargetFinish;
@@ -102,6 +99,8 @@ public class BattleZoneEntity : NetworkBehaviour
     public void RpcSetPoints(int value) => _entityUI.SetPoints(value);
     [ClientRpc]
     public void RpcSetHighlight(HighlightType type) => _entityUI.Highlight(type);
+    [ClientRpc]
+    public void RpcMoveToHolder() => EntityHolder.EntityEnters(transform);
     
     #region Targeting
     public void CheckTargetable(Target target)

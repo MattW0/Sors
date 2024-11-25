@@ -22,11 +22,13 @@ public class SorsColors : ScriptableObject
 
     // -- Highlights --
     public Color defaultHighlight = new(.95f, .95f, 0f, .8f);
-    public Color interactionPositiveHighlight = Color.green;
-    public Color InteractionNegativeHighlight = Color.red;
-    public Color targetHighlight = Color.magenta;
-    public Color triggerHighlight = new(1f, 1f, 0.7f, .6f); // When ability triggers
-    public Color abilityHighlight = Color.white; // While choosing target(s) and during execution
+    public Color interactionPositiveHighlight = new (.2f, .9f, .2f, .8f);
+    public Color interactionNegativeHighlight = new(1f, .2f, .2f, .8f);
+    public Color targetHighlight = new(1f, .45f, .05f, .8f);
+    public Color triggerHighlight = new(1f, 1f, .7f, .6f); // When ability triggers
+    public Color abilityHighlight = new(1f, 1f, 1f, .8f); // While choosing target(s) and during execution
+    public Color selectedHighlight = new(.5f, .5f, .8f);
+
 
     // -- UI Elements --
     public static Color neutralDark = new(0.1f, 0.1f, 0.12f, 1f);
@@ -90,4 +92,6 @@ public enum HighlightType : byte
     Trigger = 4,
     Ability = 5,
     Target = 6,
+    Selected = 7,
+    Playable = 8,
 }

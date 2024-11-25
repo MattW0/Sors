@@ -793,7 +793,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2754976486999726370}
   - component: {fileID: 5155140612128770232}
-  - component: {fileID: 4638933404628054201}
   - component: {fileID: 486377202005596747}
   m_Layer: 5
   m_Name: DetailCard
@@ -836,18 +835,6 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
---- !u!114 &4638933404628054201
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5450374274839420802}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9e635dadc218fec4e8f5a539f7c34756, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &486377202005596747
 MonoBehaviour:
   m_ObjectHideFlags: 0

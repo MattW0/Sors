@@ -8,13 +8,11 @@ public class CardStats : NetworkBehaviour
     public CardInfo cardInfo;
     private HandCardUI _cardUI;
 
-    private bool _interactable;
-    public bool IsInteractable {
-        get => _interactable;
-        set {
-            _interactable = value;
-            _cardUI.Highlight(HighlightType.InteractionPositive);
-        }
+    public bool IsInteractable { get; private set; }
+    public void SetInteractable(bool value, TurnState state = TurnState.None)
+    {
+        IsInteractable = value;
+        _cardUI.Highlight(value, state);
     }
 
     private bool _selected;
@@ -22,6 +20,7 @@ public class CardStats : NetworkBehaviour
         get => _selected;
         set {
             _selected = value;
+            _cardUI.Highlight(value ? HighlightType.Selected : HighlightType.None);
         }
     }
     
@@ -46,7 +45,7 @@ public class CardStats : NetworkBehaviour
         if (cash < cardInfo.cost) return;
 
         IsInteractable = true;
-        _cardUI.Highlight(HighlightType.InteractionPositive);
+        _cardUI.Highlight(HighlightType.Playable);
     }
 
     private void ResetCard()

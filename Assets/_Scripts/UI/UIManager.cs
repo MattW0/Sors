@@ -12,13 +12,13 @@ public class UIManager : NetworkBehaviour
     [SerializeField] private GameObject _cardCollectionViewPrefab;
     [SerializeField] private Transform _spawnParentTransform;
     [SerializeField] private List<CardLocation> _openCardCollections = new();
-    public SorsColors SorsColors { get; private set; }
+    public SorsColors ColorPalette { get; private set; }
 
     private void Awake()
     {
         if (!Instance) Instance = this;
 
-        SorsColors = Resources.Load<SorsColors>("Sors Colors");
+        ColorPalette = Resources.Load<SorsColors>("Sors Colors");
 
         CardCollectionUI.OnCloseCardCollection += CloseCardCollection;
         PlayerInterfaceButtons.OnQuitButtonClicked += QuitDialog;

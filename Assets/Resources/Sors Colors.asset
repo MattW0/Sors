@@ -17,14 +17,15 @@ MonoBehaviour:
   opponent: {r: 0.1, g: 0.26, b: 0.78, a: 1}
   creature: {r: 0.34, g: 0, b: 0, a: 1}
   technology: {r: 0.65, g: 0.45, b: 0.25, a: 1}
-  money: {r: 0.36862746, g: 0.36862746, b: 0.36862746, a: 1}
+  money: {r: 0.35, g: 0.35, b: 0.35, a: 1}
   costValue: {r: 1, g: 0.9, b: 0.3, a: 1}
   attackValue: {r: 0.96, g: 0.27, b: 0.25, a: 1}
   healthValue: {r: 0.2, g: 0.44, b: 0.92, a: 1}
   pointsValue: {r: 0.37, g: 0.77, b: 0.29, a: 1}
   defaultHighlight: {r: 0.95, g: 0.95, b: 0, a: 0.8}
-  interactionPositiveHighlight: {r: 0, g: 1, b: 0, a: 1}
-  InteractionNegativeHighlight: {r: 1, g: 0, b: 0, a: 1}
-  targetHighlight: {r: 1, g: 0, b: 1, a: 1}
+  interactionPositiveHighlight: {r: 0.2, g: 0.9, b: 0.2, a: 0.8}
+  interactionNegativeHighlight: {r: 1, g: 0.2, b: 0.2, a: 0.8}
+  targetHighlight: {r: 1, g: 0.45, b: 0.05, a: 0.8}
   triggerHighlight: {r: 1, g: 1, b: 0.7, a: 0.6}
-  abilityHighlight: {r: 1, g: 1, b: 1, a: 1}
+  abilityHighlight: {r: 1, g: 1, b: 1, a: 0.8}
+  selectedHighlight: {r: 0.5, g: 0.5, b: 0.8, a: 1}

@@ -46,7 +46,7 @@ public class CardSelectionHandler : MonoBehaviour
         // Have to check if playing money card
         if (cardStats.cardInfo.type == CardType.Money) {
             _player.CmdPlayMoneyCard(card, cardStats);
-            cardStats.IsInteractable = false;
+            cardStats.SetInteractable(false);
             return;
         }
 
@@ -117,7 +117,10 @@ public class CardSelectionHandler : MonoBehaviour
 
     private void CheckConfirmButtonState()
     {
+        // UP TO selection: All states where the number selections <= X
         if (_state == TurnState.Trash || _state == TurnState.CardSelection) return;
+
+        // Otherwise enable confirm button only if number selections = X
         _ui.SetConfirmButtonEnabled(_selectedCards.Count == _numberSelections);
     }
 

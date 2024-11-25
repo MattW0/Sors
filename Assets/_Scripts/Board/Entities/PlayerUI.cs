@@ -23,6 +23,8 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
     [SerializeField] private Image highlight;
     private bool _isTargetable;
     public static event Action<BattleZoneEntity> OnClickedPlayer;
+    private SorsColors _colors;
+
 
     private void Awake()
     {
@@ -36,6 +38,8 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
     {
         _playerEntity = e;
         _playerEntity.transform.position = p;
+
+        _colors = UIManager.Instance.ColorPalette;
     }
 
     // private void StartCombat(bool start)
@@ -63,23 +67,14 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
     {
         _isTargetable = targetable;
 
-        // if(targetable) highlight.color = colors.targetHighlight;
-        // else ResetHighlight(isOwned);
-    }
-
-    public void Highlight(bool enabled, Color color)
-    {
-        // TODO: Reset this after combat
-        if(highlight == null) return;
-
-        highlight.enabled = enabled;
-        highlight.color = color;
+        if(targetable) highlight.color = _colors.targetHighlight;
+        else ResetHighlight(isOwned);
     }
 
     private void ResetHighlight(bool isOwned)
     {
-        // if(isOwned) highlight.color = colors.player;
-        // else highlight.color = colors.opponent;
+        if(isOwned) highlight.color = _colors.player;
+        else highlight.color = _colors.opponent;
     }
 
     public void SetName(string name) => playerName.text = name;

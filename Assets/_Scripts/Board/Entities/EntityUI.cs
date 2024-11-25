@@ -17,14 +17,25 @@ public class EntityUI : CardUI
 
     public virtual void Highlight(HighlightType type)
     {
-        print("Highlighting " + type);
         if (type == HighlightType.None)
         {
             DisableHighlight();
             return;
         }
 
-        highlight.enabled = enabled;
+        var color = type switch
+        {
+            HighlightType.InteractionPositive => ColorPalette.interactionPositiveHighlight,
+            HighlightType.InteractionNegative => ColorPalette.interactionNegativeHighlight,
+            HighlightType.Selected => ColorPalette.selectedHighlight,
+            HighlightType.Trigger => ColorPalette.triggerHighlight,
+            HighlightType.Ability => ColorPalette.abilityHighlight,
+            HighlightType.Target => ColorPalette.targetHighlight,
+            _ => ColorPalette.defaultHighlight  
+        };
+
+        highlight.color = color;
+        highlight.enabled = true;
         // highlight.color = color;
     }
 

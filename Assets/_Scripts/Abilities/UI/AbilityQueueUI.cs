@@ -51,6 +51,7 @@ public class AbilityQueueUI : NetworkBehaviour, IModalWindow
 
     private void InstantiateAbility(CardInfo cardInfo, Ability ability)
     {
+        print("Ability Queue: Instantiate ability");
         var abilityItemUI = Instantiate(_abilityItemPrefab).GetComponent<AbilityItemUI>();
         abilityItemUI.SetUI(cardInfo, ability);
         
@@ -61,6 +62,7 @@ public class AbilityQueueUI : NetworkBehaviour, IModalWindow
 
     public void WindowIn()
     {
+        print("Ability Queue window in");
         _isOpen = true;
         FadeWindow(0, 1, SorsTimings.waitShort).Forget();
     }

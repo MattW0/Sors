@@ -4,26 +4,26 @@ using UnityEngine.UI;
 [ExecuteInEditMode, RequireComponent(typeof(Image))]
 public class SetColor : MonoBehaviour
 {
-    public SorsColors SorsColorPalette;
     [SerializeField] private ColorType colorType;
     [SerializeField] private Image image;
     [Range(0, 1), SerializeField] private float alpha = 1f;
+    private SorsColors _colorPalette;
     private bool _dynamicUpdates;
 
     void OnEnable()
     {
-        try { SorsColorPalette = Resources.Load<SorsColors>("Sors Colors"); }
-        catch { Debug.Log("No Sors Colors found. Assign it manually, otherwise it won't work properly.", this); }
+        try { _colorPalette = Resources.Load<SorsColors>("Sors Colors"); }
+        catch { Debug.Log("No Sors Colors found at Resources/Sors Colors. Assign it manually on " + gameObject.name, this); }
     
         image = GetComponent<Image>();
-        _dynamicUpdates = SorsColorPalette.enableDynamicUpdate;
+        _dynamicUpdates = _colorPalette.enableDynamicUpdate;
 
         Set();
     }
     
     void LateUpdate()
     {
-        if(SorsColorPalette == null) return;
+        if(_colorPalette == null) return;
         
         if(_dynamicUpdates) Set();
     }
@@ -32,15 +32,15 @@ public class SetColor : MonoBehaviour
     {
         var color = colorType switch
         {
-            ColorType.Player => SorsColorPalette.player,
-            ColorType.Opponent => SorsColorPalette.opponent,
-            ColorType.Creature => SorsColorPalette.creature,
-            ColorType.Technology => SorsColorPalette.technology,
-            ColorType.Money => SorsColorPalette.money,
-            ColorType.Cost => SorsColorPalette.costValue,
-            ColorType.Attack => SorsColorPalette.attackValue,
-            ColorType.Health => SorsColorPalette.healthValue,
-            ColorType.Points => SorsColorPalette.pointsValue,
+            ColorType.Player => _colorPalette.player,
+            ColorType.Opponent => _colorPalette.opponent,
+            ColorType.Creature => _colorPalette.creature,
+            ColorType.Technology => _colorPalette.technology,
+            ColorType.Money => _colorPalette.money,
+            ColorType.Cost => _colorPalette.costValue,
+            ColorType.Attack => _colorPalette.attackValue,
+            ColorType.Health => _colorPalette.healthValue,
+            ColorType.Points => _colorPalette.pointsValue,
 
             ColorType.Neutral => SorsColors.neutral,
             ColorType.NeutralDark => SorsColors.neutralDark,

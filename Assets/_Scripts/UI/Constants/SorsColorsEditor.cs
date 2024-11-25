@@ -92,10 +92,11 @@ public class SorsColorsEditor : Editor
         #region Highlights
         var defaultHighlight = serializedObject.FindProperty("defaultHighlight");
         var interactionPositiveHighlight = serializedObject.FindProperty("interactionPositiveHighlight");
-        var InteractionNegativeHighlight = serializedObject.FindProperty("InteractionNegativeHighlight");
+        var interactionNegativeHighlight = serializedObject.FindProperty("interactionNegativeHighlight");
         var targetHighlight = serializedObject.FindProperty("targetHighlight");
         var triggerHighlight = serializedObject.FindProperty("triggerHighlight");
         var abilityHighlight = serializedObject.FindProperty("abilityHighlight");
+        var selectedHighlight = serializedObject.FindProperty("selectedHighlight");
 
         GUILayout.Space(foldoutTopSpace);
         GUILayout.BeginHorizontal();
@@ -108,10 +109,11 @@ public class SorsColorsEditor : Editor
         {
             EditorDrawer.DrawProperty(defaultHighlight, customSkin, "Default Highlight");
             EditorDrawer.DrawProperty(interactionPositiveHighlight, customSkin, "Interaction Positive Highlight");
-            EditorDrawer.DrawProperty(InteractionNegativeHighlight, customSkin, "Interaction Negative Highlight");
+            EditorDrawer.DrawProperty(interactionNegativeHighlight, customSkin, "Interaction Negative Highlight");
             EditorDrawer.DrawProperty(targetHighlight, customSkin, "Target Highlight");
             EditorDrawer.DrawProperty(triggerHighlight, customSkin, "Trigger Highlight");
             EditorDrawer.DrawProperty(abilityHighlight, customSkin, "Ability Highlight");
+            EditorDrawer.DrawProperty(selectedHighlight, customSkin, "Selected Highlight");
         }
 
         #endregion
@@ -139,7 +141,7 @@ public class SorsColorsEditor : Editor
         
         try
         {
-            Preset defaultPreset = Resources.Load<Preset>("SorsDefaultColors");
+            Preset defaultPreset = Resources.Load<Preset>("SorsColors");
             defaultPreset.ApplyTo(Resources.Load("Sors Colors"));
             Selection.activeObject = null;
             Debug.Log("<b>[Sors Colors]</b> Resetting is successful.");

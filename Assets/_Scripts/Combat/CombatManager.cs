@@ -44,12 +44,7 @@ public class CombatManager : NetworkBehaviour
 
     public void PlayerChoosesTargetToAttack(BattleZoneEntity target, List<CreatureEntity> attackers)
     {
-        foreach(var a in attackers) 
-        {
-            _attackerTarget.Add(a, target);
-            // a.CanAct = false;
-        }
-        print("post adding attackers: " + _attackerTarget.Count);
+        foreach(var a in attackers) _attackerTarget.Add(a, target);
     }
 
     public void PlayerDeclaredAttackers(PlayerManager player)
@@ -67,8 +62,7 @@ public class CombatManager : NetworkBehaviour
     }
     public void PlayerChoosesAttackerToBlock(CreatureEntity attacker, List<CreatureEntity> blockers)
     {
-        foreach(var b in blockers) 
-            _blockerAttacker.Add(b, attacker);
+        foreach(var b in blockers) _blockerAttacker.Add(b, attacker);
     }
 
     public void PlayerDeclaredBlockers(PlayerManager player)

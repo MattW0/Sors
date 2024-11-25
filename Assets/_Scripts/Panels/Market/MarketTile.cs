@@ -36,7 +36,7 @@ public class MarketTile : MonoBehaviour
             _isSelected = value;
             if(value) {
                 OnTileSelected?.Invoke(this);
-                _ui.Highlight(HighlightType.Default);
+                _ui.Highlight(HighlightType.Selected);
             } else {
                 OnTileDeselected?.Invoke();
                 _ui.Highlight(HighlightType.InteractionPositive);

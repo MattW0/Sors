@@ -12,6 +12,7 @@ public class HandCardUI : CardUI, IPointerEnterHandler, IPointerExitHandler
 
     public bool IsHovered { get; private set; }
 
+
     public void CardBackUp()
     {
         _front.SetActive(false);
@@ -21,10 +22,40 @@ public class HandCardUI : CardUI, IPointerEnterHandler, IPointerExitHandler
         _front.SetActive(true);
     }
 
+    public void Highlight(bool value, TurnState state)
+    {
+             
+        if (!value || state == TurnState.None) {
+            highlight.enabled = false;
+            return;
+        }
+
+        var color = state switch
+        {
+            TurnState.Trash or TurnState.Discard => ColorPalette.interactionNegativeHighlight,
+            TurnState.CardSelection => ColorPalette.interactionPositiveHighlight,
+            _ => ColorPalette.defaultHighlight
+        };
+
+        highlight.color = color;
+        highlight.enabled = true;
+    }
+
     public void Highlight(HighlightType type)
     {
-        // highlight.color = color;
-        highlight.enabled = type != HighlightType.None;
+        if (type == HighlightType.None)
+        {
+            highlight.enabled = false;
+            return;
+        }
+
+        highlight.color = type switch
+        {
+            HighlightType.Playable => ColorPalette.interactionPositiveHighlight,
+            HighlightType.Selected => ColorPalette.defaultHighlight,
+            _ => ColorPalette.defaultHighlight
+        };
+        highlight.enabled = true;
     }
 
     public void OnPointerEnter(PointerEventData eventData)

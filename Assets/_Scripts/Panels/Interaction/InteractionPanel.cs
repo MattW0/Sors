@@ -81,15 +81,12 @@ public class InteractionPanel : NetworkBehaviour
     private void AllCardsAreInteractable(bool b)
     {
         print("    - InteractionPanel: Selectable cards count: " + _selectableCards.Count);
-        foreach(var card in _selectableCards) 
-            card.IsInteractable = b;
+        foreach(var card in _selectableCards) card.SetInteractable(b, _state);
     }
 
     private void MoneyCardsAreInteractable()
     {
-        foreach(var card in _selectableCards) 
-            if (card.cardInfo.type == CardType.Money) 
-                card.IsInteractable = true;
+        foreach (var card in _selectableCards) card.SetInteractable(card.cardInfo.type == CardType.Money, _state);
     }
 
     [ClientRpc]
