@@ -11,11 +11,8 @@ public class InteractionUI : AnimatedPanel
     [SerializeField] private Button _skipButton;
     [SerializeField] private Button _confirmButton;
     [SerializeField] private TMP_Text _displayText;
-
-    [Header("Market Selection")]
-    [SerializeField] private GameObject _creatureCard;
-    [SerializeField] private GameObject _technologyCard;
-    [SerializeField] private GameObject _moneyCard;
+    [SerializeField] private DetailCardPreview _detailCardPreview;
+    
 
     [Header("Helper Fields")]
     private TurnState _state;
@@ -31,10 +28,7 @@ public class InteractionUI : AnimatedPanel
         _confirmButton.onClick.AddListener(OnConfirmButtonPressed);
 
         _displayText.text = "";
-        
-        _creatureCard.SetActive(false);
-        _technologyCard.SetActive(false);
-        _moneyCard.SetActive(false);
+        _detailCardPreview.HideAll(true);
 
         InteractionPanel.OnInteractionBegin += InteractionBegin;
     }
@@ -72,16 +66,7 @@ public class InteractionUI : AnimatedPanel
 
     public void SelectMarketTile(CardInfo cardInfo)
     {
-        var previewCardObject = cardInfo.type switch{
-            CardType.Creature => _creatureCard,
-            CardType.Technology => _technologyCard,
-            CardType.Money => _moneyCard,
-            _ => null
-        };
-
-        var detailCard = previewCardObject.GetComponent<DetailCard>();
-        detailCard.SetCardUI(cardInfo);
-        previewCardObject.SetActive(true);
+        _detailCardPreview.ShowPreview(cardInfo, cardInfo.type != CardType.Money);
 
         if (_isWaiting) return;
         _confirmButton.interactable = true;
@@ -89,10 +74,7 @@ public class InteractionUI : AnimatedPanel
 
     public void DeselectMarketTile()
     {
-        _creatureCard.SetActive(false);
-        _technologyCard.SetActive(false);
-        _moneyCard.SetActive(false);
-
+        _detailCardPreview.HideAll(true);
         _confirmButton.interactable = false;
     }
 
@@ -141,6 +123,7 @@ public class InteractionUI : AnimatedPanel
 
         return actionVerb;
     }
+
     private void OnDestroy()
     {
         InteractionPanel.OnInteractionBegin -= InteractionBegin;

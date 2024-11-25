@@ -4,28 +4,14 @@ using UnityEngine.EventSystems;
 
 public class CardZoomView : ModalWindow, IPointerClickHandler
 {
-    [SerializeField] private Transform _cardHolder;
-    [SerializeField] private Vector3 _cardHolderOffset;
+    
 
     [Header("Prefabs")]
-    [SerializeField] private GameObject _moneyDetailCard;
-    [SerializeField] private GameObject _creatureDetailCard;
-    [SerializeField] private GameObject _technologyDetailCard;
-    [SerializeField] private GameObject _creatureEntity;
-    [SerializeField] private GameObject _technologyEntity;
-
-    private GameObject _openedCardObject;
-    private GameObject _openedEntityObject;
+    [SerializeField] private DetailCardPreview _cardPreview;
 
     private void Start()
     {
-        _cardHolder.localPosition = Vector3.zero;
-
-        _creatureDetailCard.SetActive(false);
-        _technologyDetailCard.SetActive(false);
-        _moneyDetailCard.SetActive(false);
-        _creatureEntity.SetActive(false);
-        _technologyEntity.SetActive(false);
+        _cardPreview.HideAll(true);
 
         CardClickHandler.OnInspect += InspectCardInfo;
         EntityClickHandler.OnInspect += InspectCardInfo;
@@ -35,35 +21,8 @@ public class CardZoomView : ModalWindow, IPointerClickHandler
 
     public void InspectCardInfo(CardInfo card)
     {
-        // Set Card
-        _openedCardObject = card.type switch{
-            CardType.Creature => _creatureDetailCard,
-            CardType.Technology => _technologyDetailCard,
-            CardType.Money => _moneyDetailCard,
-            _ => null
-        };
-        
-        _cardHolder.localPosition = Vector3.zero;
-        _openedCardObject.SetActive(true);
-        var detailCard = _openedCardObject.GetComponent<DetailCard>();
-        detailCard.SetCardUI(card);
-
+        _cardPreview.ShowPreview(card, card.type != CardType.Money);
         WindowIn();
-
-        // Money card has no entity equivalent
-        if(card.type == CardType.Money) return;
-
-        // Set entity
-        _openedEntityObject = card.type switch{
-            CardType.Creature => _creatureEntity,
-            CardType.Technology => _technologyEntity,
-            _ => null
-        };
-
-        _cardHolder.localPosition = _cardHolderOffset;
-        _openedEntityObject.SetActive(true);
-        var entityUI = _openedEntityObject.GetComponent<EntityUI>();
-        entityUI.SetCardUI(card, card.entitySpritePath);
     }
 
     public void OnPointerClick(PointerEventData eventData)
@@ -73,9 +32,7 @@ public class CardZoomView : ModalWindow, IPointerClickHandler
 
         WindowOut();
 
-        _openedCardObject.SetActive(false);
-        // is null if money card
-        if(_openedEntityObject) _openedEntityObject.SetActive(false);
+        _cardPreview.HideAll(true);
     }
 
     private void OnDestroy()

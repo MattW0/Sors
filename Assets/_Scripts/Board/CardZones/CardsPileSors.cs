@@ -27,8 +27,8 @@ public class CardsPileSors : MonoBehaviour
 	private CardPileSettings selectionSettings = new(0f, 100f, 0.1f, 0.1f, -1f);
 	private CardPileSettings pileSettings = new(20f, 20f, 0f, 1f, -1f);
 
-	[SerializeField] private readonly List<GameObject> cards = new List<GameObject>();
-	readonly List<GameObject> forceSetPosition = new List<GameObject>();
+	[SerializeField] private readonly List<GameObject> cards = new();
+	readonly List<GameObject> forceSetPosition = new();
 	private CardPileUI _cardPileUI;
 
 	private void Start()

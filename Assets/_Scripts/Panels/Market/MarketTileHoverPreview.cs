@@ -1,19 +1,14 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections;
 
 public class MarketTileHoverPreview : MonoBehaviour
 {
+    [SerializeField] private DetailCardPreview _detailCardPreview;
     [SerializeField] private RectTransform previewWindow;
-    [SerializeField] private GameObject _creatureDetailCard;
-    [SerializeField] private GameObject _technologyDetailCard;
-    [SerializeField] private GameObject _moneyDetailCard;
-    private Vector3 _offset = new Vector3(10f, -10f, 0f);
+    private Vector3 _offset = new(10f, -10f, 0f);
     private float _viewHeight;
     private float _viewWidth;
-
-    public static Action<CardInfo> OnHoverTile;
-    public static Action OnHoverExit;
+    private WaitForSeconds _wait = new(SorsTimings.hoverPreviewDelay); 
 
     private void Awake()
     {
@@ -23,47 +18,42 @@ public class MarketTileHoverPreview : MonoBehaviour
 
     private void OnEnable()
     {
-        OnHoverTile += ShowPreview;
-        OnHoverExit += HidePreview;
+        MarketTileUI.OnHoverTile += HoverStart;
+        MarketTileUI.OnHoverExit += HidePreview;
     }
 
     private void OnDisable()
     {
-        OnHoverTile -= ShowPreview;
-        OnHoverExit -= HidePreview;
+        MarketTileUI.OnHoverTile -= HoverStart;
+        MarketTileUI.OnHoverExit -= HidePreview;
     }
 
     private void Start()
     {
         HidePreview();
-
-        _creatureDetailCard.SetActive(false);
-        _technologyDetailCard.SetActive(false);
-        _moneyDetailCard.SetActive(false);
+        _detailCardPreview.HideAll();
     }
 
     //TODO: Make sure the whole window is within screen bounds
-    private void ShowPreview(CardInfo cardInfo)
+    private void HoverStart(CardInfo cardInfo)
     {
-        var previewCardObject = cardInfo.type switch{
-            CardType.Creature => _creatureDetailCard,
-            CardType.Technology => _technologyDetailCard,
-            CardType.Money => _moneyDetailCard,
-            _ => null
-        };
-
-        var detailCard = previewCardObject.GetComponent<DetailCard>();
-        detailCard.SetCardUI(cardInfo);
-
-        SetViewPosition();
-        previewCardObject.SetActive(true);
+        HidePreview();
+        StartCoroutine(HoverDelay(cardInfo));
     }
 
-    private void HidePreview()
+    private IEnumerator HoverDelay(CardInfo card)
     {
-        _creatureDetailCard.SetActive(false);
-        _technologyDetailCard.SetActive(false);
-        _moneyDetailCard.SetActive(false);
+        yield return _wait;
+
+        SetViewPosition();
+        _detailCardPreview.ShowPreview(card, card.type != CardType.Money);
+    }
+
+
+    private void HidePreview()
+    {   
+        StopAllCoroutines();
+        _detailCardPreview.HideAll();
     }
 
     private void SetViewPosition()

@@ -12,6 +12,18 @@ public class DetailCardUI : CardUI, IPointerClickHandler, IPointerEnterHandler, 
     private GraphicRaycaster _tempRaycaster;
     public static event Action<CardInfo> OnInspect;
 
+    internal void ShowDetailCard(CardInfo card)
+    {
+        SetCardUI(card, card.cardSpritePath);
+        // TODO: Animate
+        gameObject.SetActive(true);
+    }
+
+    internal void Hide()
+    {
+        gameObject.SetActive(false);
+    }
+
     public void OnPointerClick(PointerEventData eventData)
     {
         // Right click to preview card only
@@ -41,8 +53,8 @@ public class DetailCardUI : CardUI, IPointerClickHandler, IPointerEnterHandler, 
         _tempCanvas.sortingOrder = 1;
         _tempRaycaster = gameObject.AddComponent<GraphicRaycaster>();
         
-        // highlight.enabled = true;
-        // highlight.DOColor(SorsColors.standardHighlight, 0.2f);
+        highlight.enabled = true;
+        highlight.DOColor(Color.yellow, 0.2f);
     }
 
     private void DefocusCard()
@@ -54,7 +66,4 @@ public class DetailCardUI : CardUI, IPointerClickHandler, IPointerEnterHandler, 
         highlight.DOColor(SorsColors.transparent, 0.2f);
         highlight.enabled = false;
     }
-    
-    public void EnableHighlight() => highlight.enabled = true;
-    public void DisableHighlight() => highlight.enabled = false;
 }

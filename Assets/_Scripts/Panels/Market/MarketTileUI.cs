@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-using Cysharp.Threading.Tasks;
 using System;
 using System.Threading;
 using Sirenix.OdinInspector;
@@ -11,7 +10,8 @@ public class MarketTileUI : EntityUI, IPointerClickHandler, IPointerEnterHandler
     private MarketTile _tile;
     [SerializeField] private Image _overlay;
     public static event Action<CardInfo> OnInspect;
-    private CancellationTokenSource _cts = new();
+    public static Action<CardInfo> OnHoverTile;
+    public static Action OnHoverExit;
 
     private void Awake()
     {
@@ -30,32 +30,8 @@ public class MarketTileUI : EntityUI, IPointerClickHandler, IPointerEnterHandler
         _tile.IsSelected = ! _tile.IsSelected;
     }
 
-    private async UniTaskVoid HoverPreviewWaitTimer(CancellationToken token)
-    {
-        await UniTask.Delay(SorsTimings.hoverPreviewDelay, cancellationToken: token);
-
-        token.ThrowIfCancellationRequested();
-        MarketTileHoverPreview.OnHoverTile(_tile.cardInfo);
-    }
-
-    public void OnPointerEnter(PointerEventData eventData)
-    {
-        // TODO: Does not work! Check cancellation
-
-        // print("Pointer enter");
-
-        // Cancel previous hover preview if still running
-        // _cts?.Cancel();
-        // HoverPreviewWaitTimer(_cts.Token).Forget();
-    }
-
-    public void OnPointerExit(PointerEventData eventData)
-    {
-        // print("Pointer exit");
-
-        // _cts?.Cancel();
-        // MarketTileHoverPreview.OnHoverExit();
-    }
+    public void OnPointerEnter(PointerEventData eventData) => OnHoverTile?.Invoke(_tile.cardInfo);
+    public void OnPointerExit(PointerEventData eventData) => OnHoverExit?.Invoke();
 
     public override void Highlight(HighlightType type)
     {
