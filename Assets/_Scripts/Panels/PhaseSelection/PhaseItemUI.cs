@@ -2,15 +2,13 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
-using TMPro;
-using Unity.Multiplayer.Center.Common;
 
-public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
+public class PhaseItemUI : MonoBehaviour, IHighlightable, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
     private TurnState _phase;
     private TooltipWindow _tooltip;
     [SerializeField] private Image _icon;
-    [SerializeField] private Graphic outline;
+    [SerializeField] private Graphic _highlight;
     [SerializeField] private Image playerChoice;
     [SerializeField] private Image opponentChoice;
     [SerializeField] private Image tooltipEffect;
@@ -65,7 +63,7 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
         
         opponentChoice.enabled = false;
         tooltipEffect.enabled = false;
-        outline.CrossFadeAlpha(1f, 1f, false);
+        Highlight(1f, 1f);
     }
 
     private void ShowOpponentSelection(TurnState phase)
@@ -79,7 +77,7 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
     private void EndSelection()
     {
         _selectable = false;
-        outline.CrossFadeAlpha(0.1f, 1f, false);
+        Disable(1f);
     }
 
     private void OnDestroy()
@@ -87,5 +85,15 @@ public class PhaseItemUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
         PhasePanel.OnPhaseSelectionStarted -= StartSelection;
         PhasePanel.OnPhaseSelectionConfirmed -= EndSelection;
         PhasePanelUI.OnPhaseSelectionConfirmed -= ShowOpponentSelection;
+    }
+
+    public void Highlight(float alpha, float fadeDuration)
+    {
+        _highlight.CrossFadeAlpha(alpha, fadeDuration, false);
+    }
+
+    public void Disable(float fadeDuration)
+    {
+        _highlight.CrossFadeAlpha(0f, fadeDuration, false);
     }
 }

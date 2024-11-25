@@ -60,9 +60,8 @@ public class PhasePanel : NetworkBehaviour
     #region Combat
 
     [ClientRpc]
-    public void RpcStartCombatPhase(TurnState state){
-        // actionDescriptionText.text = $"Select {state}";
-
+    public void RpcStartCombatPhase(TurnState state)
+    {
         if (state == TurnState.Attackers) attack.IsSelectable = true;
         else if (state == TurnState.Blockers) block.IsSelectable = true;
     }
@@ -70,8 +69,8 @@ public class PhasePanel : NetworkBehaviour
     [TargetRpc]
     public void TargetDisableCombatButtons(NetworkConnection conn)
     {
-        attack.Reset();
-        block.Reset();
+        attack.IsSelectable = false;
+        block.IsSelectable = false;
     }
 
     private void PlayerPressedCombatButton() => CmdPlayerPressedCombatButton(PlayerManager.GetLocalPlayer());

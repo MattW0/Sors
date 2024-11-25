@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,14 +14,16 @@ public class PhasePanelUI : MonoBehaviour
     [SerializeField] private Image progressBarHighlight;
     private float[] progressBarCheckpoints = {0.05f, 0.15f, 0.27f, 0.345f, 0.465f, 0.54f, 0.655f, 0.735f, 0.85f, 1f};
 
-    [SerializeField] private List<Image> phaseHighlights;
-    private Image _oldHighlight;
+    private List<IHighlightable> _phaseHighlights = new();
+    private IHighlightable _oldHighlight;
     public static event Action<TurnState> OnPhaseSelectionConfirmed;
 
     private void Start()
     {
         // Reset cleanup highlight and start at phase selection (index 0)
-        _oldHighlight = phaseHighlights[^1];
+        _phaseHighlights = GetComponentsInChildren<IHighlightable>().ToList();
+
+        _oldHighlight = _phaseHighlights[^1];
         HighlightTransition(0);
     }
 
@@ -33,7 +36,6 @@ public class PhasePanelUI : MonoBehaviour
     public void UpdatePhaseHighlight(TurnState newState)
     {
         var newHighlightIndex = GetIndex(newState);
-
         if (newHighlightIndex == -1) return;
         
         HighlightTransition(newHighlightIndex);
@@ -41,10 +43,10 @@ public class PhasePanelUI : MonoBehaviour
     
     private void HighlightTransition(int newIndex)
     {
-        _oldHighlight.CrossFadeAlpha(0f, fadeDuration, false);
-        phaseHighlights[newIndex].CrossFadeAlpha(1f, fadeDuration, false);
+        _oldHighlight.Disable(fadeDuration);
+        _phaseHighlights[newIndex].Highlight(1f, fadeDuration);
 
-        _oldHighlight = phaseHighlights[newIndex];
+        _oldHighlight = _phaseHighlights[newIndex];
         progressBar.localScale = new Vector3(progressBarCheckpoints[newIndex], 1f, 1f);
     }
 
@@ -53,7 +55,7 @@ public class PhasePanelUI : MonoBehaviour
         for (int i = 0; i < phases.Length; i++)
         {
             Enum.TryParse(phases[i].ToString(), out TurnState nextTurnState);
-            phaseHighlights[GetIndex(nextTurnState)].CrossFadeAlpha(0.7f, 0f, false);
+            _phaseHighlights[GetIndex(nextTurnState)].Highlight(0.7f, fadeDuration);
         }
     }
     

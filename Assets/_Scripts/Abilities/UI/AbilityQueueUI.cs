@@ -2,7 +2,6 @@ using UnityEngine;
 using System.Collections.Generic;
 using Mirror;
 using Cysharp.Threading.Tasks;
-using System;
 using UnityUtils;
 
 [RequireComponent(typeof(CanvasGroup))]
