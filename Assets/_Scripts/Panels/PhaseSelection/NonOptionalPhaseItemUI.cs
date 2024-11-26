@@ -2,18 +2,26 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using System;
 using UnityEngine.UI;
+using DG.Tweening;
 
-public class CombatPhaseItemUI : MonoBehaviour, IHighlightable, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
+public class NonOptionalPhaseItemUI : MonoBehaviour, IHighlightable, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
     public bool IsSelectable { get; set; }
-    [SerializeField] private Graphic _highlight;
-    [SerializeField] private Graphic _icon;
     private TooltipWindow _tooltip;
+    [SerializeField] private Image _highlight;
+    [SerializeField] private Image _icon;
+    private Color _color;
+    private Color _colorInverse;
     public static event Action OnPressedCombatButton;
-    private void Start()
+
+    private void Awake()
     {
         _tooltip = GetComponentInChildren<TooltipWindow>();
+        _color = _icon.color;
+        _colorInverse = _highlight.color;
     }
+
+    private void Start() => Disable(0.1f);
 
     public void OnPointerClick(PointerEventData data)
     {
@@ -27,17 +35,13 @@ public class CombatPhaseItemUI : MonoBehaviour, IHighlightable, IPointerClickHan
 
     public void Highlight(float alpha, float fadeDuration)
     {
-        _highlight.CrossFadeAlpha(alpha, fadeDuration, false);
-
-        // TODO: How to change icon color accordingly?
-
+        _highlight.DOColor(_color, fadeDuration);
+        _icon.DOColor(_colorInverse, fadeDuration);
     }
 
     public void Disable(float fadeDuration)
     {
-        _highlight.CrossFadeAlpha(0, fadeDuration, false);
-
-        // TODO: How to change icon color accordingly?
-        //_icon.CrossFadeColor(Color.white, fadeDuration, false, false);
+        _highlight.DOColor(_colorInverse, fadeDuration);
+        _icon.DOColor(_color, fadeDuration);
     }
 }

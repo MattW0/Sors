@@ -7,9 +7,6 @@ using UnityEngine;
 public class PhasePanel : NetworkBehaviour
 {
     [SerializeField] private List<TurnState> _selectedPhases = new();
-    [SerializeField] private CombatPhaseItemUI attack;
-    [SerializeField] private CombatPhaseItemUI block;
-    
     private int _nbPhasesToChose;
     private PhasePanelUI _phasePanelUI;
     private PlayerManager _localPlayer;
@@ -23,11 +20,10 @@ public class PhasePanel : NetworkBehaviour
 
         TurnManager.OnStartPhaseSelection += RpcStartSelection;
         TurnManager.OnTurnStateChanged += RpcUpdatePhaseHighlight;
-
         CombatManager.OnCombatStateChanged += RpcUpdatePhaseHighlight;
-        CombatPhaseItemUI.OnPressedCombatButton += PlayerPressedCombatButton;
 
-        PhaseItemUI.OnToggleSelection += UpdateSelectedPhase;
+        NonOptionalPhaseItemUI.OnPressedCombatButton += PlayerPressedCombatButton;
+        OptionalPhaseItemUI.OnToggleSelection += UpdateSelectedPhase;
     }
 
     [ClientRpc]
@@ -59,19 +55,9 @@ public class PhasePanel : NetworkBehaviour
 
     #region Combat
 
-    [ClientRpc]
-    public void RpcStartCombatPhase(TurnState state)
-    {
-        if (state == TurnState.Attackers) attack.IsSelectable = true;
-        else if (state == TurnState.Blockers) block.IsSelectable = true;
-    }
+    [ClientRpc] public void RpcStartCombatPhase(TurnState state) => _phasePanelUI.StartCombatPhase(state);
 
-    [TargetRpc]
-    public void TargetDisableCombatButtons(NetworkConnection conn)
-    {
-        attack.IsSelectable = false;
-        block.IsSelectable = false;
-    }
+    [TargetRpc] public void TargetDisableCombatButtons(NetworkConnection conn) => _phasePanelUI.DisableCombatButtons();
 
     private void PlayerPressedCombatButton() => CmdPlayerPressedCombatButton(PlayerManager.GetLocalPlayer());
     
@@ -106,10 +92,9 @@ public class PhasePanel : NetworkBehaviour
     {
         TurnManager.OnStartPhaseSelection -= RpcStartSelection;
         TurnManager.OnTurnStateChanged -= RpcUpdatePhaseHighlight;
-
         CombatManager.OnCombatStateChanged -= RpcUpdatePhaseHighlight;
-        CombatPhaseItemUI.OnPressedCombatButton -= PlayerPressedCombatButton;
-        
-        PhaseItemUI.OnToggleSelection -= UpdateSelectedPhase;
+
+        NonOptionalPhaseItemUI.OnPressedCombatButton -= PlayerPressedCombatButton;
+        OptionalPhaseItemUI.OnToggleSelection -= UpdateSelectedPhase;
     }
 }

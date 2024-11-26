@@ -4,7 +4,6 @@ using System.Linq;
 using UnityEngine;
 using Mirror;
 using Cysharp.Threading.Tasks;
-using System.Runtime.CompilerServices;
 
 public class TurnManager : NetworkBehaviour
 {

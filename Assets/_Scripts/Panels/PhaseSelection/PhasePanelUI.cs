@@ -6,14 +6,14 @@ using UnityEngine.UI;
 
 public class PhasePanelUI : MonoBehaviour
 {
-    [Header("Player Settings")]
-    [SerializeField] private float fadeDuration = 1f;
+    [SerializeField] private NonOptionalPhaseItemUI attack;
+    [SerializeField] private NonOptionalPhaseItemUI block;
 
     [Header("Progress Bar")]
+    [SerializeField] private float fadeDuration = 1f;
     [SerializeField] private Transform progressBar;
     [SerializeField] private Image progressBarHighlight;
-    private float[] progressBarCheckpoints = {0.05f, 0.15f, 0.27f, 0.345f, 0.465f, 0.54f, 0.655f, 0.735f, 0.85f, 1f};
-
+    private readonly float[] _progressBarCheckpoints = {0.04f, 0.15f, 0.265f, 0.345f, 0.46f, 0.54f, 0.655f, 0.735f, 0.85f, .96f};
     private List<IHighlightable> _phaseHighlights = new();
     private IHighlightable _oldHighlight;
     public static event Action<TurnState> OnPhaseSelectionConfirmed;
@@ -23,7 +23,6 @@ public class PhasePanelUI : MonoBehaviour
         // Reset cleanup highlight and start at phase selection (index 0)
         _phaseHighlights = GetComponentsInChildren<IHighlightable>().ToList();
 
-        _oldHighlight = _phaseHighlights[^1];
         HighlightTransition(0);
     }
 
@@ -38,16 +37,15 @@ public class PhasePanelUI : MonoBehaviour
         var newHighlightIndex = GetIndex(newState);
         if (newHighlightIndex == -1) return;
         
+        _oldHighlight.Disable(fadeDuration);
         HighlightTransition(newHighlightIndex);
     }
     
     private void HighlightTransition(int newIndex)
     {
-        _oldHighlight.Disable(fadeDuration);
         _phaseHighlights[newIndex].Highlight(1f, fadeDuration);
-
         _oldHighlight = _phaseHighlights[newIndex];
-        progressBar.localScale = new Vector3(progressBarCheckpoints[newIndex], 1f, 1f);
+        progressBar.localScale = new Vector3(_progressBarCheckpoints[newIndex], 1f, 1f);
     }
 
     internal void HighlightPhasesToPlay(TurnState[] phases)
@@ -75,5 +73,17 @@ public class PhasePanelUI : MonoBehaviour
             TurnState.CleanUp => 9,
             _ => -1
         };
+    }
+
+    internal void StartCombatPhase(TurnState state)    
+    {
+        if (state == TurnState.Attackers) attack.IsSelectable = true;
+        else if (state == TurnState.Blockers) block.IsSelectable = true;
+    }
+
+    internal void DisableCombatButtons()
+    {
+        attack.IsSelectable = false;
+        block.IsSelectable = false;
     }
 }
