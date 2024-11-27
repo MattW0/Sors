@@ -5,14 +5,35 @@ using TMPro;
 
 public class AbilityUI : MonoBehaviour
 {
+    [SerializeField] private TMP_Text _description;
+    private RectTransform _rectTransform;
+
+    [Header("Pictos")]
     [SerializeField] private Image _trigger;
     [SerializeField] private TMP_Text _amount;
     [SerializeField] private Image _effect;
     [SerializeField] private Image _target;
-    [SerializeField] private TMP_Text _description;
-
+    [SerializeField] private RectTransform _pictosParent;
     private const string BASE_PATH = "Sprites/UI/Icons/Ability/";
-    public void SetPictos(Ability ability)
+
+    public void Init(Ability ability, float height, bool withText)
+    {
+        SetPictos(ability);
+
+        _rectTransform = GetComponent<RectTransform>();
+        if (height == _rectTransform.rect.height) return;
+
+        // Resize the ability UI, keeping the same aspect ratio
+        var ratio = height / _rectTransform.rect.height;
+        _rectTransform.sizeDelta = new Vector2(_rectTransform.sizeDelta.x * ratio, height);
+
+        if (withText)
+        {
+            _pictosParent.sizeDelta = new Vector2(_pictosParent.sizeDelta.x * ratio, _pictosParent.sizeDelta.y);
+        }
+    }
+    
+    private void SetPictos(Ability ability)
     {
         SetTrigger(ability.trigger);
         SetAmount(ability.amount);

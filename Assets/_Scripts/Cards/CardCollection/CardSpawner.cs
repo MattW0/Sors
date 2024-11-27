@@ -50,7 +50,7 @@ public class CardSpawner : MonoBehaviour
         };
 
         // Initialize detail card
-        detailCardObject.GetComponent<DetailCardUI>().SetCardUI(cardInfo, cardInfo.cardSpritePath);
+        detailCardObject.GetComponent<DetailCardUI>().SetCardUI(cardInfo, cardInfo.cardSpritePath, true);
 
         return detailCardObject.transform;
     }

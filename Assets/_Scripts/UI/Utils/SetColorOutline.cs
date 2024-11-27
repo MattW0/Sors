@@ -35,8 +35,6 @@ public class SetColorOutline : MonoBehaviour
         {
             ColorType.CallToAction => _colorPalette.callToAction,
             ColorType.Neutral => _colorPalette.neutral,
-            ColorType.NeutralDark => _colorPalette.neutralDark,
-            ColorType.NeutralLight => _colorPalette.neutralLight,
             _ => Color.white
         };
 

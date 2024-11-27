@@ -6,7 +6,7 @@ public class EntityUI : CardUI
     public void InspectEntity(CardInfo card)
     {
         // TODO: Animate and combine with DetailCardUI ?
-        SetCardUI(card, card.entitySpritePath);
+        SetCardUI(card, card.entitySpritePath, true);
         gameObject.SetActive(true);
     }
 

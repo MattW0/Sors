@@ -5,7 +5,7 @@ public class MarketTileHoverPreview : MonoBehaviour
 {
     [SerializeField] private DetailCardPreview _detailCardPreview;
     [SerializeField] private RectTransform previewWindow;
-    private Vector3 _offset = new(10f, -10f, 0f);
+    private Vector3 _offset = new(-20f, -10f, 0f);
     private float _viewHeight;
     private float _viewWidth;
     private WaitForSeconds _wait = new(SorsTimings.hoverPreviewDelay); 

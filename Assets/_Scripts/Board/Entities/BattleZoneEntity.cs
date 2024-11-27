@@ -73,7 +73,7 @@ public class BattleZoneEntity : NetworkBehaviour
         if(cardType == CardType.Creature) gameObject.GetComponent<CreatureEntity>().InitializeCreature(cardInfo.attack, cardInfo.traits);
         else if (cardType == CardType.Technology) gameObject.GetComponent<TechnologyEntity>().InitializeTechnology(cardInfo.points);
 
-        _entityUI.SetCardUI(cardInfo, cardInfo.entitySpritePath);
+        _entityUI.SetCardUI(cardInfo, cardInfo.entitySpritePath, true);
     }
 
     [Server]

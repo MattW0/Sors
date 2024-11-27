@@ -30,7 +30,7 @@ public class CardUI : MonoBehaviour
         ColorPalette = UIManager.Instance.ColorPalette;
     }
 
-    public virtual void SetCardUI(CardInfo cardInfo, string spritePath)
+    public virtual void SetCardUI(CardInfo cardInfo, string spritePath, bool withAbilitiesText)
     {
         CardInfo = cardInfo;
 
@@ -47,7 +47,7 @@ public class CardUI : MonoBehaviour
         _health.text = cardInfo.health.ToString();
 
         // TODO: Pictos
-        _abilities.SetAbilities(cardInfo.abilities);
+        _abilities.SetAbilities(cardInfo.abilities, withAbilitiesText);
 
         if (cardInfo.type == CardType.Creature){
             _attack.text = cardInfo.attack.ToString();

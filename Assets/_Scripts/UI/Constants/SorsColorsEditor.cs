@@ -92,9 +92,8 @@ public class SorsColorsEditor : Editor
 
         #region UI
         var callToAction = serializedObject.FindProperty("callToAction");
-        var neutralDark = serializedObject.FindProperty("neutralDark");
         var neutral = serializedObject.FindProperty("neutral");
-        var neutralLight = serializedObject.FindProperty("neutralLight");
+        var textBackground = serializedObject.FindProperty("textBackground");
 
         GUILayout.Space(foldoutTopSpace);
         GUILayout.BeginHorizontal();
@@ -106,9 +105,8 @@ public class SorsColorsEditor : Editor
         if (showUIColors)
         {
             EditorDrawer.DrawProperty(callToAction, customSkin, "Call to Action");
-            EditorDrawer.DrawProperty(neutralDark, customSkin, "Neutral Dark");
             EditorDrawer.DrawProperty(neutral, customSkin, "Neutral");
-            EditorDrawer.DrawProperty(neutralLight, customSkin, "Neutral Light");
+            EditorDrawer.DrawProperty(textBackground, customSkin, "Text Background");
         }
 
         #endregion

@@ -26,14 +26,19 @@ public class OptionalPhaseItemUI : MonoBehaviour, IHighlightable, IPointerClickH
     }
     public static event Action<TurnState> OnToggleSelection;
 
-    private void Start()
+    private void Awake()
     {
-        _phase = (TurnState) Enum.Parse(typeof(TurnState), gameObject.name);
         _tooltip = GetComponentInChildren<TooltipWindow>();
 
         PhasePanel.OnPhaseSelectionStarted += StartSelection;
         PhasePanel.OnPhaseSelectionConfirmed += EndSelection;
         PhasePanelUI.OnPhaseSelectionConfirmed += ShowOpponentSelection;
+    }
+
+    private void Start()
+    {
+        _phase = (TurnState) Enum.Parse(typeof(TurnState), gameObject.name);
+        Disable(0.1f);
     }
 
     public void OnPointerClick(PointerEventData data)
