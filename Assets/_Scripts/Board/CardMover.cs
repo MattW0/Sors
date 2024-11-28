@@ -65,7 +65,7 @@ public class CardMover : MonoBehaviour
     
     public async UniTaskVoid ShowSpawnedCard(GameObject card, bool hasAuthority, CardLocation destination)
     {
-        InitSpawnedCard(card, hasAuthority, destination);
+        InitSpawnedCard(card, hasAuthority);
         
         await UniTask.Delay(SorsTimings.showSpawnedCard);
 
@@ -75,7 +75,7 @@ public class CardMover : MonoBehaviour
     public async UniTaskVoid ShowSpawnedCards(List<GameObject> cards, bool hasAuthority, CardLocation destination, bool fromFile)
     {
         foreach(var card in cards){
-            InitSpawnedCard(card, hasAuthority, destination, fromFile);
+            InitSpawnedCard(card, hasAuthority, fromFile);
             await UniTask.Delay(SorsTimings.spawnCard);
         }
 
@@ -87,7 +87,7 @@ public class CardMover : MonoBehaviour
         }
     }
 
-    private void InitSpawnedCard(GameObject card, bool hasAuthority, CardLocation destination, bool fromFile=false)
+    private void InitSpawnedCard(GameObject card, bool hasAuthority, bool fromFile=false)
     {    
         card.transform.localScale = Vector3.one;
         if(!fromFile) card.GetComponent<HandCardUI>().CardFrontUp();

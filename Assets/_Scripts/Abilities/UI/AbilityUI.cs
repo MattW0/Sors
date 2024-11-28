@@ -27,10 +27,10 @@ public class AbilityUI : MonoBehaviour
         var ratio = height / _rectTransform.rect.height;
         _rectTransform.sizeDelta = new Vector2(_rectTransform.sizeDelta.x * ratio, height);
 
-        if (withText)
-        {
-            _pictosParent.sizeDelta = new Vector2(_pictosParent.sizeDelta.x * ratio, _pictosParent.sizeDelta.y);
-        }
+        if (!withText) return;
+        
+        _description.text = String.IsNullOrEmpty(ability.text) ? ability.ToString() : ability.text;
+        _pictosParent.sizeDelta = new Vector2(_pictosParent.sizeDelta.x * ratio, _pictosParent.sizeDelta.y);
     }
     
     private void SetPictos(Ability ability)
@@ -39,8 +39,6 @@ public class AbilityUI : MonoBehaviour
         SetAmount(ability.amount);
         SetEffect(ability.effect);
         SetTarget(ability.target);
-
-        _description.text = ability.ToString();
     }
 
     private void SetTrigger(Trigger trigger)

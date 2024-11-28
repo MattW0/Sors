@@ -39,7 +39,7 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
         _playerEntity = e;
         _playerEntity.transform.position = p;
 
-        _colors = UIManager.Instance.ColorPalette;
+        _colors = UIManager.ColorPalette;
     }
 
     // private void StartCombat(bool start)

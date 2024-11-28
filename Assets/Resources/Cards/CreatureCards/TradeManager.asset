@@ -24,15 +24,17 @@ MonoBehaviour:
   moneyValue: 0
   abilities:
   - trigger: 4
-    effect: 10
-    target: 2
     amount: 2
-  - trigger: 8
     effect: 10
     target: 2
+    text: 'Develop: +2 Cash'
+  - trigger: 8
     amount: 1
+    effect: 10
+    target: 2
+    text: 'Deploy: +1 Cash'
   traits: 
-  description: 'Develop: +2 Cash
-
-    Deploy: +1 Cash'
   flavourText: 
+  description: '
+
+'

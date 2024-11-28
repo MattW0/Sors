@@ -32,9 +32,6 @@ public class GameManager : NetworkBehaviour {
     [Header("Special Cards")]
     public ScriptableCard CurseCard;
 
-    // Caching all gameObjects of cards in game
-    private static Dictionary<int, GameObject> CardsCache { get; set; } = new();
-    public static GameObject GetCardObject(int goID) { return CardsCache[goID]; }
     
     private void Awake()
     {
@@ -125,15 +122,18 @@ public class GameManager : NetworkBehaviour {
     #region Spawning
     public GameObject SpawnCardAndAddToCollection(PlayerManager player, ScriptableCard scriptableCard, CardLocation destination)
     {
-        // print($"Spawning card {scriptableCard.title}, type : {scriptableCard.type}");
+        if (scriptableCard == null) 
+        {
+            Debug.LogWarning("Trying to spawn card where scriptable is null");
+            return null;
+        }
 
         // Card object prefab depending on type
         var cardObject = scriptableCard.type switch
         {
-            CardType.Money => Instantiate(moneyCardPrefab) as GameObject,
-            CardType.Creature => Instantiate(creatureCardPrefab) as GameObject,
-            CardType.Technology => Instantiate(technologyCardPrefab) as GameObject,
-            CardType.None => null,
+            CardType.Money => Instantiate(moneyCardPrefab),
+            CardType.Creature => Instantiate(creatureCardPrefab),
+            CardType.Technology => Instantiate(technologyCardPrefab),
             _ => null
         };
 
@@ -176,7 +176,7 @@ public class GameManager : NetworkBehaviour {
         // Using the unique gameObject instance ID ()
         var instanceID = cardObject.GetInstanceID();
         cardObject.name = instanceID.ToString();
-        CardsCache.Add(instanceID, cardObject);
+        // CardsCache.Add(instanceID, cardObject);
 
         NetworkServer.Spawn(cardObject, connectionToClient);
         if(owner.connectionToClient != null) cardObject.GetComponent<NetworkIdentity>().AssignClientAuthority(owner.connectionToClient);

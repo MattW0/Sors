@@ -17,16 +17,17 @@ MonoBehaviour:
   resourceName: SoftwareEngineer
   type: 0
   title: Software Engineer
-  cost: 2
+  cost: 1
   health: 2
   attack: 3
   points: 0
   moneyValue: 0
   abilities:
   - trigger: 9
+    amount: 2
     effect: 1
     target: 2
-    amount: 2
+    text: 'Prevail: +1 Card'
   traits: 
-  description: 'Prevail: +2 Cards'
   flavourText: 
+  description: 

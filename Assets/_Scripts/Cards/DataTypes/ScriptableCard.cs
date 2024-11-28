@@ -26,6 +26,6 @@ public class ScriptableCard : ScriptableObject
     public List<Traits> traits;
 
     [Header("Display Texts")]
+    public string flavourText;
     [TextArea] public string description;
-    [TextArea] public string flavourText;
 }

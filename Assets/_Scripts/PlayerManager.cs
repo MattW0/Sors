@@ -157,7 +157,7 @@ public class PlayerManager : NetworkBehaviour
             deck.RemoveAt(0);
             hand.Add(card);
 
-            cards.Add(GameManager.GetCardObject(card.cardInfo.goID));
+            cards.Add(card.gameObject);
         }
 
         // The draw cards on Clients, draw animation
@@ -199,8 +199,8 @@ public class PlayerManager : NetworkBehaviour
             temp.Add(card);
             deck.Add(card);
 
-            var cachedCard = GameManager.GetCardObject(card.cardInfo.goID);
-            RpcMoveCard(cachedCard, CardLocation.Discard, CardLocation.Deck);
+            // var cachedCard = GameManager.GetCardObject(card.cardInfo.goID);
+            RpcMoveCard(card.gameObject, CardLocation.Discard, CardLocation.Deck);
         }
 
         foreach (var card in temp) discard.Remove(card);

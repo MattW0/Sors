@@ -23,13 +23,6 @@ public class CardUI : MonoBehaviour
     public Image highlight;
     [SerializeField] private Image _image;
 
-    protected SorsColors ColorPalette;
-
-    private void Start()
-    {
-        ColorPalette = UIManager.Instance.ColorPalette;
-    }
-
     public virtual void SetCardUI(CardInfo cardInfo, string spritePath, bool withAbilitiesText)
     {
         CardInfo = cardInfo;

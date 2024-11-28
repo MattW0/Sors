@@ -2,9 +2,10 @@
 public struct Ability
 {
     public Trigger trigger;
+    public int amount;
     public Effect effect;
     public Target target;
-    public int amount;
+    public string text;
 
     public override string ToString()
     {

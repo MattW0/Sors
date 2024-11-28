@@ -1,6 +1,3 @@
-using System;
-using UnityEngine;
-
 public class EntityUI : CardUI
 {
     public void InspectEntity(CardInfo card)
@@ -25,13 +22,13 @@ public class EntityUI : CardUI
 
         var color = type switch
         {
-            HighlightType.InteractionPositive => ColorPalette.interactionPositiveHighlight,
-            HighlightType.InteractionNegative => ColorPalette.interactionNegativeHighlight,
-            HighlightType.Selected => ColorPalette.selectedHighlight,
-            HighlightType.Trigger => ColorPalette.triggerHighlight,
-            HighlightType.Ability => ColorPalette.abilityHighlight,
-            HighlightType.Target => ColorPalette.targetHighlight,
-            _ => ColorPalette.defaultHighlight  
+            HighlightType.InteractionPositive => UIManager.ColorPalette.interactionPositiveHighlight,
+            HighlightType.InteractionNegative => UIManager.ColorPalette.interactionNegativeHighlight,
+            HighlightType.Selected => UIManager.ColorPalette.selectedHighlight,
+            HighlightType.Trigger => UIManager.ColorPalette.triggerHighlight,
+            HighlightType.Ability => UIManager.ColorPalette.abilityHighlight,
+            HighlightType.Target => UIManager.ColorPalette.targetHighlight,
+            _ => UIManager.ColorPalette.defaultHighlight  
         };
 
         highlight.color = color;

@@ -124,7 +124,6 @@ public class BoardManager : NetworkBehaviour
     private async UniTask ClearDeadEntities()
     {
         await _dropZone.EntitiesLeave(_deadEntities);
-        print("    - BoardManager: Clearing dead entities");
 
         foreach (var dead in _deadEntities)
         {
@@ -132,6 +131,9 @@ public class BoardManager : NetworkBehaviour
             NetworkServer.Destroy(dead.gameObject);
         }
         _deadEntities.Clear();
+
+        await UniTask.Delay(SorsTimings.waitShort);
+        print("    - BoardManager: Cleared dead entities");
     }
 
     public void PrepareGameStateFile(List<CardInfo>[] scriptableTiles)

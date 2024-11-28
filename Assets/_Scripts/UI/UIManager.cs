@@ -12,7 +12,7 @@ public class UIManager : NetworkBehaviour
     [SerializeField] private GameObject _cardCollectionViewPrefab;
     [SerializeField] private Transform _spawnParentTransform;
     [SerializeField] private List<CardLocation> _openCardCollections = new();
-    public SorsColors ColorPalette { get; private set; }
+    public static SorsColors ColorPalette { get; private set; }
 
     private void Awake()
     {

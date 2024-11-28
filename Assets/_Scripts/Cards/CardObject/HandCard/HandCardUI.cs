@@ -2,7 +2,6 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using DG.Tweening;
-using NUnit.Framework;
 
 public class HandCardUI : CardUI, IPointerEnterHandler, IPointerExitHandler
 {
@@ -32,9 +31,9 @@ public class HandCardUI : CardUI, IPointerEnterHandler, IPointerExitHandler
         var color = state switch
         {
             // TurnState.Develop or TurnState.Deploy => ColorPalette.interactionPositiveHighlight,
-            TurnState.Trash or TurnState.Discard => ColorPalette.interactionNegativeHighlight,
-            TurnState.CardSelection => ColorPalette.interactionPositiveHighlight,
-            _ => ColorPalette.defaultHighlight
+            TurnState.Trash or TurnState.Discard => UIManager.ColorPalette.interactionNegativeHighlight,
+            TurnState.CardSelection => UIManager.ColorPalette.interactionPositiveHighlight,
+            _ => UIManager.ColorPalette.defaultHighlight
         };
 
         highlight.color = color;
@@ -51,9 +50,9 @@ public class HandCardUI : CardUI, IPointerEnterHandler, IPointerExitHandler
 
         highlight.color = type switch
         {
-            HighlightType.Playable => ColorPalette.interactionPositiveHighlight,
-            HighlightType.Selected => ColorPalette.defaultHighlight,
-            _ => ColorPalette.defaultHighlight
+            HighlightType.Playable => UIManager.ColorPalette.interactionPositiveHighlight,
+            HighlightType.Selected => UIManager.ColorPalette.defaultHighlight,
+            _ => UIManager.ColorPalette.defaultHighlight
         };
         highlight.enabled = true;
     }
