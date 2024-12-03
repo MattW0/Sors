@@ -10,7 +10,7 @@ public class PhasePanel : NetworkBehaviour
     private int _nbPhasesToChose;
     private PhasePanelUI _phasePanelUI;
     private PlayerManager _localPlayer;
-    private CombatManager _combatManager;
+    private BoardManager _boardManager;
     public static event Action OnPhaseSelectionStarted;
     public static event Action OnPhaseSelectionConfirmed;
     
@@ -31,7 +31,7 @@ public class PhasePanel : NetworkBehaviour
     {
         _nbPhasesToChose = nbPhases;
         _localPlayer = PlayerManager.GetLocalPlayer();
-        _combatManager = CombatManager.Instance;
+        _boardManager = BoardManager.Instance;
     }
 
     [ClientRpc]
@@ -59,10 +59,10 @@ public class PhasePanel : NetworkBehaviour
 
     [TargetRpc] public void TargetDisableCombatButtons(NetworkConnection conn) => _phasePanelUI.DisableCombatButtons();
 
-    private void PlayerPressedCombatButton() => CmdPlayerPressedCombatButton(PlayerManager.GetLocalPlayer());
+    private void PlayerPressedCombatButton() => CmdPlayerPressedCombatButton(_localPlayer);
     
     [Command(requiresAuthority = false)]
-    private void CmdPlayerPressedCombatButton(PlayerManager player) => _combatManager.PlayerPressedReadyButton(player);
+    private void CmdPlayerPressedCombatButton(PlayerManager player) => _boardManager.PlayerPressedReadyButton(player);
 
     #endregion
 

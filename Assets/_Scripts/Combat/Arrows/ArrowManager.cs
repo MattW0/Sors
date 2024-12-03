@@ -93,25 +93,6 @@ public class ArrowManager : NetworkBehaviour
         GroupOnTarget(entity);
     }
 
-    private ArrowRenderer SpawnArrow(GameObject prefab, Transform origin, Transform target)
-    {
-        var arrowRenderer = Instantiate(prefab, parentTransform).GetComponent<ArrowRenderer>();
-        arrowRenderer.SetOrigin(origin.position);
-        arrowRenderer.SetTarget(target.position);
-
-        return arrowRenderer;
-    }
-
-    private void SpawnFloatingArrow(GameObject prefab, Transform origin, int id)
-    {
-        var arrowRenderer = Instantiate(prefab, parentTransform).GetComponent<ArrowRenderer>();
-        arrowRenderer.SetOrigin(origin.position);
-        
-        _combatArrows.Add(id, arrowRenderer);
-        if(_floatingArrows.ContainsKey(id)) _floatingArrows[id] = arrowRenderer;
-        else _floatingArrows.Add(id, arrowRenderer);
-    }
-
     private void GroupOnTarget(BattleZoneEntity entity)
     {
         CmdSetGroupTarget(entity, _creatureGroup);
@@ -149,14 +130,33 @@ public class ArrowManager : NetworkBehaviour
         if (_combatArrows.ContainsKey(origin.ID)) return;
 
         var arrow = SpawnArrow(attackerArrowPrefab, origin.transform, target.transform);
-        _combatArrows.Add(origin.ID, arrow);
-    } 
+        _combatArrows[origin.ID] = arrow;
+    }
     private void DeclaredBlock(BattleZoneEntity origin, BattleZoneEntity target)
     {
         if (_combatArrows.ContainsKey(origin.ID)) return;
 
         var arrow = SpawnArrow(blockerArrowPrefab, origin.transform, target.transform);
-        _combatArrows.Add(origin.ID, arrow);
+        _combatArrows[origin.ID] = arrow;
+    }
+
+    private ArrowRenderer SpawnArrow(GameObject prefab, Transform origin, Transform target)
+    {
+        var arrowRenderer = Instantiate(prefab, parentTransform).GetComponent<ArrowRenderer>();
+        arrowRenderer.SetOrigin(origin.position);
+        arrowRenderer.SetTarget(target.position);
+
+        return arrowRenderer;
+    }
+
+    private void SpawnFloatingArrow(GameObject prefab, Transform origin, int id)
+    {
+        var arrowRenderer = Instantiate(prefab, parentTransform).GetComponent<ArrowRenderer>();
+        arrowRenderer.SetOrigin(origin.position);
+        
+        _combatArrows.Add(id, arrowRenderer);
+        if(_floatingArrows.ContainsKey(id)) _floatingArrows[id] = arrowRenderer;
+        else _floatingArrows.Add(id, arrowRenderer);
     }
 
     [ClientRpc]

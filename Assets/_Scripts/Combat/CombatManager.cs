@@ -49,11 +49,10 @@ public class CombatManager : NetworkBehaviour
 
     public void PlayerDeclaredAttackers(PlayerManager player)
     {
-        _readyPlayers.Add(player);
-        if (_readyPlayers.Count != _gameManager.players.Count) return;
-        _readyPlayers.Clear();
+        if (! AllPlayersReady(player)) return;
 
-        foreach(var (a, t) in _attackerTarget) {
+        foreach (var (a, t) in _attackerTarget)
+        {
             a.RpcDeclaredAttack(t);
             _playerInterfaceManager.RpcLog(a.Owner.ID, a.Title, t.Title, LogType.CombatAttacker);
         }
@@ -67,9 +66,7 @@ public class CombatManager : NetworkBehaviour
 
     public void PlayerDeclaredBlockers(PlayerManager player)
     {
-        _readyPlayers.Add(player);
-        if (_readyPlayers.Count != _gameManager.players.Count) return;
-        _readyPlayers.Clear();
+        if (! AllPlayersReady(player)) return;
 
         foreach (var (b, a) in _blockerAttacker)
         {
@@ -77,6 +74,15 @@ public class CombatManager : NetworkBehaviour
             _playerInterfaceManager.RpcLog(a.Owner.ID, b.Title, a.Title, LogType.CombatBlocker);
         }
         UpdateCombatState(TurnState.CombatDamage);
+    }
+
+    private bool AllPlayersReady(PlayerManager player)
+    {
+        _readyPlayers.Add(player);
+        if (_readyPlayers.Count != _gameManager.players.Count) return false;
+
+        _readyPlayers.Clear();
+        return true;
     }
 
     private void ResolveDamage()
@@ -96,7 +102,6 @@ public class CombatManager : NetworkBehaviour
         if(!forced) _turnManager.CombatCleanUp().Forget();
     }
 
-    public void PlayerPressedReadyButton(PlayerManager player) => _boardManager.PlayerPressedReadyButton(player);
     private void OnDestroy(){
         GameManager.OnGameStart -= Prepare;
     }

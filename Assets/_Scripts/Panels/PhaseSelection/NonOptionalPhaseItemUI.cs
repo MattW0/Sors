@@ -27,6 +27,7 @@ public class NonOptionalPhaseItemUI : MonoBehaviour, IHighlightable, IPointerCli
     {
         if (!IsSelectable) return;
         
+        Disable(0.1f);
         OnPressedCombatButton?.Invoke();
     }
 
@@ -35,6 +36,7 @@ public class NonOptionalPhaseItemUI : MonoBehaviour, IHighlightable, IPointerCli
 
     public void Highlight(float alpha, float fadeDuration)
     {
+        // Don't need alpha but implementing IHighlightable
         _highlight.DOColor(_color, fadeDuration);
         _icon.DOColor(_colorInverse, fadeDuration);
     }
