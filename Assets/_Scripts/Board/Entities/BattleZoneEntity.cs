@@ -14,6 +14,7 @@ public class BattleZoneEntity : NetworkBehaviour
     public CardType cardType;
     public string Title { get; private set; }
     public CardInfo CardInfo { get; private set; }
+    public int ID { get; private set; }
 
     [Header("UI")]
     public PlayZoneCardHolder EntityHolder { get; internal set; }
@@ -58,10 +59,11 @@ public class BattleZoneEntity : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcInitializeEntity(PlayerManager owner, CardInfo cardInfo)
+    public void RpcInitializeEntity(int id, PlayerManager owner, CardInfo cardInfo)
     {
         // Will be set active by cardMover, once entity is spawned correctly in UI
         gameObject.SetActive(false);
+        ID = id;
 
         CardInfo = cardInfo;
         Owner = owner;
@@ -121,7 +123,7 @@ public class BattleZoneEntity : NetworkBehaviour
     }
 
     [TargetRpc]
-    public void TargetSpawnTargetArrow(NetworkConnection conn) => OnTargetStart?.Invoke(transform, GetInstanceID());
+    public void TargetSpawnTargetArrow(NetworkConnection conn) => OnTargetStart?.Invoke(transform, ID);
     [ClientRpc]
     public void RpcDeclaredTarget(BattleZoneEntity target) => OnTargetFinish?.Invoke(isOwned, transform, target.transform);
 
@@ -158,6 +160,6 @@ public class BattleZoneEntity : NetworkBehaviour
         if (ReferenceEquals(this, other)) return true;
 
         // Return true if the fields match.
-        return gameObject.GetInstanceID() == other.gameObject.GetInstanceID();
+        return ID == other.ID;
     }
 }

@@ -5,8 +5,6 @@ using System;
 using Mirror;
 using System.Linq;
 using Cysharp.Threading.Tasks;
-using Unity.VisualScripting;
-using System.Security.Cryptography;
 
 public class PlayerManager : NetworkBehaviour
 {
@@ -18,7 +16,6 @@ public class PlayerManager : NetworkBehaviour
     private UIManager _uiManager;
 
     [Header("Game State")]
-    [SerializeField] private List<TurnState> _chosenPhases = new();
     public List<PrevailOption> _chosenPrevailOptions = new();
     private List<CardStats> _selectedCards = new();
     private List<CardStats> _moneyCardsInPlay = new();

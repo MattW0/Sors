@@ -17,6 +17,7 @@ public class ArrowManager : NetworkBehaviour
     private CombatManager _combatManager;
     private List<CreatureEntity> _creatureGroup = new();
     private Dictionary<int, ArrowRenderer> _floatingArrows = new();
+    [SerializeReference] private Dictionary<int, ArrowRenderer> _combatArrows = new();
 
     private void Awake()
     {
@@ -26,6 +27,7 @@ public class ArrowManager : NetworkBehaviour
 
         CreatureEntity.OnDeclaredAttack += DeclaredAttack;
         CreatureEntity.OnDeclaredBlock += DeclaredBlock;
+        CombatClash.OnFinishClash += RpcFinishCombatClash;
 
         BattleZoneEntity.OnTargetStart += EntityTargetStart;
         BattleZoneEntity.OnTargetFinish += EntityTargetFinish;
@@ -74,12 +76,13 @@ public class ArrowManager : NetworkBehaviour
         if (_creatureGroup.Contains(creature))
         {
             _creatureGroup.Remove(creature);
-            _floatingArrows[creature.GetInstanceID()].DestroyArrow();
-            _floatingArrows.Remove(creature.GetInstanceID());
+            _floatingArrows[creature.ID].DestroyArrow();
+            _floatingArrows.Remove(creature.ID);
+            _combatArrows.Remove(creature.ID);
         } else {
             _creatureGroup.Add(creature);
             var prefab = _combatState == TurnState.Attackers ? attackerArrowPrefab : blockerArrowPrefab;
-            SpawnFloatingArrow(prefab, entity.transform, entity.GetInstanceID());
+            SpawnFloatingArrow(prefab, entity.transform, entity.ID);
         }
     }
 
@@ -90,20 +93,23 @@ public class ArrowManager : NetworkBehaviour
         GroupOnTarget(entity);
     }
 
-    private void SpawnArrow(GameObject prefab, Transform origin, Transform target)
+    private ArrowRenderer SpawnArrow(GameObject prefab, Transform origin, Transform target)
     {
         var arrowRenderer = Instantiate(prefab, parentTransform).GetComponent<ArrowRenderer>();
         arrowRenderer.SetOrigin(origin.position);
         arrowRenderer.SetTarget(target.position);
+
+        return arrowRenderer;
     }
 
-    private void SpawnFloatingArrow(GameObject prefab, Transform origin, int creatureId)
+    private void SpawnFloatingArrow(GameObject prefab, Transform origin, int id)
     {
         var arrowRenderer = Instantiate(prefab, parentTransform).GetComponent<ArrowRenderer>();
         arrowRenderer.SetOrigin(origin.position);
         
-        if(_floatingArrows.ContainsKey(creatureId)) _floatingArrows[creatureId] = arrowRenderer;
-        else _floatingArrows.Add(creatureId, arrowRenderer);
+        _combatArrows.Add(id, arrowRenderer);
+        if(_floatingArrows.ContainsKey(id)) _floatingArrows[id] = arrowRenderer;
+        else _floatingArrows.Add(id, arrowRenderer);
     }
 
     private void GroupOnTarget(BattleZoneEntity entity)
@@ -138,8 +144,29 @@ public class ArrowManager : NetworkBehaviour
             SpawnArrow(targetArrowPrefab, origin, target);
         }
     }
-    private void DeclaredAttack(Transform origin, Transform target) => SpawnArrow(attackerArrowPrefab, origin, target);
-    private void DeclaredBlock(Transform origin, Transform target) => SpawnArrow(blockerArrowPrefab, origin, target);
+    private void DeclaredAttack(BattleZoneEntity origin, BattleZoneEntity target)
+    {
+        if (_combatArrows.ContainsKey(origin.ID)) return;
+
+        var arrow = SpawnArrow(attackerArrowPrefab, origin.transform, target.transform);
+        _combatArrows.Add(origin.ID, arrow);
+    } 
+    private void DeclaredBlock(BattleZoneEntity origin, BattleZoneEntity target)
+    {
+        if (_combatArrows.ContainsKey(origin.ID)) return;
+
+        var arrow = SpawnArrow(blockerArrowPrefab, origin.transform, target.transform);
+        _combatArrows.Add(origin.ID, arrow);
+    }
+
+    [ClientRpc]
+    private void RpcFinishCombatClash(int id)
+    {
+        if (!_combatArrows.ContainsKey(id)) return;
+        
+        _combatArrows[id].DestroyArrow();
+        _combatArrows.Remove(id);
+    }
 
     private void OnDestroy()
     {
@@ -149,6 +176,7 @@ public class ArrowManager : NetworkBehaviour
         
         CreatureEntity.OnDeclaredAttack -= DeclaredAttack;
         CreatureEntity.OnDeclaredBlock -= DeclaredBlock;
+        CombatClash.OnFinishClash -= RpcFinishCombatClash;
 
         BattleZoneEntity.OnTargetStart -= EntityTargetStart;
         BattleZoneEntity.OnTargetFinish -= EntityTargetFinish;

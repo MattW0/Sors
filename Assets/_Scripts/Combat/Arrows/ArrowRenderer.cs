@@ -23,8 +23,8 @@ public class ArrowRenderer : MonoBehaviour
     [SerializeField] private GameObject segmentPrefab;
 
     private Transform _arrow;
-    private readonly List<Transform> segments = new List<Transform>();
-    private readonly List<MeshRenderer> renderers = new List<MeshRenderer>();
+    private readonly List<Transform> segments = new();
+    private readonly List<MeshRenderer> renderers = new();
     private bool _hasTarget;
 
     private void Awake()

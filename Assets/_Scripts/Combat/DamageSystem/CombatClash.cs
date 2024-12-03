@@ -14,6 +14,7 @@ public class CombatClash
 
     public static event Action<Transform> OnPlayDamage;
     public static event Action<Transform, Transform> OnPlayAttack;
+    public static event Action<int> OnFinishClash;
 
     // Need to pass attack damage for trample and _target groups
     public CombatClash(CreatureEntity attacker, CreatureEntity blocker, int aDmg, int bDmg)
@@ -33,26 +34,24 @@ public class CombatClash
 
     public async UniTask ExecuteCombatClash()
     {
-        OnPlayAttack?.Invoke(_source.gameObject.transform, _target.gameObject.transform);
+        await ExecuteDamage(_source, _target.gameObject.transform, _damageFromSource);
+
+        if (! IsClash) return;
+        
+        // Target must be creature during a clash 
+        await ExecuteDamage(_target as CreatureEntity, _source.gameObject.transform, _damageFromTarget);
+    }
+
+    private async UniTask ExecuteDamage(CreatureEntity source, Transform target, int damage)
+    {
+        OnPlayAttack?.Invoke(source.gameObject.transform, target);
         await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.attackTime));
 
-        OnPlayDamage?.Invoke(_target.gameObject.transform);
+        OnPlayDamage?.Invoke(target);
         await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.damageTime));
 
-        _target.EntityTakesDamage(_damageFromSource, _source.GetTraits().Contains(Traits.Deathtouch));
-
-        if (IsClash)
-        {
-            OnPlayAttack?.Invoke(_target.gameObject.transform, _source.gameObject.transform);
-            await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.attackTime));
-
-            OnPlayDamage?.Invoke(_source.gameObject.transform);
-            await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.damageTime));
-            
-            // Can't be player if it is clash
-            var targetCe = (CreatureEntity) _target;
-            _source.EntityTakesDamage(_damageFromTarget, targetCe.GetTraits().Contains(Traits.Deathtouch));
-        }
+        _target.EntityTakesDamage(damage, source.GetTraits().Contains(Traits.Deathtouch));
+        OnFinishClash?.Invoke(source.ID);
     }
 
     public override string ToString()

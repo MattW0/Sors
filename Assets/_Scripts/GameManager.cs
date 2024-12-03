@@ -120,35 +120,6 @@ public class GameManager : NetworkBehaviour {
     #endregion
 
     #region Spawning
-    public GameObject SpawnCardAndAddToCollection(PlayerManager player, ScriptableCard scriptableCard, CardLocation destination)
-    {
-        if (scriptableCard == null) 
-        {
-            Debug.LogWarning("Trying to spawn card where scriptable is null");
-            return null;
-        }
-
-        // Card object prefab depending on type
-        var cardObject = scriptableCard.type switch
-        {
-            CardType.Money => Instantiate(moneyCardPrefab),
-            CardType.Creature => Instantiate(creatureCardPrefab),
-            CardType.Technology => Instantiate(technologyCardPrefab),
-            _ => null
-        };
-
-        // Assign client authority and put in cache
-        var instanceID = SpawnAndCacheCard(player, cardObject);
-
-        // RPC: Setup gameobject and card UI
-        var cardStats = IntitializeCardOnClients(cardObject, scriptableCard, instanceID);
-
-        // Must always be done on server side (in TurnManager except here after spawning)
-        AddCardToPlayerCollection(player, cardStats, destination);
-
-        return cardObject;
-    }
-
     public void PlayerGainCard(PlayerManager player, CardInfo card)
     {
         // Load scriptable
@@ -172,16 +143,38 @@ public class GameManager : NetworkBehaviour {
         player.RpcShowSpawnedCard(cardObject, CardLocation.Discard);
     }
     
-    private int SpawnAndCacheCard(PlayerManager owner, GameObject cardObject){
+    public GameObject SpawnCardAndAddToCollection(PlayerManager player, ScriptableCard scriptableCard, CardLocation destination)
+    {
+        if (scriptableCard == null) 
+        {
+            Debug.LogWarning("Trying to spawn card where scriptable is null");
+            return null;
+        }
+
+        // Card object prefab depending on type
+        var cardObject = scriptableCard.type switch
+        {
+            CardType.Money => Instantiate(moneyCardPrefab),
+            CardType.Creature => Instantiate(creatureCardPrefab),
+            CardType.Technology => Instantiate(technologyCardPrefab),
+            _ => null
+        };
+
         // Using the unique gameObject instance ID ()
-        var instanceID = cardObject.GetInstanceID();
-        cardObject.name = instanceID.ToString();
-        // CardsCache.Add(instanceID, cardObject);
+        var id = cardObject.GetInstanceID();
+        cardObject.name = scriptableCard.title + "_" + id.ToString();
 
+        // Spawn and assign client authority
         NetworkServer.Spawn(cardObject, connectionToClient);
-        if(owner.connectionToClient != null) cardObject.GetComponent<NetworkIdentity>().AssignClientAuthority(owner.connectionToClient);
+        if(player.connectionToClient != null) cardObject.GetComponent<NetworkIdentity>().AssignClientAuthority(player.connectionToClient);
 
-        return instanceID;
+        // RPC: Setup gameobject and card UI
+        var cardStats = IntitializeCardOnClients(cardObject, scriptableCard, id);
+
+        // Must always be done on server side (in TurnManager except here after spawning)
+        AddCardToPlayerCollection(player, cardStats, destination);
+
+        return cardObject;
     }
 
     private CardStats IntitializeCardOnClients(GameObject cardObject, ScriptableCard scriptableCard, int instanceID)
@@ -208,6 +201,9 @@ public class GameManager : NetworkBehaviour {
             CardType.Technology => Instantiate(technologyEntityPrefab),
             _ => null
         };
+
+        var id = entityObject.GetInstanceID();
+        entityObject.name = cardInfo.title + "_" + id.ToString();
         
         // Assign authority
         NetworkServer.Spawn(entityObject, connectionToClient);
@@ -215,7 +211,7 @@ public class GameManager : NetworkBehaviour {
         var entity = entityObject.GetComponent<BattleZoneEntity>();
 
         // Intitialize entity on clients
-        entity.RpcInitializeEntity(owner, cardInfo);
+        entity.RpcInitializeEntity(id, owner, cardInfo);
         
         return entity;
     }
