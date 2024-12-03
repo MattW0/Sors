@@ -16,9 +16,10 @@ public class AbilityUI : MonoBehaviour
     [SerializeField] private RectTransform _pictosParent;
     private const string BASE_PATH = "Sprites/UI/Icons/Ability/";
 
-    public void Init(Ability ability, float height, bool withText)
+    public void Init(Ability ability, float height)
     {
         SetPictos(ability);
+        _description.text = string.IsNullOrEmpty(ability.text) ? ability.ToString() : ability.text;
 
         _rectTransform = GetComponent<RectTransform>();
         if (height == _rectTransform.rect.height) return;
@@ -26,22 +27,18 @@ public class AbilityUI : MonoBehaviour
         // Resize the ability UI, keeping the same aspect ratio
         var ratio = height / _rectTransform.rect.height;
         _rectTransform.sizeDelta = new Vector2(_rectTransform.sizeDelta.x * ratio, height);
-
-        if (!withText) return;
-        
-        _description.text = String.IsNullOrEmpty(ability.text) ? ability.ToString() : ability.text;
         _pictosParent.sizeDelta = new Vector2(_pictosParent.sizeDelta.x * ratio, _pictosParent.sizeDelta.y);
     }
     
     private void SetPictos(Ability ability)
     {
-        SetTrigger(ability.trigger);
+        LoadTriggerSprite(ability.trigger);
         SetAmount(ability.amount);
-        SetEffect(ability.effect);
-        SetTarget(ability.target);
+        LoadEffectSprite(ability.effect);
+        LoadTargetSprite(ability.target);
     }
 
-    private void SetTrigger(Trigger trigger)
+    private void LoadTriggerSprite(Trigger trigger)
     {
         var path = BASE_PATH + "Trigger/";
         path += trigger.ToString().StartsWith("When") ?  "When/" : "AtTheBeginningOf/";
@@ -59,12 +56,12 @@ public class AbilityUI : MonoBehaviour
             _amount.text = $": {amount}";
     }
 
-    private void SetEffect(Effect effect)
+    private void LoadEffectSprite(Effect effect)
     {
         _effect.sprite = Resources.Load<Sprite>(BASE_PATH + "Effect/" + (int) effect);
     }
 
-    private void SetTarget(Target target)
+    private void LoadTargetSprite(Target target)
     {
         _target.sprite = Resources.Load<Sprite>(BASE_PATH + "Target/" + (int) target);
     }

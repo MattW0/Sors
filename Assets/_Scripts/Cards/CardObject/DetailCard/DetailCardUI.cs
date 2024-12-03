@@ -14,7 +14,7 @@ public class DetailCardUI : CardUI, IPointerClickHandler, IPointerEnterHandler, 
 
     internal void ShowDetailCard(CardInfo card)
     {
-        SetCardUI(card, card.cardSpritePath, true);
+        SetCardUI(card, card.cardSpritePath);
         // TODO: Animate
         gameObject.SetActive(true);
     }

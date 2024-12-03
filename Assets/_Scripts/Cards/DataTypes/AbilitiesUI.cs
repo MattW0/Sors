@@ -9,28 +9,27 @@ using UnityEngine.UI;
 public class AbilitiesUI : MonoBehaviour
 {
     [SerializeField] private GameObject _abilityPrefab;
-    private float _height;
+    private float _prefabHeight;
     private float _maxHeight;
     private float _padding;
 
     private void Start()
     {
-        _height = GetComponent<RectTransform>().rect.height;
         _padding = GetComponent<LayoutGroup>().padding.top;
-
-        _maxHeight = _abilityPrefab.GetComponent<RectTransform>().rect.height - 2*_padding;
+        _maxHeight = GetComponent<RectTransform>().rect.height - 2*_padding;
+        _prefabHeight = _abilityPrefab.GetComponent<RectTransform>().rect.height;
     }
 
-    public void SetAbilities(List<Ability> abilities, bool withText)
+    public void SetAbilities(List<Ability> abilities)
     {
         transform.DestroyChildren();
+        if(abilities.Count == 0) return;
 
-        var height = Math.Min(_maxHeight, _height / abilities.Count);
-
+        var height = Math.Min(_maxHeight, _prefabHeight / abilities.Count);
         foreach (var ability in abilities)
         {
             var abilityItem = Instantiate(_abilityPrefab, transform);            
-            abilityItem.GetComponent<AbilityUI>().Init(ability, height, withText);
+            abilityItem.GetComponent<AbilityUI>().Init(ability, height);
         }
     }
 }

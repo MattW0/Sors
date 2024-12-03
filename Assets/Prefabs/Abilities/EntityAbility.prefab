@@ -186,7 +186,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3199475197821536915, guid: 578a51fa5ea2cb24f942ce3ff4f03f2b, type: 3}
       propertyPath: m_fontSize
-      value: 12.5
+      value: 13.3
       objectReference: {fileID: 0}
     - target: {fileID: 3399312283057709677, guid: 578a51fa5ea2cb24f942ce3ff4f03f2b, type: 3}
       propertyPath: m_Name
@@ -220,9 +220,17 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.x
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6109025426350889600, guid: 578a51fa5ea2cb24f942ce3ff4f03f2b, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6370615142345301823, guid: 578a51fa5ea2cb24f942ce3ff4f03f2b, type: 3}
-      propertyPath: m_ChildAlignment
-      value: 4
+      propertyPath: m_Padding.m_Top
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6370615142345301823, guid: 578a51fa5ea2cb24f942ce3ff4f03f2b, type: 3}
+      propertyPath: m_Padding.m_Bottom
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6522921636646633497, guid: 578a51fa5ea2cb24f942ce3ff4f03f2b, type: 3}
       propertyPath: m_AnchorMax.x
@@ -346,15 +354,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7731970424655299318, guid: 578a51fa5ea2cb24f942ce3ff4f03f2b, type: 3}
       propertyPath: m_Padding.m_Left
-      value: 0
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7731970424655299318, guid: 578a51fa5ea2cb24f942ce3ff4f03f2b, type: 3}
       propertyPath: m_Padding.m_Right
-      value: 0
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7731970424655299318, guid: 578a51fa5ea2cb24f942ce3ff4f03f2b, type: 3}
       propertyPath: m_Padding.m_Bottom
-      value: 0
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 7967788051116523916, guid: 578a51fa5ea2cb24f942ce3ff4f03f2b, type: 3}
       propertyPath: m_MinWidth
@@ -362,11 +370,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7980375182835558904, guid: 578a51fa5ea2cb24f942ce3ff4f03f2b, type: 3}
       propertyPath: m_MinHeight
-      value: 8
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 7980375182835558904, guid: 578a51fa5ea2cb24f942ce3ff4f03f2b, type: 3}
+      propertyPath: m_PreferredHeight
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 8483539905959957220, guid: 578a51fa5ea2cb24f942ce3ff4f03f2b, type: 3}
       propertyPath: m_MinHeight
-      value: 12
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 8483539905959957220, guid: 578a51fa5ea2cb24f942ce3ff4f03f2b, type: 3}
+      propertyPath: m_PreferredHeight
+      value: 20
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

@@ -23,7 +23,7 @@ public class CardUI : MonoBehaviour
     public Image highlight;
     [SerializeField] private Image _image;
 
-    public virtual void SetCardUI(CardInfo cardInfo, string spritePath, bool withAbilitiesText)
+    public virtual void SetCardUI(CardInfo cardInfo, string spritePath)
     {
         CardInfo = cardInfo;
 
@@ -38,9 +38,7 @@ public class CardUI : MonoBehaviour
 
         // Entity properties
         _health.text = cardInfo.health.ToString();
-
-        // TODO: Pictos
-        _abilities.SetAbilities(cardInfo.abilities, withAbilitiesText);
+        _abilities.SetAbilities(cardInfo.abilities);
 
         if (cardInfo.type == CardType.Creature){
             _attack.text = cardInfo.attack.ToString();
