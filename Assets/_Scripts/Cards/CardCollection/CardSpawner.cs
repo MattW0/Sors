@@ -15,16 +15,17 @@ public class CardSpawner : MonoBehaviour
         _grid = GetComponent<CardGrid>();
     }
 
-    public void SpawnDetailCardObjectsInGrid(List<CardInfo> cards)
+    public void SpawnDetailCardObjectsInGrid(List<CardStats> cards)
     {
         _grid.SetPanelDimension(cards.Count);
 
         var transforms = new List<Transform>();
-        foreach (var cardInfo in cards){
-            transforms.Add(InstantiateCard(cardInfo));
+        foreach (var c in cards){
+            transforms.Add(InstantiateCard(c.cardInfo));
         }
 
         _grid.Add(transforms);
+        _grid.SetPanelDimension(cards.Count);
     }
 
     // Only for cards scene
@@ -40,7 +41,8 @@ public class CardSpawner : MonoBehaviour
         return cardObjects;
     }
 
-    private Transform InstantiateCard(CardInfo cardInfo){
+    private Transform InstantiateCard(CardInfo cardInfo)
+    {
         var detailCardObject = cardInfo.type switch
         {
             CardType.Creature => Instantiate(_creatureDetailCardPrefab),

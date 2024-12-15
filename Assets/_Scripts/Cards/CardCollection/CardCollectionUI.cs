@@ -12,11 +12,13 @@ public class CardCollectionUI : MonoBehaviour
 
     private void Start()
     {
-        _closeButton.onClick.AddListener(OnClose);
+        _closeButton.onClick.AddListener(Close);
     }
 
-    public void OpenCardCollection(CardLocation cardCollectionType, bool ownsCollection)
+    public void Open(CardLocation cardCollectionType, bool ownsCollection)
     {
+        gameObject.SetActive(true);
+
         var text = ownsCollection ? "" : "Opponent ";
         if (cardCollectionType == CardLocation.Deck) text += "Deck";
         else if (cardCollectionType == CardLocation.Discard) text += "Discard";
@@ -32,7 +34,7 @@ public class CardCollectionUI : MonoBehaviour
         _cardCollectionType = cardCollectionType;
     }
 
-    private void OnClose()
+    private void Close()
     {
         OnCloseCardCollection?.Invoke(_cardCollectionType); 
         Destroy(gameObject);

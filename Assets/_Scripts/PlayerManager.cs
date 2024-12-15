@@ -5,6 +5,7 @@ using System;
 using Mirror;
 using System.Linq;
 using Cysharp.Threading.Tasks;
+using SorsGameState;
 
 public class PlayerManager : NetworkBehaviour
 {
@@ -113,7 +114,8 @@ public class PlayerManager : NetworkBehaviour
         _entity = GetComponent<BattleZoneEntity>();
     }
 
-    private void EntityAndUISetup(){
+    private void EntityAndUISetup()
+    {
         // TODO: Check if playerUI logic needs to be here or if it can be done in PlayerUI class
         _playerUI = GameObject.Find("PlayerInfo").GetComponent<PlayerUI>();
         _opponentUI = GameObject.Find("OpponentInfo").GetComponent<PlayerUI>();
@@ -500,17 +502,17 @@ public class PlayerManager : NetworkBehaviour
     {
         print($"Player {player.PlayerName} opens collection {collectionType}, owns collection {ownsCollection}");
 
-        var cards = new List<CardStats>();
-        if (collectionType == CardLocation.Discard){
-            cards = player.discard;
-            if(! ownsCollection) cards = _turnManager.GetOpponentPlayer(player).discard; 
-        } else if (collectionType == CardLocation.Trash){
-            cards = _turnManager.GetTrashedCards();
-        }
-        
-        // TODO: Still show when empty?
-        if (cards.Count == 0) return;
-        _uiManager.TargetOpenCardCollection(player.connectionToClient, cards, collectionType, ownsCollection);
+        var collection = new CardCollection();
+        if (collectionType == CardLocation.Discard)
+            collection = ownsCollection ? player.discard : _turnManager.GetOpponentPlayer(player).discard;
+        else if (collectionType == CardLocation.Trash)
+            collection = _turnManager.GetTrashedCards();
+
+        // TODO: 
+        collection.OnUpdate += _uiManager.UpdateCardCollection;
+
+        print("Collection count on server: " + collection.Count);
+        _uiManager.TargetOpenCardCollection(player.connectionToClient, collection, collectionType, ownsCollection);
     }
 
     [ClientRpc]

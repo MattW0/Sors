@@ -38,7 +38,7 @@ public class TurnManager : NetworkBehaviour
     private Dictionary<PlayerManager, TurnState[]> _playerPhaseChoices = new();
     private Dictionary<PlayerManager, List<PrevailOption>> _playerPrevailOptions = new();
     private readonly List<PrevailOption> _prevailOptionsToPlay = new();
-    private readonly Dictionary<GameObject, CardStats> _trashedCards = new();
+    private readonly CardCollection _trashedCards = new();
 
     // Events
     public static event Action OnStartPhaseSelection;
@@ -489,7 +489,7 @@ public class TurnManager : NetworkBehaviour
                 player.hand.Remove(card);
                 player.RpcMoveFromInteraction(card.gameObject, CardLocation.Hand, CardLocation.Trash);
 
-                _trashedCards.Add(card.gameObject, card);
+                _trashedCards.Add(card);
                 card.GetComponent<NetworkIdentity>().RemoveClientAuthority();
             }
         }
@@ -705,7 +705,7 @@ public class TurnManager : NetworkBehaviour
             selection.Clear();
 
             var nbInteractions = GetNumberOfInteractions(player, currentPrevailOption);
-            var collection = GetCollectionType(player);
+            var collection = GetCollection(player);
 
             print($" - {turnState}: phase interaction - {player.PlayerName} has {nbInteractions} options available");
             _interactionPanel.TargetStartInteraction(player.connectionToClient, collection, turnState, nbInteractions);
@@ -729,9 +729,9 @@ public class TurnManager : NetworkBehaviour
 
     // TODO: Could add interactions with other collections here 
     // Eg. opponent hand, trash, etc.
-    private List<CardStats> GetCollectionType(PlayerManager player)
+    private CardCollection GetCollection(PlayerManager player)
     {
-        List<CardStats> collection = turnState switch
+        var collection = turnState switch
         {
             TurnState.CardSelection => player.discard,
             // TurnState.GetFromTrash => _trashedCards.Values.ToList(),
@@ -741,7 +741,7 @@ public class TurnManager : NetworkBehaviour
         return collection;
     }
 
-    public List<CardStats> GetTrashedCards() => _trashedCards.Values.ToList();
+    public CardCollection GetTrashedCards() => _trashedCards;
 
     public void ForceEndTurn()
     { // experimental

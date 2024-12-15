@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
 using System;
+using Unity.VisualScripting;
+using System.Collections.Specialized;
 
 public class UIManager : NetworkBehaviour
 {
@@ -11,7 +13,9 @@ public class UIManager : NetworkBehaviour
     [SerializeField] private AlertDialogue _quitDialog;
     [SerializeField] private GameObject _cardCollectionViewPrefab;
     [SerializeField] private Transform _spawnParentTransform;
-    [SerializeField] private List<CardLocation> _openCardCollections = new();
+
+    // TODO: How to track open card collections?
+    [SerializeField] private List<CardCollectionManager> _openCardCollections = new();
     public static SorsColors ColorPalette { get; private set; }
 
     private void Awake()
@@ -28,30 +32,33 @@ public class UIManager : NetworkBehaviour
     }
 
     [TargetRpc]
-    public void TargetOpenCardCollection(NetworkConnection conn, List<CardStats> cards, CardLocation collectionType, bool isOwned)
+    public void TargetOpenCardCollection(NetworkConnection conn, List<CardStats> collection, CardLocation collectionType, bool isOwned)
     {
-        var cardInfos = new List<CardInfo>();
-        foreach (var card in cards) cardInfos.Add(card.cardInfo);
+        print("Collection count on client: " + collection.Count);
+        // TODO: Still show when empty?
+        if (collection.Count == 0) return;
 
-        if (_openCardCollections.Contains(collectionType)) return;
+        var collectionManager = Instantiate(_cardCollectionViewPrefab, _spawnParentTransform).GetComponent<CardCollectionManager>();
+        if (_openCardCollections.Contains(collectionManager)) return;
 
-        var cardCollection = Instantiate(_cardCollectionViewPrefab, _spawnParentTransform);
-        cardCollection.GetComponent<CardSpawner>().SpawnDetailCardObjectsInGrid(cardInfos);
-        cardCollection.GetComponent<CardCollectionUI>().OpenCardCollection(collectionType, isOwned);
+        collectionManager.OpenCardCollection(collection, collectionType, isOwned);
+        _openCardCollections.Add(collectionManager);
+    }
 
-        // TODO: Handle same type for player and opponent 
-        _openCardCollections.Add(collectionType);
+    public void UpdateCardCollection(List<CardInfo> cards)
+    {
+        RpcUpdateCardCollection(cards);
     }
 
     [ClientRpc]
-    public void UpdateCardCollection(List<CardStats> cards, CardLocation collectionType)
+    public void RpcUpdateCardCollection(List<CardInfo> cards)
     {
-        // TODO:
+        print("Updating card collection");
     }
 
     private void CloseCardCollection(CardLocation collectionType)
     {
-        _openCardCollections.Remove(collectionType);
+        
     }
 
     [ClientRpc]
