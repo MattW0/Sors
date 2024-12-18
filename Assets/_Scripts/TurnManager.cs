@@ -43,7 +43,6 @@ public class TurnManager : NetworkBehaviour
     // Events
     public static event Action OnStartPhaseSelection;
     public static event Action<TurnState> OnTurnStateChanged;
-    // public static event Action<int, TurnState> OnPlayerIsReady;
 
     #region Setup
     private void Awake()
@@ -151,7 +150,7 @@ public class TurnManager : NetworkBehaviour
         UpdateTurnState(TurnState.NextPhase);
     }
 
-    private void NextPhase()
+    public void NextPhase()
     {
         Enum.TryParse(_phasesToPlay[0].ToString(), out TurnState nextTurnState);
         _phasesToPlay.RemoveAt(0);
@@ -165,7 +164,6 @@ public class TurnManager : NetworkBehaviour
                 _logger.RpcLog(nextTurnState);
             })
             .Forget();
-
     }
     #endregion
 
