@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Mirror;
-using Random = UnityEngine.Random;
 
 public class GameManager : NetworkBehaviour {
     
@@ -13,11 +12,10 @@ public class GameManager : NetworkBehaviour {
     private UIManager _uiManager;
     private Market _market;
     private GameOptions _gameOptions;
-    public bool isSinglePlayer = false;
     public static event Action<GameOptions> OnGameStart;
 
     [Header("Game state")]
-    [SyncVar] public int turnNumber;
+    public int turnNumber;
     public Dictionary<NetworkIdentity, PlayerManager> players = new();
     private List<PlayerManager> _loosingPlayers = new();
     private List<PlayerManager> _winningPlayers = new();
@@ -31,7 +29,6 @@ public class GameManager : NetworkBehaviour {
 
     [Header("Special Cards")]
     public ScriptableCard CurseCard;
-
     
     private void Awake()
     {
@@ -82,7 +79,7 @@ public class GameManager : NetworkBehaviour {
             player.Health = _gameOptions.startHealth;
             player.Score = 0;
             
-            // Turn stats
+            // Turn Stats
             player.Cash = 0;
             player.Buys = 0;
             player.Plays = 0;

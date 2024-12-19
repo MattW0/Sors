@@ -1,12 +1,7 @@
 using System.Collections.Generic;
-using System.Collections;
 using UnityEngine;
 using System;
 using Mirror;
-using System.Linq;
-using Cysharp.Threading.Tasks;
-using SorsGameState;
-using CardDecoder;
 
 public class PlayerManager : NetworkBehaviour
 {
@@ -29,61 +24,36 @@ public class PlayerManager : NetworkBehaviour
     #region Stats
 
     [Header("Game Stats")]
-    [SyncVar, SerializeField] private string playerName;
-    public string PlayerName
-    {
-        get => playerName;
-        set => SetPlayerName(value);
-    }
+    public int ID { get; private set; }
 
-    [SerializeField] private int _health;
-    public int Health
-    {
-        get => _health;
-        set => SetHealthValue(value);
-    }
+    [SyncVar(hook="UISetPlayerName"), SerializeField] private string _playerName;
+    public string PlayerName { get => _playerName; set => _playerName = value; }
 
-    [SerializeField] private int _score;
-    public int Score
-    {
-        get => _score;
-        set => SetScoreValue(value);
-    }
+    [SyncVar(hook="UISetHealth"), SerializeField] private int _health;
+    public int Health { get => _health; set => _health = value; }
+
+    [SyncVar(hook="UISetScore"), SerializeField] private int _score;
+    public int Score { get => _score; set => _score = value; }
 
     [Header("Turn Stats")]
-    [SyncVar(hook="UISetMoneyValue"), SerializeField] private int _cash;
+    [SyncVar(hook="UISetCash"), SerializeField] private int _cash;
     public int Cash
     {
         get => _cash;
         set {
             _cash = value;
             OnCashChanged?.Invoke(this, value);
-            SetMoneyValue(value);
         }
     }
 
-    [SyncVar, SerializeField] private int _buys = 1;
-    public int Buys
-    {
-        get => _buys;
-        set => SetBuyValue(value);
-    }
+    [SyncVar(hook="UISetBuys"), SerializeField] private int _buys;
+    public int Buys { get => _buys; set => _buys = value; }
     
-    [SyncVar, SerializeField] private int _plays = 1;
-    public int Plays
-    {
-        get => _plays;
-        set => SetPlayValue(value);
-    }
+    [SyncVar(hook="UISetPlays"), SerializeField] private int _plays;
+    public int Plays { get => _plays; set => _plays = value; }
 
-    [SyncVar, SerializeField] private int _prevails;
-    public int Prevails
-    {
-        get => _prevails;
-        set => SetPrevailValue(value);
-    }
-
-    public int ID { get; private set; }
+    [SyncVar(hook="UISetPrevails"), SerializeField] private int _prevails;
+    public int Prevails { get => _prevails; set => _prevails = value; }
 
     #endregion Stats
 
@@ -92,6 +62,8 @@ public class PlayerManager : NetworkBehaviour
     private void Awake()
     {
         _cards = GetComponent<CardCollection>();
+        _playerUI = GameObject.Find("PlayerInfo").GetComponent<PlayerUI>();
+        _opponentUI = GameObject.Find("OpponentInfo").GetComponent<PlayerUI>();
     }
 
     [ClientRpc]
@@ -109,8 +81,6 @@ public class PlayerManager : NetworkBehaviour
     private void EntityAndUISetup()
     {
         // TODO: Check if playerUI logic needs to be here or if it can be done in PlayerUI class
-        _playerUI = GameObject.Find("PlayerInfo").GetComponent<PlayerUI>();
-        _opponentUI = GameObject.Find("OpponentInfo").GetComponent<PlayerUI>();
         
         var entity = GetComponent<BattleZoneEntity>();
         if(isOwned) {
@@ -196,109 +166,47 @@ public class PlayerManager : NetworkBehaviour
     #endregion
 
     #region Resources UI
-
-    private void SetPlayerName(string name)
+    private void UISetPlayerName(string oldValue, string newValue)
     {
-        playerName = name;
-        RpcUISetPlayerName(name);
+        if (isOwned) _playerUI.SetName(newValue);
+        else _opponentUI.SetName(newValue);
+    }
+    
+    private void UISetHealth(int oldValue, int newValue)
+    {
+        if (isOwned) _playerUI.SetHealth(newValue);
+        else _opponentUI.SetHealth(newValue);
     }
 
-    [ClientRpc]
-    public void RpcUISetPlayerName(string name)
+    private void UISetScore(int oldValue, int newValue)
     {
-        playerName = name;
-        if (isOwned) _playerUI.SetName(name);
-        else _opponentUI.SetName(name);
+        print("Setting score from " + oldValue + " to " + newValue);
+        if (isOwned) _playerUI.SetScore(newValue);
+        else _opponentUI.SetScore(newValue);
     }
 
-    [Server]
-    private void SetHealthValue(int value)
-    {
-        _health = value;
-        RpcUISetHealthValue(value);
-    }
-
-    [ClientRpc]
-    private void RpcUISetHealthValue(int value)
-    {
-        if (isOwned) _playerUI.SetHealth(value);
-        else _opponentUI.SetHealth(value);
-    }
-
-    [Server]
-    private void SetScoreValue(int value)
-    {
-        _score = value;
-        RpcUISetScoreValue(value);
-    }
-
-    [ClientRpc]
-    private void RpcUISetScoreValue(int value)
-    {
-        if (isOwned) _playerUI.SetScore(value);
-        else _opponentUI.SetScore(value);
-    }
-
-    [Server]
-    private void SetMoneyValue(int value)
-    {
-        _cash = value;
-        RpcUISetMoneyValue(value);
-    }
-
-    [ClientRpc]
-    private void RpcUISetMoneyValue(int value)
-    {
-        if (isOwned) _playerUI.SetCash(value);
-        else _opponentUI.SetCash(value);
-    }
-
-    private void UISetMoneyValue(int oldValue, int newValue)
+    private void UISetCash(int oldValue, int newValue)
     {
         if (isOwned) _playerUI.SetCash(newValue);
         else _opponentUI.SetCash(newValue);
     }
 
-    [Server]
-    private void SetBuyValue(int value)
+    private void UISetBuys(int oldValue, int newValue)
     {
-        _buys = value;
-        RpcSetBuyValue(value);
+        if (isOwned) _playerUI.SetBuys(newValue);
+        else _opponentUI.SetBuys(newValue);
     }
 
-    [ClientRpc]
-    private void RpcSetBuyValue(int value)
+    private void UISetPlays(int oldValue, int newValue)
     {
-        if (isOwned) _playerUI.SetBuys(value);
-        else _opponentUI.SetBuys(value);
+        if (isOwned) _playerUI.SetPlays(newValue);
+        else _opponentUI.SetPlays(newValue);
     }
 
-    [Server]
-    private void SetPlayValue(int value)
+    private void UISetPrevails(int oldValue, int newValue)
     {
-        _plays = value;
-        RpcSetPlayValue(value);
-    }
-
-    [ClientRpc]
-    private void RpcSetPlayValue(int value)
-    {
-        if (isOwned) _playerUI.SetPlays(value);
-        else _opponentUI.SetPlays(value);
-    }
-
-    [Server]
-    private void SetPrevailValue(int value)
-    {
-        _prevails = value;
-        RpcSetPrevailValue(value);
-    }
-
-    [ClientRpc]
-    private void RpcSetPrevailValue(int value)
-    {
-        if (isOwned) _playerUI.SetPrevails(value);
-        else _opponentUI.SetPrevails(value);
+        if (isOwned) _playerUI.SetPrevails(newValue);
+        else _opponentUI.SetPrevails(newValue);
     }
     #endregion UI
 

@@ -3,13 +3,14 @@ using System.Collections;
 using UnityEngine;
 using Mirror;
 using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Sors.Lan
 {
     public class SorsNetworkManager : NetworkManager
     {
-        private string _playerName;
         private GameOptions _gameOptions;
+        private string _playerName;
         public static event Action<GameOptions> OnAllPlayersReady;
 
         public override void Awake(){
@@ -37,8 +38,8 @@ namespace Sors.Lan
 
             // Currently opponent entity hull that can be targeted
             if(_gameOptions.SinglePlayer){
-                var opponent = CreatePlayerObject("Opponent");
-                opponent.GetComponent<PlayerManager>().isAI = true;
+                var opponent = CreatePlayerObject("AI Bot");
+                opponent.isAI = true;
             }
 
             WaitForAllClients().Forget();
@@ -60,18 +61,19 @@ namespace Sors.Lan
         {
             base.OnClientConnect();
             
-            CreatePlayerMessage playerMessage = new CreatePlayerMessage { name = _playerName};
+            CreatePlayerMessage playerMessage = new() { name = _playerName };
             NetworkClient.Send(playerMessage);
         }
 
         void OnCreateCharacter(NetworkConnectionToClient conn, CreatePlayerMessage message)
         {
-            var playerObject = CreatePlayerObject(message.name);
+            var player = CreatePlayerObject(message.name);
+
             // call this to use this gameobject as the primary controller
-            NetworkServer.AddPlayerForConnection(conn, playerObject);
+            NetworkServer.AddPlayerForConnection(conn, player.gameObject);
         }
 
-        private GameObject CreatePlayerObject(string playerName)
+        private PlayerManager CreatePlayerObject(string playerName)
         {
             print($"Creating player {playerName}");
             GameObject playerObject = Instantiate(playerPrefab);
@@ -80,8 +82,7 @@ namespace Sors.Lan
             NetworkServer.Spawn(playerObject);
 
             playerObject.name = playerName;
-            
-            return playerObject;
+            return playerObject.GetComponent<PlayerManager>();
         }
 
         private void UpdateNetworkAddress(string address) => networkAddress = address;
