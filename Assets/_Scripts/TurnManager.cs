@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using Mirror;
 using Cysharp.Threading.Tasks;
+using SorsGameState;
 
 public class TurnManager : NetworkBehaviour
 {
@@ -38,7 +39,7 @@ public class TurnManager : NetworkBehaviour
     private Dictionary<PlayerManager, TurnState[]> _playerPhaseChoices = new();
     private Dictionary<PlayerManager, List<PrevailOption>> _playerPrevailOptions = new();
     private readonly List<PrevailOption> _prevailOptionsToPlay = new();
-    private readonly CardCollection _trashedCards = new();
+    private readonly CardList _trashedCards = new();
 
     // Events
     public static event Action OnStartPhaseSelection;
@@ -176,7 +177,7 @@ public class TurnManager : NetworkBehaviour
             var nbCardDraw = _gameOptions.cardDraw;
             if (_playerPhaseChoices[player].Contains(turnState)) nbCardDraw += _gameOptions.extraDraw;
 
-            player.DrawCards(nbCardDraw);
+            player.Cards.DrawCards(nbCardDraw);
             _logger.RpcLog(player.ID, nbCardDraw);
         }
 
@@ -199,7 +200,10 @@ public class TurnManager : NetworkBehaviour
     {
         foreach (var (player, cards) in _selectedCards)
         {
-            player.DiscardSelection();
+            print("Discarding on TurnManager: " + cards.Count);
+
+            player.Cards.RemoveHandCards(cards, CardLocation.Discard);
+            player.Cards.RpcMoveFromInteraction(cards, CardLocation.Hand, CardLocation.Discard);
             _logger.RpcLog(player.ID, cards);
         }
 
@@ -468,10 +472,11 @@ public class TurnManager : NetworkBehaviour
         {
             foreach (var card in cards)
             {
-                player.discard.Remove(card);
-                player.hand.Add(card);
-                player.RpcMoveFromInteraction(card.gameObject, CardLocation.Discard, CardLocation.Hand);
+                player.Cards.discard.Remove(card);
+                player.Cards.hand.Add(card);
             }
+
+            player.Cards.RpcMoveFromInteraction(cards, CardLocation.Discard, CardLocation.Hand);
         }
 
         _interactionPanel.RpcResetPanel();
@@ -484,12 +489,13 @@ public class TurnManager : NetworkBehaviour
         {
             foreach (var card in cards)
             {
-                player.hand.Remove(card);
-                player.RpcMoveFromInteraction(card.gameObject, CardLocation.Hand, CardLocation.Trash);
+                player.Cards.hand.Remove(card);
 
                 _trashedCards.Add(card);
                 card.GetComponent<NetworkIdentity>().RemoveClientAuthority();
             }
+            
+            player.Cards.RpcMoveFromInteraction(cards, CardLocation.Hand, CardLocation.Trash);
         }
 
         _interactionPanel.RpcResetPanel();
@@ -521,8 +527,8 @@ public class TurnManager : NetworkBehaviour
         if(! string.IsNullOrEmpty(_gameOptions.StateFile)) _abilityQueue.ClearQueue();
         else {
             foreach(var player in _gameManager.players.Values) {
-                player.deck.Shuffle();
-                player.DrawCards(_gameOptions.InitialHandSize);
+                player.Cards.deck.Shuffle();
+                player.Cards.DrawCards(_gameOptions.InitialHandSize);
             }
             await UniTask.Delay(SorsTimings.wait);
         }
@@ -535,7 +541,7 @@ public class TurnManager : NetworkBehaviour
     {
         // Reset players and draw per turn
         foreach (var player in _gameManager.players.Values)
-            player.DrawCards(_gameOptions.cardDraw);
+            player.Cards.DrawCards(_gameOptions.cardDraw);
 
         await UniTask.Delay(SorsTimings.wait);
 
@@ -673,9 +679,7 @@ public class TurnManager : NetworkBehaviour
         foreach (var player in _gameManager.players.Values)
         {
             // Returns unused money then discards the remaining cards
-            // player.ReturnMoneyToHand(false);
-            player.ReturnMoneyToHand();
-            player.DiscardMoneyCards();
+            player.Cards.DiscardMoneyCards();
             player.Cash = 0;
         }
     }
@@ -727,19 +731,19 @@ public class TurnManager : NetworkBehaviour
 
     // TODO: Could add interactions with other collections here 
     // Eg. opponent hand, trash, etc.
-    private CardCollection GetCollection(PlayerManager player)
+    private CardList GetCollection(PlayerManager player)
     {
         var collection = turnState switch
         {
-            TurnState.CardSelection => player.discard,
+            TurnState.CardSelection => player.Cards.discard,
             // TurnState.GetFromTrash => _trashedCards.Values.ToList(),
-            _ => player.hand
+            _ => player.Cards.hand
         };
 
         return collection;
     }
 
-    public CardCollection GetTrashedCards() => _trashedCards;
+    public CardList GetTrashedCards() => _trashedCards;
 
     public void ForceEndTurn()
     { // experimental

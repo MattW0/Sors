@@ -19,7 +19,7 @@ public class DrawState : Phase
             if (turnManager.PlayerPhaseChoices[player].Contains(TurnState.Draw))
                 nbCardDraw += extraDraw;
 
-            player.DrawCards(nbCardDraw);
+            player.Cards.DrawCards(nbCardDraw);
             turnManager.Logger.RpcLog(player.ID, nbCardDraw);
         }
 

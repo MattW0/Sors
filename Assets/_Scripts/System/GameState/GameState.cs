@@ -95,7 +95,7 @@ public class GameState
 
     public static List<string> CardInfosToScriptablePaths(List<CardInfo> cards)
     {    
-        List<string> scriptableCardPaths = new List<string>();
+        List<string> scriptableCardPaths = new();
         foreach(var card in cards) scriptableCardPaths.Add(GetScriptableObjectPath(card));
         
         return scriptableCardPaths;
@@ -172,9 +172,9 @@ public class Player
 
         // Lists should be CardInfo because we need the same function to get market tiles CardInfos
         // and they have no CardStats component.
-        cards.deckCards = GameState.CardInfosToScriptablePaths(player.deck.Select(c => c.cardInfo).ToList());
-        cards.handCards = GameState.CardInfosToScriptablePaths(player.hand.Select(c => c.cardInfo).ToList());
-        cards.discardCards = GameState.CardInfosToScriptablePaths(player.discard.Select(c => c.cardInfo).ToList());
+        cards.deckCards = GameState.CardInfosToScriptablePaths(player.Cards.deck.Select(c => c.cardInfo).ToList());
+        cards.handCards = GameState.CardInfosToScriptablePaths(player.Cards.hand.Select(c => c.cardInfo).ToList());
+        cards.discardCards = GameState.CardInfosToScriptablePaths(player.Cards.discard.Select(c => c.cardInfo).ToList());
     }
 }
 

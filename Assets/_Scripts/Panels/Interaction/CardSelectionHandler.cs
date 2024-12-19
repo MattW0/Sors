@@ -46,7 +46,7 @@ public class CardSelectionHandler : MonoBehaviour
 
         // Have to check if playing money card
         if (cardStats.cardInfo.type == CardType.Money) {
-            _player.CmdPlayMoneyCard(cardStats);
+            _player.Cards.CmdPlayMoneyCard(cardStats);
             cardStats.SetInteractable(false);
             return;
         }
@@ -95,7 +95,7 @@ public class CardSelectionHandler : MonoBehaviour
         if (_state == TurnState.Discard) _player.CmdDiscardSelection(_selectedCards);
         else if (_state == TurnState.CardSelection || _state == TurnState.Trash) _player.CmdPrevailCardsSelection(_selectedCards);
         else if (_state == TurnState.Invent || _state == TurnState.Recruit) _player.CmdConfirmBuy(_marketSelection);
-        else if (_state == TurnState.Develop || _state == TurnState.Deploy) _player.CmdConfirmPlay(_selectedCards[0]);
+        else if (_state == TurnState.Develop || _state == TurnState.Deploy) _player.CmdConfirmPlay(_selectedCards);
         
         _selectedCards.Clear();
     }

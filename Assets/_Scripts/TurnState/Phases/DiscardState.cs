@@ -19,7 +19,7 @@ public class DiscardState : Phase
             // Start the discard interaction
             InteractionPanel.Instance.TargetStartInteraction(
                 player.connectionToClient, 
-                player.hand, 
+                player.Cards.hand, 
                 TurnState.Discard, 
                 nbInteractions
             );
@@ -31,7 +31,7 @@ public class DiscardState : Phase
         // Process discards for each player
         foreach (var (player, cards) in _selectedCards)
         {
-            player.DiscardSelection();
+            // player.Cards.DiscardSelection();
             turnManager.Logger.RpcLog(player.ID, cards);
         }
 

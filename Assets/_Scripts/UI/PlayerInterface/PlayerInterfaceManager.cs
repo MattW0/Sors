@@ -68,7 +68,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
 
     // Only used for undo on playing money cards
     // TODO: attackers, blockers choices
-    public void Undo() => _player.CmdUndoPlayMoney();
+    public void Undo() => _player.Cards.CmdUndoPlayMoney();
     public void ForceEndTurn() => _player.ForceEndTurn();
 
     #region Log

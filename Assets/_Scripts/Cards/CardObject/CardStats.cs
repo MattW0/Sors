@@ -16,7 +16,6 @@ public class CardStats : NetworkBehaviour
         _cardUI.Highlight(value, state);
     }
 
-    
     private void Awake()
     {        
         _cardUI = gameObject.GetComponent<HandCardUI>();

@@ -13,7 +13,7 @@ public class CardDraw : IEffect
         VFXSystem.RpcPlayHit(target, Effect.Cash);
 
         // TODO: Check if it be opponent?
-        target.Owner.DrawCards(amount);
+        target.Owner.Cards.DrawCards(amount);
         yield return VFXSystem.Wait();
     }
 }

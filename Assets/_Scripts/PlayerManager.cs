@@ -6,6 +6,7 @@ using Mirror;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using SorsGameState;
+using CardDecoder;
 
 public class PlayerManager : NetworkBehaviour
 {
@@ -19,18 +20,14 @@ public class PlayerManager : NetworkBehaviour
     [Header("Game State")]
     public List<PrevailOption> _chosenPrevailOptions = new();
     private List<CardStats> _selectedCards = new();
-    private List<CardStats> _moneyCardsInPlay = new();
 
     public bool PlayerIsChoosingTarget { get; private set; }
     private PlayerUI _playerUI;
     private PlayerUI _opponentUI;
     private BattleZoneEntity _entity;
     public static event Action<PlayerManager, int> OnCashChanged;
-
-    [Header("Card Collections")]
-    public readonly CardCollection deck = new();
-    public readonly CardCollection hand = new();
-    public readonly CardCollection discard = new();
+    private CardCollection _cards;
+    public CardCollection Cards { get => _cards; set => _cards = value; }
 
     #region Stats
 
@@ -95,6 +92,7 @@ public class PlayerManager : NetworkBehaviour
 
     private void Awake()
     {
+        _cards = GetComponent<CardCollection>();
         CardPileClick.OnLookAtCollection += LookAtCollection;
     }
 
@@ -133,151 +131,6 @@ public class PlayerManager : NetworkBehaviour
     }
     #endregion GameSetup
 
-    #region Cards
-
-    [ClientRpc]
-    public void RpcMoveCard(GameObject card, CardLocation from, CardLocation to)
-    {
-        _cardMover.MoveTo(card, isOwned, from, to);
-    }
-
-    [Server]
-    public void DrawCards(int amount)
-    {
-        // First draw cards on Server, manipulating card collections
-        amount = Math.Min(amount, discard.Count + deck.Count);
-
-        List<GameObject> cards = new();
-        for (var i = 0; i < amount; i++)
-        {
-            if (deck.Count == 0) ShuffleDiscardIntoDeck();
-
-            var card = deck[0];
-            deck.RemoveAt(0);
-            hand.Add(card);
-
-            cards.Add(card.gameObject);
-        }
-
-        // The draw cards on Clients, draw animation
-        ClientDrawing(cards).Forget();
-    }
-
-    private async UniTaskVoid ClientDrawing(List<GameObject> cards)
-    {
-        // Opposing destination, moving the card objects with movement durations
-        foreach(var card in cards)
-        {
-            RpcMoveCard(card, CardLocation.Deck, CardLocation.Hand);
-            await UniTask.Delay(SorsTimings.draw);
-        }
-    }
-
-    [Server]
-    public void DiscardSelection()
-    {
-        // TODO: Move this to turnManager ?, should include Other similar functions
-
-        // Server calls each player object to discard their selection _selectedCards
-        foreach (var card in _selectedCards)
-        {
-            RemoveHandCard(card);
-            discard.Add(card);
-
-            RpcMoveFromInteraction(card.gameObject, CardLocation.Hand, CardLocation.Discard);
-        }
-    }
-
-
-    [Server]
-    private void ShuffleDiscardIntoDeck()
-    {
-        var temp = new List<CardStats>();
-        foreach (var card in discard)
-        {
-            temp.Add(card);
-            deck.Add(card);
-
-            // var cachedCard = GameManager.GetCardObject(card.cardInfo.goID);
-            RpcMoveCard(card.gameObject, CardLocation.Discard, CardLocation.Deck);
-        }
-
-        foreach (var card in temp) discard.Remove(card);
-
-        deck.Shuffle();
-    }
-
-    [ClientRpc]
-    public void RpcMoveFromInteraction(GameObject card, CardLocation from, CardLocation to)
-    {
-        if(isOwned) from = CardLocation.Selection;
-        _cardMover.MoveTo(card, isOwned, from, to);
-    }
-
-    [ClientRpc]
-    public void RpcShowSpawnedCard(GameObject card, CardLocation destination) => _cardMover.ShowSpawnedCard(card, isOwned, destination).Forget();
-
-    [ClientRpc]
-    public void RpcShowSpawnedCards(List<GameObject> cards, CardLocation destination, bool fromFile) => _cardMover.ShowSpawnedCards(cards, isOwned, destination, fromFile).Forget();
-
-    [Command]
-    public void CmdPlayMoneyCard(CardStats card)
-    {
-        Cash += card.cardInfo.moneyValue;
-        _moneyCardsInPlay.Add(card);
-
-        RemoveHandCard(card);
-        RpcPlayMoney(card.gameObject);
-    }
-
-    [Command]
-    public void CmdUndoPlayMoney()
-    {
-        if (_moneyCardsInPlay.Count == 0 || Cash <= 0) return;
-        ReturnMoneyToHand();
-        _turnManager.PlayerClickedUndoButton(this);
-    }
-
-    [Server]
-    public void ReturnMoneyToHand()
-    {
-        // Don't allow to return already spent money
-        var totalMoneyBack = 0;
-        var cardsToReturn = new List<CardStats>();
-        foreach (var card in _moneyCardsInPlay)
-        {
-            if (totalMoneyBack + card.cardInfo.moneyValue > Cash) continue;
-
-            cardsToReturn.Add(card);
-            totalMoneyBack += card.cardInfo.moneyValue;
-        }
-
-        // Return to hand
-        foreach (var card in cardsToReturn)
-        {
-            _moneyCardsInPlay.Remove(card);
-            Cash -= card.cardInfo.moneyValue;
-            hand.Add(card);
-            RpcReturnMoneyCardToHand(card.gameObject);
-        }
-    }
-
-    [Server]
-    public void DiscardMoneyCards()
-    {
-        if (_moneyCardsInPlay.Count == 0) return;
-
-        foreach (var card in _moneyCardsInPlay)
-        {
-            discard.Add(card);
-            RpcDiscardMoneyCard(card.gameObject);
-        }
-
-        _moneyCardsInPlay.Clear();
-    }
-
-    #endregion Cards
-
     #region Turn Actions
 
     [Command]
@@ -298,10 +151,12 @@ public class PlayerManager : NetworkBehaviour
     public void CmdConfirmBuy(MarketSelection card) => _turnManager.PlayerConfirmBuy(this, card);
 
     [Command]
-    public void CmdConfirmPlay(CardStats card)
+    public void CmdConfirmPlay(List<CardStats> cards)
     {
-        _turnManager.PlayerPlaysCard(this, card);
-        RemoveHandCard(card);
+        // TODO: Make playing multiple cards possible ?
+        foreach(var card in cards) _turnManager.PlayerPlaysCard(this, card);
+        
+        Cards.RemoveHandCards(cards, CardLocation.PlayZone);
     }
 
     [Command]
@@ -458,36 +313,6 @@ public class PlayerManager : NetworkBehaviour
         return networkIdentity.GetComponent<PlayerManager>();
     }
 
-    // TODO: Does this make sense like this ? 
-    // TODO: Could rework to not show what opponent is playing until confirmation
-    [ClientRpc]
-    private void RpcPlayMoney(GameObject card)
-    {
-        _cardMover.MoveTo(card, isOwned, CardLocation.Hand, CardLocation.MoneyZone);
-    }
-
-    [ClientRpc]
-    private void RpcReturnMoneyCardToHand(GameObject card)
-    {
-        _cardMover.MoveTo(card, isOwned, CardLocation.MoneyZone, CardLocation.Hand);
-    }
-
-    [ClientRpc]
-    private void RpcDiscardMoneyCard(GameObject card)
-    {
-        _cardMover.MoveTo(card, isOwned, CardLocation.MoneyZone, CardLocation.Discard);
-    }
-
-    [Server]
-    private void RemoveHandCard(CardStats card)
-    {
-        var cardToRemove = hand.FirstOrDefault(c => c.Equals(card));
-        hand.Remove(cardToRemove);
-    }
-
-    // public void PlayerPressedCombatButton() => CmdPlayerPressedCombatButton(this);
-    // [Command]
-    // public void CmdPlayerPressedCombatButton(PlayerManager player) => _combatManager.PlayerPressedReadyButton(player);
 
     private void LookAtCollection(CardLocation collectionType, bool ownsCollection)
     {
@@ -502,17 +327,17 @@ public class PlayerManager : NetworkBehaviour
     {
         print($"Player {player.PlayerName} opens collection {collectionType}, owns collection {ownsCollection}");
 
-        var collection = new CardCollection();
+        var cardList = new CardList();
         if (collectionType == CardLocation.Discard)
-            collection = ownsCollection ? player.discard : _turnManager.GetOpponentPlayer(player).discard;
+            cardList = ownsCollection ? player.Cards.discard : _turnManager.GetOpponentPlayer(player).Cards.discard;
         else if (collectionType == CardLocation.Trash)
-            collection = _turnManager.GetTrashedCards();
+            cardList = _turnManager.GetTrashedCards();
 
         // TODO: 
-        collection.OnUpdate += _uiManager.UpdateCardCollection;
+        cardList.OnUpdate += _uiManager.UpdateCardCollection;
 
-        print("Collection count on server: " + collection.Count);
-        _uiManager.TargetOpenCardCollection(player.connectionToClient, collection, collectionType, ownsCollection);
+        print("Collection count on server: " + cardList.Count);
+        _uiManager.TargetOpenCardCollection(player.connectionToClient, cardList, collectionType, ownsCollection);
     }
 
     [ClientRpc]

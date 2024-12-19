@@ -114,7 +114,7 @@ public class GameManager : NetworkBehaviour {
             startingDeck.Add(SpawnCardAndAddToCollection(player, scriptableCard, CardLocation.Deck));
         }
 
-        player.RpcShowSpawnedCards(startingDeck, CardLocation.Deck, false);
+        player.Cards.RpcShowSpawnedCards(startingDeck, CardLocation.Deck, false);
     }
 
     #endregion
@@ -133,14 +133,14 @@ public class GameManager : NetworkBehaviour {
 
         // Resolve card gain
         var cardObject = SpawnCardAndAddToCollection(player, scriptableCard, CardLocation.Discard);
-        player.RpcShowSpawnedCard(cardObject, CardLocation.Discard);
+        player.Cards.RpcShowSpawnedCard(cardObject, CardLocation.Discard);
     }
 
     public void PlayerGainCard(PlayerManager player, ScriptableCard scriptableCard)
     {
         // Resolve card gain
         var cardObject = SpawnCardAndAddToCollection(player, scriptableCard, CardLocation.Discard);
-        player.RpcShowSpawnedCard(cardObject, CardLocation.Discard);
+        player.Cards.RpcShowSpawnedCard(cardObject, CardLocation.Discard);
     }
     
     public GameObject SpawnCardAndAddToCollection(PlayerManager player, ScriptableCard scriptableCard, CardLocation destination)
@@ -187,9 +187,9 @@ public class GameManager : NetworkBehaviour {
 
     private void AddCardToPlayerCollection(PlayerManager owner, CardStats card, CardLocation destination)
     {
-        if (destination == CardLocation.Deck) owner.deck.Add(card);
-        else if(destination == CardLocation.Discard) owner.discard.Add(card);
-        else if(destination == CardLocation.Hand) owner.hand.Add(card);
+        if (destination == CardLocation.Deck) owner.Cards.deck.Add(card);
+        else if(destination == CardLocation.Discard) owner.Cards.discard.Add(card);
+        else if(destination == CardLocation.Hand) owner.Cards.hand.Add(card);
     }
 
     public BattleZoneEntity SpawnFieldEntity(PlayerManager owner, CardInfo cardInfo)

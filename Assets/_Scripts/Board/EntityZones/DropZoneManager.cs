@@ -49,13 +49,13 @@ public class DropZoneManager : NetworkBehaviour
             _entityZones.RpcAddEntity(entity, entity.Owner.isLocalPlayer);
 
             // To show which card spawns an entity -> move to spawn
-            owner.RpcMoveCard(card, CardLocation.Hand, CardLocation.EntitySpawn);
+            owner.Cards.RpcMoveCard(card, CardLocation.Hand, CardLocation.EntitySpawn);
             _entityZones.RpcMoveEntityToSpawned(entity);
             await UniTask.Delay(SorsTimings.showSpawnedEntity);
 
             // _entityZones.MoveToHolder(entity);
             entity.RpcMoveToHolder();
-            owner.RpcMoveCard(card, CardLocation.EntitySpawn, CardLocation.PlayZone);
+            owner.Cards.RpcMoveCard(card, CardLocation.EntitySpawn, CardLocation.PlayZone);
             await UniTask.Delay(SorsTimings.moveSpawnedCard);
 
             // Score points on ETB if card is a Technology
@@ -88,8 +88,8 @@ public class DropZoneManager : NetworkBehaviour
             await UniTask.Delay(10);
 
             // Move the card object to discard pile
-            dead.Owner.discard.Add(cardObject.GetComponent<CardStats>());
-            dead.Owner.RpcMoveCard(cardObject, CardLocation.PlayZone, CardLocation.Discard);
+            dead.Owner.Cards.discard.Add(cardObject.GetComponent<CardStats>());
+            dead.Owner.Cards.RpcMoveCard(cardObject, CardLocation.PlayZone, CardLocation.Discard);
             await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.cardMoveTime));
         }
     }

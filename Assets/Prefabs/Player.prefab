@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 8861709735916918007}
   - component: {fileID: 4771018743703844232}
   - component: {fileID: 6420962732462830893}
+  - component: {fileID: 9050838382291700986}
   - component: {fileID: 2435064851221685217}
   - component: {fileID: -5615103701373865539}
   m_Layer: 0
@@ -27,13 +28,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3109964472370712586}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &4771018743703844232
 MonoBehaviour:
@@ -68,9 +69,23 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   isAI: 0
-  chosenPhases: 
-  chosenPrevailOptions: 
+  _chosenPrevailOptions: 
   playerName: 
+--- !u!114 &9050838382291700986
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3109964472370712586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 358eb04eac1ab7647bf65317c5b4d790, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
 --- !u!114 &2435064851221685217
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -87,8 +102,8 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   cardType: 3
-  _health: 0
   _playerUI: {fileID: 0}
+  _health: 0
 --- !u!114 &-5615103701373865539
 MonoBehaviour:
   m_ObjectHideFlags: 0

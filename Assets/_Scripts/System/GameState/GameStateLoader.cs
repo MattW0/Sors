@@ -91,7 +91,7 @@ public class GameStateLoader : MonoBehaviour
             var scriptableCard = Resources.Load<ScriptableCard>(c);
             _cardList.Add(_gameManager.SpawnCardAndAddToCollection(p, scriptableCard, location));
         }
-        p.RpcShowSpawnedCards(_cardList, CardLocation.Hand, true);
+        p.Cards.RpcShowSpawnedCards(_cardList, CardLocation.Hand, true);
         _cardList.Clear();
     }
 
@@ -106,7 +106,7 @@ public class GameStateLoader : MonoBehaviour
         // await UniTask.Delay(SorsTimings.wait);
 
         print("Showing spawned entities");
-        p.RpcShowSpawnedCards(_entitiesDict.Keys.ToList(), CardLocation.PlayZone, true);
+        p.Cards.RpcShowSpawnedCards(_entitiesDict.Keys.ToList(), CardLocation.PlayZone, true);
         await BoardManager.Instance.PlayEntities(_entitiesDict);
 
         _entitiesDict.Clear();
