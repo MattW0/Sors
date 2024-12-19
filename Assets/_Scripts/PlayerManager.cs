@@ -14,20 +14,17 @@ public class PlayerManager : NetworkBehaviour
     
     [Header("Entities")]
     private TurnManager _turnManager;
-    private CardMover _cardMover;
-    private UIManager _uiManager;
 
     [Header("Game State")]
+    private CardCollection _cards;
+    public CardCollection Cards { get => _cards; set => _cards = value; }
     public List<PrevailOption> _chosenPrevailOptions = new();
-    private List<CardStats> _selectedCards = new();
-
     public bool PlayerIsChoosingTarget { get; private set; }
     private PlayerUI _playerUI;
     private PlayerUI _opponentUI;
     private BattleZoneEntity _entity;
     public static event Action<PlayerManager, int> OnCashChanged;
-    private CardCollection _cards;
-    public CardCollection Cards { get => _cards; set => _cards = value; }
+    public static event Action<BattleZoneEntity> OnPlayerChooseEntityTarget;
 
     #region Stats
 
@@ -39,14 +36,14 @@ public class PlayerManager : NetworkBehaviour
         set => SetPlayerName(value);
     }
 
-    private int _health;
+    [SerializeField] private int _health;
     public int Health
     {
         get => _health;
         set => SetHealthValue(value);
     }
 
-    private int _score;
+    [SerializeField] private int _score;
     public int Score
     {
         get => _score;
@@ -54,28 +51,32 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Header("Turn Stats")]
-    private int _cash;
+    [SyncVar(hook="UISetMoneyValue"), SerializeField] private int _cash;
     public int Cash
     {
         get => _cash;
-        set => SetMoneyValue(value); // Invoke OnCashChanged and update UI
+        set {
+            _cash = value;
+            OnCashChanged?.Invoke(this, value);
+            SetMoneyValue(value);
+        }
     }
 
-    [SyncVar] private int _buys = 1;
+    [SyncVar, SerializeField] private int _buys = 1;
     public int Buys
     {
         get => _buys;
         set => SetBuyValue(value);
     }
     
-    [SyncVar] private int _plays = 1;
+    [SyncVar, SerializeField] private int _plays = 1;
     public int Plays
     {
         get => _plays;
         set => SetPlayValue(value);
     }
 
-    [SyncVar] private int _prevails;
+    [SyncVar, SerializeField] private int _prevails;
     public int Prevails
     {
         get => _prevails;
@@ -86,26 +87,19 @@ public class PlayerManager : NetworkBehaviour
 
     #endregion Stats
 
-    public static event Action<BattleZoneEntity> OnPlayerChooseEntityTarget;
-
     #region GameSetup
 
     private void Awake()
     {
         _cards = GetComponent<CardCollection>();
-        CardPileClick.OnLookAtCollection += LookAtCollection;
     }
 
     [ClientRpc]
     public void RpcInitPlayer(int playerId)
     {
-        _cardMover = CardMover.Instance;
-        _uiManager = UIManager.Instance;
-
-        EntityAndUISetup();
-
         ID = playerId;
         print("Player ID: " + ID);
+        EntityAndUISetup();
 
         if (!isServer) return;
         _turnManager = TurnManager.Instance;
@@ -143,7 +137,6 @@ public class PlayerManager : NetworkBehaviour
     [Command]
     public void CmdDiscardSelection(List<CardStats> cardsToDiscard)
     {
-        _selectedCards = cardsToDiscard;
         _turnManager.PlayerSelectedDiscardCards(this, cardsToDiscard);
     }
 
@@ -170,7 +163,6 @@ public class PlayerManager : NetworkBehaviour
     [Command]
     public void CmdPrevailCardsSelection(List<CardStats> cards)
     {
-        _selectedCards = cards;
         _turnManager.PlayerSelectedPrevailCards(this, cards);
     }
 
@@ -251,7 +243,6 @@ public class PlayerManager : NetworkBehaviour
     private void SetMoneyValue(int value)
     {
         _cash = value;
-        OnCashChanged?.Invoke(this, value);
         RpcUISetMoneyValue(value);
     }
 
@@ -260,6 +251,12 @@ public class PlayerManager : NetworkBehaviour
     {
         if (isOwned) _playerUI.SetCash(value);
         else _opponentUI.SetCash(value);
+    }
+
+    private void UISetMoneyValue(int oldValue, int newValue)
+    {
+        if (isOwned) _playerUI.SetCash(newValue);
+        else _opponentUI.SetCash(newValue);
     }
 
     [Server]
@@ -313,40 +310,9 @@ public class PlayerManager : NetworkBehaviour
         return networkIdentity.GetComponent<PlayerManager>();
     }
 
-
-    private void LookAtCollection(CardLocation collectionType, bool ownsCollection)
-    {
-        // Only trigger from my own player object 
-        if (! isOwned) return;
-        
-        CmdPlayerOpensCardCollection(this, collectionType, ownsCollection);
-    }
-
-    [Command]
-    private void CmdPlayerOpensCardCollection(PlayerManager player, CardLocation collectionType, bool ownsCollection)
-    {
-        print($"Player {player.PlayerName} opens collection {collectionType}, owns collection {ownsCollection}");
-
-        var cardList = new CardList();
-        if (collectionType == CardLocation.Discard)
-            cardList = ownsCollection ? player.Cards.discard : _turnManager.GetOpponentPlayer(player).Cards.discard;
-        else if (collectionType == CardLocation.Trash)
-            cardList = _turnManager.GetTrashedCards();
-
-        // TODO: 
-        cardList.OnUpdate += _uiManager.UpdateCardCollection;
-
-        print("Collection count on server: " + cardList.Count);
-        _uiManager.TargetOpenCardCollection(player.connectionToClient, cardList, collectionType, ownsCollection);
-    }
-
-    [ClientRpc]
-    public void RpcSkipCardSpawnAnimations() => SorsTimings.SkipCardSpawnAnimations();
-    [Server]
-    internal BattleZoneEntity GetEntity() => _entity;
-
-    [Server]
-    public void ForceEndTurn() => _turnManager.ForceEndTurn();
+    [ClientRpc] public void RpcSkipCardSpawnAnimations() => SorsTimings.SkipCardSpawnAnimations();
+    [Server] internal BattleZoneEntity GetEntity() => _entity;
+    [Server] public void ForceEndTurn() => _turnManager.ForceEndTurn();
 
     public bool Equals(PlayerManager other)
     {
@@ -355,12 +321,7 @@ public class PlayerManager : NetworkBehaviour
         // Optimization for a common success case.
         if (ReferenceEquals(this, other)) return true;
 
-        return this.connectionToClient == other.connectionToClient;
-    }
-
-    private void OnDestroy()
-    {
-        CardPileClick.OnLookAtCollection += LookAtCollection;
+        return connectionToClient == other.connectionToClient;
     }
 
     #endregion

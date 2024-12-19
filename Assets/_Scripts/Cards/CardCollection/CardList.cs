@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
-using UnityEngine;
 
 public class CardList : List<CardStats>
 {
-    public event Action<List<CardInfo>> OnUpdate;
+    public CardListInfo Info;
+    public CardList(bool isMine, CardLocation location) 
+    {
+        Info = new CardListInfo(isMine, location);
+    }
+    public event Action<CardListInfo, List<CardInfo>> OnUpdate;
 
     public void Shuffle()
     {
@@ -25,7 +28,7 @@ public class CardList : List<CardStats>
     public new void Add(CardStats card)
     {
         base.Add(card);
-        OnUpdate?.Invoke(ToCardInfos());
+        OnUpdate?.Invoke(Info, ToCardInfos());
     }
 
     public List<CardInfo> ToCardInfos()
@@ -38,5 +41,16 @@ public class CardList : List<CardStats>
     public override string ToString()
     {
         return Count.ToString() + " cards";
+    }
+}
+
+public struct CardListInfo
+{
+    public bool isMine;
+    public CardLocation location;
+    public CardListInfo(bool isMine, CardLocation location)
+    {
+        this.isMine = isMine;
+        this.location = location;
     }
 }

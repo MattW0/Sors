@@ -1,21 +1,17 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
-using System;
-using Unity.VisualScripting;
-using System.Collections.Specialized;
 
 public class UIManager : NetworkBehaviour
 {
     public static UIManager Instance { get; private set; }
+    private TurnManager _turnManager;
     [SerializeField] private EndScreen _endScreen;
     [SerializeField] private AlertDialogue _quitDialog;
     [SerializeField] private GameObject _cardCollectionViewPrefab;
     [SerializeField] private Transform _spawnParentTransform;
-
-    // TODO: How to track open card collections?
-    [SerializeField] private List<CardCollectionManager> _openCardCollections = new();
+    
+    [SerializeField] private List<CardListInfo> _openCardLists = new();
     public static SorsColors ColorPalette { get; private set; }
 
     private void Awake()
@@ -24,28 +20,52 @@ public class UIManager : NetworkBehaviour
 
         ColorPalette = Resources.Load<SorsColors>("Sors Colors");
 
-        CardCollectionUI.OnCloseCardCollection += CloseCardCollection;
+        CardPileClick.OnLookAtCardList += RequestCardList;
+        CardListUI.OnCloseCardCollection += CloseCardList;
+
         PlayerInterfaceButtons.OnQuitButtonClicked += QuitDialog;
         
         AlertDialogue.OnAccept += AlertDialogueAccept;
         AlertDialogue.OnDecline += AlertDialogueDecline;
     }
 
+    private void Start()
+    {
+        if(!isServer) return;
+        _turnManager = TurnManager.Instance;
+    }
+
+    private void RequestCardList(CardListInfo listInfo)
+    {        
+        CmdPlayerOpensCardCollection(PlayerManager.GetLocalPlayer(), listInfo);
+    }
+
+    [Command(requiresAuthority = false)]
+    private void CmdPlayerOpensCardCollection(PlayerManager player, CardListInfo listInfo)
+    {
+        print($"Player {player.PlayerName} opens collection {listInfo.location}, owns collection {listInfo.isMine}");
+
+        if (_openCardLists.Contains(listInfo)) return;
+        _openCardLists.Add(listInfo);
+
+        var cardList = GetCardList(player, listInfo);
+
+        cardList.OnUpdate += UpdateCardCollection;
+        TargetOpenCardCollection(player.connectionToClient, cardList, listInfo);
+    }
+
     [TargetRpc]
-    public void TargetOpenCardCollection(NetworkConnection conn, List<CardStats> collection, CardLocation collectionType, bool isOwned)
+    public void TargetOpenCardCollection(NetworkConnection conn, List<CardStats> collection, CardListInfo listInfo)
     {
         print("Collection count on client: " + collection.Count);
         // TODO: Still show when empty?
         if (collection.Count == 0) return;
 
-        var collectionManager = Instantiate(_cardCollectionViewPrefab, _spawnParentTransform).GetComponent<CardCollectionManager>();
-        if (_openCardCollections.Contains(collectionManager)) return;
-
-        collectionManager.OpenCardCollection(collection, collectionType, isOwned);
-        _openCardCollections.Add(collectionManager);
+        var listView = Instantiate(_cardCollectionViewPrefab, _spawnParentTransform).GetComponent<CardListView>();
+        listView.OpenCardCollection(collection, listInfo);
     }
 
-    public void UpdateCardCollection(List<CardInfo> cards)
+    public void UpdateCardCollection(CardListInfo info, List<CardInfo> cards)
     {
         RpcUpdateCardCollection(cards);
     }
@@ -56,9 +76,28 @@ public class UIManager : NetworkBehaviour
         print("Updating card collection");
     }
 
-    private void CloseCardCollection(CardLocation collectionType)
+    private void CloseCardList(CardListInfo listInfo)
     {
+        CmdCloseCardList(PlayerManager.GetLocalPlayer(), listInfo);
+    }
+
+    [Command(requiresAuthority = false)]
+    private void CmdCloseCardList(PlayerManager player, CardListInfo listInfo)
+    {
+        if (!_openCardLists.Contains(listInfo)) return;
+
+        var cardList = GetCardList(player, listInfo);
+        cardList.OnUpdate -= UpdateCardCollection;
+        _openCardLists.Remove(listInfo);
+    }
+
+    private CardList GetCardList(PlayerManager player, CardListInfo listInfo)
+    {
+        var cardList = _turnManager.GetTrashedCards();
+        if (listInfo.location == CardLocation.Discard)
+            cardList = listInfo.isMine ? player.Cards.discard : _turnManager.GetOpponentPlayer(player).Cards.discard;
         
+        return cardList;
     }
 
     [ClientRpc]
@@ -85,8 +124,10 @@ public class UIManager : NetworkBehaviour
 
     private void OnDestroy()
     {
-        CardCollectionUI.OnCloseCardCollection -= CloseCardCollection;
-        PlayerInterfaceButtons.OnQuitButtonClicked += QuitDialog;
+        CardPileClick.OnLookAtCardList -= RequestCardList;
+        CardListUI.OnCloseCardCollection -= CloseCardList;
+
+        PlayerInterfaceButtons.OnQuitButtonClicked -= QuitDialog;
 
         AlertDialogue.OnAccept -= AlertDialogueAccept;
         AlertDialogue.OnDecline -= AlertDialogueDecline;

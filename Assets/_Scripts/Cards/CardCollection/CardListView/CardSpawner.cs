@@ -28,19 +28,6 @@ public class CardSpawner : MonoBehaviour
         _grid.SetPanelDimension(cards.Count);
     }
 
-    // Only for cards scene
-    public List<GameObject> SpawnDetailCardObjects(List<CardInfo> cards)
-    {
-        var cardObjects = new List<GameObject>();
-        foreach (var cardInfo in cards){
-            var go = InstantiateCard(cardInfo);
-            go.SetParent(_spawnParentTransform, false);
-            cardObjects.Add(go.gameObject);
-        }
-
-        return cardObjects;
-    }
-
     private Transform InstantiateCard(CardInfo cardInfo)
     {
         var detailCardObject = cardInfo.type switch
@@ -55,5 +42,18 @@ public class CardSpawner : MonoBehaviour
         detailCardObject.GetComponent<DetailCardUI>().SetCardUI(cardInfo, cardInfo.cardSpritePath);
 
         return detailCardObject.transform;
+    }
+
+    // Only for cards scene
+    public List<GameObject> SpawnDetailCardObjects(List<CardInfo> cards)
+    {
+        var cardObjects = new List<GameObject>();
+        foreach (var cardInfo in cards){
+            var go = InstantiateCard(cardInfo);
+            go.SetParent(_spawnParentTransform, false);
+            cardObjects.Add(go.gameObject);
+        }
+
+        return cardObjects;
     }
 }

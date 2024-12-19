@@ -7,23 +7,30 @@ using Mirror;
 
 public class CardCollection : NetworkBehaviour, ISerializationCallbackReceiver
 {
-    public readonly CardList deck = new();
-    public readonly CardList discard = new();
-    public readonly CardList hand = new();
-    private readonly CardList _moneyCardsInPlay = new();
-    private CardMover _cardMover;
-    private PlayerManager _owner;
+    public CardList deck;
+    public CardList discard;
+    public CardList hand;
 
     // For serialization in unity inspector
     public string[] deckTitles;
     public string[] discardTitles;
     public string[] handTitles;
+    private CardList _moneyCardsInPlay;
+    private CardMover _cardMover;
+    private PlayerManager _owner;
 
     private void Start()
     {
         _cardMover = CardMover.Instance;
         _owner = GetComponent<PlayerManager>();
+
+        deck = new CardList(_owner.isLocalPlayer, CardLocation.Deck);
+        discard = new CardList(_owner.isLocalPlayer, CardLocation.Discard);
+        hand = new CardList(_owner.isLocalPlayer, CardLocation.Hand);
+        _moneyCardsInPlay = new CardList(_owner.isLocalPlayer, CardLocation.MoneyZone);
     }
+
+    #region Server Logic
 
     [Server]
     public void DrawCards(int amount)
@@ -96,6 +103,9 @@ public class CardCollection : NetworkBehaviour, ISerializationCallbackReceiver
         _moneyCardsInPlay.Clear();
     }
 
+    #endregion
+    #region Client Logic
+
     [ClientRpc]
     public void RpcMoveCard(GameObject card, CardLocation from, CardLocation to)
     {
@@ -115,16 +125,8 @@ public class CardCollection : NetworkBehaviour, ISerializationCallbackReceiver
     [ClientRpc]
     public void RpcShowSpawnedCards(List<GameObject> cards, CardLocation destination, bool fromFile) => _cardMover.ShowSpawnedCards(cards, isOwned, destination, fromFile).Forget();
 
-    [Client]
-    private async UniTaskVoid ClientDrawing(List<GameObject> cards)
-    {
-        // Opposing destination, moving the card objects with movement durations
-        foreach(var card in cards)
-        {
-            RpcMoveCard(card, CardLocation.Deck, CardLocation.Hand);
-            await UniTask.Delay(SorsTimings.draw);
-        }
-    }
+    #endregion
+    #region Helpers
 
     [Server]
     private void ReturnUnspentMoneyToHand()
@@ -173,8 +175,23 @@ public class CardCollection : NetworkBehaviour, ISerializationCallbackReceiver
         deck.Shuffle();
     }
 
+    [Client]
+    private async UniTaskVoid ClientDrawing(List<GameObject> cards)
+    {
+        // Opposing destination, moving the card objects with movement durations
+        foreach(var card in cards)
+        {
+            RpcMoveCard(card, CardLocation.Deck, CardLocation.Hand);
+            await UniTask.Delay(SorsTimings.draw);
+        }
+    }
+
+    #endregion
+
     public void OnBeforeSerialize()
     {
+        if(deck == null || discard == null || hand == null) return;
+
         deckTitles = deck.Select(c => c.cardInfo.title).ToArray();
         discardTitles = discard.Select(c => c.cardInfo.title).ToArray();
         handTitles = hand.Select(c => c.cardInfo.title).ToArray();

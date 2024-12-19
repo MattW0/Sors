@@ -39,7 +39,7 @@ public class TurnManager : NetworkBehaviour
     private Dictionary<PlayerManager, TurnState[]> _playerPhaseChoices = new();
     private Dictionary<PlayerManager, List<PrevailOption>> _playerPrevailOptions = new();
     private readonly List<PrevailOption> _prevailOptionsToPlay = new();
-    private readonly CardList _trashedCards = new();
+    private readonly CardList _trashedCards = new(false, CardLocation.Trash);
 
     // Events
     public static event Action OnStartPhaseSelection;
