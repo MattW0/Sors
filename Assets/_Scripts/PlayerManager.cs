@@ -11,8 +11,7 @@ public class PlayerManager : NetworkBehaviour
     private TurnManager _turnManager;
 
     [Header("Game State")]
-    private CardCollection _cards;
-    public CardCollection Cards { get => _cards; set => _cards = value; }
+    public PlayerCards Cards { get ; private set; }
     public List<PrevailOption> _chosenPrevailOptions = new();
     public bool PlayerIsChoosingTarget { get; private set; }
     private PlayerUI _playerUI;
@@ -61,7 +60,7 @@ public class PlayerManager : NetworkBehaviour
 
     private void Awake()
     {
-        _cards = GetComponent<CardCollection>();
+        Cards = GetComponent<PlayerCards>();
         _playerUI = GameObject.Find("PlayerInfo").GetComponent<PlayerUI>();
         _opponentUI = GameObject.Find("OpponentInfo").GetComponent<PlayerUI>();
     }

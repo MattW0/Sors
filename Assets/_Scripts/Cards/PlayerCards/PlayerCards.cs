@@ -5,17 +5,18 @@ using Cysharp.Threading.Tasks;
 using System.Linq;
 using Mirror;
 
-public class CardCollection : NetworkBehaviour, ISerializationCallbackReceiver
+public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
 {
     public CardList deck;
     public CardList discard;
     public CardList hand;
+    public CardList moneyCardsInPlay;
 
     // For serialization in unity inspector
     public string[] deckTitles;
     public string[] discardTitles;
     public string[] handTitles;
-    private CardList _moneyCardsInPlay;
+    public string[] moneyTitles;
     private CardMover _cardMover;
     private PlayerManager _owner;
 
@@ -27,7 +28,7 @@ public class CardCollection : NetworkBehaviour, ISerializationCallbackReceiver
         deck = new CardList(_owner.isLocalPlayer, CardLocation.Deck);
         discard = new CardList(_owner.isLocalPlayer, CardLocation.Discard);
         hand = new CardList(_owner.isLocalPlayer, CardLocation.Hand);
-        _moneyCardsInPlay = new CardList(_owner.isLocalPlayer, CardLocation.MoneyZone);
+        moneyCardsInPlay = new CardList(_owner.isLocalPlayer, CardLocation.MoneyZone);
     }
 
     #region Server Logic
@@ -74,13 +75,13 @@ public class CardCollection : NetworkBehaviour, ISerializationCallbackReceiver
         RemoveHandCards(new List<CardStats> { card }, CardLocation.MoneyZone);
         RpcMoveCard(card.gameObject, CardLocation.Hand, CardLocation.MoneyZone);
 
-        _moneyCardsInPlay.Add(card);
+        moneyCardsInPlay.Add(card);
     }
 
     [Command]
     public void CmdUndoPlayMoney()
     {
-        if (_moneyCardsInPlay.Count == 0 || _owner.Cash <= 0) return;
+        if (moneyCardsInPlay.Count == 0 || _owner.Cash <= 0) return;
 
         ReturnUnspentMoneyToHand();
     }
@@ -88,19 +89,19 @@ public class CardCollection : NetworkBehaviour, ISerializationCallbackReceiver
     [Server]
     public void DiscardMoneyCards()
     {
-        if (_moneyCardsInPlay.Count == 0) return;
+        if (moneyCardsInPlay.Count == 0) return;
 
         // TODO: Does not give player the option to "discard" money cards
         // possibly remove if Undo works as intended
         ReturnUnspentMoneyToHand();
 
-        foreach (var card in _moneyCardsInPlay)
+        foreach (var card in moneyCardsInPlay)
         {
             discard.Add(card);
             RpcMoveCard(card.gameObject, CardLocation.MoneyZone, CardLocation.Discard);
         }
 
-        _moneyCardsInPlay.Clear();
+        moneyCardsInPlay.Clear();
     }
 
     #endregion
@@ -134,7 +135,7 @@ public class CardCollection : NetworkBehaviour, ISerializationCallbackReceiver
         // Don't allow to return already spent money
         var totalMoneyBack = 0;
         var cardsToReturn = new List<CardStats>();
-        foreach (var card in _moneyCardsInPlay)
+        foreach (var card in moneyCardsInPlay)
         {
             if (totalMoneyBack + card.cardInfo.moneyValue > _owner.Cash) continue;
 
@@ -148,7 +149,7 @@ public class CardCollection : NetworkBehaviour, ISerializationCallbackReceiver
         int undoAmount = 0;
         foreach (var card in cardsToReturn)
         {
-            _moneyCardsInPlay.Remove(card);
+            moneyCardsInPlay.Remove(card);
             undoAmount += card.cardInfo.moneyValue;
             hand.Add(card);
             RpcMoveCard(card.gameObject, CardLocation.MoneyZone, CardLocation.Hand);
@@ -195,6 +196,7 @@ public class CardCollection : NetworkBehaviour, ISerializationCallbackReceiver
         deckTitles = deck.Select(c => c.cardInfo.title).ToArray();
         discardTitles = discard.Select(c => c.cardInfo.title).ToArray();
         handTitles = hand.Select(c => c.cardInfo.title).ToArray();
+        moneyTitles = moneyCardsInPlay.Select(c => c.cardInfo.title).ToArray();
     }
 
     public void OnAfterDeserialize(){ }
