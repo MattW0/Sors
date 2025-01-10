@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 public class GameStateLoader : MonoBehaviour
 {
     private GameManager _gameManager;
-
     private Dictionary<PlayerManager, Cards> _playerCards = new();
     private Dictionary<PlayerManager, Entities> _playerEntities = new();
     private List<GameObject> _cardList = new();
@@ -19,7 +18,8 @@ public class GameStateLoader : MonoBehaviour
     {
         _gameManager = GameManager.Instance;
 
-        var gameState = new GameState(_gameManager.players.Count, fileName).LoadState() ?? throw new System.Exception("Trying to load invalid GameState constructed from file name " + fileName);
+        var gameState = new GameState(_gameManager.players.Count, fileName).LoadState() 
+            ?? throw new System.Exception("Trying to load invalid GameState constructed from file name " + fileName);
 
         PlayerSetupFromFile(gameState.players);
         LoadMarketFromFile(gameState.market);
@@ -89,7 +89,7 @@ public class GameStateLoader : MonoBehaviour
         foreach (var c in collection)
         {
             var scriptableCard = Resources.Load<ScriptableCard>(c);
-            _cardList.Add(_gameManager.SpawnCardAndAddToCollection(p, scriptableCard, location));
+            _cardList.Add(_gameManager.SpawnCard(p, scriptableCard, location));
         }
         p.Cards.RpcShowSpawnedCards(_cardList, CardLocation.Hand, true);
         _cardList.Clear();
@@ -117,7 +117,7 @@ public class GameStateLoader : MonoBehaviour
         var scriptableCard = Resources.Load<ScriptableCard>(e.scriptableCard);
 
         // Wait for card initialization
-        var cardObject = _gameManager.SpawnCardAndAddToCollection(p, scriptableCard, CardLocation.PlayZone);
+        var cardObject = _gameManager.SpawnCard(p, scriptableCard, CardLocation.PlayZone);
         await UniTask.Delay(10);
 
         // Wait for entity initialization

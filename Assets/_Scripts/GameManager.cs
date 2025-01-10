@@ -8,6 +8,7 @@ using Mirror;
 public class GameManager : NetworkBehaviour {
     
     public static GameManager Instance { get; private set; }
+    private INetworkObjectSpawner _cardSpawner;
     private TurnManager _turnManager;
     private UIManager _uiManager;
     private Market _market;
@@ -20,22 +21,14 @@ public class GameManager : NetworkBehaviour {
     private List<PlayerManager> _loosingPlayers = new();
     private List<PlayerManager> _winningPlayers = new();
     
-    [Header("Spawnable Prefabs")]
-    [SerializeField] private GameObject creatureCardPrefab;
-    [SerializeField] private GameObject moneyCardPrefab;
-    [SerializeField] private GameObject technologyCardPrefab;
-    [SerializeField] private GameObject creatureEntityPrefab;
-    [SerializeField] private GameObject technologyEntityPrefab;
-
-    [Header("Special Cards")]
-    public ScriptableCard CurseCard;
-    
     private void Awake()
     {
         if (Instance == null) Instance = this;
 
         Sors.Lan.SorsNetworkManager.OnAllPlayersReady += GameSetup;
         SorsSteamNetworkManager.OnAllPlayersReady += GameSetup;
+
+        _cardSpawner = GetComponent<INetworkObjectSpawner>();
     }
 
     #region Setup
@@ -102,13 +95,13 @@ public class GameManager : NetworkBehaviour {
         var startMoney = _market.GetStartMoneyCard();
         for (var i = 0; i < _gameOptions.initialDeckSize - _gameOptions.initialEntities; i++){
             var scriptableCard = startMoney;
-            startingDeck.Add(SpawnCardAndAddToCollection(player, scriptableCard, CardLocation.Deck));
+            startingDeck.Add(_cardSpawner.SpawnCard(player, scriptableCard, CardLocation.Deck));
         }
 
         var startEntities = _market.GetStartEntities();
         for (var i = 0; i < _gameOptions.initialEntities; i++){
             var scriptableCard = startEntities[i];
-            startingDeck.Add(SpawnCardAndAddToCollection(player, scriptableCard, CardLocation.Deck));
+            startingDeck.Add(_cardSpawner.SpawnCard(player, scriptableCard, CardLocation.Deck));
         }
 
         player.Cards.RpcShowSpawnedCards(startingDeck, CardLocation.Deck, false);
@@ -117,101 +110,11 @@ public class GameManager : NetworkBehaviour {
     #endregion
 
     #region Spawning
-    public void PlayerGainCard(PlayerManager player, CardInfo card)
-    {
-        // Load scriptable
-        var pathPrefix = card.type switch {
-            CardType.Money => "Cards/MoneyCards/",
-            CardType.Creature => "Cards/CreatureCards/",
-            CardType.Technology => "Cards/TechnologyCards/",
-            _ => ""
-        };
-        var scriptableCard = Resources.Load<ScriptableCard>(pathPrefix + card.resourceName);
+    public void PlayerGainCard(PlayerManager player, CardInfo card, CardLocation destination) => _cardSpawner.PlayerGainCard(player, card, destination);
+    public GameObject SpawnCard(PlayerManager player, ScriptableCard card, CardLocation destination) => _cardSpawner.SpawnCard(player, card, destination);
+    public void PlayerGainCurse(PlayerManager player) => _cardSpawner.PlayerGainCurse(player);
+    public BattleZoneEntity SpawnFieldEntity(PlayerManager owner, CardInfo cardInfo) => _cardSpawner.SpawnFieldEntity(owner, cardInfo);
 
-        // Resolve card gain
-        var cardObject = SpawnCardAndAddToCollection(player, scriptableCard, CardLocation.Discard);
-        player.Cards.RpcShowSpawnedCard(cardObject, CardLocation.Discard);
-    }
-
-    public void PlayerGainCard(PlayerManager player, ScriptableCard scriptableCard)
-    {
-        // Resolve card gain
-        var cardObject = SpawnCardAndAddToCollection(player, scriptableCard, CardLocation.Discard);
-        player.Cards.RpcShowSpawnedCard(cardObject, CardLocation.Discard);
-    }
-    
-    public GameObject SpawnCardAndAddToCollection(PlayerManager player, ScriptableCard scriptableCard, CardLocation destination)
-    {
-        if (scriptableCard == null) 
-        {
-            Debug.LogWarning("Trying to spawn card where scriptable is null");
-            return null;
-        }
-
-        // Card object prefab depending on type
-        var cardObject = scriptableCard.type switch
-        {
-            CardType.Money => Instantiate(moneyCardPrefab),
-            CardType.Creature => Instantiate(creatureCardPrefab),
-            CardType.Technology => Instantiate(technologyCardPrefab),
-            _ => null
-        };
-
-        // Using the unique gameObject instance ID ()
-        var id = cardObject.GetInstanceID();
-        cardObject.name = scriptableCard.title + "_" + id.ToString();
-
-        // Spawn and assign client authority
-        NetworkServer.Spawn(cardObject, connectionToClient);
-        if(player.connectionToClient != null) cardObject.GetComponent<NetworkIdentity>().AssignClientAuthority(player.connectionToClient);
-
-        // RPC: Setup gameobject and card UI
-        var cardStats = IntitializeCardOnClients(cardObject, scriptableCard, id);
-
-        // Must always be done on server side (in TurnManager except here after spawning)
-        AddCardToPlayerCollection(player, cardStats, destination);
-
-        return cardObject;
-    }
-
-    private CardStats IntitializeCardOnClients(GameObject cardObject, ScriptableCard scriptableCard, int instanceID)
-    {
-        // Client RPC : Init card UI and disable gameObject (cause not yet on UI layer)
-        cardObject.GetComponent<CardStats>().RpcSetCardStats(new CardInfo(scriptableCard, instanceID));
-
-        return cardObject.GetComponent<CardStats>();
-    }
-
-    private void AddCardToPlayerCollection(PlayerManager owner, CardStats card, CardLocation destination)
-    {
-        if (destination == CardLocation.Deck) owner.Cards.deck.Add(card);
-        else if(destination == CardLocation.Discard) owner.Cards.discard.Add(card);
-        else if(destination == CardLocation.Hand) owner.Cards.hand.Add(card);
-    }
-
-    public BattleZoneEntity SpawnFieldEntity(PlayerManager owner, CardInfo cardInfo)
-    {
-        // Entity prefab depending on type
-        GameObject entityObject = cardInfo.type switch
-        {
-            CardType.Creature => Instantiate(creatureEntityPrefab),
-            CardType.Technology => Instantiate(technologyEntityPrefab),
-            _ => null
-        };
-
-        var id = entityObject.GetInstanceID();
-        entityObject.name = cardInfo.title + "_" + id.ToString();
-        
-        // Assign authority
-        NetworkServer.Spawn(entityObject, connectionToClient);
-        entityObject.GetComponent<NetworkIdentity>().AssignClientAuthority(owner.connectionToClient);
-        var entity = entityObject.GetComponent<BattleZoneEntity>();
-
-        // Intitialize entity on clients
-        entity.RpcInitializeEntity(id, owner, cardInfo);
-        
-        return entity;
-    }
     #endregion
 
     #region Ending
@@ -225,6 +128,8 @@ public class GameManager : NetworkBehaviour {
     }
     internal void EndGame()
     {
+        // TODO: Define and implement properly
+
         foreach (var player in players.Values){
             _uiManager.RpcSetPlayerScore(player, player.Health, player.Score);
         }

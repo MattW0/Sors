@@ -4,7 +4,6 @@ using System.Linq;
 using UnityEngine;
 using Mirror;
 using Cysharp.Threading.Tasks;
-using SorsGameState;
 
 public class TurnManager : NetworkBehaviour
 {
@@ -268,8 +267,7 @@ public class TurnManager : NetworkBehaviour
         {
             if (card.title == null) continue;
 
-            _gameManager.PlayerGainCard(owner, card);
-            _logger.RpcLog(owner.ID, card.title, card.cost, LogType.Buy);
+            PlayerGainsCard(owner, card);
         }
 
         _selectedMarketCards.Clear();
@@ -283,11 +281,10 @@ public class TurnManager : NetworkBehaviour
     private void PlayerGainsCurses(PlayerManager player, int amount)
     {
         // TODO: In singleplayer, player is null
-        CardInfo card = new(_gameManager.CurseCard);
         for(int i=0; i<amount; i++)
         {
-            _gameManager.PlayerGainCard(player, _gameManager.CurseCard);
-            _logger.RpcLog(player.ID, card.title, card.cost, LogType.Buy);
+            _gameManager.PlayerGainCurse(player);
+            _logger.RpcLog(player.ID, "gains a curse");
         }
 
         AsyncAwaitQueue(SorsTimings.showSpawnedCard + SorsTimings.waitShort).Forget();
@@ -295,7 +292,7 @@ public class TurnManager : NetworkBehaviour
 
     public void PlayerGainsCard(PlayerManager player, CardInfo cardInfo)
     {
-        _gameManager.PlayerGainCard(player, cardInfo);
+        _gameManager.PlayerGainCard(player, cardInfo, CardLocation.Discard);
         _logger.RpcLog(player.ID, cardInfo.title, cardInfo.cost, LogType.Buy);
         AsyncAwaitQueue(SorsTimings.showSpawnedCard).Forget();
     }
