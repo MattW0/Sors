@@ -36,7 +36,7 @@ public class CardSelectionHandler : MonoBehaviour
     private void ClickedCard(GameObject card)
     {
         var cardStats = card.GetComponent<CardStats>();
-        print("Clicked " + card.name + " in state " + _state);
+        // print("Clicked " + card.name + " in state " + _state);
 
         // Only select or deselect in these turnStates (all card types behave the same way)
         if (_state == TurnState.Discard || _state == TurnState.CardSelection || _state == TurnState.Trash) {
@@ -57,7 +57,7 @@ public class CardSelectionHandler : MonoBehaviour
 
     private void SelectOrDeselectCard(CardStats card)
     {
-        print("Selecting or deselecting card, isSelected: " + card.IsSelected);
+        // print("Selecting or deselecting card, isSelected: " + card.IsSelected);
         if (card.IsSelected) DeselectCard(card);
         else SelectCard(card);
     }

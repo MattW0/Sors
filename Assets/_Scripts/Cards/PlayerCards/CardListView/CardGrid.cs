@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityUtils;
 
 [ExecuteAlways]
 public class CardGrid : MonoBehaviour
@@ -25,20 +26,16 @@ public class CardGrid : MonoBehaviour
         UpdateGrid();
         updateGrid = false;
     }
-
     
-    internal void SetPanelDimension(int count)
+    internal void Open(int count)
     {
-        var minWidth = itemDimensions.x*count*itemScaleFactor + gap*(count-1) + 2*padding.x;
-        _panelWidth = Mathf.Min(PANEL_MAX_WIDTH, minWidth);
-        _maxViewTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, _panelWidth);
-
-        var height = itemDimensions.y*itemScaleFactor + 2*padding.y + HEADER_HEIGHT;
-        _maxViewTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+        // transform.position = position;
+        SetPanelDimension(count);
     }
 
-    public void Add(List<Transform> transforms)
+    public void AddCards(List<Transform> transforms)
     {
+        _parentTransform.DestroyChildren();
         foreach (var t in transforms) {
             t.SetParent(_parentTransform, false);
             t.localScale = Vector3.one * itemScaleFactor;
@@ -47,10 +44,10 @@ public class CardGrid : MonoBehaviour
         updateGrid = true;
     }
 
-    public void Add(Transform transform)
+    public void AddAbility(Transform t)
     {
-        transform.SetParent(_parentTransform, false);
-        transform.localScale = Vector3.one * itemScaleFactor;
+        t.SetParent(_parentTransform, false);
+        t.localScale = Vector3.one * itemScaleFactor;
         updateGrid = true;
     }
 
@@ -61,7 +58,7 @@ public class CardGrid : MonoBehaviour
             return;
         }
 
-        var limit = _panelWidth / 2f - itemDimensions.x*itemScaleFactor / 2f - padding.x;
+        var limit = _panelWidth / 2f - itemDimensions.x * itemScaleFactor / 2f - padding.x;
 
         int i = 0;
         foreach (Transform child in _parentTransform) {
@@ -73,9 +70,19 @@ public class CardGrid : MonoBehaviour
         }
     }
 
-    private void OnEnable()
+    // private void OnEnable()
+    // {
+    //     SetPanelDimension(_parentTransform.childCount);
+    //     updateGrid = true;
+    // }
+
+    private void SetPanelDimension(int count)
     {
-        SetPanelDimension(_parentTransform.childCount);
-        updateGrid = true;
+        var minWidth = itemDimensions.x*count*itemScaleFactor + gap*(count-1) + 2*padding.x;
+        _panelWidth = Mathf.Min(PANEL_MAX_WIDTH, minWidth);
+        _maxViewTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, _panelWidth);
+
+        var height = itemDimensions.y*itemScaleFactor + 2*padding.y + HEADER_HEIGHT;
+        _maxViewTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
     }
 }

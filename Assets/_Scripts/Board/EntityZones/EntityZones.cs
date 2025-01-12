@@ -5,22 +5,24 @@ using System.Linq;
 
 public class EntityZones : NetworkBehaviour
 {
-    [SerializeField] private Transform _spawnedEntityTransform;
+    // List -> Server logic (which entity belongs to which player) 
     [SerializeField] private List<TechnologyEntity> _clientTechnologies = new();
     [SerializeField] private List<CreatureEntity> _clientCreatures = new();
     [SerializeField] private List<CreatureEntity> _hostCreatures = new();
     [SerializeField] private List<TechnologyEntity> _hostTechnologies = new();
-    
+
+    // PlayZoneCardHolder[] -> Client logic (which entity is where)
     [SerializeField] private PlayZoneCardHolder[] _opponentTechnologyHolders;
     [SerializeField] private PlayZoneCardHolder[] _opponentCreatureHolders;
     [SerializeField] private PlayZoneCardHolder[] _playerCreatureHolders;
     [SerializeField] private PlayZoneCardHolder[] _playerTechnologyHolders;
+    [SerializeField] private Transform _spawnedEntityTransform;
 
     [ClientRpc]
     public void RpcAddEntity(BattleZoneEntity entity, bool isHost)
     {
         // Assign free holder to later make entity move there
-        entity.EntityHolder = GetFirstFreeHolder(entity);
+        entity.EntityHolder = GetFirstFreeHolder(entity.cardType, entity.isOwned);
         entity.EntityHolder.IsOccupied = true;
 
         if (entity.cardType == CardType.Technology)
@@ -154,16 +156,18 @@ public class EntityZones : NetworkBehaviour
         }
     }
 
-    private PlayZoneCardHolder GetFirstFreeHolder(BattleZoneEntity entity)
+    private PlayZoneCardHolder GetFirstFreeHolder(CardType entityType, bool isOwned)
     {
         PlayZoneCardHolder holder = null;
-        if(entity.isOwned){
-            if(entity.cardType == CardType.Technology) holder = _playerTechnologyHolders.FirstOrDefault(h => !h.IsOccupied);
-            if(entity.cardType == CardType.Creature) holder = _playerCreatureHolders.FirstOrDefault(h => !h.IsOccupied);
+        if(isOwned){
+            if(entityType == CardType.Technology) holder = _playerTechnologyHolders.FirstOrDefault(h => !h.IsOccupied);
+            if(entityType == CardType.Creature) holder = _playerCreatureHolders.FirstOrDefault(h => !h.IsOccupied);
         } else {
-            if(entity.cardType == CardType.Technology) holder = _opponentTechnologyHolders.FirstOrDefault(h => !h.IsOccupied);
-            if(entity.cardType == CardType.Creature) holder = _opponentCreatureHolders.FirstOrDefault(h => !h.IsOccupied);
+            if(entityType == CardType.Technology) holder = _opponentTechnologyHolders.FirstOrDefault(h => !h.IsOccupied);
+            if(entityType == CardType.Creature) holder = _opponentCreatureHolders.FirstOrDefault(h => !h.IsOccupied);
         }
+
+        // TODO: Add function here to make player kill an existing entity if no free holders?
         
         return holder;
     }

@@ -32,6 +32,7 @@ public class SorsColors : ScriptableObject
 
     // -- UI Elements --
     public Color callToAction = new(.95f, .95f, .6f, 1f);
+    public Color neutralLight = new(0.4f, 0.4f, 0.4f, 1f);
     public Color neutral = new(0.15f, 0.15f, 0.16f, 1f);
     public Color textBackground = new(0f, 0f, 0f, 0.85f);
 
@@ -79,6 +80,7 @@ public enum ColorType : byte
     Health = 12,
     Points = 13,
     MoneyValue = 14,
+    NeutralLight = 19,
     Neutral = 20,
     TextBackground = 21,
     CallToAction = 30,

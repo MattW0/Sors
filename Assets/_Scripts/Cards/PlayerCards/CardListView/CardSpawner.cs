@@ -17,15 +17,13 @@ public class CardSpawner : MonoBehaviour
 
     public void SpawnDetailCardObjectsInGrid(List<CardStats> cards)
     {
-        _grid.SetPanelDimension(cards.Count);
+        _grid.Open(cards.Count);
 
         var transforms = new List<Transform>();
         foreach (var c in cards){
             transforms.Add(InstantiateCard(c.cardInfo));
         }
-
-        _grid.Add(transforms);
-        _grid.SetPanelDimension(cards.Count);
+        _grid.AddCards(transforms);
     }
 
     private Transform InstantiateCard(CardInfo cardInfo)

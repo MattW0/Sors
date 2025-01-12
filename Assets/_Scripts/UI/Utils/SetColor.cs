@@ -49,6 +49,7 @@ public class SetColor : MonoBehaviour
             
             // UI
             ColorType.CallToAction => _colorPalette.callToAction,
+            ColorType.NeutralLight => _colorPalette.neutralLight,
             ColorType.Neutral => _colorPalette.neutral,
             ColorType.TextBackground => _colorPalette.textBackground,
             _ => Color.white
