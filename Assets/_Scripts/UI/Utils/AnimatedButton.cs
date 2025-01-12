@@ -2,8 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using System.Runtime.CompilerServices;
 
-[ExecuteInEditMode]
+[ExecuteInEditMode, RequireComponent(typeof(Animator))]
 public class AnimatedButton : MonoBehaviour
 {
     [Header("Settings")]
@@ -15,6 +16,21 @@ public class AnimatedButton : MonoBehaviour
     public TMP_Text normalText;
     public TMP_Text highlightedText;
     public TMP_Text pressedText;
+
+    private Animator _animator;
+
+    void Awake()
+    {
+        _animator = GetComponent<Animator>();
+    }
+
+    public void StartCallToAction()
+    {
+        // TODO: How to implement this? Animation gets overwritten by other state 
+        // Button has only 4 conditions (Normal, Highlighted, Pressed, Disabled) and is triggered by Button component (?)
+        // Also do on other elements (text, images, etc)
+        _animator.Play("CallToAction");
+    }
 
     void OnEnable()
     {

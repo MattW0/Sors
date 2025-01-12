@@ -74,7 +74,8 @@ public class Market : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcBeginMarketPhase(TurnState phase){
+    public void RpcBeginMarketPhase(TurnState phase)
+    {
         _currentPhase = phase;
         _ui.BeginPhase(phase);
     }
@@ -83,7 +84,8 @@ public class Market : NetworkBehaviour
     #region Tile Cost
 
     [TargetRpc]
-    public void TargetMarketPriceReduction(NetworkConnection target, CardType type, int priceReduction){
+    public void TargetMarketPriceReduction(NetworkConnection target, CardType type, int priceReduction)
+    {
         if (type == CardType.Money){
             foreach(var tile in moneyTiles) tile.SetBonus(priceReduction);
         } else if (type == CardType.Technology){
@@ -161,8 +163,9 @@ public class Market : NetworkBehaviour
     }
     
     [ClientRpc]
-    public void RpcEndMarketPhase(){
-        _ui.MinButton();
+    public void RpcEndMarketPhase()
+    {
+        _ui.EndPhase();
         OnMarketPhaseEnded?.Invoke();
     }
     #endregion
