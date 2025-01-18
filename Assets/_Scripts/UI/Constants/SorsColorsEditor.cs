@@ -1,3 +1,5 @@
+#if UNITY_EDITOR
+
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.Presets;
@@ -173,3 +175,5 @@ public class SorsColorsEditor : Editor
         
     }
 }
+
+#endif

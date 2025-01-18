@@ -13,7 +13,7 @@ public class SetColorOutline : MonoBehaviour
 
     void OnEnable()
     {
-        try { _colorPalette = Resources.Load<SorsColors>("Sors Colors"); }
+        try { _colorPalette = Resources.Load<SorsColors>("ColorDefinitions/Sors Colors"); }
         catch { Debug.Log("No Sors Colors found. Assign it manually, otherwise it won't work properly.", this); }
     
         outline = GetComponent<Outline>();

@@ -12,8 +12,8 @@ public class SetColor : MonoBehaviour
 
     void OnEnable()
     {
-        try { _colorPalette = Resources.Load<SorsColors>("Sors Colors"); }
-        catch { Debug.Log("No Sors Colors found at Resources/Sors Colors. Assign it manually on " + gameObject.name, this); }
+        try { _colorPalette = Resources.Load<SorsColors>("ColorDefinitions/Sors Colors"); }
+        catch { Debug.Log("No Sors Colors found at Resources/ColorDefinitions/Sors Colors. Assign it manually on " + gameObject.name, this); }
     
         image = GetComponent<Image>();
         _dynamicUpdates = _colorPalette.enableDynamicUpdate;

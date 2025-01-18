@@ -18,7 +18,6 @@ public class PlayerInterfaceManager : NetworkBehaviour
     private const int COMPUTER_PLAYER_ID = 1;
     private const string COMPUTER_PLAYER_NAME = "Computer";
     public static event Action<string, string> OnChatMessageReceived;
-    private SorsColors _colorPalette;
     
     private void Awake()
     {
@@ -27,7 +26,6 @@ public class PlayerInterfaceManager : NetworkBehaviour
         _buttons = GetComponent<PlayerInterfaceButtons>();
         TurnManager.OnTurnStateChanged += RpcChangeActionDescriptionText;
 
-        _colorPalette = Resources.Load<SorsColors>("Sors Colors");
     }
 
     [ClientRpc]
@@ -38,10 +36,11 @@ public class PlayerInterfaceManager : NetworkBehaviour
         if(!_player.isServer) gameObject.GetComponent<PlayerInterfaceButtons>().DisableUtilityButton();
         // else TurnManager.OnPlayerIsReady += RpcLogPlayerAction;
 
+        var colorPalette = UIManager.ColorPalette;
         foreach (var p in players)
         {
-            if(p.ID == _player.ID) _messageOrigin.Add(p.ID, p.PlayerName.AddColor(_colorPalette.player));
-            else _messageOrigin.Add(p.ID, p.PlayerName.AddColor(_colorPalette.opponent));
+            if(p.ID == _player.ID) _messageOrigin.Add(p.ID, p.PlayerName.AddColor(colorPalette.player));
+            else _messageOrigin.Add(p.ID, p.PlayerName.AddColor(colorPalette.opponent));
         }
 
         // Single-player (Count < 3 because 'Game' is another origin)

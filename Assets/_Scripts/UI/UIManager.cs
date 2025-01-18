@@ -18,7 +18,8 @@ public class UIManager : NetworkBehaviour
     {
         if (!Instance) Instance = this;
 
-        ColorPalette = Resources.Load<SorsColors>("Sors Colors");
+        try { ColorPalette = Resources.Load<SorsColors>("ColorDefinitions/Sors Colors"); }
+        catch { Debug.Log("No Sors Colors found at Resources/ColorDefinitions/Sors Colors. Assign it manually on " + gameObject.name, this); }
 
         CardPileClick.OnLookAtCardList += RequestCardList;
         CardListUI.OnCloseCardCollection += CloseCardList;
