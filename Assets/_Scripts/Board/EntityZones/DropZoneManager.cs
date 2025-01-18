@@ -72,6 +72,7 @@ public class DropZoneManager : NetworkBehaviour
     {
         foreach(var dead in entities)
         {
+            print("Entity dies: " + dead.CardInfo.title + " Owner: " + dead.Owner.PlayerName);
             // Remove triggers 
             _triggerHandler.EntityLeaves(dead);
             _entityZones.RpcRemoveEntity(dead, dead.Owner.isLocalPlayer);

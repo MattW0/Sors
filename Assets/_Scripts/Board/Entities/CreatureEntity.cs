@@ -9,8 +9,8 @@ public class CreatureEntity : BattleZoneEntity
     private EntityUI _ui;
     private List<Traits> _traits;
     public List<Traits> GetTraits() => _traits;
-    public static event Action<BattleZoneEntity, BattleZoneEntity> OnDeclaredAttack;
-    public static event Action<BattleZoneEntity, BattleZoneEntity> OnDeclaredBlock;
+    public static event Action<BattleZoneEntity, BattleZoneEntity> OnOpponentDeclaredAttack;
+    public static event Action<BattleZoneEntity, BattleZoneEntity> OnOpponentDeclaredBlock;
 
     [SerializeField] private int _attack;
     public int Attack
@@ -91,14 +91,18 @@ public class CreatureEntity : BattleZoneEntity
     public void RpcDeclaredAttack(BattleZoneEntity target)
     {
         IsAttacking = true;
-        OnDeclaredAttack?.Invoke(this, target);
+
+        if (isOwned) return;
+        OnOpponentDeclaredAttack?.Invoke(this, target);
     }
 
     [ClientRpc]
     public void RpcDeclaredBlock(BattleZoneEntity target)
     {
         IsBlocking = true;
-        OnDeclaredBlock?.Invoke(this, target);
+
+        if (isOwned) return;
+        OnOpponentDeclaredBlock?.Invoke(this, target);
     }
 
     private void CheckIfCanAct(bool attackStep)

@@ -8,7 +8,7 @@ public class AnimatedPanel : MonoBehaviour
     private Animator _animator;
     private CanvasGroup _canvasGroup;
 
-    public void Awake()
+    public virtual void Awake()
     {
         _animator = gameObject.GetComponent<Animator>();
         _canvasGroup = gameObject.GetComponent<CanvasGroup>();

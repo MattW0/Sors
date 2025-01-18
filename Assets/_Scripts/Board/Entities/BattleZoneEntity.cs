@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using Mirror;
-using Unity.VisualScripting;
 using UnityEngine;
 
 
@@ -41,7 +39,7 @@ public class BattleZoneEntity : NetworkBehaviour
         set {
             _targetable = value;
             if(cardType == CardType.Player) _playerUI.TargetHighlight(value, isOwned);
-            else _entityUI.Highlight(HighlightType.Target);
+            else _entityUI.Highlight(_targetable ? HighlightType.Target : HighlightType.None);
         }
     }
 

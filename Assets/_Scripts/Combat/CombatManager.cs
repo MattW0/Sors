@@ -14,7 +14,6 @@ public class CombatManager : NetworkBehaviour
     private List<CombatClash> _clashes = new();
     private GameManager _gameManager;
     private TurnManager _turnManager;
-    private BoardManager _boardManager;
     [SerializeField] private DamageSystem _damageSystem;
     private PlayerInterfaceManager _playerInterfaceManager;
     private List<PlayerManager> _readyPlayers = new();
@@ -38,7 +37,6 @@ public class CombatManager : NetworkBehaviour
     {
         _gameManager = GameManager.Instance;
         _turnManager = TurnManager.Instance;
-        _boardManager = BoardManager.Instance;
         _playerInterfaceManager = PlayerInterfaceManager.Instance;
     }
 

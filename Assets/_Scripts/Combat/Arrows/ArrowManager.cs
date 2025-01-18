@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
 using Cysharp.Threading.Tasks;
-using System;
-using System.Linq;
 
 public class ArrowManager : NetworkBehaviour
 {
@@ -12,6 +10,8 @@ public class ArrowManager : NetworkBehaviour
     [SerializeField] private GameObject targetArrowPrefab;
     [SerializeField] private GameObject attackerArrowPrefab;
     [SerializeField] private GameObject blockerArrowPrefab;
+    [SerializeField] private GameObject opponentAttackerArrowPrefab;
+    [SerializeField] private GameObject opponentBlockerArrowPrefab;
     private TurnState _combatState;
     private PlayerManager _clicker;
     private CombatManager _combatManager;
@@ -25,8 +25,8 @@ public class ArrowManager : NetworkBehaviour
         EntityClickHandler.OnEntityClicked += HandleEntityClicked;
         PlayerUI.OnClickedPlayer += HandleClickedPlayerEntity;
 
-        CreatureEntity.OnDeclaredAttack += DeclaredAttack;
-        CreatureEntity.OnDeclaredBlock += DeclaredBlock;
+        CreatureEntity.OnOpponentDeclaredAttack += OpponentDeclaredAttack;
+        CreatureEntity.OnOpponentDeclaredBlock += OpponentDeclaredBlock;
         CombatClash.OnFinishClash += RpcFinishCombatClash;
 
         BattleZoneEntity.OnTargetStart += EntityTargetStart;
@@ -122,27 +122,30 @@ public class ArrowManager : NetworkBehaviour
             foreach (var _arrow in _floatingArrows.Values) _arrow.SetTarget(target.position);
             _floatingArrows.Clear();
         } else {
-            SpawnArrow(targetArrowPrefab, origin, target);
+            SpawnArrowFromOpponent(targetArrowPrefab, origin, target);
         }
     }
-    private void DeclaredAttack(BattleZoneEntity origin, BattleZoneEntity target)
+    private void OpponentDeclaredAttack(BattleZoneEntity origin, BattleZoneEntity target)
     {
+        // print("ArrowManager: Declared attack");
         if (_combatArrows.ContainsKey(origin.ID)) return;
 
-        var arrow = SpawnArrow(attackerArrowPrefab, origin.transform, target.transform);
+        var arrow = SpawnArrowFromOpponent(opponentAttackerArrowPrefab, origin.transform, target.transform);
         _combatArrows[origin.ID] = arrow;
     }
-    private void DeclaredBlock(BattleZoneEntity origin, BattleZoneEntity target)
+    private void OpponentDeclaredBlock(BattleZoneEntity origin, BattleZoneEntity target)
     {
+        // print("ArrowManager: Declared block");
         if (_combatArrows.ContainsKey(origin.ID)) return;
 
-        var arrow = SpawnArrow(blockerArrowPrefab, origin.transform, target.transform);
+        var arrow = SpawnArrowFromOpponent(opponentBlockerArrowPrefab, origin.transform, target.transform);
         _combatArrows[origin.ID] = arrow;
     }
 
-    private ArrowRenderer SpawnArrow(GameObject prefab, Transform origin, Transform target)
+    private ArrowRenderer SpawnArrowFromOpponent(GameObject prefab, Transform origin, Transform target)
     {
         var arrowRenderer = Instantiate(prefab, parentTransform).GetComponent<ArrowRenderer>();
+        
         arrowRenderer.SetOrigin(origin.position);
         arrowRenderer.SetTarget(target.position);
 
@@ -174,8 +177,8 @@ public class ArrowManager : NetworkBehaviour
         EntityClickHandler.OnEntityClicked -= HandleEntityClicked;
         PlayerUI.OnClickedPlayer -= HandleClickedPlayerEntity;
         
-        CreatureEntity.OnDeclaredAttack -= DeclaredAttack;
-        CreatureEntity.OnDeclaredBlock -= DeclaredBlock;
+        CreatureEntity.OnOpponentDeclaredAttack -= OpponentDeclaredAttack;
+        CreatureEntity.OnOpponentDeclaredBlock -= OpponentDeclaredBlock;
         CombatClash.OnFinishClash -= RpcFinishCombatClash;
 
         BattleZoneEntity.OnTargetStart -= EntityTargetStart;

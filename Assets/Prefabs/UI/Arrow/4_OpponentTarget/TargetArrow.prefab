@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4613943271108028}
   - component: {fileID: 114647401256595600}
   m_Layer: 8
-  m_Name: 1_TargetArrow
+  m_Name: TargetArrow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -24,13 +24,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1267180111628874}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &114647401256595600
 MonoBehaviour:
@@ -45,12 +45,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   stopUpdating: 0
-  height: 0.1
-  segmentLength: 0.5
+  height: 0.3
+  segmentLength: 0.2
   fadeDistance: 0.3
   speed: 2.5
   start: {x: -3, y: 0.5, z: -1}
   end: {x: 2.5, y: 0.5, z: 1}
   upwards: {x: 0, y: 1, z: 0}
-  arrowPrefab: {fileID: 1558564487493764, guid: 180d38566dc48a84d87ee82945502ae6, type: 3}
-  segmentPrefab: {fileID: 1121374110014508, guid: 535ad92f9f7ef9047a8a3ad99390d422, type: 3}
+  arrowPrefab: {fileID: 1558564487493764, guid: 5ea536020ad04894789f872301eb2b86, type: 3}
+  segmentPrefab: {fileID: 1121374110014508, guid: 9c372a67d7123f44dbea0660cb04eec3, type: 3}

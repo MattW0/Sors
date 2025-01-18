@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4613943271108028}
   - component: {fileID: 114647401256595600}
   m_Layer: 8
-  m_Name: 3_BlockerArrow
+  m_Name: BlockerArrowOpponent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -24,13 +24,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1267180111628874}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &114647401256595600
 MonoBehaviour:
@@ -45,10 +45,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   stopUpdating: 0
-  height: 0.2
-  segmentLength: 0.25
-  fadeDistance: 0.275
-  speed: 1.5
+  height: 0.3
+  segmentLength: 0.12
+  fadeDistance: 0.1
+  speed: 2
   start: {x: -3, y: 0.5, z: -1}
   end: {x: 2.5, y: 0.5, z: 1}
   upwards: {x: 0, y: 1, z: 0}

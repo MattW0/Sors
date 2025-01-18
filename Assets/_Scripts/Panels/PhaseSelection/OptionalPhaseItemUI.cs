@@ -24,6 +24,9 @@ public class OptionalPhaseItemUI : MonoBehaviour, IHighlightable, IPointerClickH
             tooltipBonus.enabled = value;
         }
     }
+
+    public bool TooltipDisabled { get; set; }
+
     public static event Action<TurnState> OnToggleSelection;
 
     private void Awake()
@@ -51,12 +54,16 @@ public class OptionalPhaseItemUI : MonoBehaviour, IHighlightable, IPointerClickH
 
     public void OnPointerEnter(PointerEventData eventData)
     {
+        if(TooltipDisabled) return;
+
         _tooltip.WindowIn();
         if (_selectable) playerChoice.enabled = true;
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
+        if(TooltipDisabled) return;
+
         _tooltip.WindowOut();
         if(!_isSelected) playerChoice.enabled = false;
     }

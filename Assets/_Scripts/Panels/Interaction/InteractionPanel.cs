@@ -19,6 +19,7 @@ public class InteractionPanel : NetworkBehaviour
 
     private void Awake(){
         if (Instance == null) Instance = this;
+
         _selectionHandler = GetComponent<CardSelectionHandler>();
     }
 
@@ -26,7 +27,7 @@ public class InteractionPanel : NetworkBehaviour
     public void RpcPrepareInteractionPanel() => _selectionHandler.GetLocalPlayer();
 
     [TargetRpc]
-    public void TargetStartInteraction(NetworkConnection target, List<CardStats> interactableCards, TurnState turnState, int numberSelections)
+    public void TargetStartCardInteraction(NetworkConnection target, List<CardStats> interactableCards, TurnState turnState, int numberSelections)
     {
         print($"    - InteractionPanel: Choose {numberSelections} / {interactableCards.Count} cards");
 

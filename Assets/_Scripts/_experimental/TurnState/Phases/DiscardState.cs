@@ -17,7 +17,7 @@ public class DiscardState : Phase
             int nbInteractions = discardPerDrawPhase;
 
             // Start the discard interaction
-            InteractionPanel.Instance.TargetStartInteraction(
+            InteractionPanel.Instance.TargetStartCardInteraction(
                 player.connectionToClient, 
                 player.Cards.hand, 
                 TurnState.Discard, 

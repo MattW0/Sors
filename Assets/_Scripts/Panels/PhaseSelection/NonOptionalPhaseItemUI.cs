@@ -7,6 +7,8 @@ using DG.Tweening;
 public class NonOptionalPhaseItemUI : MonoBehaviour, IHighlightable, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
     public bool IsSelectable { get; set; }
+    public bool TooltipDisabled { get; set; }
+
     private TooltipWindow _tooltip;
     [SerializeField] private Image _highlight;
     [SerializeField] private Image _icon;
@@ -31,8 +33,16 @@ public class NonOptionalPhaseItemUI : MonoBehaviour, IHighlightable, IPointerCli
         OnPressedCombatButton?.Invoke();
     }
 
-    public void OnPointerEnter(PointerEventData eventData) => _tooltip.WindowIn();
-    public void OnPointerExit(PointerEventData eventData) => _tooltip.WindowOut();
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (TooltipDisabled) return;
+        _tooltip.WindowIn();
+    }
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        if (TooltipDisabled) return;
+        _tooltip.WindowOut();
+    }
 
     public void Highlight(float alpha, float fadeDuration)
     {
