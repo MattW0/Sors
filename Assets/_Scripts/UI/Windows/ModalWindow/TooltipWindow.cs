@@ -3,6 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(CanvasGroup), typeof(Animator))]
 public class TooltipWindow : MonoBehaviour, IModalWindow
 {
+    public bool IsHidden { get; set; }
     public bool sharpAnimations = false;
     private Animator _mWindowAnimator;
     private CanvasGroup _canvasGroup;
@@ -15,6 +16,9 @@ public class TooltipWindow : MonoBehaviour, IModalWindow
 
     public void WindowIn()
     {
+        if (!IsHidden) return;
+
+        IsHidden = false;
         _canvasGroup.alpha = 1;
 
         if (sharpAnimations == false)
@@ -25,6 +29,9 @@ public class TooltipWindow : MonoBehaviour, IModalWindow
 
     public void WindowOut()
     {
+        if (IsHidden) return;
+
+        IsHidden = true;
         _canvasGroup.alpha = 0;
 
         if (sharpAnimations == false)

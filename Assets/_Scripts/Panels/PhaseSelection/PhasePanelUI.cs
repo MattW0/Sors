@@ -77,10 +77,20 @@ public class PhasePanelUI : MonoBehaviour
 
     internal void StartCombatPhase(TurnState state)    
     {
-        foreach(var p in _phaseHighlights) p.TooltipDisabled = true;
-
-        if (state == TurnState.Attackers) attack.IsSelectable = true;
-        else if (state == TurnState.Blockers) block.IsSelectable = true;
+        switch (state) {
+            case TurnState.Attackers:
+                attack.IsSelectable = true;
+                foreach(var p in _phaseHighlights) p.TooltipDisabled = true;
+                break;
+            case TurnState.Blockers:
+                block.IsSelectable = true;
+                break;
+            case TurnState.CombatDamage:
+                break;
+            case TurnState.CombatCleanUp:
+                foreach(var p in _phaseHighlights) p.TooltipDisabled = false;
+                break;
+        }
     }
 
     internal void DisableCombatButtons()

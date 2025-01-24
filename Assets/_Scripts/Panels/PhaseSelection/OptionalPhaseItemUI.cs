@@ -25,7 +25,14 @@ public class OptionalPhaseItemUI : MonoBehaviour, IHighlightable, IPointerClickH
         }
     }
 
-    public bool TooltipDisabled { get; set; }
+    private bool _tooltipDisabled;
+    public bool TooltipDisabled { 
+        get => _tooltipDisabled; 
+        set {
+            _tooltipDisabled = value;
+            _tooltip.WindowOut();
+        }
+    }
 
     public static event Action<TurnState> OnToggleSelection;
 
