@@ -29,7 +29,7 @@ public class CombatManager : NetworkBehaviour
     {
         OnCombatStateChanged?.Invoke(newState);
 
-        if (newState == TurnState.CombatDamage) ResolveDamage();
+        if (newState == TurnState.CombatDamage) _damageSystem.EvaluateBlocks(_attackerTarget, _blockerAttacker);
         else if (newState == TurnState.CombatCleanUp) CombatCleanUp(false);
     }
 
@@ -81,13 +81,6 @@ public class CombatManager : NetworkBehaviour
 
         _readyPlayers.Clear();
         return true;
-    }
-
-    private void ResolveDamage()
-    {
-        // Skip damage logic if there are no attackers 
-        if (_attackerTarget.Count == 0) UpdateCombatState(TurnState.CombatCleanUp);
-        else _damageSystem.EvaluateBlocks(_attackerTarget, _blockerAttacker);
     }
 
     public void CombatCleanUp(bool forced)

@@ -11,20 +11,40 @@ public class InteractionPanel : NetworkBehaviour
     [SerializeField] private CardPileInteraction _playerHand;
     [SerializeField] private CardPileInteraction _playerDiscard;
     private CardSelectionHandler _selectionHandler;
+    private BoardManager _boardManager;
 
     [Header("Helper Fields")]
     [SerializeField] private List<CardStats> _selectableCards = new();
     private TurnState _state;
     public static event Action<TurnState, int, bool> OnInteractionBegin;
+    public static event Action<TurnState> OnEndedCombatState;
 
     private void Awake(){
         if (Instance == null) Instance = this;
 
         _selectionHandler = GetComponent<CardSelectionHandler>();
+        InteractionUI.OnConfirmInteraction += PlayerPressedConfirmButton;
+        InteractionUI.OnSkipInteraction += PlayerPressedSkippedButton;
+    }
+
+    private void PlayerPressedConfirmButton(bool isCardInteraction)
+    {
+        if (isCardInteraction) _selectionHandler.ConfirmCardSelection();
+        else CmdPlayerConfirms(_selectionHandler.LocalPlayer);
+    }
+
+    private void PlayerPressedSkippedButton(bool isCardInteraction)
+    {
+        if (isCardInteraction) _selectionHandler.SkipCardInteraction();
+        else { /* Do nothing */ }
     }
 
     [ClientRpc]
-    public void RpcPrepareInteractionPanel() => _selectionHandler.GetLocalPlayer();
+    public void RpcPrepareInteractionPanel()
+    {
+        _boardManager = BoardManager.Instance;
+        _selectionHandler.LocalPlayer = PlayerManager.GetLocalPlayer();
+    }
 
     [TargetRpc]
     public void TargetStartCardInteraction(NetworkConnection target, List<CardStats> interactableCards, TurnState turnState, int numberSelections)
@@ -109,4 +129,31 @@ public class InteractionPanel : NetworkBehaviour
     private bool ContainsMoney() => _selectableCards.Any(c => c.cardInfo.type == CardType.Money);
     private bool ContainsTechnology() => _selectableCards.Any(c => c.cardInfo.type == CardType.Technology);
     private bool ContainsCreature() => _selectableCards.Any(c => c.cardInfo.type == CardType.Creature);
+
+    #region Combat
+    internal void RpcStartCombatState(TurnState state)
+    {
+        print($"    - InteractionPanel: Choose Attackers");
+
+        _state = state;
+
+        if (state == TurnState.Attackers || state == TurnState.Blockers) OnInteractionBegin?.Invoke(state, -1, false);
+    }
+
+    [Command(requiresAuthority = false)]
+    private void CmdPlayerConfirms(PlayerManager player) => _boardManager.PlayerConfirmsCombatState(player);
+
+    [TargetRpc]
+    internal void TargetEndCombatState(NetworkConnectionToClient connectionToClient)
+    {
+        OnEndedCombatState?.Invoke(_state);
+    }
+
+    #endregion
+
+    private void OnDestroy()
+    {
+        InteractionUI.OnConfirmInteraction -= PlayerPressedConfirmButton;
+        InteractionUI.OnSkipInteraction -= PlayerPressedSkippedButton;
+    }
 }

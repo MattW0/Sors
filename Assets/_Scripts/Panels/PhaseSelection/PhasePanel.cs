@@ -10,7 +10,6 @@ public class PhasePanel : NetworkBehaviour
     private int _nbPhasesToChose;
     private PhasePanelUI _phasePanelUI;
     private PlayerManager _localPlayer;
-    private BoardManager _boardManager;
     public static event Action OnPhaseSelectionStarted;
     public static event Action OnPhaseSelectionConfirmed;
     
@@ -19,11 +18,10 @@ public class PhasePanel : NetworkBehaviour
         _phasePanelUI = GetComponent<PhasePanelUI>();
 
         TurnManager.OnStartPhaseSelection += RpcStartSelection;
+        OptionalPhaseItemUI.OnToggleSelection += UpdateSelectedPhase;
+        
         TurnManager.OnTurnStateChanged += RpcUpdatePhaseHighlight;
         CombatManager.OnCombatStateChanged += RpcUpdatePhaseHighlight;
-
-        NonOptionalPhaseItemUI.OnPressedCombatButton += PlayerPressedCombatButton;
-        OptionalPhaseItemUI.OnToggleSelection += UpdateSelectedPhase;
     }
 
     [ClientRpc]
@@ -31,7 +29,6 @@ public class PhasePanel : NetworkBehaviour
     {
         _nbPhasesToChose = nbPhases;
         _localPlayer = PlayerManager.GetLocalPlayer();
-        _boardManager = BoardManager.Instance;
     }
 
     [ClientRpc]
@@ -50,19 +47,6 @@ public class PhasePanel : NetworkBehaviour
 
     [ClientRpc]
     private void RpcUpdatePhaseHighlight(TurnState newState) => _phasePanelUI.UpdatePhaseHighlight(newState);
-
-    #endregion
-
-    #region Combat
-
-    [ClientRpc] public void RpcStartCombatPhase(TurnState state) => _phasePanelUI.StartCombatPhase(state);
-
-    [TargetRpc] public void TargetDisableCombatButtons(NetworkConnection conn) => _phasePanelUI.DisableCombatButtons();
-
-    private void PlayerPressedCombatButton() => CmdPlayerPressedCombatButton(_localPlayer);
-    
-    [Command(requiresAuthority = false)]
-    private void CmdPlayerPressedCombatButton(PlayerManager player) => _boardManager.PlayerPressedReadyButton(player);
 
     #endregion
 
@@ -91,10 +75,9 @@ public class PhasePanel : NetworkBehaviour
     private void OnDestroy() 
     {
         TurnManager.OnStartPhaseSelection -= RpcStartSelection;
+        OptionalPhaseItemUI.OnToggleSelection -= UpdateSelectedPhase;
+
         TurnManager.OnTurnStateChanged -= RpcUpdatePhaseHighlight;
         CombatManager.OnCombatStateChanged -= RpcUpdatePhaseHighlight;
-
-        NonOptionalPhaseItemUI.OnPressedCombatButton -= PlayerPressedCombatButton;
-        OptionalPhaseItemUI.OnToggleSelection -= UpdateSelectedPhase;
     }
 }

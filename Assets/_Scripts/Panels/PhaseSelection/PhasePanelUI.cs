@@ -39,6 +39,9 @@ public class PhasePanelUI : MonoBehaviour
         
         _oldHighlight.Disable(fadeDuration);
         HighlightTransition(newHighlightIndex);
+
+        if(newState == TurnState.Attackers) DisableTooltips(true);
+        else if (newState == TurnState.CombatCleanUp) DisableTooltips(false);
     }
     
     private void HighlightTransition(int newIndex)
@@ -75,29 +78,8 @@ public class PhasePanelUI : MonoBehaviour
         };
     }
 
-    internal void StartCombatPhase(TurnState state)    
+    internal void DisableTooltips(bool b)    
     {
-        switch (state) {
-            case TurnState.Attackers:
-                attack.IsSelectable = true;
-                foreach(var p in _phaseHighlights) p.TooltipDisabled = true;
-                break;
-            case TurnState.Blockers:
-                block.IsSelectable = true;
-                break;
-            case TurnState.CombatDamage:
-                break;
-            case TurnState.CombatCleanUp:
-                foreach(var p in _phaseHighlights) p.TooltipDisabled = false;
-                break;
-        }
-    }
-
-    internal void DisableCombatButtons()
-    {
-        foreach(var p in _phaseHighlights) p.TooltipDisabled = false;
-
-        attack.IsSelectable = false;
-        block.IsSelectable = false;
+        foreach(var p in _phaseHighlights) p.TooltipDisabled = b;
     }
 }

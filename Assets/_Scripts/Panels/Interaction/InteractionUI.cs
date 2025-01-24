@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Linq;
 
 public class InteractionUI : AnimatedPanel
 {
@@ -12,18 +13,21 @@ public class InteractionUI : AnimatedPanel
     [SerializeField] private Button _confirmButton;
     [SerializeField] private TMP_Text _displayText;
     [SerializeField] private DetailCardPreview _detailCardPreview;
-    
+
+    [Header("Interaction States")]
+    [SerializeField] private InteractionState[] interactionStates;
+    private InteractionState _currentState;
 
     [Header("Helper Fields")]
-    private TurnState _state;
     private int _nbCardsToSelectMax;
-    private CardSelectionHandler _selectionHandler;
     private bool _isWaiting;
 
+    // TODO: Add listener in 
+    public static event Action<bool> OnConfirmInteraction;
+    public static event Action<bool> OnSkipInteraction;
+
     private void Start()
-    {
-        _selectionHandler = GetComponentInParent<CardSelectionHandler>();
-        
+    {        
         _skipButton.onClick.AddListener(OnSkipButtonPressed);
         _confirmButton.onClick.AddListener(OnConfirmButtonPressed);
 
@@ -35,18 +39,25 @@ public class InteractionUI : AnimatedPanel
 
     public void InteractionBegin(TurnState state, int nbCardsToSelectMax, bool autoSkip)
     {
+        print("Interaction begin " + state + ", " + nbCardsToSelectMax + ", " + autoSkip);
+        _nbCardsToSelectMax = nbCardsToSelectMax;
+        _isWaiting = false;
+
         if(autoSkip){
-            SkipInteraction();
+            OnSkipButtonPressed();
             return;
         }
 
-        _state = state;
-        _nbCardsToSelectMax = nbCardsToSelectMax;
-        _isWaiting = false;
-        
-        _confirmButton.interactable = false;
-        _skipButton.interactable = state != TurnState.Discard;
-        _displayText.text = GetInteractionString();
+        _currentState = interactionStates.FirstOrDefault(x => x.stateType == state);
+
+        if(_currentState == null){
+            Debug.LogError("No interaction state found for " + state);
+            return;
+        }
+
+        _confirmButton.interactable = _currentState.confirmButtonEnabled;
+        _skipButton.interactable = _currentState.skipButtonEnabled;
+        _displayText.text = _currentState.GetInteractionString(_nbCardsToSelectMax);
 
         PanelIn();
     }
@@ -54,13 +65,12 @@ public class InteractionUI : AnimatedPanel
     private void OnConfirmButtonPressed()
     {
         Wait();
-        _selectionHandler.ConfirmSelection();
+        OnConfirmInteraction?.Invoke(_nbCardsToSelectMax != -1);
     }
-    private void OnSkipButtonPressed() => SkipInteraction();
-    private void SkipInteraction()
+    private void OnSkipButtonPressed() 
     {   
         Wait();
-        _selectionHandler.SkipInteraction();
+        OnSkipInteraction?.Invoke(_nbCardsToSelectMax != -1);
     }
     internal void SetConfirmButtonEnabled(bool b) => _confirmButton.interactable = b;
 
@@ -78,50 +88,12 @@ public class InteractionUI : AnimatedPanel
         _confirmButton.interactable = false;
     }
 
-    private string GetInteractionString()
-    {
-        if (_state == TurnState.Discard) return $"Discard {_nbCardsToSelectMax} card(s)";
-        if (_state == TurnState.CardSelection || _state == TurnState.Trash) 
-        {
-            // "Up to X cards"
-            _confirmButton.interactable = true;
-            if (_state == TurnState.CardSelection) return $"Put up to {_nbCardsToSelectMax} card(s) into your hand";
-            if (_state == TurnState.Trash) return $"Trash up to {_nbCardsToSelectMax} card(s)";
-        }
-
-        // Buy, play, select
-        return $"You may {InteractionActionVerb()} a {CardTypeString()} card";
-    }
     private void Wait()
     {
         _isWaiting = true;
         _confirmButton.interactable = false;
         _skipButton.interactable = false;
         _displayText.text = "Wait for opponent...";
-    }
-
-    private string CardTypeString()
-    {
-        var cardTypes = _state switch {
-            TurnState.Invent or TurnState.Develop => "Technology",
-            TurnState.Recruit or TurnState.Deploy => "Creature",
-            _ => ""
-        };
-        if (_state == TurnState.Invent || _state == TurnState.Recruit) cardTypes += " or Money";
-        return cardTypes;
-    }
-
-    private string InteractionActionVerb()
-    {
-        var actionVerb = _state switch{
-            TurnState.Discard => "discard",
-            TurnState.Trash => "trash",
-            TurnState.Invent or TurnState.Recruit => "buy",
-            TurnState.Develop or TurnState.Deploy => "play",
-            _ => "select"
-        };
-
-        return actionVerb;
     }
 
     private void OnDestroy()

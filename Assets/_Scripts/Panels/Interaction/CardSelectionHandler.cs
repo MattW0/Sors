@@ -6,7 +6,7 @@ using System;
 
 public class CardSelectionHandler : MonoBehaviour
 {
-    private PlayerManager _player;
+    public PlayerManager LocalPlayer { get; set; }
     private List<CardStats> _selectedCards = new();
     private CardMover _cardMover;
     private InteractionUI _ui;
@@ -23,14 +23,10 @@ public class CardSelectionHandler : MonoBehaviour
         CardClickHandler.OnCardClicked += ClickedCard;
         InteractionPanel.OnInteractionBegin += BeginInteraction;
     }
-
-    public void GetLocalPlayer() => _player = PlayerManager.GetLocalPlayer();
     public void BeginInteraction(TurnState turnState, int numberSelections, bool autoSkip)
     {
         _state = turnState;
         _numberSelections = numberSelections;
-
-        if (_state == TurnState.Trash || _state == TurnState.CardSelection) _ui.SetConfirmButtonEnabled(true);
     }
 
     private void ClickedCard(GameObject card)
@@ -46,7 +42,7 @@ public class CardSelectionHandler : MonoBehaviour
 
         // Have to check if playing money card
         if (cardStats.cardInfo.type == CardType.Money) {
-            _player.Cards.CmdPlayMoneyCard(cardStats);
+            LocalPlayer.Cards.CmdPlayMoneyCard(cardStats);
             cardStats.SetInteractable(false);
             return;
         }
@@ -88,14 +84,14 @@ public class CardSelectionHandler : MonoBehaviour
 
     public void DeselectMarketTile() => _ui.DeselectMarketTile();
 
-    public void ConfirmSelection()
+    public void ConfirmCardSelection()
     {
         OnInteractionConfirmed?.Invoke();
 
-        if (_state == TurnState.Discard) _player.CmdDiscardSelection(_selectedCards);
-        else if (_state == TurnState.CardSelection || _state == TurnState.Trash) _player.CmdPrevailCardsSelection(_selectedCards);
-        else if (_state == TurnState.Invent || _state == TurnState.Recruit) _player.CmdConfirmBuy(_marketSelection);
-        else if (_state == TurnState.Develop || _state == TurnState.Deploy) _player.CmdConfirmPlay(_selectedCards);
+        if (_state == TurnState.Discard) LocalPlayer.CmdDiscardSelection(_selectedCards);
+        else if (_state == TurnState.CardSelection || _state == TurnState.Trash) LocalPlayer.CmdPrevailCardsSelection(_selectedCards);
+        else if (_state == TurnState.Invent || _state == TurnState.Recruit) LocalPlayer.CmdConfirmBuy(_marketSelection);
+        else if (_state == TurnState.Develop || _state == TurnState.Deploy) LocalPlayer.CmdConfirmPlay(_selectedCards);
         
         _selectedCards.Clear();
     }
@@ -132,9 +128,9 @@ public class CardSelectionHandler : MonoBehaviour
         ClearSelection();
     }
 
-    public void SkipInteraction()
+    public void SkipCardInteraction()
     {
-        _player.CmdSkipInteraction();
+        LocalPlayer.CmdSkipInteraction();
         ClearSelection();
     }
 

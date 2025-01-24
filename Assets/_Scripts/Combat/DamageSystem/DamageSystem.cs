@@ -15,6 +15,12 @@ public class DamageSystem : MonoBehaviour
     public void EvaluateBlocks(Dictionary<CreatureEntity, BattleZoneEntity> aT, Dictionary<CreatureEntity, CreatureEntity> bA)
     {
         _attackerTarget = aT;
+        if (_attackerTarget.Count == 0){
+            print("No attackers, skip to Clean Up");
+            _combatManager.UpdateCombatState(TurnState.CombatCleanUp);
+            return;
+        }
+
         print("Pre blocks attackers: " + _attackerTarget.Count);
         print("Evaluating blocks: " + bA.Count);
         

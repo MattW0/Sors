@@ -13,9 +13,8 @@ public class BoardManager : NetworkBehaviour
     public static BoardManager Instance { get; private set; }
     private GameManager _gameManager;
     private CombatManager _combatManager;
+    private InteractionPanel _interactionPanel;
     [SerializeField] private DropZoneManager _dropZone;
-    [SerializeField] private PhasePanel _phasePanel;
-
     private List<BattleZoneEntity> _deadEntities = new();
     private TurnState _combatState;
     private GameState _gameState;
@@ -24,7 +23,7 @@ public class BoardManager : NetworkBehaviour
     {
         if (!Instance) Instance = this;
 
-        CombatManager.OnCombatStateChanged += StartCombatPhase;
+        CombatManager.OnCombatStateChanged += StartCombatState;
         BattleZoneEntity.OnEntityDies += EntityDies;
         EffectHandler.OnPlayerStartSelectTarget += PlayerStartSelectTarget;
     }
@@ -33,6 +32,7 @@ public class BoardManager : NetworkBehaviour
     {
         _gameManager = GameManager.Instance;
         _combatManager = CombatManager.Instance;
+        _interactionPanel = InteractionPanel.Instance;
     }
 
     // Move entities to holders and card into played zone
@@ -65,28 +65,34 @@ public class BoardManager : NetworkBehaviour
 
     #region Combat
 
-    public void StartCombatPhase(TurnState state)
+    private void StartCombatState(TurnState state)
     {
         _combatState = state;
-        _phasePanel.RpcStartCombatPhase(state);
+        _interactionPanel.RpcStartCombatState(state);
 
-        CombatTransitionAnimation(state).Forget();
+        CombatStateTransition(state).Forget();
+    }
+    private async UniTaskVoid CombatStateTransition(TurnState state)
+    {
+        await UniTask.Delay(SorsTimings.wait);
+
+        if (state == TurnState.Attackers) _dropZone.StartDeclareAttackers(_gameManager.players.Values.ToList());
+        else if (state == TurnState.Blockers) _dropZone.StartDeclareBlockers(_gameManager.players.Values.ToList());
+        else if (state == TurnState.CombatCleanUp) CombatCleanUp().Forget();
     }
 
-    private void DeclareAttackers() => _dropZone.StartDeclareAttackers(_gameManager.players.Values.ToList());
     public void AttackersDeclared(PlayerManager player)
     {
-        _phasePanel.TargetDisableCombatButtons(player.connectionToClient);
+        _interactionPanel.TargetEndCombatState(player.connectionToClient);
         _combatManager.PlayerDeclaredAttackers(player);
     }
-    
-    private void DeclareBlockers() => _dropZone.StartDeclareBlockers(_gameManager.players.Values.ToList());
+
     public void BlockersDeclared(PlayerManager player)
     {
-        _phasePanel.TargetDisableCombatButtons(player.connectionToClient);
+        _interactionPanel.TargetEndCombatState(player.connectionToClient);
         _combatManager.PlayerDeclaredBlockers(player);
     }
-    
+
     public void EntityDies(BattleZoneEntity entity)
     {
         // Catch exception where entity was already dead and received more damage
@@ -136,6 +142,8 @@ public class BoardManager : NetworkBehaviour
         print("    - BoardManager: Cleared dead entities");
     }
 
+    #region Game State
+
     public void PrepareGameStateFile(List<CardInfo>[] scriptableTiles)
     {
         _gameState = new GameState(_gameManager.players.Count);
@@ -176,37 +184,24 @@ public class BoardManager : NetworkBehaviour
         
         _gameState.SaveState(_gameManager.turnNumber);
     }
+    #endregion
 
     #region UI
-    public void PlayerPressedReadyButton(PlayerManager player){
+    public void PlayerConfirmsCombatState(PlayerManager player){
         if (_combatState == TurnState.Attackers)
-        {
             _dropZone.PlayerFinishedChoosingAttackers(player);
-        }
         else if (_combatState == TurnState.Blockers)
-        {
             _dropZone.PlayerFinishedChoosingBlockers(player);
-        }
     }
 
     public int CheckNumberOfFreeSlots(bool isHost, TurnState state) => _dropZone.GetNumberOfFreeSlots(isHost, state);
-
     public void ResetHolders() => _dropZone.RpcResetHolders();
-
-    private async UniTaskVoid CombatTransitionAnimation(TurnState state)
-    {
-        await UniTask.Delay(SorsTimings.wait);
-
-        if (state == TurnState.Attackers) DeclareAttackers();
-        else if (state == TurnState.Blockers) DeclareBlockers();
-        else if (state == TurnState.CombatCleanUp) CombatCleanUp().Forget();
-    }
     public void DiscardMoney() => _dropZone.RpcDiscardMoney();
     #endregion
     private void OnDestroy()
     {
         // GameManager.OnGameStart -= PrepareGameStateFile;
-        CombatManager.OnCombatStateChanged -= StartCombatPhase;
+        CombatManager.OnCombatStateChanged -= StartCombatState;
         BattleZoneEntity.OnEntityDies -= EntityDies;
         EffectHandler.OnPlayerStartSelectTarget -= PlayerStartSelectTarget;
     }
