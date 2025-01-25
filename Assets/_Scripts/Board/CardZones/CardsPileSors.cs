@@ -7,13 +7,13 @@ using Sirenix.OdinInspector;
 [RequireComponent(typeof(CardPileUI))]
 public class CardsPileSors : MonoBehaviour
 {
-	[SerializeField] public Transform cardHolderTransform;
+	public Transform cardHolderTransform;
 	public CardLocation pileType;
-	private bool updatePosition;
+	private bool _updatePosition;
 	[ShowInInspector] public bool UpdatePosition {
-		get => updatePosition;
+		get => _updatePosition;
 		set {
-			updatePosition = value;
+			_updatePosition = value;
 			#if UNITY_EDITOR
 			UpdateCardsInEditor();
 			#endif
@@ -26,9 +26,6 @@ public class CardsPileSors : MonoBehaviour
 	private CardPileSettings handSettings = new(15f, _handWidthDefault.x, 5f, 2f, -3f);
 	private CardPileSettings selectionSettings = new(0f, 100f, 0.1f, 0.1f, -1f);
 	private CardPileSettings pileSettings = new(20f, 20f, 0f, 1f, -1f);
-
-	[SerializeField] private readonly List<GameObject> cards = new();
-	readonly List<GameObject> forceSetPosition = new();
 	private CardPileUI _cardPileUI;
 
 	private void Start()
@@ -37,85 +34,59 @@ public class CardsPileSors : MonoBehaviour
 		SetDefaultPileSettings();
 	}
 
-    public void CardHasArrived(GameObject card)
-	{
-		card.transform.SetParent(cardHolderTransform, false);
-		updatePosition = true;
-		_cardPileUI.UpdateCardPileNumber(cards.Count);
-	}
-
-	public void Add(GameObject card, bool moveAnimation = false) => Add(card, -1, moveAnimation);
-	public void Add(GameObject card, int index, bool moveAnimation = true)
-	{
-		if (index == -1) cards.Add(card);
-		else cards.Insert(index, card);
-
-		if (!moveAnimation) forceSetPosition.Add(card);
-	}
-
-	public void Remove(GameObject card)
-	{
-		if (!cards.Contains(card)) return;
-
-		cards.Remove(card);
-		card.transform.DOKill();
-
-		UpdatePosition = true;
-		_cardPileUI.UpdateCardPileNumber(cards.Count);
-	}
-	public void RemoveAll()
-	{
-		while (cards.Count > 0)
-			Remove(cards[0]);
-
-		UpdatePosition = true;
-	}
-
-	private void UpdateCardPositions()
-	{
-		if (pileType == CardLocation.Hand || pileType == CardLocation.Interaction) 
-			ChangePileWidth(cards.Count);
-
-		(float radius, float angle, float cardAngle) = GetGeometry();
-
-		for (int i = 0; i < cards.Count; i++)
-		{
-			cards[i].transform.SetParent(cardHolderTransform, false);
-
-			(Vector3 position, Vector3 rotation) = GetCardPosition(radius, angle, cardAngle, i); 
-
-			if (forceSetPosition.Contains(cards[i])) {
-				forceSetPosition.Remove(cards[i]);
-				cards[i].transform.localPosition = position;
-				cards[i].transform.localRotation = Quaternion.Euler(rotation);
-				cards[i].transform.localScale = Vector3.one;
-			} else {
-				cards[i].transform.DOKill();
-				cards[i].transform.DOLocalMove(position, SorsTimings.cardPileRearrangement);
-				cards[i].transform.DOLocalRotate(rotation, SorsTimings.cardPileRearrangement);
-				cards[i].transform.DOScale(Vector3.one, SorsTimings.cardPileRearrangement);
-			}
-		}
-	}
-
 	private void LateUpdate()
 	{
-		if (!updatePosition) return;
-		updatePosition = false;
+		if (!_updatePosition) return;
+		_updatePosition = false;
 
 		UpdateCardPositions();
 	}
 
 	private void UpdateCardsInEditor()
 	{
-		if (!updatePosition || Application.isPlaying) return;
-		updatePosition = false;
-
-		cards.Clear();
-		forceSetPosition.Clear();
-		foreach (Transform child in cardHolderTransform) Add(child.gameObject);
+		if (!_updatePosition || Application.isPlaying) return;
+		_updatePosition = false;
 
 		UpdateCardPositions();
+	}
+
+    public void CardHasArrived(GameObject card)
+	{
+		card.transform.SetParent(cardHolderTransform, false);
+		_updatePosition = true;
+	}
+
+	private void UpdateCardPositions()
+	{
+		if (pileType == CardLocation.Hand || pileType == CardLocation.Interaction) 
+			ChangePileWidth(cardHolderTransform.childCount);
+
+		(float radius, float angle, float cardAngle) = GetGeometry();
+		_cardPileUI.UpdateCardPileNumber(cardHolderTransform.childCount);
+
+		int i = 0;
+		foreach (Transform cardTransform in cardHolderTransform)
+		{
+			(Vector3 position, Vector3 rotation) = GetCardPosition(radius, angle, cardAngle, i); 
+
+			cardTransform.DOKill();
+			cardTransform.DOLocalMove(position, SorsTimings.cardPileRearrangement);
+			cardTransform.DOLocalRotate(rotation, SorsTimings.cardPileRearrangement);
+			cardTransform.DOScale(Vector3.one, SorsTimings.cardPileRearrangement);
+			i++;
+		}
+	}
+
+	internal void StartInteraction()
+	{
+		settings = handSettings;
+		_updatePosition = true;
+	}
+
+    internal void EndInteraction()
+	{
+		SetDefaultPileSettings();
+		_updatePosition = true;	
 	}
 
 	private (float, float, float) GetGeometry()
@@ -125,8 +96,8 @@ public class CardsPileSors : MonoBehaviour
 			: settings.height / 2f + settings.width * settings.width / (8f * settings.height);
 
 		float angle = 2f * Mathf.Asin(0.5f * settings.width / radius) * Mathf.Rad2Deg;
-		angle = Mathf.Sign(angle) * Mathf.Min(Mathf.Abs(angle), settings.maxCardAngle * (cards.Count - 1));
-		float cardAngle = cards.Count == 1 ? 0f : angle / (cards.Count - 1f);
+		angle = Mathf.Sign(angle) * Mathf.Min(Mathf.Abs(angle), settings.maxCardAngle * (cardHolderTransform.childCount - 1));
+		float cardAngle = cardHolderTransform.childCount == 1 ? 0f : angle / (cardHolderTransform.childCount - 1f);
 
 		return (radius, angle, cardAngle);
 	}
@@ -150,18 +121,6 @@ public class CardsPileSors : MonoBehaviour
 		if (cardCount < 6) settings.width = _handWidthDefault.x;
 		else if (cardCount > 16) settings.width = _handWidthDefault.y;
 		else settings.width = _handWidthDefault.x + (cardCount - 6) * (_handWidthDefault.y - _handWidthDefault.x) / 10f;
-	}
-
-    internal void StartInteraction()
-	{
-		settings = handSettings;
-		updatePosition = true;
-	}
-
-    internal void EndInteraction()
-	{
-		SetDefaultPileSettings();
-		updatePosition = true;	
 	}
 	
 	private void SetDefaultPileSettings()

@@ -131,6 +131,8 @@ public class InteractionPanel : NetworkBehaviour
     private bool ContainsCreature() => _selectableCards.Any(c => c.cardInfo.type == CardType.Creature);
 
     #region Combat
+    
+    [ClientRpc]
     internal void RpcStartCombatState(TurnState state)
     {
         print($"    - InteractionPanel: Choose Attackers");

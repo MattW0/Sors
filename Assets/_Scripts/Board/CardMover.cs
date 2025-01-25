@@ -38,10 +38,6 @@ public class CardMover : MonoBehaviour
         // Is front or back up ?
         FlipCard(card, hasAuthority, to);
 
-        // Update positions in CardsPileSors (remove updates immediately, add updates after movement is done)
-        sourcePile.Remove(card);
-        destinationPile.Add(card);
-
         // ApplyScaling(card, from, to);
         ApplyMovement(destinationPile, card);
     }
@@ -53,10 +49,6 @@ public class CardMover : MonoBehaviour
         foreach(var card in cards){
             // Is front or back up ?
             FlipCard(card, hasAuthority, to);
-
-            // Update positions in CardsPileSors (remove updates immediately, add updates after movement is done)
-            sourcePile.Remove(card);
-            destinationPile.Add(card);
 
             // ApplyScaling(card, from, to);
             ApplyMovement(destinationPile, card);
@@ -93,10 +85,10 @@ public class CardMover : MonoBehaviour
         if(!fromFile) card.GetComponent<HandCardUI>().CardFrontUp();
 
         if(hasAuthority){
-            playerCardSpawn.Add(card);
+            playerCardSpawn.CardHasArrived(card);
             playerCardSpawn.UpdatePosition = true;
         } else {
-            opponentCardSpawn.Add(card);
+            opponentCardSpawn.CardHasArrived(card);
             opponentCardSpawn.UpdatePosition = true;
         }
         card.SetActive(true);
