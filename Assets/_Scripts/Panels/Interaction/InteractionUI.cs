@@ -22,6 +22,7 @@ public class InteractionUI : AnimatedPanel
     [Header("Helper Fields")]
     private int _nbCardsToSelectMax;
     private bool _isWaiting;
+    private InteractionType _interactionType;
 
     public static event Action<bool> OnSkipInteraction;
     public static event Action<bool> OnResetInteraction;
@@ -42,40 +43,48 @@ public class InteractionUI : AnimatedPanel
     public void InteractionBegin(TurnState state, int nbCardsToSelectMax, bool autoSkip)
     {
         print("Interaction begin " + state + ", " + nbCardsToSelectMax + ", " + autoSkip);
+
         _nbCardsToSelectMax = nbCardsToSelectMax;
         _isWaiting = false;
-
-        if(autoSkip){
-            OnSkipButtonPressed();
-            return;
-        }
-
         _currentState = interactionStates.FirstOrDefault(x => x.stateType == state);
-
         if(_currentState == null){
             Debug.LogError("No interaction state found for " + state);
             return;
         }
 
-        _confirmButton.interactable = _currentState.confirmButtonEnabled;
-        _skipButton.interactable = _currentState.skipButtonEnabled;
-        _displayText.text = _currentState.GetInteractionString(_nbCardsToSelectMax);
+        _interactionType = _currentState.interactionType;
+        if(autoSkip){
+            OnSkipButtonPressed();
+            return;
+        }
 
+        SetPanelUI();
         PanelIn();
+    }
+
+    private void SetPanelUI()
+    {
+        _confirmButton.interactable = _currentState.confirmButtonEnabled;
+        _resetButton.gameObject.SetActive(_currentState.resetButtonVisible);
+        _resetButton.interactable = _currentState.resetButtonEnabled;
+        _skipButton.gameObject.SetActive(_currentState.skipButtonVisible);
+        _skipButton.interactable = _currentState.skipButtonEnabled;
+
+        _displayText.text = _currentState.GetInteractionString(_nbCardsToSelectMax);
     }
 
     private void OnSkipButtonPressed() 
     {   
         Wait();
-        OnSkipInteraction?.Invoke(_nbCardsToSelectMax != -1);
+        OnSkipInteraction?.Invoke(_interactionType != InteractionType.Confirm);
     }
-    private void OnResetButtonPressed() => OnResetInteraction?.Invoke(_nbCardsToSelectMax != -1);
+    private void OnResetButtonPressed() => OnResetInteraction?.Invoke(_interactionType != InteractionType.Confirm);
     private void OnConfirmButtonPressed()
     {
         Wait();
-        OnConfirmInteraction?.Invoke(_nbCardsToSelectMax != -1);
+        OnConfirmInteraction?.Invoke(_interactionType != InteractionType.Confirm);
     }
-    
+
     internal void SetConfirmButtonEnabled(bool b) => _confirmButton.interactable = b;
 
     public void SelectMarketTile(CardInfo cardInfo)

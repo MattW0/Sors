@@ -9,7 +9,7 @@ public class InteractionState : ScriptableObject
     public TurnState stateType;
     
     [Header("Display Settings")]
-    [SerializeField] private InteractionType interactionType;
+    public InteractionType interactionType;
     [SerializeField] private string displayText = "";
 
     [Header("Display Text Configuration")]
@@ -21,7 +21,10 @@ public class InteractionState : ScriptableObject
     
     [Header("Button Configuration")]
     public bool confirmButtonEnabled;
+    public bool skipButtonVisible = true;
     public bool skipButtonEnabled = true;
+    public bool resetButtonVisible = false;
+    public bool resetButtonEnabled = false;
 
     [Header("Information")]
     [TextArea(5,10)] public string Description = "Interaction state configuration: Display text, button settings, etc.\n" +

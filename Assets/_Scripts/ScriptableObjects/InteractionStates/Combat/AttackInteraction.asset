@@ -13,14 +13,17 @@ MonoBehaviour:
   m_Name: AttackInteraction
   m_EditorClassIdentifier: 
   stateType: 7
-  interactionType: 0
+  interactionType: 7
   displayText: Select attackers
   displayTextFormat: '{0} {1} {2}card(s)'
   useUpTo: 0
   allowedCardType: 0
   includeMoneyOption: 0
   confirmButtonEnabled: 1
+  skipButtonVisible: 1
   skipButtonEnabled: 1
+  resetButtonVisible: 1
+  resetButtonEnabled: 1
   Description: 'Interaction state configuration: Display text, button settings, etc.
 
     The
