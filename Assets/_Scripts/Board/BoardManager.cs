@@ -68,29 +68,60 @@ public class BoardManager : NetworkBehaviour
     private void StartCombatState(TurnState state)
     {
         _combatState = state;
-        _interactionPanel.RpcStartCombatState(state);
-
-        CombatStateTransition(state).Forget();
+        CombatStateTransition().Forget();
     }
-    private async UniTaskVoid CombatStateTransition(TurnState state)
+    private async UniTaskVoid CombatStateTransition()
     {
         await UniTask.Delay(SorsTimings.wait);
-
-        if (state == TurnState.Attackers) _dropZone.StartDeclareAttackers(_gameManager.players.Values.ToList());
-        else if (state == TurnState.Blockers) _dropZone.StartDeclareBlockers(_gameManager.players.Values.ToList());
-        else if (state == TurnState.CombatCleanUp) CombatCleanUp().Forget();
+        
+        if (_combatState == TurnState.Attackers) StartAttackers();
+        else if (_combatState == TurnState.Blockers) StartBlockers();
+        else if (_combatState == TurnState.CombatDamage) _interactionPanel.RpcStartCombatDamage();
+        else if (_combatState == TurnState.CombatCleanUp) CombatCleanUp().Forget();
     }
 
-    public void AttackersDeclared(PlayerManager player)
+    private void StartAttackers()
     {
-        _interactionPanel.TargetEndCombatState(player.connectionToClient);
-        _combatManager.PlayerDeclaredAttackers(player);
+        foreach (var player in _gameManager.players.Values)
+        {
+            var canAttack = _dropZone.HasAttacker(player);
+            _interactionPanel.TargetStartCombatState(player.connectionToClient, _combatState, !canAttack);
+            if (canAttack) _dropZone.TargetDeclareAttackers(player.connectionToClient);
+        }
     }
 
-    public void BlockersDeclared(PlayerManager player)
+    public void PlayerChoosesTargetToAttack(BattleZoneEntity target, List<CreatureEntity> attackers)
     {
-        _interactionPanel.TargetEndCombatState(player.connectionToClient);
-        _combatManager.PlayerDeclaredBlockers(player);
+        _combatManager.PlayerChoosesTargetToAttack(target, attackers);
+    }
+
+    private void StartBlockers()
+    {
+        foreach (var player in _gameManager.players.Values)
+        {
+            var canBlock = _dropZone.HasBlocker(player);
+            _interactionPanel.TargetStartCombatState(player.connectionToClient, _combatState, !canBlock);
+            if (canBlock) _dropZone.TargetDeclareBlockers(player.connectionToClient);
+        }
+    }
+
+    public void PlayerChoosesAttackerToBlock(CreatureEntity attacker, List<CreatureEntity> blockers)
+    {
+        _combatManager.PlayerChoosesAttackerToBlock(attacker, blockers);
+    }
+
+    public void PlayerConfirmsCombatState(PlayerManager player)
+    {
+        if (_combatState == TurnState.Attackers) 
+        {
+            _dropZone.TargetFinishChoosingAttackers(player.connectionToClient);
+            _combatManager.PlayerDeclaredAttackers(player);
+        }
+        else if (_combatState == TurnState.Blockers) 
+        {
+            _dropZone.TargetFinishChoosingBlockers(player.connectionToClient);
+            _combatManager.PlayerDeclaredBlockers(player);
+        }
     }
 
     public void EntityDies(BattleZoneEntity entity)
@@ -187,12 +218,6 @@ public class BoardManager : NetworkBehaviour
     #endregion
 
     #region UI
-    public void PlayerConfirmsCombatState(PlayerManager player){
-        if (_combatState == TurnState.Attackers)
-            _dropZone.PlayerFinishedChoosingAttackers(player);
-        else if (_combatState == TurnState.Blockers)
-            _dropZone.PlayerFinishedChoosingBlockers(player);
-    }
 
     public int CheckNumberOfFreeSlots(bool isHost, TurnState state) => _dropZone.GetNumberOfFreeSlots(isHost, state);
     public void ResetHolders() => _dropZone.RpcResetHolders();

@@ -16,7 +16,6 @@ public class DropZoneManager : NetworkBehaviour
     [SerializeReference] private EntitiesCardsDictionary _entitiesCardsCache = new();
     public static event Action<bool> OnDeclareAttackers;
     public static event Action<bool> OnDeclareBlockers;
-    public static event Action OnCombatEnd;
     public static event Action<Target> OnTargetEntities;
     public static event Action OnResetEntityUI;
     public static event Action OnDestroyArrows;
@@ -119,80 +118,67 @@ public class DropZoneManager : NetworkBehaviour
     #region Attackers
 
     [Server]
-    public void StartDeclareAttackers(List<PlayerManager> players)
+    public bool HasAttacker(PlayerManager player)
     {
-        foreach (var player in players)
+        var creatures = _entityZones.GetCreatures(player.isLocalPlayer);
+
+        // Auto-skip : Player has no creatures
+        if (creatures.Count == 0) return false;
+        
+        // Auto-skip : All creatures have Devensive Trait (can't attack)
+        foreach (var creature in creatures)
         {
-            // Auto-skip : Local player has no creatures
-            if (_entityZones.GetCreatures(player.isLocalPlayer).Count == 0) 
-                PlayerFinishedChoosingAttackers(player);
-
-            // else if (player.isAI) PlayerFinishedChoosingAttackers(player);
-            else TargetDeclareAttackers(player.connectionToClient);
+            if (! creature.GetTraits().Contains(Traits.Defensive)) 
+                return true;
         }
+
+        // Disable auto-skip by default
+        return true;
     }
 
     [TargetRpc]
-    private void TargetDeclareAttackers(NetworkConnection conn) => OnDeclareAttackers?.Invoke(true);
-
-    [Server]
-    public void PlayerFinishedChoosingAttackers(PlayerManager player)
-    {
-        // From skip or pressing combat button
-        _boardManager.AttackersDeclared(player);
-        TargetFinishChoosingAttackers(player.connectionToClient);
-    }
+    public void TargetDeclareAttackers(NetworkConnection conn) => OnDeclareAttackers?.Invoke(true);
 
     [TargetRpc]
-    private void TargetFinishChoosingAttackers(NetworkConnection conn) => OnDeclareAttackers?.Invoke(false);
+    public void TargetFinishChoosingAttackers(NetworkConnection conn) => OnDeclareAttackers?.Invoke(false);
 
     #endregion
 
     #region Blockers
 
     [Server]
-    public void StartDeclareBlockers(List<PlayerManager> players)
+    public bool HasBlocker(PlayerManager player)
     {
-        foreach (var player in players)
+        // Inverting isLocalPlayer because we want opponent creatures
+        var opponentCreatures = _entityZones.GetCreatures(!player.isLocalPlayer);
+
+        // Auto-skip : No attacking opponent creature
+        var isAttacked = opponentCreatures.Exists(entity => entity.IsAttacking);
+        if(!isAttacked) return false;
+        
+        // Auto-skip : No creature able to block
+        var playerCreatures = _entityZones.GetCreatures(player.isLocalPlayer);
+        if(playerCreatures.Count == 0) return false;
+
+        var hasBlocker = playerCreatures.Exists(entity => !entity.IsAttacking);
+        if(!hasBlocker) return false;
+
+        // TODO: Check that not all creatures have Trait.Offensive
+        foreach (var creature in playerCreatures)
         {
-            // Inverting isLocalPlayer because we want opponent creatures
-            var opponentCreatures = _entityZones.GetCreatures(!player.isLocalPlayer);
-
-            // Auto-skip : No attacking opponent creature
-            var isAttacked = opponentCreatures.Exists(entity => entity.IsAttacking);
-            if(!isAttacked) {
-                PlayerFinishedChoosingBlockers(player);
-                continue;
-            }
-            
-            // Auto-skip : No creature able to block
-            var playerCreatures = _entityZones.GetCreatures(player.isLocalPlayer);
-            var hasBlocker = playerCreatures.Exists(entity => !entity.IsAttacking);
-            if(!hasBlocker) {
-                PlayerFinishedChoosingBlockers(player);
-                continue;
-            }
-            
-            TargetDeclareBlockers(player.connectionToClient, playerCreatures, opponentCreatures);
+            if (! creature.GetTraits().Contains(Traits.Offensive)) 
+                return true;
         }
+
+        return true;
     }
 
     [TargetRpc]
-    private void TargetDeclareBlockers(NetworkConnection conn, List<CreatureEntity> playerCreatures, List<CreatureEntity> opponentCreatures)
-    {
-        OnDeclareBlockers?.Invoke(true);
-        OnCombatEnd?.Invoke();
-    }
-
-    [Server]
-    public void PlayerFinishedChoosingBlockers(PlayerManager player)
-    {
-        _boardManager.BlockersDeclared(player);
-        TargetFinishChoosingBlockers(player.connectionToClient);
-    }
+    public void TargetDeclareBlockers(NetworkConnection conn) => OnDeclareBlockers?.Invoke(true);
 
     [TargetRpc]
-    private void TargetFinishChoosingBlockers(NetworkConnection conn) => OnDeclareBlockers?.Invoke(false);
+    public void TargetFinishChoosingBlockers(NetworkConnection conn) => OnDeclareBlockers?.Invoke(false);
+    
     #endregion
 
     [Server]

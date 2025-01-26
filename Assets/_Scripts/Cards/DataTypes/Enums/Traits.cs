@@ -4,7 +4,7 @@ public enum Traits
     Deathtouch = 1,
     Lifelink = 2,
     Trample = 3,
-    Devensive = 4,
+    Defensive = 4,
     Offensive = 5,
     Menace,
     Flying,

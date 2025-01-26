@@ -12,31 +12,45 @@ public class InteractionPanel : NetworkBehaviour
     [SerializeField] private CardPileInteraction _playerDiscard;
     private CardSelectionHandler _selectionHandler;
     private BoardManager _boardManager;
+    [SerializeField] private ArrowManager _arrowManager;
 
     [Header("Helper Fields")]
     [SerializeField] private List<CardStats> _selectableCards = new();
     private TurnState _state;
     public static event Action<TurnState, int, bool> OnInteractionBegin;
-    public static event Action<TurnState> OnEndedCombatState;
 
     private void Awake(){
         if (Instance == null) Instance = this;
 
         _selectionHandler = GetComponent<CardSelectionHandler>();
-        InteractionUI.OnConfirmInteraction += PlayerPressedConfirmButton;
-        InteractionUI.OnSkipInteraction += PlayerPressedSkippedButton;
+
+        InteractionUI.OnSkipInteraction += OnSkip;
+        InteractionUI.OnResetInteraction += OnReset;
+        InteractionUI.OnConfirmInteraction += OnConfirm;
     }
 
-    private void PlayerPressedConfirmButton(bool isCardInteraction)
-    {
-        if (isCardInteraction) _selectionHandler.ConfirmCardSelection();
-        else CmdPlayerConfirms(_selectionHandler.LocalPlayer);
-    }
-
-    private void PlayerPressedSkippedButton(bool isCardInteraction)
+    private void OnSkip(bool isCardInteraction)
     {
         if (isCardInteraction) _selectionHandler.SkipCardInteraction();
-        else { /* Do nothing */ }
+        CmdPlayerSkips(_selectionHandler.LocalPlayer);
+    }
+
+    private void OnReset(bool isCardInteraction)
+    {
+        CmdPlayerResets(_selectionHandler.LocalPlayer);
+    }
+
+    private void OnConfirm(bool isCardInteraction)
+    {
+        if (isCardInteraction) {
+            _selectionHandler.ConfirmCardSelection();
+            return;
+        }
+        
+        foreach(var (target, creatureList) in _arrowManager.GetPlayerSelection())
+            CmdSetGroupTarget(target, creatureList);
+        
+        CmdPlayerConfirms(_selectionHandler.LocalPlayer);
     }
 
     [ClientRpc]
@@ -132,30 +146,47 @@ public class InteractionPanel : NetworkBehaviour
 
     #region Combat
     
-    [ClientRpc]
-    internal void RpcStartCombatState(TurnState state)
+    [TargetRpc]
+    internal void TargetStartCombatState(NetworkConnection conn, TurnState state, bool skip)
     {
-        print($"    - InteractionPanel: Choose Attackers");
-
+        print($"    - InteractionPanel: Start combat state {state}");
         _state = state;
-
-        if (state == TurnState.Attackers || state == TurnState.Blockers) OnInteractionBegin?.Invoke(state, -1, false);
+        OnInteractionBegin?.Invoke(state, -1, skip);
     }
+
+    [Command(requiresAuthority = false)]
+    private void CmdSetGroupTarget(BattleZoneEntity target, List<CreatureEntity> creatures)
+    {
+        if (_state == TurnState.Attackers) _boardManager.PlayerChoosesTargetToAttack(target, creatures);
+        else if (_state == TurnState.Blockers) _boardManager.PlayerChoosesAttackerToBlock(target.GetComponent<CreatureEntity>(), creatures);
+    } 
 
     [Command(requiresAuthority = false)]
     private void CmdPlayerConfirms(PlayerManager player) => _boardManager.PlayerConfirmsCombatState(player);
 
-    [TargetRpc]
-    internal void TargetEndCombatState(NetworkConnectionToClient connectionToClient)
+    [Command(requiresAuthority = false)]
+    private void CmdPlayerResets(PlayerManager player) => _arrowManager.TargetResetArrows(player.connectionToClient);
+
+    [Command(requiresAuthority = false)]
+    private void CmdPlayerSkips(PlayerManager player)
     {
-        OnEndedCombatState?.Invoke(_state);
+        _arrowManager.TargetResetArrows(player.connectionToClient);
+        _boardManager.PlayerConfirmsCombatState(player);
+    } 
+
+    [ClientRpc]
+    public void RpcStartCombatDamage()
+    {
+        print("    - InteractionPanel: Start combat damage");
+        OnInteractionBegin?.Invoke(TurnState.CombatDamage, -1, false);
     }
 
     #endregion
 
     private void OnDestroy()
     {
-        InteractionUI.OnConfirmInteraction -= PlayerPressedConfirmButton;
-        InteractionUI.OnSkipInteraction -= PlayerPressedSkippedButton;
+        InteractionUI.OnSkipInteraction -= OnSkip;
+        InteractionUI.OnResetInteraction -= OnReset;
+        InteractionUI.OnConfirmInteraction -= OnConfirm;
     }
 }

@@ -112,7 +112,7 @@ public class CreatureEntity : BattleZoneEntity
         if (IsAttacking) return;
 
         // Defensive creatures can only block and offensive creatures can only attack
-        CanAct = attackStep ? ! _traits.Contains(Traits.Devensive) : ! _traits.Contains(Traits.Offensive);
+        CanAct = attackStep ? ! _traits.Contains(Traits.Defensive) : ! _traits.Contains(Traits.Offensive);
     }
 
     private void ResetCreatureUI()
