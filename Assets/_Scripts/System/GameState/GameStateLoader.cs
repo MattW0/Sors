@@ -89,7 +89,7 @@ public class GameStateLoader : MonoBehaviour
             var scriptableCard = Resources.Load<ScriptableCard>(c);
             _cardList.Add(_gameManager.SpawnCard(p, scriptableCard, location));
         }
-        p.Cards.RpcShowSpawnedCards(_cardList, CardLocation.Hand, true);
+        p.Cards.RpcShowSpawnedCards(_cardList, location, true);
         _cardList.Clear();
     }
 

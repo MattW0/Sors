@@ -20,7 +20,7 @@ public class SorsColorsEditor : Editor
 
     void OnEnable()
     {
-        customSkin = (GUISkin)Resources.Load("SorsCustomEditorSkin");
+        customSkin = (GUISkin)Resources.Load("ColorDefinitions/SorsCustomEditorSkin");
     }
 
     public override void OnInspectorGUI()
@@ -165,7 +165,7 @@ public class SorsColorsEditor : Editor
         
         try
         {
-            Preset defaultPreset = Resources.Load<Preset>("SorsColors");
+            Preset defaultPreset = Resources.Load<Preset>("ColorDefinitions/SorsColors");
             defaultPreset.ApplyTo(Resources.Load("Sors Colors"));
             Selection.activeObject = null;
             Debug.Log("<b>[Sors Colors]</b> Resetting is successful.");
