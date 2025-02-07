@@ -21,10 +21,6 @@ public class EntityZones : NetworkBehaviour
     [ClientRpc]
     public void RpcAddEntity(BattleZoneEntity entity, bool isHost)
     {
-        // Assign free holder to later make entity move there
-        entity.EntityHolder = GetFirstFreeHolder(entity.cardType, entity.isOwned);
-        entity.EntityHolder.IsOccupied = true;
-
         if (entity.cardType == CardType.Technology)
         {
             var technology = entity.GetComponent<TechnologyEntity>();
@@ -37,14 +33,13 @@ public class EntityZones : NetworkBehaviour
             if(isHost) _hostCreatures.Add(creature);
             else _clientCreatures.Add(creature);
         }
+
+        SetHolder(entity);
     }
 
     [ClientRpc]
     public void RpcRemoveEntity(BattleZoneEntity entity, bool isHost)
     {
-        entity.EntityHolder.IsOccupied = false;
-        entity.EntityHolder = null;
-
         if (entity.cardType == CardType.Technology)
         {
             var technology = entity.GetComponent<TechnologyEntity>();
@@ -57,6 +52,8 @@ public class EntityZones : NetworkBehaviour
             if(isHost) _hostCreatures.Remove(creature);
             else _clientCreatures.Remove(creature);
         }
+
+        ReleaseHolder(entity);
     }
 
     #region Getters
@@ -71,10 +68,10 @@ public class EntityZones : NetworkBehaviour
     [Server]
     public List<CreatureEntity> GetAllCreatures()
     {
-        var creatures = GetCreatures(true);
-        creatures.AddRange(GetCreatures(false));
-
-        return creatures;
+        var allCreatures = new List<CreatureEntity>();
+        allCreatures.AddRange(GetCreatures(true));
+        allCreatures.AddRange(GetCreatures(false));
+        return allCreatures;
     }
 
     [Server]
@@ -87,10 +84,10 @@ public class EntityZones : NetworkBehaviour
     [Server]
     public List<TechnologyEntity> GetAllTechnologies()
     {
-        var technologies = GetTechnologies(true);
-        technologies.AddRange(GetTechnologies(false));
-
-        return technologies;
+        var allTechnologies = new List<TechnologyEntity>();
+        allTechnologies.AddRange(GetTechnologies(true));
+        allTechnologies.AddRange(GetTechnologies(false));
+        return allTechnologies;
     }
 
     [Server]
@@ -154,6 +151,21 @@ public class EntityZones : NetworkBehaviour
         foreach (var holder in _playerCreatureHolders) {
             holder.ResetHighlight();
         }
+    }
+
+    [Client]
+    private void SetHolder(BattleZoneEntity entity)
+    {
+        // Assign free holder to later make entity move there
+        entity.EntityHolder = GetFirstFreeHolder(entity.cardType, entity.isOwned);
+        entity.EntityHolder.IsOccupied = true;
+    }
+
+    [Client]
+    private void ReleaseHolder(BattleZoneEntity entity)
+    {
+        entity.EntityHolder.IsOccupied = false;
+        entity.EntityHolder = null;
     }
 
     private PlayZoneCardHolder GetFirstFreeHolder(CardType entityType, bool isOwned)

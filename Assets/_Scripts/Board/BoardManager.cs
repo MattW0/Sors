@@ -160,6 +160,7 @@ public class BoardManager : NetworkBehaviour
 
     private async UniTask ClearDeadEntities()
     {
+        print($"    - BoardManager: Clearing {_deadEntities.Count} dead entities");
         await _dropZone.EntitiesLeave(_deadEntities);
 
         foreach (var dead in _deadEntities)
@@ -170,7 +171,6 @@ public class BoardManager : NetworkBehaviour
         _deadEntities.Clear();
 
         await UniTask.Delay(SorsTimings.waitShort);
-        print("    - BoardManager: Cleared dead entities");
     }
 
     #region Game State

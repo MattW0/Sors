@@ -40,7 +40,7 @@ public class DropZoneManager : NetworkBehaviour
             var owner = entity.Owner;
 
             // Track entity and evaluate where it will be placed
-            _entityZones.RpcAddEntity(entity, entity.Owner.isLocalPlayer);
+            _entityZones.RpcAddEntity(entity, owner.isLocalPlayer);
 
             // To show which card spawns an entity -> move to spawn
             owner.Cards.RpcMoveCard(card, CardLocation.Hand, CardLocation.EntitySpawn);
@@ -54,7 +54,7 @@ public class DropZoneManager : NetworkBehaviour
 
             // Score points on ETB if card is a Technology
             if (entity.CardInfo.type == CardType.Technology) 
-                entity.Owner.Score += entity.GetComponent<TechnologyEntity>().Points;
+                owner.Score += entity.GetComponent<TechnologyEntity>().Points;
             
             // Check for ETB and if phase start trigger gets added to phases being tracked
             _triggerHandler.EntityEnters(entity);

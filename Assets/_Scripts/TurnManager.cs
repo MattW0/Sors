@@ -609,7 +609,6 @@ public class TurnManager : NetworkBehaviour
         _skippedPlayers.Clear();
 
         if (newState == TurnState.NextPhase) NextPhase();
-        // else if (newState == TurnState.PhaseSelection) PhaseSelection();
         else if (newState == TurnState.Draw) Draw();
         else if (newState == TurnState.Discard) Discard();
         else if (newState == TurnState.Invent || newState == TurnState.Recruit) StartMarketPhase();

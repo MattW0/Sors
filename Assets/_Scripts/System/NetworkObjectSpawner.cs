@@ -37,10 +37,12 @@ public class NetworkObjectSpawner : NetworkBehaviour, INetworkObjectSpawner
             return null;
         }
 
+        print($"Spawning card {scriptableCard.title} for {player.PlayerName}");
+
         var cardObject = CreateCardObject(scriptableCard);
         if (cardObject == null) return null;
 
-        SetupCardNetworking(cardObject, player);
+        SpawnWithClientAuthority(cardObject, player);
         var cardStats = InitializeCardOnClients(cardObject, scriptableCard);
         AddCardToPlayerCollection(player, cardStats, destination);
 
@@ -49,13 +51,15 @@ public class NetworkObjectSpawner : NetworkBehaviour, INetworkObjectSpawner
 
     public BattleZoneEntity SpawnFieldEntity(PlayerManager owner, CardInfo cardInfo)
     {
+        print($"Spawning entity {cardInfo.title} for {owner.PlayerName}");
+
         GameObject entityObject = CreateEntityObject(cardInfo);
         if (entityObject == null) return null;
 
         var id = entityObject.GetInstanceID();
         entityObject.name = cardInfo.title + "_" + id.ToString();
         
-        SetupEntityNetworking(entityObject, owner);
+        SpawnWithClientAuthority(entityObject, owner);
         var entity = entityObject.GetComponent<BattleZoneEntity>();
         entity.RpcInitializeEntity(id, owner, cardInfo);
         
@@ -88,19 +92,13 @@ public class NetworkObjectSpawner : NetworkBehaviour, INetworkObjectSpawner
         };
     }
 
-    private void SetupCardNetworking(GameObject cardObject, PlayerManager player)
+    private void SpawnWithClientAuthority(GameObject o, PlayerManager p)
     {
-        NetworkServer.Spawn(cardObject, connectionToClient);
-        if(player.connectionToClient != null)
+        NetworkServer.Spawn(o, connectionToClient);
+        if(p.connectionToClient != null)
         {
-            cardObject.GetComponent<NetworkIdentity>().AssignClientAuthority(player.connectionToClient);
+            o.GetComponent<NetworkIdentity>().AssignClientAuthority(p.connectionToClient);
         }
-    }
-
-    private void SetupEntityNetworking(GameObject entityObject, PlayerManager owner)
-    {
-        NetworkServer.Spawn(entityObject, connectionToClient);
-        entityObject.GetComponent<NetworkIdentity>().AssignClientAuthority(owner.connectionToClient);
     }
 
     private CardStats InitializeCardOnClients(GameObject cardObject, ScriptableCard scriptableCard)
