@@ -47,7 +47,7 @@ public class GameManager : NetworkBehaviour {
 
         if(string.IsNullOrWhiteSpace(options.StateFile)){
             // Normal game setup
-            _market.RpcInitializeMarket();
+            _market.InitializeMarket();
             foreach (var player in players.Values) SpawnPlayerDeck(player);
             OnGameStart?.Invoke(_gameOptions);
         } else {

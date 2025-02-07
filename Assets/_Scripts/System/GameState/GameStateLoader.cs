@@ -136,7 +136,7 @@ public class GameStateLoader : MonoBehaviour
         if(market.money.Count == 0 || market.technologies.Count == 0 || market.creatures.Count == 0)
         {
             print("Incomplete market data, loading randomized default settings");
-            _market.RpcInitializeMarket();
+            _market.InitializeMarket();
             return;
         }
 

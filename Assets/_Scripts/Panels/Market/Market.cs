@@ -57,20 +57,45 @@ public class Market : NetworkBehaviour
 
     #region Setup
 
-    [ClientRpc]
-    public void RpcInitializeMarket()
+    [Server]
+    public void InitializeMarket()
     {
         // Money
-        for (var i = 0; i < moneyTiles.Length; i++) 
-            moneyTiles[i].InitializeTile(new CardInfo(_moneyCardsDb[i]), i);
+        var moneyCards = new CardInfo[moneyTiles.Length];
+        for (var i = 0; i < moneyTiles.Length; i++)
+            moneyCards[i] = new CardInfo(_moneyCardsDb[i]);
+        RpcSetMoneyTiles(moneyCards);
 
         // Technologies
+        var technologyCards = new CardInfo[technologyTiles.Length];
         for (var i = 0; i < technologyTiles.Length; i++)
-            technologyTiles[i].InitializeTile(GetNewTechnologyFromDb(), i);
+            technologyCards[i] = GetNewTechnologyFromDb();
+        RpcSetTechnologyTiles(technologyCards);
 
         // Creatures
+        var creatureCards = new CardInfo[creatureTiles.Length];
         for (var i = 0; i < creatureTiles.Length; i++)
-            creatureTiles[i].InitializeTile(GetNewCreatureFromDb(), i);
+            creatureCards[i] = GetNewCreatureFromDb();
+        RpcSetCreatureTiles(creatureCards);
+    }
+
+    // Public for GameStateLoader    
+    [ClientRpc]
+    public void RpcSetMoneyTiles(CardInfo[] moneyTilesInfo){
+        for (var i = 0; i < moneyTilesInfo.Length; i++) 
+            moneyTiles[i].InitializeTile(moneyTilesInfo[i], i);
+    }
+
+    [ClientRpc]
+    public void RpcSetTechnologyTiles(CardInfo[] technologyTilesInfo){
+        for (var i = 0; i < technologyTilesInfo.Length; i++) 
+            technologyTiles[i].InitializeTile(technologyTilesInfo[i], i);
+    }
+
+    [ClientRpc]
+    public void RpcSetCreatureTiles(CardInfo[] creatureTilesInfo){   
+        for (var i = 0; i < creatureTilesInfo.Length; i++) 
+            creatureTiles[i].InitializeTile(creatureTilesInfo[i], i);
     }
 
     [ClientRpc]
@@ -186,27 +211,6 @@ public class Market : NetworkBehaviour
         foreach (var tile in creatureTiles) scriptableTiles[2].Add(tile.cardInfo);
 
         return scriptableTiles;
-    }
-
-    // FOR GAME STATE LOADING
-    // TODO: Change this to conform with new way of loading from gameManager
-    
-    [ClientRpc]
-    public void RpcSetMoneyTiles(CardInfo[] moneyTilesInfo){
-        for (var i = 0; i < moneyTilesInfo.Length; i++) 
-            moneyTiles[i].InitializeTile(moneyTilesInfo[i], i);
-    }
-
-    [ClientRpc]
-    public void RpcSetTechnologyTiles(CardInfo[] technologyTilesInfo){
-        for (var i = 0; i < technologyTilesInfo.Length; i++) 
-            technologyTiles[i].InitializeTile(technologyTilesInfo[i], i);
-    }
-
-    [ClientRpc]
-    public void RpcSetCreatureTiles(CardInfo[] creatureTilesInfo){   
-        for (var i = 0; i < creatureTilesInfo.Length; i++) 
-            creatureTiles[i].InitializeTile(creatureTilesInfo[i], i);
     }
 
     public CardInfo GetNewTechnologyFromDb()
