@@ -8,6 +8,11 @@ using UnityEditor.Presets;
 [System.Serializable]
 public class SorsColorsEditor : Editor
 {
+    public const string baseResourcePath = "ColorDefinitions/";
+    public const string defaultEditorSkin = "SorsCustomEditorSkin";
+    public const string defaultPreset = "SorsColorsPreset";
+    public const string defaultColorsEditor = "Sors Colors";
+
     GUISkin customSkin;
     protected static float foldoutItemSpace = 2;
     protected static float foldoutTopSpace = 5;
@@ -20,7 +25,7 @@ public class SorsColorsEditor : Editor
 
     void OnEnable()
     {
-        customSkin = (GUISkin)Resources.Load("ColorDefinitions/SorsCustomEditorSkin");
+        customSkin = (GUISkin)Resources.Load(baseResourcePath + defaultEditorSkin);
     }
 
     public override void OnInspectorGUI()
@@ -165,8 +170,8 @@ public class SorsColorsEditor : Editor
         
         try
         {
-            Preset defaultPreset = Resources.Load<Preset>("ColorDefinitions/SorsColors");
-            defaultPreset.ApplyTo(Resources.Load("Sors Colors"));
+            var preset = Resources.Load<Preset>(baseResourcePath + defaultPreset);
+            preset.ApplyTo(Resources.Load(baseResourcePath + defaultColorsEditor));
             Selection.activeObject = null;
             Debug.Log("<b>[Sors Colors]</b> Resetting is successful.");
         }
