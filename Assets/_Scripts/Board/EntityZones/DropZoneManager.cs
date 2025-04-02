@@ -8,8 +8,8 @@ using Cysharp.Threading.Tasks;
 public class DropZoneManager : NetworkBehaviour
 {
     [SerializeField] private BoardManager _boardManager;
-    [SerializeField] private MoneyZone playerMoneyZone;
-    [SerializeField] private MoneyZone opponentMoneyZone;
+    // [SerializeField] private MoneyZone playerMoneyZone;
+    // [SerializeField] private MoneyZone opponentMoneyZone;
     [SerializeField] private TriggerHandler _triggerHandler;
     private EntityZones _entityZones;
     // Entities and corresponding card object (for dying)
@@ -213,12 +213,12 @@ public class DropZoneManager : NetworkBehaviour
         return (creatures, technologies);
     }
 
-    [ClientRpc]
-    public void RpcDiscardMoney()
-    {
-        playerMoneyZone.DiscardMoney();
-        opponentMoneyZone.DiscardMoney();
-    }
+    // [ClientRpc]
+    // public void RpcDiscardMoney()
+    // {
+    //     playerMoneyZone.DiscardMoney();
+    //     opponentMoneyZone.DiscardMoney();
+    // }
 
     [Server]
     public void DestroyTargetArrows() => RpcDestroyArrows();
