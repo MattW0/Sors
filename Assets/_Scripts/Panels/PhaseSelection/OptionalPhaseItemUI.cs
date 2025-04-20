@@ -26,7 +26,8 @@ public class OptionalPhaseItemUI : MonoBehaviour, IHighlightable, IPointerClickH
     }
 
     private bool _tooltipDisabled;
-    public bool TooltipDisabled { 
+    public bool TooltipDisabled
+    { 
         get => _tooltipDisabled; 
         set {
             _tooltipDisabled = value;

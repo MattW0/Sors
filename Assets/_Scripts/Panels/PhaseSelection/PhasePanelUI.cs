@@ -34,16 +34,15 @@ public class PhasePanelUI : MonoBehaviour
     
     public void UpdatePhaseHighlight(TurnState newState)
     {
+        CheckTooltipsEnbaled(newState);
+
         var newHighlightIndex = GetIndex(newState);
         if (newHighlightIndex == -1) return;
         
         _oldHighlight.Disable(fadeDuration);
         HighlightTransition(newHighlightIndex);
-
-        if(newState == TurnState.Attackers) DisableTooltips(true);
-        else if (newState == TurnState.CombatCleanUp) DisableTooltips(false);
     }
-    
+
     private void HighlightTransition(int newIndex)
     {
         _phaseHighlights[newIndex].Highlight(1f, fadeDuration);
@@ -78,8 +77,14 @@ public class PhasePanelUI : MonoBehaviour
         };
     }
 
-    internal void DisableTooltips(bool b)    
+    private void CheckTooltipsEnbaled(TurnState newState)
     {
-        foreach(var p in _phaseHighlights) p.TooltipDisabled = b;
+        if(newState == TurnState.Attackers) SetTooltips(false);
+        else if (newState == TurnState.CombatCleanUp) SetTooltips(true);
+    }
+
+    private void SetTooltips(bool enabled)    
+    {
+        foreach(var p in _phaseHighlights) p.TooltipDisabled = !enabled;
     }
 }

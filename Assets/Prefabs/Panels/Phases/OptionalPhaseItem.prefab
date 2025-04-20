@@ -152,6 +152,7 @@ MonoBehaviour:
   opponentChoice: {fileID: 1875007691336338661}
   tooltipEffect: {fileID: 4766274932775988409}
   tooltipBonus: {fileID: 3773265866684855615}
+  _tooltipDisabled: 0
 --- !u!222 &4331371291053919417
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -709,7 +710,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 2100000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
-  m_Color: {r: 0.68235296, g: 0.6784314, b: 0.49411765, a: 1}
+  m_Color: {r: 0.95, g: 0.95, b: 0.6, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -800,7 +801,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 2100000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
-  m_Color: {r: 0.68235296, g: 0.6784314, b: 0.49411765, a: 1}
+  m_Color: {r: 0.95, g: 0.95, b: 0.6, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
