@@ -2,8 +2,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
-using System.Threading;
-using Sirenix.OdinInspector;
 
 public class MarketTileUI : EntityUI, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {

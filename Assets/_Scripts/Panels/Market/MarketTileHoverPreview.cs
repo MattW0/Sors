@@ -5,7 +5,7 @@ public class MarketTileHoverPreview : MonoBehaviour
 {
     [SerializeField] private DetailCardPreview _detailCardPreview;
     [SerializeField] private RectTransform previewWindow;
-    private Vector3 _offset = new(-20f, -10f, 0f);
+    private Vector3 _offset = new(0, -40f, 0f);
     private float _viewHeight;
     private float _viewWidth;
     private WaitForSeconds _wait = new(SorsTimings.hoverPreviewDelay); 
@@ -33,8 +33,7 @@ public class MarketTileHoverPreview : MonoBehaviour
         HidePreview();
         _detailCardPreview.HideAll();
     }
-
-    //TODO: Make sure the whole window is within screen bounds
+    
     private void HoverStart(CardInfo cardInfo)
     {
         HidePreview();
@@ -58,13 +57,16 @@ public class MarketTileHoverPreview : MonoBehaviour
 
     private void SetViewPosition()
     {
-        var anchor = Input.mousePosition + _offset;
+        var pos = Input.mousePosition + _offset;
+        // print($"Init position : {pos.x}, {pos.y}");
 
-        var endWidth = anchor.x + _viewWidth;
-        var endHeight = anchor.y - _viewHeight;
-        if(endWidth > Screen.width) anchor.x -= endWidth - Screen.width;
-        if(endHeight < 0f) anchor.y -= endHeight;
+        var endWidth = pos.x - _viewWidth;
+        if(endWidth < 0f) pos.x -= endWidth;
 
-        previewWindow.position = anchor;
+        var endHeight = pos.y - _viewHeight;
+        if(endHeight < 0f) pos.y -= endHeight;
+
+        // print($"Set position to : {pos.x}, {pos.y}");
+        previewWindow.position = pos;
     }
 }
