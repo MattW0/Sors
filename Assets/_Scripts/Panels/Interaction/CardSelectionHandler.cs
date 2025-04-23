@@ -88,11 +88,12 @@ public class CardSelectionHandler : MonoBehaviour
     {
         OnInteractionConfirmed?.Invoke();
 
-        if (_state == TurnState.Discard) LocalPlayer.CmdDiscardSelection(_selectedCards);
-        else if (_state == TurnState.CardSelection || _state == TurnState.Trash) LocalPlayer.CmdPrevailCardsSelection(_selectedCards);
-        else if (_state == TurnState.Invent || _state == TurnState.Recruit) LocalPlayer.CmdConfirmBuy(_marketSelection);
-        else if (_state == TurnState.Develop || _state == TurnState.Deploy) LocalPlayer.CmdConfirmPlay(_selectedCards);
-        
+        if (_state == TurnState.Invent || _state == TurnState.Recruit) {
+            LocalPlayer.CmdConfirmBuy(_marketSelection);
+            return;
+        }
+
+        LocalPlayer.CmdConfirmSelection(_selectedCards);        
         _selectedCards.Clear();
     }
 

@@ -104,22 +104,13 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Command]
-    public void CmdDiscardSelection(List<CardStats> cardsToDiscard)
+    internal void CmdConfirmSelection(List<CardStats> selectedCards)
     {
-        _turnManager.PlayerSelectedDiscardCards(this, cardsToDiscard);
+        _turnManager.PlayerConfirmsCardSelection(this, selectedCards);
     }
 
     [Command]
     public void CmdConfirmBuy(MarketSelection card) => _turnManager.PlayerConfirmBuy(this, card);
-
-    [Command]
-    public void CmdConfirmPlay(List<CardStats> cards)
-    {
-        // TODO: Make playing multiple cards possible ?
-        foreach(var card in cards) _turnManager.PlayerPlaysCard(this, card);
-        
-        Cards.RemoveHandCards(cards, CardLocation.PlayZone);
-    }
 
     [Command]
     public void CmdPrevailSelection(List<PrevailOption> options)
@@ -127,12 +118,6 @@ public class PlayerManager : NetworkBehaviour
         // Saving local player choice
         _chosenPrevailOptions = options;
         _turnManager.PlayerSelectedPrevailOptions(this, options);
-    }
-
-    [Command]
-    public void CmdPrevailCardsSelection(List<CardStats> cards)
-    {
-        _turnManager.PlayerSelectedPrevailCards(this, cards);
     }
 
     [Command]
@@ -165,6 +150,8 @@ public class PlayerManager : NetworkBehaviour
     #endregion
 
     #region Resources UI
+
+    // SyncVar hooks referenced by name, they are used!
     private void UISetPlayerName(string oldValue, string newValue)
     {
         if (isOwned) _playerUI.SetName(newValue);

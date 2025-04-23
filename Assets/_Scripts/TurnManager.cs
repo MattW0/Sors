@@ -4,6 +4,8 @@ using System.Linq;
 using UnityEngine;
 using Mirror;
 using Cysharp.Threading.Tasks;
+using Unity.VisualScripting;
+using CardDecoder;
 
 public class TurnManager : NetworkBehaviour
 {
@@ -94,8 +96,8 @@ public class TurnManager : NetworkBehaviour
         foreach (var player in _gameManager.players.Values)
         {
             _playerPhaseChoices.Add(player, new TurnState[gameOptions.NumberPhases]);
-            _playerPrevailOptions.Add(player, new List<PrevailOption>());
-            _selectedCards.Add(player, new List<CardStats>());
+            _playerPrevailOptions.Add(player, new());
+            _selectedCards.Add(player, new());
             playerNames.Add(player.PlayerName);
         }
 
@@ -189,12 +191,6 @@ public class TurnManager : NetworkBehaviour
         StartPhaseInteraction();
     }
 
-    public void PlayerSelectedDiscardCards(PlayerManager player, List<CardStats> selectedCards)
-    {
-        _selectedCards[player] = selectedCards;
-        PlayerIsReady(player);
-    }
-
     private void FinishDiscard()
     {
         foreach (var (player, cards) in _selectedCards)
@@ -255,7 +251,7 @@ public class TurnManager : NetworkBehaviour
         if (_selectedMarketCards.ContainsKey(player))
             _selectedMarketCards[player] = selection.cardInfo;
         else
-            _selectedMarketCards.Add(player,  selection.cardInfo);
+            _selectedMarketCards.Add(player, selection.cardInfo);
 
         _market.TargetResetMarket(player.connectionToClient, player.Buys);
         PlayerIsReady(player);
@@ -323,7 +319,7 @@ public class TurnManager : NetworkBehaviour
 
     #region Play Cards
 
-    private void StartPlayCard()
+    private void PlayCard()
     {
         foreach(var player in _gameManager.players.Values) 
         {
@@ -336,12 +332,7 @@ public class TurnManager : NetworkBehaviour
                 player.Cash += _gameOptions.extraCash;
             }
         }
-        
-        PlayCard();
-    }
 
-    private void PlayCard()
-    {
         StartPhaseInteraction();
     }
 
@@ -354,15 +345,6 @@ public class TurnManager : NetworkBehaviour
         if (numberSlots == -1) throw new Exception("Trying to access entity holders in invalid phase: " + turnState);
 
         return Math.Min(numberPlays, numberSlots);
-    }
-
-    public void PlayerPlaysCard(PlayerManager player, CardStats card)
-    {
-        player.Plays--;
-        player.Cash -= card.cardInfo.cost;
-
-        _selectedCards[player].Add(card);
-        PlayerIsReady(player);
     }
 
     private void PlayEntities()
@@ -386,7 +368,7 @@ public class TurnManager : NetworkBehaviour
     {
         // Play another card if not all players have skipped
         if (AllPlayersSkipped()) FinishPlayCard();
-        else PlayCard();
+        else StartPhaseInteraction();
     }
 
     private void FinishPlayCard()
@@ -455,12 +437,6 @@ public class TurnManager : NetworkBehaviour
 
         if (nextOption == PrevailOption.Score) PrevailScoring();
         else StartPhaseInteraction(nextOption);
-    }
-
-    public void PlayerSelectedPrevailCards(PlayerManager player, List<CardStats> selectedCards)
-    {
-        _selectedCards[player] = selectedCards;
-        PlayerIsReady(player);
     }
 
     private void FinishPrevailCardIntoHand()
@@ -612,7 +588,7 @@ public class TurnManager : NetworkBehaviour
         else if (newState == TurnState.Draw) Draw();
         else if (newState == TurnState.Discard) Discard();
         else if (newState == TurnState.Invent || newState == TurnState.Recruit) StartMarketPhase();
-        else if (newState == TurnState.Develop || newState == TurnState.Deploy) StartPlayCard();
+        else if (newState == TurnState.Develop || newState == TurnState.Deploy) PlayCard();
         else if (newState == TurnState.Prevail) Prevail();
         else if (newState == TurnState.CleanUp) CleanUp().Forget();
         else if (newState == TurnState.Attackers) _combatManager.UpdateCombatState(TurnState.Attackers);
@@ -638,6 +614,21 @@ public class TurnManager : NetworkBehaviour
         else if (turnState == TurnState.CardSelection) FinishPrevailCardIntoHand();
         else if (turnState == TurnState.Trash) FinishPrevailTrash();
         else throw new ArgumentOutOfRangeException(nameof(turnState), turnState, null);
+    }
+
+    internal void PlayerConfirmsCardSelection(PlayerManager player, List<CardStats> selectedCards)
+    {
+        if (turnState == TurnState.Invent || turnState == TurnState.Deploy) 
+        {
+            player.Plays--;
+            player.Cards.RemoveHandCards(selectedCards, CardLocation.PlayZone);
+
+            foreach (var card in selectedCards)
+                player.Cash -= card.cardInfo.cost;
+        }
+
+        _selectedCards[player].AddRange(selectedCards);
+        PlayerIsReady(player);
     }
 
     public void PlayerSkipsInteraction(PlayerManager player)
@@ -697,10 +688,10 @@ public class TurnManager : NetworkBehaviour
 
     private void StartPhaseInteraction(PrevailOption currentPrevailOption = PrevailOption.None)
     {
-        foreach (var (player, selection) in _selectedCards)
+        foreach (var player in _gameManager.players.Values)
         {
-            // Always clear selection from last interaction
-            selection.Clear();
+            // Reset selection from last interaction
+            _selectedCards[player].Clear();
 
             var nbInteractions = GetNumberOfInteractions(player, currentPrevailOption);
             var collection = GetCollection(player);
@@ -792,7 +783,7 @@ public class TurnManager : NetworkBehaviour
         PlayerManager.OnCashChanged -= PlayerCashChanged;
         PriceReduction.OnMarketPriceReduction -= PlayerGetsMarketBonus;
         Curse.OnPlayerGainsCurses -= PlayerGainsCurses;
-    }    
+    }
 }
 
 public enum TurnState : byte
