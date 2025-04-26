@@ -656,7 +656,7 @@ public class TurnManager : NetworkBehaviour
         // Taking this "detour" to have server and clients in sync
         // Had troubles making Hand / Market listen to OnCashChanged directly..
         if(turnState == TurnState.Develop || turnState == TurnState.Deploy)
-            _interactionPanel.TargetCheckPlayability(player.connectionToClient, turnState, newAmount);
+            _interactionPanel.TargetCheckPlayability(player.connectionToClient, newAmount);
         else if (turnState == TurnState.Invent || turnState == TurnState.Recruit)
             _market.TargetCheckMarketPrices(player.connectionToClient, newAmount);
     }
@@ -681,10 +681,10 @@ public class TurnManager : NetworkBehaviour
         }
     }
 
-    internal void PlayerClickedUndoButton(PlayerManager player)
-    {
-        _interactionPanel.TargetUndoMoneyPlay(player.connectionToClient);
-    }
+    // internal void PlayerClickedUndoButton(PlayerManager player)
+    // {
+    //     _interactionPanel.TargetUndoMoneyPlay(player.connectionToClient);
+    // }
 
     private void StartPhaseInteraction(PrevailOption currentPrevailOption = PrevailOption.None)
     {

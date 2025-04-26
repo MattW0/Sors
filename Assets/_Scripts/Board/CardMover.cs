@@ -33,7 +33,8 @@ public class CardMover : MonoBehaviour
 
     public void MoveTo(GameObject card, bool hasAuthority, CardLocation from, CardLocation to)
     {
-        var (sourcePile, destinationPile) = GetPiles(from, to, hasAuthority);
+        // var (sourcePile, destinationPile) = GetPiles(from, to, hasAuthority);
+        var destinationPile = GetPile(to, hasAuthority);
 
         // Is front or back up ?
         FlipCard(card, hasAuthority, to);
@@ -44,7 +45,8 @@ public class CardMover : MonoBehaviour
 
     public void MoveAllTo(List<GameObject> cards, bool hasAuthority, CardLocation from, CardLocation to)
     {
-        var (sourcePile, destinationPile) = GetPiles(from, to, hasAuthority);
+        // var (sourcePile, destinationPile) = GetPiles(from, to, hasAuthority);
+        var destinationPile = GetPile(to, hasAuthority);
 
         foreach(var card in cards){
             // Is front or back up ?
@@ -108,14 +110,14 @@ public class CardMover : MonoBehaviour
             });
     }
 
-    private (CardsPileSors, CardsPileSors) GetPiles(CardLocation from, CardLocation to, bool hasAuthority)
-    {
-        // Change where card comes from because card moved on client already ( InteractionPanel.SelectCard() )
-        if((to == CardLocation.EntitySpawn || to == CardLocation.Trash) && hasAuthority) 
-            from = CardLocation.Selection;
+    // private (CardsPileSors, CardsPileSors) GetPiles(CardLocation from, CardLocation to, bool hasAuthority)
+    // {
+    //     // Change where card comes from because card moved on client already ( InteractionPanel.SelectCard() )
+    //     if((to == CardLocation.EntitySpawn || to == CardLocation.Trash) && hasAuthority) 
+    //         from = CardLocation.Selection;
 
-        return (GetPile(from, hasAuthority), GetPile(to, hasAuthority));
-    }
+    //     return (GetPile(from, hasAuthority), GetPile(to, hasAuthority));
+    // }
 
     private CardsPileSors GetPile(CardLocation location, bool hasAuthority)
     {

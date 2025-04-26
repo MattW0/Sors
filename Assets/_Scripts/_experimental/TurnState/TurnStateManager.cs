@@ -3,6 +3,7 @@ using System;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
 
+namespace Sors.Experimental {
 public class TurnStateManager : MonoBehaviour
 {
     // Add getters/setters for properties needed by states
@@ -47,4 +48,5 @@ public class TurnStateManager : MonoBehaviour
         // Waiting for AbilityQueue to finish resolving Buy triggers
         await _abilityQueue.Resolve();
     }
+}
 }

@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Sors.Experimental;
 
+namespace Sors.Experimental {
 public class DiscardState : Phase
 {
     public int discardPerDrawPhase;
@@ -60,4 +62,5 @@ public class DiscardState : Phase
         // turnManager.SkippedPlayers.Add(player.ID);
         HandlePlayerReady(player);
     }
+}
 }

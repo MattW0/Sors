@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Sors.Experimental;
 
+namespace Sors.Experimental {
 public class DrawState : Phase
 {
     public int drawPerTurn;
@@ -29,4 +31,5 @@ public class DrawState : Phase
     public override void ExitState() { }
 
     public override void HandlePlayerReady(PlayerManager player) { }
+}
 }

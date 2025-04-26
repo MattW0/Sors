@@ -1,14 +1,11 @@
-using Sirenix.OdinInspector;
 using Sirenix.Utilities;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "InteractionState", menuName = "Sors/InteractionState")]
-public class InteractionState : ScriptableObject
-{
-    [Header("State Configuration")]
-    public TurnState stateType;
-    
+[CreateAssetMenu(fileName = "InteractionStateConfig", menuName = "Sors/Interaction/InteractionStateConfig")]
+public class InteractionStateConfig : ScriptableObject
+{    
     [Header("Display Settings")]
+    public TurnState turnState;
     public InteractionType interactionType;
     [SerializeField] private string displayText = "";
 

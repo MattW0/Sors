@@ -16,45 +16,32 @@ public class InteractionUI : AnimatedPanel
     [SerializeField] private DetailCardPreview _detailCardPreview;
 
     [Header("Interaction States")]
-    [SerializeField] private InteractionState[] interactionStates;
-    private InteractionState _currentState;
+    private InteractionStateBase _state;
+    // private InteractionStateConfig _state.config;
 
     [Header("Helper Fields")]
     private int _nbCardsToSelectMax;
     private bool _isWaiting;
-    private InteractionType _interactionType;
-
-    public static event Action<bool> OnSkipInteraction;
-    public static event Action<bool> OnResetInteraction;
-    public static event Action<bool> OnConfirmInteraction;
 
     private void Start()
-    {        
-        _skipButton.onClick.AddListener(OnSkipButtonPressed);
-        _resetButton.onClick.AddListener(OnResetButtonPressed);
-        _confirmButton.onClick.AddListener(OnConfirmButtonPressed);
+    {
+        _skipButton.onClick.AddListener(_state.OnSkip);
+        _resetButton.onClick.AddListener(_state.OnReset);
+        _confirmButton.onClick.AddListener(_state.OnConfirm);
 
         _displayText.text = "";
         _detailCardPreview.HideAll(true);
-
-        InteractionPanel.OnInteractionBegin += InteractionBegin;
     }
 
-    public void InteractionBegin(TurnState state, int nbCardsToSelectMax, bool autoSkip)
+    public void InteractionBegin(InteractionStateBase state, int nbCardsToSelectMax, bool autoSkip)
     {
         print("Interaction begin " + state + ", " + nbCardsToSelectMax + ", " + autoSkip);
 
         _nbCardsToSelectMax = nbCardsToSelectMax;
         _isWaiting = false;
-        _currentState = interactionStates.FirstOrDefault(x => x.stateType == state);
-        if(_currentState == null){
-            Debug.LogError("No interaction state found for " + state);
-            return;
-        }
 
-        _interactionType = _currentState.interactionType;
         if(autoSkip){
-            OnSkipButtonPressed();
+            _state.OnSkip();
             return;
         }
 
@@ -64,25 +51,13 @@ public class InteractionUI : AnimatedPanel
 
     private void SetPanelUI()
     {
-        _confirmButton.interactable = _currentState.confirmButtonEnabled;
-        _resetButton.gameObject.SetActive(_currentState.resetButtonVisible);
-        _resetButton.interactable = _currentState.resetButtonEnabled;
-        _skipButton.gameObject.SetActive(_currentState.skipButtonVisible);
-        _skipButton.interactable = _currentState.skipButtonEnabled;
+        _confirmButton.interactable = _state.config.confirmButtonEnabled;
+        _resetButton.gameObject.SetActive(_state.config.resetButtonVisible);
+        _resetButton.interactable = _state.config.resetButtonEnabled;
+        _skipButton.gameObject.SetActive(_state.config.skipButtonVisible);
+        _skipButton.interactable = _state.config.skipButtonEnabled;
 
-        _displayText.text = _currentState.GetInteractionString(_nbCardsToSelectMax);
-    }
-
-    private void OnSkipButtonPressed() 
-    {   
-        Wait();
-        OnSkipInteraction?.Invoke(_interactionType != InteractionType.Confirm);
-    }
-    private void OnResetButtonPressed() => OnResetInteraction?.Invoke(_interactionType != InteractionType.Confirm);
-    private void OnConfirmButtonPressed()
-    {
-        Wait();
-        OnConfirmInteraction?.Invoke(_interactionType != InteractionType.Confirm);
+        _displayText.text = _state.config.GetInteractionString(_nbCardsToSelectMax);
     }
 
     internal void SetConfirmButtonEnabled(bool b) => _confirmButton.interactable = b;
@@ -111,6 +86,6 @@ public class InteractionUI : AnimatedPanel
 
     private void OnDestroy()
     {
-        InteractionPanel.OnInteractionBegin -= InteractionBegin;
+        // InteractionPanel.OnInteractionBegin -= InteractionBegin;
     }
 }

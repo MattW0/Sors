@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3289486b40aad94d9d26a337ce1f83d, type: 3}
   m_Name: DiscardInteraction
   m_EditorClassIdentifier: 
-  stateType: 4
+  turnState: 4
   interactionType: 1
   displayText: 
   displayTextFormat: '{0} {1} {2} card(s)'
@@ -20,7 +20,10 @@ MonoBehaviour:
   allowedCardType: 5
   includeMoneyOption: 0
   confirmButtonEnabled: 0
+  skipButtonVisible: 1
   skipButtonEnabled: 0
+  resetButtonVisible: 0
+  resetButtonEnabled: 0
   Description: 'Interaction state configuration: Display text, button settings, etc.
 
     The

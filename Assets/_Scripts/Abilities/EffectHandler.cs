@@ -1,9 +1,7 @@
 using System;
-using System.Collections;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 
 public class EffectHandler : MonoBehaviour
 {
@@ -61,6 +59,10 @@ public class EffectHandler : MonoBehaviour
 
     private BattleZoneEntity GetTargetEntity(Ability ability)
     {
+        // TODO: Evaluate target via interface too? Create ITarget and return null for options that are unclear
+        // -> then continue to check on IEffect
+        // -> finally return null if player input is needed
+
         // Some targets are pre-determined
         if(ability.target == Target.None) throw new Exception("Ability " + ability + " has no target!");
         

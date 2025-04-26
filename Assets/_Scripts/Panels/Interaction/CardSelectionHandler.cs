@@ -21,11 +21,11 @@ public class CardSelectionHandler : MonoBehaviour
         _ui = gameObject.GetComponentInChildren<InteractionUI>();
 
         CardClickHandler.OnCardClicked += ClickedCard;
-        InteractionPanel.OnInteractionBegin += BeginInteraction;
     }
-    public void BeginInteraction(TurnState turnState, int numberSelections, bool autoSkip)
+
+    public void BeginInteraction(InteractionStateBase turnState, int numberSelections)
     {
-        _state = turnState;
+        _state = turnState.config.turnState;
         _numberSelections = numberSelections;
     }
 
@@ -88,6 +88,7 @@ public class CardSelectionHandler : MonoBehaviour
     {
         OnInteractionConfirmed?.Invoke();
 
+        // Different because _marketSelection entails more info than just cardInfo (adpated Price)
         if (_state == TurnState.Invent || _state == TurnState.Recruit) {
             LocalPlayer.CmdConfirmBuy(_marketSelection);
             return;
@@ -145,7 +146,6 @@ public class CardSelectionHandler : MonoBehaviour
     private void OnDestroy()
     {
         CardClickHandler.OnCardClicked -= ClickedCard;
-        InteractionPanel.OnInteractionBegin -= BeginInteraction;
     }
 }
 

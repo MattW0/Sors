@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using Sors.Experimental;
 
+namespace Sors.Experimental {
 public abstract class Phase
 {
     protected TurnStateManager turnManager;
@@ -16,4 +18,5 @@ public abstract class Phase
     public abstract void ExitState();
     public abstract void HandlePlayerReady(PlayerManager player);
     public virtual void HandlePlayerSkip(PlayerManager player) { }
+}
 }

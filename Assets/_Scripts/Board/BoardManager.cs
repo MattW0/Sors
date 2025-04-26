@@ -76,7 +76,7 @@ public class BoardManager : NetworkBehaviour
         
         if (_combatState == TurnState.Attackers) StartAttackers();
         else if (_combatState == TurnState.Blockers) StartBlockers();
-        else if (_combatState == TurnState.CombatDamage) _interactionPanel.RpcStartCombatDamage();
+        else if (_combatState == TurnState.CombatDamage) StartDamage();
         else if (_combatState == TurnState.CombatCleanUp) CombatCleanUp().Forget();
     }
 
@@ -121,6 +121,14 @@ public class BoardManager : NetworkBehaviour
         {
             _dropZone.TargetFinishChoosingBlockers(player.connectionToClient);
             _combatManager.PlayerDeclaredBlockers(player);
+        }
+    }
+
+    private void StartDamage()
+    {
+        foreach (var player in _gameManager.players.Values)
+        {
+            _interactionPanel.TargetStartCombatState(player.connectionToClient, _combatState, false);
         }
     }
 
