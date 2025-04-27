@@ -17,7 +17,6 @@ public class InteractionUI : AnimatedPanel
 
     [Header("Interaction States")]
     private InteractionStateBase _state;
-    // private InteractionStateConfig _state.config;
 
     [Header("Helper Fields")]
     private int _nbCardsToSelectMax;

@@ -6,6 +6,7 @@ public class InteractionStateConfig : ScriptableObject
 {    
     [Header("Display Settings")]
     public TurnState turnState;
+    public CardLocation location;
     public InteractionType interactionType;
     [SerializeField] private string displayText = "";
 

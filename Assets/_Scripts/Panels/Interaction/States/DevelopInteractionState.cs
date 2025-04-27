@@ -5,7 +5,7 @@ public class DevelopInteractionState : InteractionStateBase
 {
     public override string ConfigName => "TurnStates/Develop";
 
-    public override bool CheckStateSpecificAutoskip()
+    public override bool CheckStateAutoskip(int numberSelections)
     {
         return !ContainsTechnology();
     }

@@ -5,7 +5,7 @@ public class DeployInteractionState : InteractionStateBase
 {
     public override string ConfigName => "TurnStates/Deploy";
 
-    public override bool CheckStateSpecificAutoskip()
+    public override bool CheckStateAutoskip(int numberSelections)
     {
         return !ContainsCreature();
     }

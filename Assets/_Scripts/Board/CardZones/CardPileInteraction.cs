@@ -2,7 +2,7 @@ using UnityEngine;
 using DG.Tweening;
 
 [RequireComponent(typeof(CardsPileSors))]
-public class CardPileInteraction : MonoBehaviour
+public class InteractionPileUI : MonoBehaviour
 {
     [SerializeField] private Transform _cardHolder;
     [SerializeField] private Transform _transformDefault;
@@ -10,8 +10,9 @@ public class CardPileInteraction : MonoBehaviour
     [SerializeField] private Vector3 _scaleDefault = Vector3.one;
     [SerializeField] private Vector3 _scaleInteractable = new Vector3(1.2f, 1.2f, 1f);
     private CardsPileSors _pile;
+    public CardLocation Location => _pile.pileType;
 
-    private void Start()
+    private void Awake()
     {
         _pile = GetComponent<CardsPileSors>();
     }

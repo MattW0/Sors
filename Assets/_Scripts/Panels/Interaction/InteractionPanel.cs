@@ -8,11 +8,10 @@ using System;
 public class InteractionPanel : NetworkBehaviour
 {
     public static InteractionPanel Instance { get; private set; }
-    // [SerializeField] private CardPileInteraction _playerHand;
-    // [SerializeField] private CardPileInteraction _playerDiscard;
     private CardSelectionHandler _selectionHandler;
     private BoardManager _boardManager;
     [SerializeField] private ArrowManager _arrowManager;
+    [SerializeField] private InteractionPileUI[] _interactablePiles;
 
     [Header("Helper Fields")]
     private InteractionStateBase _currentState;
@@ -26,7 +25,14 @@ public class InteractionPanel : NetworkBehaviour
         if (Instance == null) Instance = this;
 
         _selectionHandler = GetComponent<CardSelectionHandler>();
-        
+
+        InteractionStateBase.OnSkipInteraction += OnSkip;
+        InteractionStateBase.OnResetInteraction += OnReset;
+        InteractionStateBase.OnConfirmInteraction += OnConfirm;
+    }
+
+    private void Start() 
+    {
         // Load all interaction states from Resources folder
         // _interactionStates = Resources.LoadAll<InteractionStateBase>("InteractionStates");
         if (_interactionStates == null || _interactionStates.Length == 0)
@@ -35,11 +41,7 @@ public class InteractionPanel : NetworkBehaviour
             return;
         }
 
-        foreach(var state in _interactionStates) state.Init();
-
-        InteractionStateBase.OnSkipInteraction += OnSkip;
-        InteractionStateBase.OnResetInteraction += OnReset;
-        InteractionStateBase.OnConfirmInteraction += OnConfirm;
+        foreach(var state in _interactionStates) state.Initialize(_interactablePiles);
     }
 
     [ClientRpc]
@@ -81,16 +83,6 @@ public class InteractionPanel : NetworkBehaviour
         SetCurrentTurnState(turnState);
         _currentState.StartInteraction(interactableCards, numberSelections);
         // OnInteractionBegin?.Invoke(_currentState, numberSelections, autoSkip);
-        // if (autoSkip) return;
-
-        // // Make cards interactable
-        // // if (_currentState == TurnState.Invent || _currentState == TurnState.Develop) MoneyCardsAreInteractable();
-        // // else if (_currentState == TurnState.Recruit || _currentState == TurnState.Deploy) MoneyCardsAreInteractable();
-        // // else AllCardsAreInteractable(true);
-        
-        // Move card collection
-        // if (_currentState.turnState == TurnState.CardSelection) _playerDiscard.StartInteraction();
-        // else _playerHand.StartInteraction();
     }
 
     [TargetRpc]
@@ -133,7 +125,7 @@ public class InteractionPanel : NetworkBehaviour
     public void RpcResetPanel()
     {
         print("    - InteractionPanel: Reset panel");
-        _currentState.ResetCards();
+        _currentState.Reset();
 
         // _playerHand.EndInteraction();
         // _playerDiscard.EndInteraction();
