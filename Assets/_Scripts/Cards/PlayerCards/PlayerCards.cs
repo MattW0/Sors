@@ -20,6 +20,11 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
     private CardMover _cardMover;
     private PlayerManager _owner;
 
+    private void Awake() 
+    {
+        CardSelectionHandler.OnPlayMoneyCard += CmdPlayMoneyCard;
+    }
+
     private void Start()
     {
         _cardMover = CardMover.Instance;
@@ -68,7 +73,7 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
     }
 
     [Command]
-    public void CmdPlayMoneyCard(CardStats card)
+    private void CmdPlayMoneyCard(CardStats card)
     {
         _owner.Cash += card.cardInfo.moneyValue;
         
@@ -200,4 +205,9 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
     }
 
     public void OnAfterDeserialize(){ }
+
+    private void OnDestroy() 
+    {
+        CardSelectionHandler.OnPlayMoneyCard -= CmdPlayMoneyCard;
+    }
 }

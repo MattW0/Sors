@@ -8,12 +8,12 @@ public class InteractionStateConfig : ScriptableObject
     public TurnState turnState;
     public CardLocation location;
     public InteractionType interactionType;
+    public bool isUpTo;
     [SerializeField] private string displayText = "";
 
     [Header("Display Text Configuration")]
     [Tooltip("{0}: Interaction Verb, {1}: Number of cards, {2}: Card type")]
     [SerializeField] private string displayTextFormat = "{0} {1} {2}card(s)";
-    [SerializeField] private bool useUpTo;
     [SerializeField] private CardType allowedCardType;
     [SerializeField] private bool includeMoneyOption;
     
@@ -35,7 +35,7 @@ public class InteractionStateConfig : ScriptableObject
     {
         if (! displayText.IsNullOrWhitespace()) return displayText;
 
-        string countText = useUpTo ? $"up to {nbCardsToSelectMax}" : nbCardsToSelectMax.ToString();
+        string countText = isUpTo ? $"up to {nbCardsToSelectMax}" : nbCardsToSelectMax.ToString();
         return string.Format(displayTextFormat, interactionType.ToString(), countText, FormatCardTypeText());
     }
 
@@ -49,11 +49,6 @@ public class InteractionStateConfig : ScriptableObject
 
 public enum InteractionType {
     Select,
-    Discard,
     Buy,
-    Play,
-    Trash,
-    Attack,
-    Block,
-    Confirm,
+    Combat
 }

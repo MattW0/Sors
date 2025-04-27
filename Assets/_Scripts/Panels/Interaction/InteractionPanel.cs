@@ -8,16 +8,19 @@ using System;
 public class InteractionPanel : NetworkBehaviour
 {
     public static InteractionPanel Instance { get; private set; }
+    public PlayerManager LocalPlayer { get; set; }
     private CardSelectionHandler _selectionHandler;
     private BoardManager _boardManager;
     [SerializeField] private ArrowManager _arrowManager;
     [SerializeField] private InteractionPileUI[] _interactablePiles;
+    private InteractionUI _interactionUI;
 
     [Header("Helper Fields")]
     private InteractionStateBase _currentState;
-    [SerializeField] private InteractionStateBase[] _interactionStates = {
-        new DevelopInteractionState(),
-        new DeployInteractionState(),
+    private readonly InteractionStateBase[] _interactionStates = {
+        new DiscardState(),
+        new DevelopState(),
+        new DeployState(),
     };
 
     private void Awake()
@@ -25,22 +28,15 @@ public class InteractionPanel : NetworkBehaviour
         if (Instance == null) Instance = this;
 
         _selectionHandler = GetComponent<CardSelectionHandler>();
+        _interactionUI = GetComponentInChildren<InteractionUI>();
 
-        InteractionStateBase.OnSkipInteraction += OnSkip;
-        InteractionStateBase.OnResetInteraction += OnReset;
-        InteractionStateBase.OnConfirmInteraction += OnConfirm;
+        InteractionStateBase.OnSkipInteraction += PlayerSkips;
+        InteractionStateBase.OnResetInteraction += PlayerResets;
+        InteractionStateBase.OnConfirmInteraction += PlayerConfirms;
     }
 
     private void Start() 
     {
-        // Load all interaction states from Resources folder
-        // _interactionStates = Resources.LoadAll<InteractionStateBase>("InteractionStates");
-        if (_interactionStates == null || _interactionStates.Length == 0)
-        {
-            Debug.LogError("No interaction states found in Resources/InteractionStates folder. Make sure to create the states and place them in the Resources folder.");
-            return;
-        }
-
         foreach(var state in _interactionStates) state.Initialize(_interactablePiles);
     }
 
@@ -48,31 +44,7 @@ public class InteractionPanel : NetworkBehaviour
     public void RpcPrepareInteractionPanel()
     {
         _boardManager = BoardManager.Instance;
-        _selectionHandler.LocalPlayer = PlayerManager.GetLocalPlayer();
-    }
-
-    private void OnSkip()
-    {
-        // if (isCardInteraction) _selectionHandler.SkipCardInteraction();
-        CmdPlayerSkips(_selectionHandler.LocalPlayer);
-    }
-
-    private void OnReset()
-    {
-        CmdPlayerResets(_selectionHandler.LocalPlayer);
-    }
-
-    private void OnConfirm()
-    {
-        // if (isCardInteraction) {
-        //     _selectionHandler.ConfirmCardSelection();
-        //     return;
-        // }
-        
-        foreach(var (target, creatureList) in _arrowManager.GetPlayerSelection())
-            CmdSetGroupTarget(target, creatureList);
-        
-        CmdPlayerConfirms(_selectionHandler.LocalPlayer);
+        LocalPlayer = PlayerManager.GetLocalPlayer();
     }
 
     [TargetRpc]
@@ -81,12 +53,13 @@ public class InteractionPanel : NetworkBehaviour
         print($"    - InteractionPanel: Choose {numberSelections} / {interactableCards.Count} cards");
 
         SetCurrentTurnState(turnState);
-        _currentState.StartInteraction(interactableCards, numberSelections);
-        // OnInteractionBegin?.Invoke(_currentState, numberSelections, autoSkip);
+        var autoSkip = _currentState.StartInteraction(interactableCards, numberSelections);
+        _interactionUI.StartInteraction(_currentState, numberSelections, autoSkip);
+        _selectionHandler.BeginInteraction(_currentState, numberSelections);
     }
 
     [TargetRpc]
-    internal void TargetStartCombatState(NetworkConnection conn, TurnState turnState, bool skip)
+    internal void TargetStartCombatState(NetworkConnection target, TurnState turnState, bool skip)
     {
         print($"    - InteractionPanel: Start combat state {turnState}");
         
@@ -96,9 +69,35 @@ public class InteractionPanel : NetworkBehaviour
         // OnInteractionBegin?.Invoke(_currentState, -1, skip);
     }
 
+    private void PlayerSkips()
+    {
+        _selectionHandler.SkipCardInteraction();
+        CmdPlayerSkips();
+    }
+
+    private void PlayerResets() => CmdPlayerResets();
+
+    private void PlayerConfirms(InteractionType type)
+    {
+        print("Player confirms interaction type "+ type);
+        if (type == InteractionType.Select) ConfirmCardSelection();
+        else if (type == InteractionType.Buy) ConfirmBuy();
+        else if (type == InteractionType.Combat) ConfirmCombatSelection();
+    }
+
+    private void ConfirmCardSelection() => LocalPlayer.CmdConfirmSelection(_selectionHandler.selectedCards);
+    private void ConfirmBuy() => LocalPlayer.CmdConfirmBuy(_selectionHandler.marketSelection);
+    private void ConfirmCombatSelection()
+    {
+        foreach(var (target, creatureList) in _arrowManager.GetPlayerSelection())
+            CmdSetGroupTarget(target, creatureList);
+        
+        CmdPlayerConfirms();
+    }
+
     private void SetCurrentTurnState(TurnState turnState)
     {
-        _currentState = (InteractionStateBase) _interactionStates.FirstOrDefault(x => x.config.turnState == turnState);
+        _currentState = _interactionStates.FirstOrDefault(x => x.config.turnState == turnState);
         if(_currentState == null)
         {
             Debug.LogError($"No interaction state found for {turnState}");
@@ -126,10 +125,6 @@ public class InteractionPanel : NetworkBehaviour
     {
         print("    - InteractionPanel: Reset panel");
         _currentState.Reset();
-
-        // _playerHand.EndInteraction();
-        // _playerDiscard.EndInteraction();
-        
         _selectionHandler.EndSelection();
     }
 
@@ -148,24 +143,25 @@ public class InteractionPanel : NetworkBehaviour
     } 
 
     [Command(requiresAuthority = false)]
-    private void CmdPlayerConfirms(PlayerManager player) => _boardManager.PlayerConfirmsCombatState(player);
+    private void CmdPlayerConfirms() => _boardManager.PlayerConfirmsCombatState(LocalPlayer);
 
     [Command(requiresAuthority = false)]
-    private void CmdPlayerResets(PlayerManager player) => _arrowManager.TargetResetArrows(player.connectionToClient);
+    private void CmdPlayerResets() => _arrowManager.TargetResetArrows(LocalPlayer.connectionToClient);
 
     [Command(requiresAuthority = false)]
-    private void CmdPlayerSkips(PlayerManager player)
+    private void CmdPlayerSkips()
     {
-        _arrowManager.TargetResetArrows(player.connectionToClient);
-        _boardManager.PlayerConfirmsCombatState(player);
+        LocalPlayer.CmdSkipInteraction();
+        _arrowManager.TargetResetArrows(LocalPlayer.connectionToClient);
+        _boardManager.PlayerConfirmsCombatState(LocalPlayer);
     }
 
     #endregion
 
     private void OnDestroy()
     {
-        InteractionStateBase.OnSkipInteraction -= OnSkip;
-        InteractionStateBase.OnResetInteraction -= OnReset;
-        InteractionStateBase.OnConfirmInteraction -= OnConfirm;
+        InteractionStateBase.OnSkipInteraction -= PlayerSkips;
+        InteractionStateBase.OnResetInteraction -= PlayerResets;
+        InteractionStateBase.OnConfirmInteraction -= PlayerConfirms;
     }
 }

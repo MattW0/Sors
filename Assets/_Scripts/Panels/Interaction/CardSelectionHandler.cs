@@ -6,122 +6,92 @@ using System;
 
 public class CardSelectionHandler : MonoBehaviour
 {
-    public PlayerManager LocalPlayer { get; set; }
-    private List<CardStats> _selectedCards = new();
+    public List<CardStats> selectedCards = new();
+    public MarketSelection marketSelection;
     private CardMover _cardMover;
     private InteractionUI _ui;
     [SerializeField] private int _numberSelections;
-    private MarketSelection _marketSelection;
-    private TurnState _state;
-    public static event Action OnInteractionConfirmed;
+    private InteractionStateBase _state;
+    public static event Action<CardStats> OnPlayMoneyCard;
+
+    private void Awake() 
+    {
+        CardClickHandler.OnCardClicked += ClickedCard;        
+    }
 
     private void Start()
     {
         _cardMover = CardMover.Instance;
         _ui = gameObject.GetComponentInChildren<InteractionUI>();
-
-        CardClickHandler.OnCardClicked += ClickedCard;
     }
 
-    public void BeginInteraction(InteractionStateBase turnState, int numberSelections)
+    public void BeginInteraction(InteractionStateBase interactionState, int numberSelections)
     {
-        _state = turnState.config.turnState;
+        _state = interactionState;
         _numberSelections = numberSelections;
     }
 
     private void ClickedCard(GameObject card)
     {
         var cardStats = card.GetComponent<CardStats>();
-        // print("Clicked " + card.name + " in state " + _state);
 
-        // Only select or deselect in these turnStates (all card types behave the same way)
-        if (_state == TurnState.Discard || _state == TurnState.CardSelection || _state == TurnState.Trash) {
-            SelectOrDeselectCard(cardStats);
-            return;
-        }
+        var destination = _state.GetDestination(cardStats);
+        if(destination == null) return;
 
-        // Have to check if playing money card
-        if (cardStats.cardInfo.type == CardType.Money) {
-            LocalPlayer.Cards.CmdPlayMoneyCard(cardStats);
+        // Check if player is playing money card
+        if (destination == CardLocation.MoneyZone) 
+        {
+            OnPlayMoneyCard?.Invoke(cardStats);
             cardStats.SetInteractable(false);
-            return;
+        } else {
+            // Else we can select or deselect
+            // Debug.Log($"Clicked card {cardStats.cardInfo.title}, is selected: {cardStats.IsSelected}");
+
+            if(cardStats.IsSelected) DeselectCard(cardStats);
+            else SelectCard(cardStats);
         }
-
-        // Else we can select or deselect entity card
-        SelectOrDeselectCard(cardStats);
-    }
-
-    private void SelectOrDeselectCard(CardStats card)
-    {
-        // print("Selecting or deselecting card, isSelected: " + card.IsSelected);
-        if (card.IsSelected) DeselectCard(card);
-        else SelectCard(card);
     }
 
     private void SelectCard(CardStats card)
     {
+        print($"Select card : {card.cardInfo.title}");
         // Remove the previously selected card if user clicks another one
-        if (_selectedCards.Count >= _numberSelections)
-            DeselectCard(_selectedCards.Last());
+        if (selectedCards.Count >= _numberSelections)
+            DeselectCard(selectedCards.Last());
 
         card.IsSelected = true;
         MoveCard(card, true);
-        CheckConfirmButtonState();
     }
 
     private void DeselectCard(CardStats card)
     {
+        print($"Deselect card : {card.cardInfo.title}");
+
         card.IsSelected = false;
         MoveCard(card, false);
-        CheckConfirmButtonState();
     }
 
     public void SelectMarketTile(MarketTile tile)
     {
-        _marketSelection = new MarketSelection(tile.cardInfo, tile.Cost, tile.Index);
+        marketSelection = new MarketSelection(tile.cardInfo, tile.Cost, tile.Index);
         _ui.SelectMarketTile(tile.cardInfo);
     }
 
     public void DeselectMarketTile() => _ui.DeselectMarketTile();
 
-    public void ConfirmCardSelection()
-    {
-        OnInteractionConfirmed?.Invoke();
-
-        // Different because _marketSelection entails more info than just cardInfo (adpated Price)
-        if (_state == TurnState.Invent || _state == TurnState.Recruit) {
-            LocalPlayer.CmdConfirmBuy(_marketSelection);
-            return;
-        }
-
-        LocalPlayer.CmdConfirmSelection(_selectedCards);        
-        _selectedCards.Clear();
-    }
-
     private void MoveCard(CardStats card, bool toSelection)
     {
-        var pile = _state switch
-        {
-            TurnState.CardSelection => CardLocation.Discard,
-            _ => CardLocation.Hand
-        };
+        var pile = _state.config.location;
 
         if(toSelection) {
             _cardMover.MoveTo(card.gameObject, true, pile, CardLocation.Selection);
-            _selectedCards.Add(card);
+            selectedCards.Add(card);
         } else {
             _cardMover.MoveTo(card.gameObject, true, CardLocation.Selection, pile);
-            _selectedCards.Remove(card);
+            selectedCards.Remove(card);
         }
-    }
 
-    private void CheckConfirmButtonState()
-    {
-        // UP TO selection: All states where the number selections <= X
-        if (_state == TurnState.Trash || _state == TurnState.CardSelection) return;
-
-        // Otherwise enable confirm button only if number selections = X
-        _ui.SetConfirmButtonEnabled(_selectedCards.Count == _numberSelections);
+        _ui.SetConfirmButtonEnabled(_state.IsConfirmEnabled(selectedCards.Count()));
     }
 
     public void EndSelection()
@@ -132,20 +102,21 @@ public class CardSelectionHandler : MonoBehaviour
 
     public void SkipCardInteraction()
     {
-        LocalPlayer.CmdSkipInteraction();
         ClearSelection();
     }
 
     private void ClearSelection()
     {
-        var tempList = new List<CardStats>(_selectedCards);
+        // Need temp copy because MoveCard modifies selectedCards
+        var tempList = new List<CardStats>(selectedCards);
         foreach (var card in tempList) MoveCard(card, false);
-        _selectedCards.Clear();
+        selectedCards.Clear();
     }
 
     private void OnDestroy()
     {
         CardClickHandler.OnCardClicked -= ClickedCard;
+
     }
 }
 

@@ -19,44 +19,45 @@ public class InteractionUI : AnimatedPanel
     private InteractionStateBase _state;
 
     [Header("Helper Fields")]
-    private int _nbCardsToSelectMax;
     private bool _isWaiting;
 
     private void Start()
     {
-        _skipButton.onClick.AddListener(_state.OnSkip);
-        _resetButton.onClick.AddListener(_state.OnReset);
-        _confirmButton.onClick.AddListener(_state.OnConfirm);
+        _skipButton.onClick.AddListener(SkipState);
+        _resetButton.onClick.AddListener(ResetState);
+        _confirmButton.onClick.AddListener(ConfirmState);
 
         _displayText.text = "";
         _detailCardPreview.HideAll(true);
     }
 
-    public void InteractionBegin(InteractionStateBase state, int nbCardsToSelectMax, bool autoSkip)
+    public void StartInteraction(InteractionStateBase state, int nbCardsToSelectMax, bool autoSkip)
     {
         print("Interaction begin " + state + ", " + nbCardsToSelectMax + ", " + autoSkip);
-
-        _nbCardsToSelectMax = nbCardsToSelectMax;
-        _isWaiting = false;
+        _state = state;
 
         if(autoSkip){
-            _state.OnSkip();
+            SkipState();
             return;
         }
 
-        SetPanelUI();
+        _displayText.text = _state.config.GetInteractionString(nbCardsToSelectMax);
+        _isWaiting = false;
+
+        SetPanelButtons();
         PanelIn();
     }
 
-    private void SetPanelUI()
+    private void SetPanelButtons()
     {
+        // Confirm button is always enabled
         _confirmButton.interactable = _state.config.confirmButtonEnabled;
+
         _resetButton.gameObject.SetActive(_state.config.resetButtonVisible);
         _resetButton.interactable = _state.config.resetButtonEnabled;
+
         _skipButton.gameObject.SetActive(_state.config.skipButtonVisible);
         _skipButton.interactable = _state.config.skipButtonEnabled;
-
-        _displayText.text = _state.config.GetInteractionString(_nbCardsToSelectMax);
     }
 
     internal void SetConfirmButtonEnabled(bool b) => _confirmButton.interactable = b;
@@ -73,6 +74,24 @@ public class InteractionUI : AnimatedPanel
     {
         _detailCardPreview.HideAll(true);
         _confirmButton.interactable = false;
+    }
+
+    private void SkipState() 
+    {
+        _state.OnSkip();
+        Wait();
+    }
+
+    private void ResetState() 
+    {
+        _state.OnReset();
+        Wait();
+    }
+
+    private void ConfirmState() 
+    {
+        _state.OnConfirm();
+        Wait();
     }
 
     private void Wait()
