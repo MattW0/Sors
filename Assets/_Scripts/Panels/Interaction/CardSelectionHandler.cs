@@ -4,25 +4,29 @@ using UnityEngine;
 using System.Linq;
 using System;
 
+[RequireComponent(typeof(InteractionPanel))]
 public class CardSelectionHandler : MonoBehaviour
 {
     public List<CardStats> selectedCards = new();
-    public MarketSelection marketSelection;
-    private CardMover _cardMover;
+    public MarketSelection? marketSelection;
+    private InteractionPanel _interactionPanel;
     private InteractionUI _ui;
+    private CardMover _cardMover;
     [SerializeField] private int _numberSelections;
     private InteractionStateBase _state;
-    public static event Action<CardStats> OnPlayMoneyCard;
+    public static event Action OnResetCards;
 
     private void Awake() 
     {
-        CardClickHandler.OnCardClicked += ClickedCard;        
+        CardClickHandler.OnCardClicked += ClickedCard;
+
+        _interactionPanel = gameObject.GetComponent<InteractionPanel>();
+        _ui = gameObject.GetComponentInChildren<InteractionUI>();
     }
 
     private void Start()
     {
         _cardMover = CardMover.Instance;
-        _ui = gameObject.GetComponentInChildren<InteractionUI>();
     }
 
     public void BeginInteraction(InteractionStateBase interactionState, int numberSelections)
@@ -41,7 +45,8 @@ public class CardSelectionHandler : MonoBehaviour
         // Check if player is playing money card
         if (destination == CardLocation.MoneyZone) 
         {
-            OnPlayMoneyCard?.Invoke(cardStats);
+            // OnPlayMoneyCard?.Invoke(cardStats);
+            _interactionPanel.LocalPlayer.Cards.CmdPlayMoneyCard(cardStats);
             cardStats.SetInteractable(false);
         } else {
             // Else we can select or deselect
@@ -94,18 +99,7 @@ public class CardSelectionHandler : MonoBehaviour
         _ui.SetConfirmButtonEnabled(_state.IsConfirmEnabled(selectedCards.Count()));
     }
 
-    public void EndSelection()
-    {
-        _ui.PanelOut();
-        ClearSelection();
-    }
-
     public void SkipCardInteraction()
-    {
-        ClearSelection();
-    }
-
-    private void ClearSelection()
     {
         // Need temp copy because MoveCard modifies selectedCards
         var tempList = new List<CardStats>(selectedCards);
@@ -113,10 +107,20 @@ public class CardSelectionHandler : MonoBehaviour
         selectedCards.Clear();
     }
 
+    public void EndSelection()
+    {
+        _ui.PanelOut();
+
+        OnResetCards?.Invoke();
+        
+        // Clear selections
+        selectedCards.Clear();
+        marketSelection = null;
+    }
+
     private void OnDestroy()
     {
         CardClickHandler.OnCardClicked -= ClickedCard;
-
     }
 }
 

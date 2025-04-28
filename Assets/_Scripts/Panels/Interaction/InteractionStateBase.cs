@@ -21,7 +21,6 @@ public abstract class InteractionStateBase : IInteractionState
     public static event Action OnSkipInteraction;
     public static event Action OnResetInteraction;
     public static event Action<InteractionType> OnConfirmInteraction;
-    public static event Action OnResetCards;
 
     public void Initialize(InteractionPileUI[] piles)
     {
@@ -62,21 +61,17 @@ public abstract class InteractionStateBase : IInteractionState
         Debug.Log($"Start combat interaction: {config.turnState}");
     }
 
-    public abstract void MakeCardsInteractable(List<CardStats> cards);
 
     // Virtual default implementations is for 'Discard' state
     // No auto-skip, select from all, exact number of selections 
+    public abstract void MakeCardsInteractable(List<CardStats> cards);
     public virtual bool CheckStateAutoskip() => false;
     public virtual CardLocation? GetDestination(CardStats cardStats) => CardLocation.Selection;
     public virtual bool IsConfirmEnabled(int numberSelected) => numberSelected == numberSelections;
     public virtual void OnSkip() => OnSkipInteraction?.Invoke();
     public void OnReset() => OnResetInteraction?.Invoke();
     public virtual void OnConfirm() => OnConfirmInteraction?.Invoke(InteractionType.Select);
-    public virtual void Reset()
-    {
-        OnResetCards?.Invoke();
-        InteractionPile.EndInteraction();
-    }
+    public virtual void Reset() => InteractionPile.EndInteraction();
     
     protected bool ContainsMoney() => _selectableCards?.Any(c => c.cardInfo.type == CardType.Money) ?? false;
     protected bool ContainsTechnology() => _selectableCards?.Any(c => c.cardInfo.type == CardType.Technology) ?? false;

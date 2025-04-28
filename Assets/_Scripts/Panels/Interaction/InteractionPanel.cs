@@ -71,8 +71,8 @@ public class InteractionPanel : NetworkBehaviour
 
     private void PlayerSkips()
     {
-        _selectionHandler.SkipCardInteraction();
         CmdPlayerSkips();
+        _selectionHandler.SkipCardInteraction();
     }
 
     private void PlayerResets() => CmdPlayerResets();
@@ -81,12 +81,12 @@ public class InteractionPanel : NetworkBehaviour
     {
         print("Player confirms interaction type "+ type);
         if (type == InteractionType.Select) ConfirmCardSelection();
-        else if (type == InteractionType.Buy) ConfirmBuy();
+        else if (type == InteractionType.Buy) ConfirmMarketSelection();
         else if (type == InteractionType.Combat) ConfirmCombatSelection();
     }
 
     private void ConfirmCardSelection() => LocalPlayer.CmdConfirmSelection(_selectionHandler.selectedCards);
-    private void ConfirmBuy() => LocalPlayer.CmdConfirmBuy(_selectionHandler.marketSelection);
+    private void ConfirmMarketSelection() => LocalPlayer.CmdConfirmBuy(_selectionHandler.marketSelection.Value);
     private void ConfirmCombatSelection()
     {
         foreach(var (target, creatureList) in _arrowManager.GetPlayerSelection())
@@ -121,7 +121,7 @@ public class InteractionPanel : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcResetPanel()
+    public void RpcFinishState()
     {
         print("    - InteractionPanel: Reset panel");
         _currentState.Reset();

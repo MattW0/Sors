@@ -193,6 +193,9 @@ public class TurnManager : NetworkBehaviour
 
     private void FinishDiscard()
     {
+        // TODO: Move this (and all other _interactionPanel logic) to interaction panel
+        // and current state? Will need player references and be from Server tho... 
+
         foreach (var (player, cards) in _selectedCards)
         {
             print("Discarding on TurnManager: " + cards.Count);
@@ -202,7 +205,7 @@ public class TurnManager : NetworkBehaviour
             _logger.RpcLog(player.ID, cards);
         }
 
-        _interactionPanel.RpcResetPanel();
+        _interactionPanel.RpcFinishState();
         UpdateTurnState(TurnState.NextPhase);
     }
 
@@ -310,8 +313,8 @@ public class TurnManager : NetworkBehaviour
         // Replace tiles that were bought by either player
         _market.EndMarketPhase(_boughtCards);
         PlayersDiscardMoney();
-        _interactionPanel.RpcResetPanel();
-
+        
+        _interactionPanel.RpcFinishState();
         UpdateTurnState(TurnState.NextPhase);
     }
 
@@ -373,7 +376,7 @@ public class TurnManager : NetworkBehaviour
 
     private void FinishPlayCard()
     {
-        _interactionPanel.RpcResetPanel();
+        _interactionPanel.RpcFinishState();
         _boardManager.ResetHolders();
         PlayersDiscardMoney();
 
@@ -452,7 +455,7 @@ public class TurnManager : NetworkBehaviour
             player.Cards.RpcMoveFromInteraction(cards, CardLocation.Discard, CardLocation.Hand);
         }
 
-        _interactionPanel.RpcResetPanel();
+        _interactionPanel.RpcFinishState();
         NextPrevailOption();
     }
 
@@ -471,7 +474,7 @@ public class TurnManager : NetworkBehaviour
             player.Cards.RpcMoveFromInteraction(cards, CardLocation.Hand, CardLocation.Trash);
         }
 
-        _interactionPanel.RpcResetPanel();
+        _interactionPanel.RpcFinishState();
         NextPrevailOption();
     }
 
@@ -741,7 +744,7 @@ public class TurnManager : NetworkBehaviour
 
         _prevailPanel.RpcOptionsSelected();
         _prevailPanel.RpcReset();
-        _interactionPanel.RpcResetPanel();
+        _interactionPanel.RpcFinishState();
         _market.RpcEndMarketPhase();
 
         CleanUp().Forget();

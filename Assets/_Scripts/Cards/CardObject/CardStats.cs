@@ -19,7 +19,7 @@ public class CardStats : NetworkBehaviour
     private void Awake()
     {        
         _cardUI = gameObject.GetComponent<HandCardUI>();
-        InteractionStateBase.OnResetCards += ResetCard;
+        CardSelectionHandler.OnResetCards += ResetCard;
     }
 
     [ClientRpc]
@@ -56,6 +56,6 @@ public class CardStats : NetworkBehaviour
 
     private void OnDestroy()
     {
-        InteractionStateBase.OnResetCards -= ResetCard;
+        CardSelectionHandler.OnResetCards -= ResetCard;
     }
 }

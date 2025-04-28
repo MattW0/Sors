@@ -18,7 +18,7 @@ public class DeployState : InteractionStateBase
     {
         foreach(var card in cards)
         {
-            bool isInteractable = card.cardInfo.type == CardType.Creature;
+            bool isInteractable = card.cardInfo.type == CardType.Money;
             card.SetInteractable(isInteractable, config.turnState);
         }
     }

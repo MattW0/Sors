@@ -18,7 +18,7 @@ public class DevelopState : InteractionStateBase
     {
         foreach(var card in cards)
         {
-            bool isInteractable = card.cardInfo.type == CardType.Technology;
+            bool isInteractable = card.cardInfo.type == CardType.Money;
             card.SetInteractable(isInteractable, config.turnState);
         }
     }

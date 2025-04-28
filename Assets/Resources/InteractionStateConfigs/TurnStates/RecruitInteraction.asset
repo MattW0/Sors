@@ -12,15 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3289486b40aad94d9d26a337ce1f83d, type: 3}
   m_Name: RecruitInteraction
   m_EditorClassIdentifier: 
-  stateType: 11
-  interactionType: 2
+  turnState: 0
+  location: 0
+  interactionType: 1
+  isUpTo: 0
   displayText: 
   displayTextFormat: '{0} {1} {2}card(s)'
-  useUpTo: 1
   allowedCardType: 0
   includeMoneyOption: 1
   confirmButtonEnabled: 0
+  skipButtonVisible: 1
   skipButtonEnabled: 1
+  resetButtonVisible: 0
+  resetButtonEnabled: 0
   Description: 'Interaction state configuration: Display text, button settings, etc.
 
     The

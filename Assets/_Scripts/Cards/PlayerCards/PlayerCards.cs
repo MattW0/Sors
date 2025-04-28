@@ -20,11 +20,6 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
     private CardMover _cardMover;
     private PlayerManager _owner;
 
-    private void Awake() 
-    {
-        CardSelectionHandler.OnPlayMoneyCard += CmdPlayMoneyCard;
-    }
-
     private void Start()
     {
         _cardMover = CardMover.Instance;
@@ -73,7 +68,7 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
     }
 
     [Command]
-    private void CmdPlayMoneyCard(CardStats card)
+    public void CmdPlayMoneyCard(CardStats card)
     {
         _owner.Cash += card.cardInfo.moneyValue;
         
@@ -122,7 +117,11 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
     public void RpcMoveFromInteraction(List<CardStats> cards, CardLocation from, CardLocation to)
     {
         if(isOwned) from = CardLocation.Selection;
-        foreach(var c in cards) _cardMover.MoveTo(c.gameObject, isOwned, from, to);
+        foreach(var c in cards) 
+        {
+            print($"Moving card {c.cardInfo.title} from {from}");
+            _cardMover.MoveTo(c.gameObject, isOwned, from, to);
+        }
     }
 
     [ClientRpc]
@@ -205,9 +204,4 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
     }
 
     public void OnAfterDeserialize(){ }
-
-    private void OnDestroy() 
-    {
-        CardSelectionHandler.OnPlayMoneyCard -= CmdPlayMoneyCard;
-    }
 }
