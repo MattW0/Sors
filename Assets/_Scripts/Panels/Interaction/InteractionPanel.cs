@@ -19,6 +19,7 @@ public class InteractionPanel : NetworkBehaviour
     private InteractionStateBase _currentState;
     private readonly InteractionStateBase[] _interactionStates = {
         new DiscardState(),
+        new InventState(),
         new DevelopState(),
         new DeployState(),
     };
@@ -80,13 +81,17 @@ public class InteractionPanel : NetworkBehaviour
     private void PlayerConfirms(InteractionType type)
     {
         print("Player confirms interaction type "+ type);
-        if (type == InteractionType.Select) ConfirmCardSelection();
-        else if (type == InteractionType.Buy) ConfirmMarketSelection();
+        if (type == InteractionType.Play) ConfirmPlay();
+        else if (type == InteractionType.Buy) ConfirmBuy();
         else if (type == InteractionType.Combat) ConfirmCombatSelection();
+
+        // Default behavior that is resolved individually in TurnManager
+        else if (type == InteractionType.Select) ConfirmCardSelection();
     }
 
     private void ConfirmCardSelection() => LocalPlayer.CmdConfirmSelection(_selectionHandler.selectedCards);
-    private void ConfirmMarketSelection() => LocalPlayer.CmdConfirmBuy(_selectionHandler.marketSelection.Value);
+    private void ConfirmPlay() => LocalPlayer.CmdConfirmPlay(_selectionHandler.selectedCards[0]);
+    private void ConfirmBuy() => LocalPlayer.CmdConfirmBuy(_selectionHandler.marketSelection.Value);
     private void ConfirmCombatSelection()
     {
         foreach(var (target, creatureList) in _arrowManager.GetPlayerSelection())

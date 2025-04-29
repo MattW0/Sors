@@ -1,16 +1,13 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 
-public class DeployState : InteractionStateBase
+public class InventState : InteractionStateBase
 {
-    public override string ConfigName => "TurnStates/Deploy";
-
-    public override bool CheckStateAutoskip() => !ContainsCreature();
+    public override string ConfigName => "TurnStates/Invent";
+    public override bool CheckStateAutoskip() => false;
     public override CardLocation? GetCardDestination(CardStats cardStats)
     {
         if(cardStats.cardInfo.type == CardType.Money) return CardLocation.MoneyZone;
-        if(cardStats.cardInfo.type == CardType.Creature) return CardLocation.Selection;
-
         return null;
     }
 
@@ -22,4 +19,4 @@ public class DeployState : InteractionStateBase
             card.SetInteractable(isInteractable, config.turnState);
         }
     }
-} 
+}

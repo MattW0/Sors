@@ -25,7 +25,6 @@ public abstract class InteractionStateBase : IInteractionState
     public void Initialize(InteractionPileUI[] piles)
     {
         var path = "InteractionStateConfigs/" + ConfigName;
-        Debug.Log($"Initializing interactions state {ConfigName}");
 
         config = Resources.Load<InteractionStateConfig>(path);
         if (config == null) Debug.LogWarning("Could not load interaction state config from resources: " + path);
@@ -62,15 +61,26 @@ public abstract class InteractionStateBase : IInteractionState
     }
 
 
-    // Virtual default implementations is for 'Discard' state
-    // No auto-skip, select from all, exact number of selections 
+    // Returns bool given the available cards to select from
+    // True: auto-skip and player is not able to give inputs
+    public abstract bool CheckStateAutoskip();
+
+    // Makes some of the cards (eg. depending on type) interactable
     public abstract void MakeCardsInteractable(List<CardStats> cards);
-    public virtual bool CheckStateAutoskip() => false;
-    public virtual CardLocation? GetDestination(CardStats cardStats) => CardLocation.Selection;
-    public virtual bool IsConfirmEnabled(int numberSelected) => numberSelected == numberSelections;
+
+    // Defines where a card goes to when clicked (money cards during play/buy)
+    // Returning null is equivalent to card is not clickable
+    public abstract CardLocation? GetCardDestination(CardStats cardStats);
+
+    // Up-to vs exact interaction
+    public virtual bool IsConfirmEnabled(int numberSelected)
+    {
+        if (config.isUpTo) return numberSelected <= numberSelections;
+        else return numberSelected == numberSelections;
+    }
+    public virtual void OnConfirm() => OnConfirmInteraction?.Invoke(config.interactionType);
     public virtual void OnSkip() => OnSkipInteraction?.Invoke();
-    public void OnReset() => OnResetInteraction?.Invoke();
-    public virtual void OnConfirm() => OnConfirmInteraction?.Invoke(InteractionType.Select);
+    public virtual void OnReset() => OnResetInteraction?.Invoke();
     public virtual void Reset() => InteractionPile.EndInteraction();
     
     protected bool ContainsMoney() => _selectableCards?.Any(c => c.cardInfo.type == CardType.Money) ?? false;

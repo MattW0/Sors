@@ -35,7 +35,7 @@ public class TurnManager : NetworkBehaviour
 
     // Other helpers
     private readonly Dictionary<PlayerManager, List<CardStats>> _selectedCards = new();
-    private readonly Dictionary<PlayerManager, CardInfo> _selectedMarketCards = new();
+    private readonly Dictionary<PlayerManager, CardInfo?> _selectedMarketCards = new();
     private readonly List<(int, CardType)> _boughtCards = new();
     private Dictionary<PlayerManager, TurnState[]> _playerPhaseChoices = new();
     private Dictionary<PlayerManager, List<PrevailOption>> _playerPrevailOptions = new();
@@ -95,10 +95,12 @@ public class TurnManager : NetworkBehaviour
         var playerNames = new List<string>();
         foreach (var player in _gameManager.players.Values)
         {
+            playerNames.Add(player.PlayerName);
+            
             _playerPhaseChoices.Add(player, new TurnState[gameOptions.NumberPhases]);
             _playerPrevailOptions.Add(player, new());
             _selectedCards.Add(player, new());
-            playerNames.Add(player.PlayerName);
+            _selectedMarketCards.Add(player, null);
         }
 
         // reverse order of _playerPhaseChoices to have host first
@@ -198,8 +200,6 @@ public class TurnManager : NetworkBehaviour
 
         foreach (var (player, cards) in _selectedCards)
         {
-            print("Discarding on TurnManager: " + cards.Count);
-
             player.Cards.RemoveHandCards(cards, CardLocation.Discard);
             player.Cards.RpcMoveFromInteraction(cards, CardLocation.Hand, CardLocation.Discard);
             _logger.RpcLog(player.ID, cards);
@@ -212,13 +212,11 @@ public class TurnManager : NetworkBehaviour
     #endregion
 
     #region Buy cards
-    private void StartMarketPhase()
+    private void StartBuyPhase()
     {
         _boughtCards.Clear();
-        
-        var cardType = turnState == TurnState.Invent ? CardType.Technology : CardType.Creature;
-
         _market.RpcBeginMarketPhase(turnState);
+
         foreach (var player in _gameManager.players.Values)
         {
             // Each player gets +1 Buy
@@ -228,33 +226,31 @@ public class TurnManager : NetworkBehaviour
             if (_playerPhaseChoices[player].Contains(turnState))
             {
                 player.Buys += _gameOptions.extraBuys;
-                PlayerGetsMarketBonus(player, cardType, _gameOptions.marketPriceReduction);
+                PlayerGetsMarketBonus(player, _gameOptions.marketPriceReduction);
             }
 
             // Makes highlights appear
             _market.TargetCheckMarketPrices(player.connectionToClient, player.Cash);
         }
 
-        // StartCoroutine(StartPhaseInteraction());
         StartPhaseInteraction();
     }
 
-    private void PlayerGetsMarketBonus(PlayerManager player, CardType type, int amount)
+    private void PlayerGetsMarketBonus(PlayerManager player, int amount, CardType type = CardType.None)
     {
-        _market.TargetMarketPriceReduction(player.connectionToClient, type, amount);
+        var cardType = turnState == TurnState.Invent ? CardType.Technology : CardType.Creature;
+        _market.TargetMarketPriceReduction(player.connectionToClient, cardType, amount);
     }
 
     public void PlayerConfirmBuy(PlayerManager player, MarketSelection selection)
     {
-        _boughtCards.Add((selection.index, selection.cardInfo.type));
-
         player.Buys--;
         player.Cash -= selection.cost;
 
-        if (_selectedMarketCards.ContainsKey(player))
-            _selectedMarketCards[player] = selection.cardInfo;
-        else
-            _selectedMarketCards.Add(player, selection.cardInfo);
+        // Player selections
+        _selectedMarketCards[player] = selection.cardInfo;
+        // Which cards to replace after this buy phase
+        _boughtCards.Add((selection.index, selection.cardInfo.type));
 
         _market.TargetResetMarket(player.connectionToClient, player.Buys);
         PlayerIsReady(player);
@@ -264,9 +260,9 @@ public class TurnManager : NetworkBehaviour
     {
         foreach (var (owner, card) in _selectedMarketCards)
         {
-            if (card.title == null) continue;
+            if (! card.HasValue) continue;
 
-            PlayerGainsCard(owner, card);
+            PlayerGainsCard(owner, card.Value);
         }
 
         _selectedMarketCards.Clear();
@@ -322,7 +318,7 @@ public class TurnManager : NetworkBehaviour
 
     #region Play Cards
 
-    private void PlayCard()
+    private void StartPlayPhase()
     {
         foreach(var player in _gameManager.players.Values) 
         {
@@ -350,11 +346,27 @@ public class TurnManager : NetworkBehaviour
         return Math.Min(numberPlays, numberSlots);
     }
 
+    public void PlayerConfirmPlay(PlayerManager player, CardStats card)
+    {
+        player.Plays--;
+        // TODO: Effect that reduces cost for play needs to apply here
+        // Compare to PlayerConfirmBuy
+
+        print("Cost: "+card.cardInfo.cost);
+        player.Cash -= card.cardInfo.cost;
+        
+        _selectedCards[player].Add(card);
+        PlayerIsReady(player);
+    }
+
     private void PlayEntities()
     {
         Dictionary<GameObject, BattleZoneEntity> entities = new();
         foreach (var (player, cards) in _selectedCards)
         {
+            if(_selectedCards.Count() == 0) continue;
+            player.Cards.RemoveHandCards(cards, CardLocation.PlayZone);
+
             foreach (var card in cards) {
                 var cardInfo = card.cardInfo;
                 entities.Add(card.gameObject, _gameManager.SpawnFieldEntity(player, cardInfo));
@@ -370,16 +382,16 @@ public class TurnManager : NetworkBehaviour
     private void CheckPlayAnotherCard()
     {
         // Play another card if not all players have skipped
-        if (AllPlayersSkipped()) FinishPlayCard();
+        if (AllPlayersSkipped()) FinishStartPlayPhase();
         else StartPhaseInteraction();
     }
 
-    private void FinishPlayCard()
+    private void FinishStartPlayPhase()
     {
-        _interactionPanel.RpcFinishState();
         _boardManager.ResetHolders();
         PlayersDiscardMoney();
 
+        _interactionPanel.RpcFinishState();
         UpdateTurnState(TurnState.NextPhase);
     }
     #endregion
@@ -590,8 +602,8 @@ public class TurnManager : NetworkBehaviour
         if (newState == TurnState.NextPhase) NextPhase();
         else if (newState == TurnState.Draw) Draw();
         else if (newState == TurnState.Discard) Discard();
-        else if (newState == TurnState.Invent || newState == TurnState.Recruit) StartMarketPhase();
-        else if (newState == TurnState.Develop || newState == TurnState.Deploy) PlayCard();
+        else if (newState == TurnState.Invent || newState == TurnState.Recruit) StartBuyPhase();
+        else if (newState == TurnState.Develop || newState == TurnState.Deploy) StartPlayPhase();
         else if (newState == TurnState.Prevail) Prevail();
         else if (newState == TurnState.CleanUp) CleanUp().Forget();
         else if (newState == TurnState.Attackers) _combatManager.UpdateCombatState(TurnState.Attackers);
@@ -621,15 +633,6 @@ public class TurnManager : NetworkBehaviour
 
     internal void PlayerConfirmsCardSelection(PlayerManager player, List<CardStats> selectedCards)
     {
-        if (turnState == TurnState.Invent || turnState == TurnState.Deploy) 
-        {
-            player.Plays--;
-            player.Cards.RemoveHandCards(selectedCards, CardLocation.PlayZone);
-
-            foreach (var card in selectedCards)
-                player.Cash -= card.cardInfo.cost;
-        }
-
         _selectedCards[player].AddRange(selectedCards);
         PlayerIsReady(player);
     }

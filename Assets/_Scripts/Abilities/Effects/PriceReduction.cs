@@ -4,7 +4,7 @@ using System;
 public class PriceReduction : IEffect
 {
     public AbilitiesVFXSystem VFXSystem { get; set; }
-    public static event Action<PlayerManager, CardType, int> OnMarketPriceReduction;
+    public static event Action<PlayerManager, int, CardType> OnMarketPriceReduction;
     public IEnumerator Execute(BattleZoneEntity source, BattleZoneEntity target, int amount)
     {
         VFXSystem.RpcPlayProjectile(source, target, Effect.PriceReduction);
@@ -12,6 +12,6 @@ public class PriceReduction : IEffect
 
         VFXSystem.RpcPlayHit(target, Effect.PriceReduction);
         var cardType = (CardType) Enum.Parse(typeof(CardType), target.cardType.ToString());
-        OnMarketPriceReduction?.Invoke(source.Owner, cardType, amount);
+        OnMarketPriceReduction?.Invoke(source.Owner, amount, cardType);
     }
 }

@@ -6,14 +6,6 @@ public class DevelopState : InteractionStateBase
     public override string ConfigName => "TurnStates/Develop";
 
     public override bool CheckStateAutoskip() => !ContainsTechnology();
-    public override CardLocation? GetDestination(CardStats stats)
-    {
-        if(stats.cardInfo.type == CardType.Money) return CardLocation.MoneyZone;
-        if(stats.cardInfo.type == CardType.Technology) return CardLocation.Selection;
-
-        return null;
-    }
-
     public override void MakeCardsInteractable(List<CardStats> cards)
     {
         foreach(var card in cards)
@@ -22,7 +14,11 @@ public class DevelopState : InteractionStateBase
             card.SetInteractable(isInteractable, config.turnState);
         }
     }
+    public override CardLocation? GetCardDestination(CardStats stats)
+    {
+        if(stats.cardInfo.type == CardType.Money) return CardLocation.MoneyZone;
+        if(stats.cardInfo.type == CardType.Technology) return CardLocation.Selection;
 
-    // Up-to selection
-    public override bool IsConfirmEnabled(int numberSelected) => numberSelected <= numberSelections;
+        return null;
+    }
 } 

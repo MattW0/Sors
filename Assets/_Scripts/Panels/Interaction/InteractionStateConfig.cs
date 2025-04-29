@@ -50,5 +50,6 @@ public class InteractionStateConfig : ScriptableObject
 public enum InteractionType {
     Select,
     Buy,
+    Play,
     Combat
 }

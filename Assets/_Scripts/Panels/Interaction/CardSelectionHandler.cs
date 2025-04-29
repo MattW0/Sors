@@ -33,13 +33,17 @@ public class CardSelectionHandler : MonoBehaviour
     {
         _state = interactionState;
         _numberSelections = numberSelections;
+
+        // Clear previous selections
+        selectedCards.Clear();
+        marketSelection = null;
     }
 
     private void ClickedCard(GameObject card)
     {
         var cardStats = card.GetComponent<CardStats>();
 
-        var destination = _state.GetDestination(cardStats);
+        var destination = _state.GetCardDestination(cardStats);
         if(destination == null) return;
 
         // Check if player is playing money card
@@ -110,12 +114,7 @@ public class CardSelectionHandler : MonoBehaviour
     public void EndSelection()
     {
         _ui.PanelOut();
-
         OnResetCards?.Invoke();
-        
-        // Clear selections
-        selectedCards.Clear();
-        marketSelection = null;
     }
 
     private void OnDestroy()

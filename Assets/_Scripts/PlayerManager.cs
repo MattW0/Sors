@@ -104,21 +104,24 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Command]
-    internal void CmdConfirmSelection(List<CardStats> selectedCards)
-    {
-        _turnManager.PlayerConfirmsCardSelection(this, selectedCards);
-    }
-
-    [Command]
-    public void CmdConfirmBuy(MarketSelection card) => _turnManager.PlayerConfirmBuy(this, card);
-
-    [Command]
     public void CmdPrevailSelection(List<PrevailOption> options)
     {
         // Saving local player choice
         _chosenPrevailOptions = options;
         _turnManager.PlayerSelectedPrevailOptions(this, options);
     }
+
+    [Command]
+    internal void CmdConfirmSelection(List<CardStats> selectedCards) =>
+        _turnManager.PlayerConfirmsCardSelection(this, selectedCards);
+
+    [Command]
+    public void CmdConfirmPlay(CardStats card) => 
+        _turnManager.PlayerConfirmPlay(this, card);
+
+    [Command]
+    public void CmdConfirmBuy(MarketSelection card) => 
+        _turnManager.PlayerConfirmBuy(this, card);
 
     [Command]
     public void CmdSkipInteraction() => _turnManager.PlayerSkipsInteraction(this);
