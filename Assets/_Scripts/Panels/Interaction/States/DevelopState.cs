@@ -22,4 +22,13 @@ public class DevelopState : InteractionStateBase
         return null;
     }
     public override void MakeCardsInteractable() => MakeMoneyCardsInteractable();
+
+    internal override void CheckPlayability(int cash)
+    {
+        foreach (var card in selectableCards) {
+            if (card.cardInfo.type != CardType.Technology) continue;
+
+            card.CheckPlayability(cash);
+        }
+    }
 } 

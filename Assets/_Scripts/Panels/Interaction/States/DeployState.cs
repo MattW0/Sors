@@ -24,4 +24,13 @@ public class DeployState : InteractionStateBase
     }
 
     public override void MakeCardsInteractable() => MakeMoneyCardsInteractable();
+
+    internal override void CheckPlayability(int cash)
+    {
+        foreach (var card in selectableCards) {
+            if (card.cardInfo.type != CardType.Creature) continue;
+
+            card.CheckPlayability(cash);
+        }
+    }
 } 

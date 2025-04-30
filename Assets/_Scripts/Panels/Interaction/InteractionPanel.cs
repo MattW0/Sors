@@ -17,7 +17,7 @@ public class InteractionPanel : NetworkBehaviour
 
     [Header("Helper Fields")]
     private InteractionStateBase _currentState;
-    private readonly InteractionStateBase[] _interactionStates = {
+    private readonly IInteractionState[] _interactionStates = {
         new DiscardState(),
         new InventState(),
         new DevelopState(),
@@ -105,7 +105,7 @@ public class InteractionPanel : NetworkBehaviour
 
     private void SetCurrentTurnState(TurnState turnState)
     {
-        _currentState = _interactionStates.FirstOrDefault(x => x.config.turnState == turnState);
+        _currentState = (InteractionStateBase) _interactionStates.FirstOrDefault(x => x.Config.turnState == turnState);
         if(_currentState == null)
         {
             Debug.LogError($"No interaction state found for {turnState}");
@@ -114,25 +114,13 @@ public class InteractionPanel : NetworkBehaviour
     }
 
     [TargetRpc]
-    public void TargetCheckPlayability(NetworkConnection target, int cash)
-    {
-        if (_currentState == null) return;
-
-        var allowedType = _currentState.config.turnState switch
-        {
-            TurnState.Develop => CardType.Technology,
-            TurnState.Deploy => CardType.Creature,
-            _ => CardType.None
-        };
-
-        _currentState.CheckPlayability(allowedType, cash);
-    }
+    public void TargetCheckPlayability(NetworkConnection target, int cash) => _currentState.CheckPlayability(cash);
 
     [ClientRpc]
     public void RpcFinishState()
     {
         print("    - InteractionPanel: Reset panel");
-        _currentState.Reset();
+        _currentState.EndState();
         _selectionHandler.EndSelection();
     }
 
@@ -146,8 +134,8 @@ public class InteractionPanel : NetworkBehaviour
     [Command(requiresAuthority = false)]
     private void CmdSetGroupTarget(BattleZoneEntity target, List<CreatureEntity> creatures)
     {
-        if (_currentState.config.turnState == TurnState.Attackers) _boardManager.PlayerChoosesTargetToAttack(target, creatures);
-        else if (_currentState.config.turnState == TurnState.Blockers) _boardManager.PlayerChoosesAttackerToBlock(target.GetComponent<CreatureEntity>(), creatures);
+        if (_currentState.Config.turnState == TurnState.Attackers) _boardManager.PlayerChoosesTargetToAttack(target, creatures);
+        else if (_currentState.Config.turnState == TurnState.Blockers) _boardManager.PlayerChoosesAttackerToBlock(target.GetComponent<CreatureEntity>(), creatures);
     } 
 
     [Command(requiresAuthority = false)]

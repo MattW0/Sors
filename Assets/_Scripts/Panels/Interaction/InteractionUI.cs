@@ -51,13 +51,13 @@ public class InteractionUI : AnimatedPanel
     private void SetPanelButtons()
     {
         // Confirm button is always enabled
-        _confirmButton.interactable = _state.config.confirmButtonEnabled;
+        _confirmButton.interactable = _state.Config.confirmButtonEnabled;
 
-        _resetButton.gameObject.SetActive(_state.config.resetButtonVisible);
-        _resetButton.interactable = _state.config.resetButtonEnabled;
+        _resetButton.gameObject.SetActive(_state.Config.resetButtonVisible);
+        _resetButton.interactable = _state.Config.resetButtonEnabled;
 
-        _skipButton.gameObject.SetActive(_state.config.skipButtonVisible);
-        _skipButton.interactable = _state.config.skipButtonEnabled;
+        _skipButton.gameObject.SetActive(_state.Config.skipButtonVisible);
+        _skipButton.interactable = _state.Config.skipButtonEnabled;
     }
 
     internal void SetConfirmButtonEnabled(bool b) => _confirmButton.interactable = b;
