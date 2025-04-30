@@ -86,7 +86,9 @@ public class BoardManager : NetworkBehaviour
         {
             var canAttack = _dropZone.HasAttacker(player);
             _interactionPanel.TargetStartCombatState(player.connectionToClient, _combatState, !canAttack);
+
             if (canAttack) _dropZone.TargetDeclareAttackers(player.connectionToClient);
+            else PlayerConfirmsCombatState(player);
         }
     }
 
@@ -101,7 +103,9 @@ public class BoardManager : NetworkBehaviour
         {
             var canBlock = _dropZone.HasBlocker(player);
             _interactionPanel.TargetStartCombatState(player.connectionToClient, _combatState, !canBlock);
+            
             if (canBlock) _dropZone.TargetDeclareBlockers(player.connectionToClient);
+            else PlayerConfirmsCombatState(player);
         }
     }
 

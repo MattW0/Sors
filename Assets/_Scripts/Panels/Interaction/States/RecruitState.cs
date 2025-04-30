@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using UnityEngine;
-
-public class RecruitState : InteractionStateBase
+public class RecruitState : CardInteractionState
 {
     public override string ConfigName => "7_Recruit";
     public override string InteractionText {

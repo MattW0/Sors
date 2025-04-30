@@ -12,30 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3289486b40aad94d9d26a337ce1f83d, type: 3}
   m_Name: 10_PrevailTrash
   m_EditorClassIdentifier: 
-  turnState: 0
-  location: 0
+  turnState: 15
+  interactionPile: 4
   interactionType: 0
   isUpTo: 0
-  displayText: 
-  displayTextFormat: '{0} {1} {2}card(s)'
-  allowedCardType: 5
-  includeMoneyOption: 0
   confirmButtonEnabled: 1
   skipButtonVisible: 1
   skipButtonEnabled: 1
   resetButtonVisible: 0
-  resetButtonEnabled: 0
-  Description: 'Interaction state configuration: Display text, button settings, etc.
-
-    The
-    display text is created using these placeholders:
-
-    {0}: Interaction Verb
-
-    {1}:
-    Number of cards (including up to option)
-
-    {2}: Card type (including money
-    option)
-
-'

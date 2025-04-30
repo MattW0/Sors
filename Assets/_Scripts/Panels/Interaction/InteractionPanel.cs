@@ -16,11 +16,16 @@ public class InteractionPanel : NetworkBehaviour
     private InteractionUI _interactionUI;
 
     [Header("Helper Fields")]
-    private InteractionStateBase _currentState;
+    private IInteractionState _currentState;
     private readonly IInteractionState[] _interactionStates = {
         new DiscardState(),
         new InventState(),
         new DevelopState(),
+
+        new AttackState(),
+        new BlockState(),
+        new DamageState(),
+
         new RecruitState(),
         new DeployState(),
         new PrevailToHandState(),
@@ -34,9 +39,9 @@ public class InteractionPanel : NetworkBehaviour
         _selectionHandler = GetComponent<CardSelectionHandler>();
         _interactionUI = GetComponentInChildren<InteractionUI>();
 
-        InteractionStateBase.OnSkipInteraction += PlayerSkips;
-        InteractionStateBase.OnResetInteraction += PlayerResets;
         InteractionStateBase.OnConfirmInteraction += PlayerConfirms;
+        InteractionStateBase.OnSkipInteraction += PlayerSkips;
+        InteractionStateBase.OnResetInteraction += CmdPlayerResets;
     }
 
     private void Start() 
@@ -55,52 +60,31 @@ public class InteractionPanel : NetworkBehaviour
     public void TargetStartCardInteraction(NetworkConnection target, List<CardStats> interactableCards, TurnState turnState, int numberSelections)
     {
         print($"    - InteractionPanel: Choose {numberSelections} / {interactableCards.Count} cards");
-
         SetCurrentTurnState(turnState);
-        var autoSkip = _currentState.StartInteraction(interactableCards, numberSelections);
-        _interactionUI.StartInteraction(_currentState, numberSelections, autoSkip);
-        _selectionHandler.BeginInteraction(_currentState, numberSelections);
+
+        var state = (CardInteractionState) _currentState;
+        state.InitializeInteraction(interactableCards, numberSelections);
+        var skip = state.CheckAutoskip();
+        
+        // Always start interaction UI so players know what's happening
+        _interactionUI.StartInteraction(_currentState, skip, numberSelections);
+        if(skip) return;
+
+        _currentState.StartState();
+        _selectionHandler.BeginInteraction(state, numberSelections);
     }
 
     [TargetRpc]
     internal void TargetStartCombatState(NetworkConnection target, TurnState turnState, bool skip)
     {
         print($"    - InteractionPanel: Start combat state {turnState}");
-        
         SetCurrentTurnState(turnState);
-        _currentState.StartCombatInteraction(skip);
-
-        // OnInteractionBegin?.Invoke(_currentState, -1, skip);
-    }
-
-    private void PlayerSkips()
-    {
-        CmdPlayerSkips();
-        _selectionHandler.SkipCardInteraction();
-    }
-
-    private void PlayerResets() => CmdPlayerResets();
-
-    private void PlayerConfirms(InteractionType type)
-    {
-        print("Player confirms interaction type "+ type);
-        if (type == InteractionType.Play) ConfirmPlay();
-        else if (type == InteractionType.Buy) ConfirmBuy();
-        else if (type == InteractionType.Combat) ConfirmCombatSelection();
-
-        // Default behavior that is resolved individually in TurnManager
-        else if (type == InteractionType.Select) ConfirmCardSelection();
-    }
-
-    private void ConfirmCardSelection() => LocalPlayer.CmdConfirmSelection(_selectionHandler.selectedCards);
-    private void ConfirmPlay() => LocalPlayer.CmdConfirmPlay(_selectionHandler.selectedCards[0]);
-    private void ConfirmBuy() => LocalPlayer.CmdConfirmBuy(_selectionHandler.marketSelection.Value);
-    private void ConfirmCombatSelection()
-    {
-        foreach(var (target, creatureList) in _arrowManager.GetPlayerSelection())
-            CmdSetGroupTarget(target, creatureList);
         
-        CmdPlayerConfirms();
+        // Always start interaction UI so players know what's happening
+        _interactionUI.StartInteraction(_currentState, skip);
+        if(skip) return;
+        
+        _currentState.StartState();
     }
 
     private void SetCurrentTurnState(TurnState turnState)
@@ -113,8 +97,38 @@ public class InteractionPanel : NetworkBehaviour
         }
     }
 
+    private void PlayerConfirms(InteractionType type)
+    {
+        print("Player confirms interaction type "+ type);
+        if (type == InteractionType.Play) ConfirmPlay();
+        else if (type == InteractionType.Buy) ConfirmBuy();
+        else if (type == InteractionType.Combat) ConfirmCombatSelection();
+        // Default behavior that is resolved individually in TurnManager
+        else if (type == InteractionType.Select) ConfirmCardSelection();
+    }
+
+    private void ConfirmCardSelection() => LocalPlayer.CmdConfirmSelection(_selectionHandler.selectedCards);
+    private void ConfirmPlay() => LocalPlayer.CmdConfirmPlay(_selectionHandler.selectedCards[0]);
+    private void ConfirmBuy() => LocalPlayer.CmdConfirmBuy(_selectionHandler.marketSelection.Value);
+    private void PlayerSkips(InteractionType type)
+    {
+        // We auto skip in 
+        if(type == InteractionType.Combat) return;
+
+        CmdPlayerSkips();
+        _selectionHandler.SkipCardInteraction();
+    }
+
+    [Command(requiresAuthority = false)]
+    private void CmdPlayerSkips() => LocalPlayer.CmdSkipInteraction();
+
     [TargetRpc]
-    public void TargetCheckPlayability(NetworkConnection target, int cash) => _currentState.CheckPlayability(cash);
+    public void TargetCheckPlayability(NetworkConnection target, int cash){
+        var state = (CardInteractionState) _currentState;
+        if(state == null) return;
+
+        state.CheckPlayability(cash);
+    }
 
     [ClientRpc]
     public void RpcFinishState()
@@ -131,33 +145,33 @@ public class InteractionPanel : NetworkBehaviour
 
     #region Combat
 
+    private void ConfirmCombatSelection()
+    {
+        foreach(var (target, creatureList) in _arrowManager.GetPlayerSelection())
+            CmdSetGroupTarget(target, creatureList);
+        
+        CmdPlayerConfirmsCombat();
+    }
+
     [Command(requiresAuthority = false)]
     private void CmdSetGroupTarget(BattleZoneEntity target, List<CreatureEntity> creatures)
     {
         if (_currentState.Config.turnState == TurnState.Attackers) _boardManager.PlayerChoosesTargetToAttack(target, creatures);
         else if (_currentState.Config.turnState == TurnState.Blockers) _boardManager.PlayerChoosesAttackerToBlock(target.GetComponent<CreatureEntity>(), creatures);
-    } 
+    }
 
     [Command(requiresAuthority = false)]
-    private void CmdPlayerConfirms() => _boardManager.PlayerConfirmsCombatState(LocalPlayer);
+    private void CmdPlayerConfirmsCombat() => _boardManager.PlayerConfirmsCombatState(LocalPlayer);
 
     [Command(requiresAuthority = false)]
     private void CmdPlayerResets() => _arrowManager.TargetResetArrows(LocalPlayer.connectionToClient);
-
-    [Command(requiresAuthority = false)]
-    private void CmdPlayerSkips()
-    {
-        LocalPlayer.CmdSkipInteraction();
-        _arrowManager.TargetResetArrows(LocalPlayer.connectionToClient);
-        _boardManager.PlayerConfirmsCombatState(LocalPlayer);
-    }
 
     #endregion
 
     private void OnDestroy()
     {
-        InteractionStateBase.OnSkipInteraction -= PlayerSkips;
-        InteractionStateBase.OnResetInteraction -= PlayerResets;
         InteractionStateBase.OnConfirmInteraction -= PlayerConfirms;
+        InteractionStateBase.OnSkipInteraction -= PlayerSkips;
+        InteractionStateBase.OnResetInteraction -= CmdPlayerResets;
     }
 }

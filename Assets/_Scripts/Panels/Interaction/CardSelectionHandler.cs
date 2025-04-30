@@ -13,7 +13,7 @@ public class CardSelectionHandler : MonoBehaviour
     private InteractionUI _ui;
     private CardMover _cardMover;
     [SerializeField] private int _numberSelections;
-    private InteractionStateBase _state;
+    private CardInteractionState _state;
     public static event Action OnResetCards;
 
     private void Awake() 
@@ -29,7 +29,7 @@ public class CardSelectionHandler : MonoBehaviour
         _cardMover = CardMover.Instance;
     }
 
-    public void BeginInteraction(InteractionStateBase interactionState, int numberSelections)
+    public void BeginInteraction(CardInteractionState interactionState, int numberSelections)
     {
         _state = interactionState;
         _numberSelections = numberSelections;

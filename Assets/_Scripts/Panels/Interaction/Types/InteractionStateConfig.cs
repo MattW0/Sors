@@ -16,7 +16,6 @@ public class InteractionStateConfig : ScriptableObject
     public bool skipButtonVisible = true;
     public bool skipButtonEnabled = true;
     public bool resetButtonVisible = false;
-    public bool resetButtonEnabled = false;
 } 
 
 public enum InteractionType {

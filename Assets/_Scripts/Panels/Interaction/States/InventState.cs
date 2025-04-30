@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using UnityEngine;
-
-public class InventState : InteractionStateBase
+public class InventState : CardInteractionState
 {
     public override string ConfigName => "2_Invent";
 

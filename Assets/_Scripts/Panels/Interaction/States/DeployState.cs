@@ -1,7 +1,4 @@
-using UnityEngine;
-using System.Collections.Generic;
-
-public class DeployState : InteractionStateBase
+public class DeployState : CardInteractionState
 {
     public override string ConfigName => "8_Deploy";
     public override string InteractionText 

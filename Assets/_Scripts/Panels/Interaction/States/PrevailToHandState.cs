@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using UnityEngine;
-
-public class PrevailToHandState : InteractionStateBase
+public class PrevailToHandState : CardInteractionState
 {
     public override string ConfigName => "9_PrevailToHand";
     public override string InteractionText {

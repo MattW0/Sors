@@ -1,8 +1,4 @@
-using System.Collections.Generic;
-using Unity.VisualScripting;
-using UnityEngine;
-
-public class DiscardState : InteractionStateBase
+public class DiscardState : CardInteractionState
 {
     public override string ConfigName => "1_Discard";
     public override string InteractionText {

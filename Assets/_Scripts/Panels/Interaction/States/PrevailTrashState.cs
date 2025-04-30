@@ -1,6 +1,4 @@
-using UnityEngine;
-
-public class PrevailTrashState : InteractionStateBase
+public class PrevailTrashState : CardInteractionState
 {
     public override string ConfigName => "10_PrevailTrash";
     public override string InteractionText {

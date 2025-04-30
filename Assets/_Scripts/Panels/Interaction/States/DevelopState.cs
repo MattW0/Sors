@@ -1,7 +1,4 @@
-using UnityEngine;
-using System.Collections.Generic;
-
-public class DevelopState : InteractionStateBase
+public class DevelopState : CardInteractionState
 {
     public override string ConfigName => "3_Develop";
     public override string InteractionText {

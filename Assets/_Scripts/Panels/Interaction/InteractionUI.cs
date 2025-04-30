@@ -9,9 +9,9 @@ using System.Linq;
 public class InteractionUI : AnimatedPanel
 {
     [Header("UI")]
+    [SerializeField] private Button _confirmButton;
     [SerializeField] private Button _skipButton;
     [SerializeField] private Button _resetButton;
-    [SerializeField] private Button _confirmButton;
     [SerializeField] private TMP_Text _displayText;
     [SerializeField] private DetailCardPreview _detailCardPreview;
 
@@ -23,29 +23,27 @@ public class InteractionUI : AnimatedPanel
 
     private void Start()
     {
-        _skipButton.onClick.AddListener(SkipState);
-        _resetButton.onClick.AddListener(ResetState);
-        _confirmButton.onClick.AddListener(ConfirmState);
+        _confirmButton.onClick.AddListener(Confirm);
+        _skipButton.onClick.AddListener(Skip);
+        _resetButton.onClick.AddListener(Reset);
 
         _displayText.text = "";
         _detailCardPreview.HideAll(true);
     }
 
-    public void StartInteraction(InteractionStateBase state, int nbCardsToSelectMax, bool autoSkip)
+    public void StartInteraction(IInteractionState state, bool skip, int nbCardsToSelectMax = -1)
     {
-        print("Interaction begin " + state + ", " + nbCardsToSelectMax + ", " + autoSkip);
-        _state = state;
-
-        if(autoSkip){
-            SkipState();
-            return;
-        }
+        print("Interaction begin " + state + ", " + nbCardsToSelectMax);
+        _state = (InteractionStateBase) state;
 
         _displayText.text = _state.InteractionText;
         _isWaiting = false;
 
         SetPanelButtons();
         PanelIn();
+        
+        // TODO: Should panel always fade in? To better make player understand what is going on
+        if(skip) Skip();
     }
 
     private void SetPanelButtons()
@@ -53,11 +51,11 @@ public class InteractionUI : AnimatedPanel
         // Confirm button is always enabled
         _confirmButton.interactable = _state.Config.confirmButtonEnabled;
 
-        _resetButton.gameObject.SetActive(_state.Config.resetButtonVisible);
-        _resetButton.interactable = _state.Config.resetButtonEnabled;
-
         _skipButton.gameObject.SetActive(_state.Config.skipButtonVisible);
         _skipButton.interactable = _state.Config.skipButtonEnabled;
+
+        _resetButton.gameObject.SetActive(_state.Config.resetButtonVisible);
+        // Reset button is always enabled
     }
 
     internal void SetConfirmButtonEnabled(bool b) => _confirmButton.interactable = b;
@@ -76,22 +74,21 @@ public class InteractionUI : AnimatedPanel
         _confirmButton.interactable = false;
     }
 
-    private void SkipState() 
+    private void Confirm() 
+    {
+        _state.OnConfirm();
+        Wait();
+    }
+
+    private void Skip() 
     {
         _state.OnSkip();
         Wait();
     }
 
-    private void ResetState() 
+    private void Reset() 
     {
         _state.OnReset();
-        Wait();
-    }
-
-    private void ConfirmState() 
-    {
-        _state.OnConfirm();
-        Wait();
     }
 
     private void Wait()
@@ -100,10 +97,5 @@ public class InteractionUI : AnimatedPanel
         _confirmButton.interactable = false;
         _skipButton.interactable = false;
         _displayText.text = "Wait for opponent...";
-    }
-
-    private void OnDestroy()
-    {
-        // InteractionPanel.OnInteractionBegin -= InteractionBegin;
     }
 }
