@@ -90,7 +90,7 @@ public class CardSelectionHandler : MonoBehaviour
 
     private void MoveCard(CardStats card, bool toSelection)
     {
-        var pile = _state.config.location;
+        var pile = _state.config.interactionPile;
 
         if(toSelection) {
             _cardMover.MoveTo(card.gameObject, true, pile, CardLocation.Selection);

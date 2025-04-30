@@ -41,7 +41,7 @@ public class InteractionUI : AnimatedPanel
             return;
         }
 
-        _displayText.text = _state.config.GetInteractionString(nbCardsToSelectMax);
+        _displayText.text = _state.InteractionText;
         _isWaiting = false;
 
         SetPanelButtons();

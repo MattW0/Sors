@@ -3,9 +3,18 @@ using System.Collections.Generic;
 
 public class DeployState : InteractionStateBase
 {
-    public override string ConfigName => "TurnStates/Deploy";
+    public override string ConfigName => "8_Deploy";
+    public override string InteractionText 
+    {
+        get {
+            if(numberSelections == 0) 
+                return "You have no Plays available";
+            else
+                return "You may play a Creature card";
+        }
+    }
 
-    public override bool CheckStateAutoskip() => !ContainsCreature();
+    public override bool CheckStateAutoskip() => !ContainsCreature() || numberSelections == 0;
     public override CardLocation? GetCardDestination(CardStats cardStats)
     {
         if(cardStats.cardInfo.type == CardType.Money) return CardLocation.MoneyZone;
@@ -14,12 +23,5 @@ public class DeployState : InteractionStateBase
         return null;
     }
 
-    public override void MakeCardsInteractable(List<CardStats> cards)
-    {
-        foreach(var card in cards)
-        {
-            bool isInteractable = card.cardInfo.type == CardType.Money;
-            card.SetInteractable(isInteractable, config.turnState);
-        }
-    }
+    public override void MakeCardsInteractable() => MakeMoneyCardsInteractable();
 } 

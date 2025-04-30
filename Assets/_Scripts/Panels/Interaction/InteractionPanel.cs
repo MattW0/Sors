@@ -21,7 +21,10 @@ public class InteractionPanel : NetworkBehaviour
         new DiscardState(),
         new InventState(),
         new DevelopState(),
+        new RecruitState(),
         new DeployState(),
+        new PrevailToHandState(),
+        new PrevailTrashState()
     };
 
     private void Awake()

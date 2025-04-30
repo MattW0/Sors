@@ -13,6 +13,7 @@ public abstract class InteractionStateBase : IInteractionState
     [Header("State Configuration")]
     public InteractionStateConfig config;
     public abstract string ConfigName { get; }
+    public abstract string InteractionText { get; }
     public InteractionPileUI InteractionPile { get; set; }
 
     [Header("Helper fields")]
@@ -29,7 +30,7 @@ public abstract class InteractionStateBase : IInteractionState
         config = Resources.Load<InteractionStateConfig>(path);
         if (config == null) Debug.LogWarning("Could not load interaction state config from resources: " + path);
 
-        InteractionPile = piles.FirstOrDefault(p => p.Location == config.location);
+        InteractionPile = piles.FirstOrDefault(p => p.Location == config.interactionPile);
 
         if(InteractionPile == null) Debug.LogWarning("Interaction pile not set in InteractionPanel.cs or not defined for state config " + ConfigName);
         else Debug.Log($"Interaction state {ConfigName} initialized");
@@ -37,9 +38,6 @@ public abstract class InteractionStateBase : IInteractionState
 
     public bool StartInteraction(List<CardStats> cards, int numberSelections)
     {
-        // Returns true if auto-skip
-
-        Debug.Log($"Start card interaction: {config.turnState}");
         _selectableCards = cards;
         this.numberSelections = numberSelections;
 
@@ -50,7 +48,7 @@ public abstract class InteractionStateBase : IInteractionState
 
         // Start interaction visuals
         InteractionPile.StartInteraction();
-        MakeCardsInteractable(cards);
+        MakeCardsInteractable();
 
         return false;
     }
@@ -66,7 +64,8 @@ public abstract class InteractionStateBase : IInteractionState
     public abstract bool CheckStateAutoskip();
 
     // Makes some of the cards (eg. depending on type) interactable
-    public abstract void MakeCardsInteractable(List<CardStats> cards);
+    // Calls one of the Make{X}CardsInteractable functions
+    public abstract void MakeCardsInteractable();
 
     // Defines where a card goes to when clicked (money cards during play/buy)
     // Returning null is equivalent to card is not clickable
@@ -86,6 +85,11 @@ public abstract class InteractionStateBase : IInteractionState
     protected bool ContainsMoney() => _selectableCards?.Any(c => c.cardInfo.type == CardType.Money) ?? false;
     protected bool ContainsTechnology() => _selectableCards?.Any(c => c.cardInfo.type == CardType.Technology) ?? false;
     protected bool ContainsCreature() => _selectableCards?.Any(c => c.cardInfo.type == CardType.Creature) ?? false;
+    protected void MakeAllCardsInteractable()
+        => _selectableCards.ForEach(c => c.SetInteractable(true, config.turnState));
+    
+    protected void MakeMoneyCardsInteractable()
+        => _selectableCards.ForEach(c => c.SetInteractable(c.cardInfo.type == CardType.Money, config.turnState));
 
     internal void CheckPlayability(CardType allowedType, int cash)
     {
@@ -94,5 +98,21 @@ public abstract class InteractionStateBase : IInteractionState
 
             card.CheckPlayability(cash);
         }
+    }
+
+        // if (! displayText.IsNullOrWhitespace()) return displayText;
+
+        // string countText = isUpTo ? $"up to {nbCardsToSelectMax}" : nbCardsToSelectMax.ToString();
+        // return string.Format(displayTextFormat, interactionType.ToString(), countText, FormatCardTypeText());
+    // public abstract void FormatInteractionText();
+
+    private string FormatCardTypeText()
+    {
+        // if (config.allowedCardType == CardType.All) return "";
+
+        // // Return type to play (or buy) and in case of buying, add money 
+        // return allowedCardType.ToString() + (interactionType == InteractionType.Buy ? " or Money " : " ");
+
+        return "";
     }
 }

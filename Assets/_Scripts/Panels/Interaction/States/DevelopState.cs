@@ -3,17 +3,17 @@ using System.Collections.Generic;
 
 public class DevelopState : InteractionStateBase
 {
-    public override string ConfigName => "TurnStates/Develop";
-
-    public override bool CheckStateAutoskip() => !ContainsTechnology();
-    public override void MakeCardsInteractable(List<CardStats> cards)
-    {
-        foreach(var card in cards)
-        {
-            bool isInteractable = card.cardInfo.type == CardType.Money;
-            card.SetInteractable(isInteractable, config.turnState);
+    public override string ConfigName => "3_Develop";
+    public override string InteractionText {
+        get {
+            if(numberSelections == 0)
+                return "You have no Plays available";
+            else
+                return "You may play a Technology card";
         }
     }
+
+    public override bool CheckStateAutoskip() => !ContainsTechnology() || numberSelections == 0;
     public override CardLocation? GetCardDestination(CardStats stats)
     {
         if(stats.cardInfo.type == CardType.Money) return CardLocation.MoneyZone;
@@ -21,4 +21,5 @@ public class DevelopState : InteractionStateBase
 
         return null;
     }
+    public override void MakeCardsInteractable() => MakeMoneyCardsInteractable();
 } 
