@@ -11,6 +11,7 @@ public class InteractionPanel : NetworkBehaviour
     public PlayerManager LocalPlayer { get; set; }
     private CardSelectionHandler _selectionHandler;
     private BoardManager _boardManager;
+    private Market _market;
     [SerializeField] private ArrowManager _arrowManager;
     [SerializeField] private InteractionPileUI[] _interactablePiles;
     private InteractionUI _interactionUI;
@@ -122,14 +123,6 @@ public class InteractionPanel : NetworkBehaviour
     [Command(requiresAuthority = false)]
     private void CmdPlayerSkips() => LocalPlayer.CmdSkipInteraction();
 
-    [TargetRpc]
-    public void TargetCheckPlayability(NetworkConnection target, int cash){
-        var state = (CardInteractionState) _currentState;
-        if(state == null) return;
-
-        state.CheckPlayability(cash);
-    }
-
     [ClientRpc]
     public void RpcFinishState()
     {
@@ -140,8 +133,6 @@ public class InteractionPanel : NetworkBehaviour
 
     // [TargetRpc]
     // public void TargetUndoMoneyPlay(NetworkConnection target) => MoneyCardsAreInteractable();
-    public void SelectMarketTile(MarketTile tile) => _selectionHandler.SelectMarketTile(tile);
-    public void DeselectMarketTile() => _selectionHandler.DeselectMarketTile();
 
     #region Combat
 
@@ -173,5 +164,25 @@ public class InteractionPanel : NetworkBehaviour
         InteractionStateBase.OnConfirmInteraction -= PlayerConfirms;
         InteractionStateBase.OnSkipInteraction -= PlayerSkips;
         InteractionStateBase.OnResetInteraction -= CmdPlayerResets;
+    }
+
+    internal void PlayerPlaysMoneyCard(CardStats cardStats)
+    {
+        LocalPlayer.Cards.CmdPlayMoneyCard(cardStats);
+
+        // if(turnState == TurnState.Develop || turnState == TurnState.Deploy)
+        //     TargetCheckPlayability(player.connectionToClient, newAmount);
+        
+        // else if (turnState == TurnState.Invent || turnState == TurnState.Recruit)
+        //     _market.TargetCheckMarketPrices(player.connectionToClient, newAmount);
+    }
+
+    [TargetRpc]
+    private void TargetCheckPlayability(NetworkConnection target, int cash)
+    {
+        var state = (CardInteractionState) _currentState;
+        if(state == null) return;
+
+        state.CheckPlayability(cash);
     }
 }

@@ -18,10 +18,12 @@ public class CardSelectionHandler : MonoBehaviour
 
     private void Awake() 
     {
-        CardClickHandler.OnCardClicked += ClickedCard;
-
         _interactionPanel = gameObject.GetComponent<InteractionPanel>();
         _ui = gameObject.GetComponentInChildren<InteractionUI>();
+
+        CardClickHandler.OnCardClicked += ClickedCard;
+        MarketTile.OnTileSelected += SelectMarketTile;
+        MarketTile.OnTileDeselected += DeselectMarketTile;
     }
 
     private void Start()
@@ -49,13 +51,11 @@ public class CardSelectionHandler : MonoBehaviour
         // Check if player is playing money card
         if (destination == CardLocation.MoneyZone) 
         {
-            // OnPlayMoneyCard?.Invoke(cardStats);
-            _interactionPanel.LocalPlayer.Cards.CmdPlayMoneyCard(cardStats);
+            _interactionPanel.PlayerPlaysMoneyCard(cardStats);
             cardStats.SetInteractable(false);
         } else {
             // Else we can select or deselect
             // Debug.Log($"Clicked card {cardStats.cardInfo.title}, is selected: {cardStats.IsSelected}");
-
             if(cardStats.IsSelected) DeselectCard(cardStats);
             else SelectCard(cardStats);
         }
@@ -80,13 +80,13 @@ public class CardSelectionHandler : MonoBehaviour
         MoveCard(card, false);
     }
 
-    public void SelectMarketTile(MarketTile tile)
+    private void SelectMarketTile(MarketTile tile)
     {
         marketSelection = new MarketSelection(tile.cardInfo, tile.Cost, tile.Index);
         _ui.SelectMarketTile(tile.cardInfo);
     }
 
-    public void DeselectMarketTile() => _ui.DeselectMarketTile();
+    private void DeselectMarketTile() => _ui.DeselectMarketTile();
 
     private void MoveCard(CardStats card, bool toSelection)
     {
@@ -120,6 +120,8 @@ public class CardSelectionHandler : MonoBehaviour
     private void OnDestroy()
     {
         CardClickHandler.OnCardClicked -= ClickedCard;
+        MarketTile.OnTileSelected -= SelectMarketTile;
+        MarketTile.OnTileDeselected -= DeselectMarketTile;
     }
 }
 

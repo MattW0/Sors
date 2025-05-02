@@ -91,8 +91,8 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
     {
         if (moneyCardsInPlay.Count == 0) return;
 
-        // TODO: Does not give player the option to "discard" money cards
-        // possibly remove if Undo works as intended
+        // TODO: Does not give player the option to intentionally discard
+        //  money cards -> remove if Undo works as intended
         ReturnUnspentMoneyToHand();
 
         foreach (var card in moneyCardsInPlay)

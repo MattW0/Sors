@@ -5,7 +5,6 @@ using UnityEngine;
 using Mirror;
 using Cysharp.Threading.Tasks;
 using Unity.VisualScripting;
-using CardDecoder;
 
 public class TurnManager : NetworkBehaviour
 {
@@ -52,7 +51,7 @@ public class TurnManager : NetworkBehaviour
         if (Instance == null) Instance = this;
 
         GameManager.OnGameStart += Prepare;
-        PlayerManager.OnCashChanged += PlayerCashChanged;
+        // PlayerManager.OnCashChanged += PlayerCashChanged;
 
         // Effects
         PriceReduction.OnMarketPriceReduction += PlayerGetsMarketBonus;
@@ -87,7 +86,6 @@ public class TurnManager : NetworkBehaviour
         _phasePanel.RpcPreparePhasePanel(gameOptions.NumberPhases);
 
         _prevailPanel = PrevailPanel.Instance;
-        _prevailPanel.RpcPreparePrevailPanel();
     }
 
     private void VariablesCaching(GameOptions gameOptions)
@@ -657,16 +655,6 @@ public class TurnManager : NetworkBehaviour
         return _readyPlayers.Count == _nbPlayers;
     }
 
-    private void PlayerCashChanged(PlayerManager player, int newAmount)
-    {
-        // Taking this "detour" to have server and clients in sync
-        // Had troubles making Hand / Market listen to OnCashChanged directly..
-        if(turnState == TurnState.Develop || turnState == TurnState.Deploy)
-            _interactionPanel.TargetCheckPlayability(player.connectionToClient, newAmount);
-        else if (turnState == TurnState.Invent || turnState == TurnState.Recruit)
-            _market.TargetCheckMarketPrices(player.connectionToClient, newAmount);
-    }
-
     private void PlayersDiscardMoney()
     {
         foreach (var player in _gameManager.players.Values)
@@ -786,7 +774,7 @@ public class TurnManager : NetworkBehaviour
     private void OnDestroy()
     {
         GameManager.OnGameStart -= Prepare;
-        PlayerManager.OnCashChanged -= PlayerCashChanged;
+        // PlayerManager.OnCashChanged -= PlayerCashChanged;
         PriceReduction.OnMarketPriceReduction -= PlayerGetsMarketBonus;
         Curse.OnPlayerGainsCurses -= PlayerGainsCurses;
     }

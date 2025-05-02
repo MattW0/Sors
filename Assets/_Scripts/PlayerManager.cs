@@ -17,14 +17,13 @@ public class PlayerManager : NetworkBehaviour
     private PlayerUI _playerUI;
     private PlayerUI _opponentUI;
     private BattleZoneEntity _entity;
-    public static event Action<PlayerManager, int> OnCashChanged;
+    // public static event Action<PlayerManager, int> OnCashChanged;
     public static event Action<BattleZoneEntity> OnPlayerChooseEntityTarget;
 
     #region Stats
 
     [Header("Game Stats")]
     public int ID { get; private set; }
-
     [SyncVar(hook="UISetPlayerName"), SerializeField] private string _playerName;
     public string PlayerName { get => _playerName; set => _playerName = value; }
 
@@ -36,14 +35,7 @@ public class PlayerManager : NetworkBehaviour
 
     [Header("Turn Stats")]
     [SyncVar(hook="UISetCash"), SerializeField] private int _cash;
-    public int Cash
-    {
-        get => _cash;
-        set {
-            _cash = value;
-            OnCashChanged?.Invoke(this, value);
-        }
-    }
+    public int Cash { get => _cash; set => _cash = value; }
 
     [SyncVar(hook="UISetBuys"), SerializeField] private int _buys;
     public int Buys { get => _buys; set => _buys = value; }
@@ -53,6 +45,9 @@ public class PlayerManager : NetworkBehaviour
 
     [SyncVar(hook="UISetPrevails"), SerializeField] private int _prevails;
     public int Prevails { get => _prevails; set => _prevails = value; }
+
+
+    public int LocalCash { get; set; }
 
     #endregion Stats
 

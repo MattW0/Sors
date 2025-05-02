@@ -9,7 +9,6 @@ using System;
 public class PrevailPanel : NetworkBehaviour
 {
     public static PrevailPanel Instance { get; private set; }
-    private PlayerManager _player;
     private List<PrevailOption> _selectedOptions = new();
     private int _numberOptionsAvailable;
     public int _totalSelected;
@@ -20,12 +19,6 @@ public class PrevailPanel : NetworkBehaviour
     {
         if (!Instance) Instance = this;
         _ui = GetComponent<PrevailUI>();
-    }
-
-    [ClientRpc]
-    public void RpcPreparePrevailPanel()
-    {
-        _player = PlayerManager.GetLocalPlayer();
     }
 
     [TargetRpc]
