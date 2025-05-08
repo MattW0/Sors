@@ -10,7 +10,12 @@ public class DevelopState : CardInteractionState
         }
     }
 
-    public override bool CheckStateAutoskip() => !ContainsTechnology() || numberSelections == 0;
+    public DevelopState()
+    {
+        InteractionPanel.OnCheckCardsPrices += CheckPlayability;
+    }
+
+    public override bool CheckStateAutoskip() => !SelectablesContainTechnology();
     public override CardLocation? GetCardDestination(CardStats stats)
     {
         if(stats.cardInfo.type == CardType.Money) return CardLocation.MoneyZone;
@@ -20,12 +25,8 @@ public class DevelopState : CardInteractionState
     }
     public override void MakeCardsInteractable() => MakeMoneyCardsInteractable();
 
-    internal override void CheckPlayability(int cash)
+    ~DevelopState() 
     {
-        foreach (var card in selectableCards) {
-            if (card.cardInfo.type != CardType.Technology) continue;
-
-            card.CheckPlayability(cash);
-        }
+        InteractionPanel.OnCheckCardsPrices -= CheckPlayability;
     }
 } 

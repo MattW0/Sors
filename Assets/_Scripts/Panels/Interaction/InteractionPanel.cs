@@ -11,10 +11,11 @@ public class InteractionPanel : NetworkBehaviour
     public PlayerManager LocalPlayer { get; set; }
     private CardSelectionHandler _selectionHandler;
     private BoardManager _boardManager;
-    private Market _market;
     [SerializeField] private ArrowManager _arrowManager;
     [SerializeField] private InteractionPileUI[] _interactablePiles;
     private InteractionUI _interactionUI;
+    public static event Action<int> OnCheckCardsPrices;
+    public static event Action<int> OnCheckMarketPrices;
 
     [Header("Helper Fields")]
     private IInteractionState _currentState;
@@ -73,6 +74,8 @@ public class InteractionPanel : NetworkBehaviour
 
         _currentState.StartState();
         _selectionHandler.BeginInteraction(state, numberSelections);
+
+        LocalPlayer.LocalCash = LocalPlayer.Cash;
     }
 
     [TargetRpc]
@@ -116,12 +119,9 @@ public class InteractionPanel : NetworkBehaviour
         // We auto skip in 
         if(type == InteractionType.Combat) return;
 
-        CmdPlayerSkips();
+        LocalPlayer.CmdSkipInteraction();
         _selectionHandler.SkipCardInteraction();
     }
-
-    [Command(requiresAuthority = false)]
-    private void CmdPlayerSkips() => LocalPlayer.CmdSkipInteraction();
 
     [ClientRpc]
     public void RpcFinishState()
@@ -168,21 +168,28 @@ public class InteractionPanel : NetworkBehaviour
 
     internal void PlayerPlaysMoneyCard(CardStats cardStats)
     {
-        LocalPlayer.Cards.CmdPlayMoneyCard(cardStats);
+        // TODO: Set LocalCash = player.Cash at start
+        LocalPlayer.LocalCash += cardStats.cardInfo.moneyValue;
 
-        // if(turnState == TurnState.Develop || turnState == TurnState.Deploy)
-        //     TargetCheckPlayability(player.connectionToClient, newAmount);
-        
-        // else if (turnState == TurnState.Invent || turnState == TurnState.Recruit)
-        //     _market.TargetCheckMarketPrices(player.connectionToClient, newAmount);
+        print("Local cash " + LocalPlayer.LocalCash);
+
+        // LocalPlayer.Cards.CmdPlayMoneyCard(cardStats);
+
+        if(_currentState.Config.interactionType == InteractionType.Play)
+            CheckPlayability();
+        else if(_currentState.Config.interactionType == InteractionType.Buy)
+            CheckMarketPrices();
     }
 
-    [TargetRpc]
-    private void TargetCheckPlayability(NetworkConnection target, int cash)
+    private void CheckPlayability()
     {
-        var state = (CardInteractionState) _currentState;
-        if(state == null) return;
-
-        state.CheckPlayability(cash);
+        OnCheckCardsPrices?.Invoke(LocalPlayer.LocalCash);
     }
+
+    private void CheckMarketPrices()
+    {
+        OnCheckMarketPrices?.Invoke(LocalPlayer.LocalCash);
+        print("UPdate market prices");
+    }
+
 }

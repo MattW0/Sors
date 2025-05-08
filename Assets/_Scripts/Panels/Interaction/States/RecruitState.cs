@@ -9,7 +9,6 @@ public class RecruitState : CardInteractionState
                 return "Buy a Creature or Money card";
         }
     }
-    public override bool CheckStateAutoskip() => numberSelections == 0;
     public override CardLocation? GetCardDestination(CardStats cardStats)
     {
         if(cardStats.cardInfo.type == CardType.Money) return CardLocation.MoneyZone;

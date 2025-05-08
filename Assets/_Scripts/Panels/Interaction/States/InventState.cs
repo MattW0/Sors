@@ -10,8 +10,6 @@ public class InventState : CardInteractionState
                 return "Buy a Technology or Money card";
         }
     }
-
-    public override bool CheckStateAutoskip() => numberSelections == 0;
     public override CardLocation? GetCardDestination(CardStats cardStats)
     {
         if(cardStats.cardInfo.type == CardType.Money) return CardLocation.MoneyZone;

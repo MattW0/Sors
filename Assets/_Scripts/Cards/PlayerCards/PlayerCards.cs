@@ -67,15 +67,12 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
         if (destination == CardLocation.Discard) discard.AddRange(cards);
     }
 
-    [Command]
-    public void CmdPlayMoneyCard(CardStats card)
+    public void PlayMoneyCard(CardStats card)
     {
         _owner.Cash += card.cardInfo.moneyValue;
         
         RemoveHandCards(new List<CardStats> { card }, CardLocation.MoneyZone);
         RpcMoveCard(card.gameObject, CardLocation.Hand, CardLocation.MoneyZone);
-
-        moneyCardsInPlay.Add(card);
     }
 
     [Command]
@@ -106,6 +103,13 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
 
     #endregion
     #region Client Logic
+
+    [ClientRpc]
+    public void RpcMoveCards(List<GameObject> cards, CardLocation from, CardLocation to)
+    {
+        _cardMover.MoveAllTo(cards, isOwned, from, to);
+    }
+
 
     [ClientRpc]
     public void RpcMoveCard(GameObject card, CardLocation from, CardLocation to)

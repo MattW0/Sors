@@ -11,7 +11,12 @@ public class DeployState : CardInteractionState
         }
     }
 
-    public override bool CheckStateAutoskip() => !ContainsCreature() || numberSelections == 0;
+    public DeployState()
+    {
+        InteractionPanel.OnCheckCardsPrices += CheckPlayability;
+    }
+
+    public override bool CheckStateAutoskip() => !SelectablesContainCreature();
     public override CardLocation? GetCardDestination(CardStats cardStats)
     {
         if(cardStats.cardInfo.type == CardType.Money) return CardLocation.MoneyZone;
@@ -21,13 +26,9 @@ public class DeployState : CardInteractionState
     }
 
     public override void MakeCardsInteractable() => MakeMoneyCardsInteractable();
-
-    internal override void CheckPlayability(int cash)
+    
+    ~DeployState() 
     {
-        foreach (var card in selectableCards) {
-            if (card.cardInfo.type != CardType.Creature) continue;
-
-            card.CheckPlayability(cash);
-        }
+        InteractionPanel.OnCheckCardsPrices -= CheckPlayability;
     }
 } 

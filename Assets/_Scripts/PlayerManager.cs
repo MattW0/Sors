@@ -46,8 +46,14 @@ public class PlayerManager : NetworkBehaviour
     [SyncVar(hook="UISetPrevails"), SerializeField] private int _prevails;
     public int Prevails { get => _prevails; set => _prevails = value; }
 
-
-    public int LocalCash { get; set; }
+    private int _localCash;
+    public int LocalCash { 
+        get => _localCash; 
+        set {
+            _localCash = value;
+            _playerUI.SetCash(value);
+        }
+    }
 
     #endregion Stats
 

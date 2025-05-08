@@ -692,7 +692,6 @@ public class TurnManager : NetworkBehaviour
 
             print($" - {turnState}: phase interaction - {player.PlayerName} has {nbInteractions} options available");
             _interactionPanel.TargetStartCardInteraction(player.connectionToClient, collection, turnState, nbInteractions);
-            player.Cash = player.Cash; // Trigger TargetCheckPlayability
         }
     }
 

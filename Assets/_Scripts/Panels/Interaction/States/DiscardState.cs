@@ -9,8 +9,6 @@ public class DiscardState : CardInteractionState
                 return $"Discard {numberSelections} cards";
         }
     }
-
-    public override bool CheckStateAutoskip() => false;
     public override CardLocation? GetCardDestination(CardStats cardStats) => CardLocation.Selection;
     public override void MakeCardsInteractable() => MakeAllCardsInteractable();
 }

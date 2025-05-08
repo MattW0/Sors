@@ -1,6 +1,8 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using System;
+using System.Runtime.InteropServices;
 
 public abstract class CardInteractionState : InteractionStateBase
 {
@@ -39,7 +41,8 @@ public abstract class CardInteractionState : InteractionStateBase
 
     // Returns bool depending on the available cards to select from
     // True: auto-skip and player is not able to give inputs
-    public abstract bool CheckStateAutoskip();
+    // default is to not skip a state
+    public virtual bool CheckStateAutoskip() => false;
 
     // Makes some of the cards (eg. depending on type) interactable
     // Calls one of the Make{X}CardsInteractable functions
@@ -50,15 +53,24 @@ public abstract class CardInteractionState : InteractionStateBase
     public abstract CardLocation? GetCardDestination(CardStats cardStats);
 
     // Only used for play interactions : develop, deploy
-    internal virtual void CheckPlayability(int cash) { }
-    public override void EndState() => InteractionPile.EndInteraction();
+    protected virtual void CheckPlayability(int cash) 
+    {
+        // Since both states develop and deploy use this logic, for one of them selectableCards is null
+        if(selectableCards == null) return;
+        
+        foreach (var card in selectableCards) {
+            if (card.cardInfo.type != Config.cardType) continue;
 
-    protected bool ContainsMoney() => selectableCards?.Any(c => c.cardInfo.type == CardType.Money) ?? false;
-    protected bool ContainsTechnology() => selectableCards?.Any(c => c.cardInfo.type == CardType.Technology) ?? false;
-    protected bool ContainsCreature() => selectableCards?.Any(c => c.cardInfo.type == CardType.Creature) ?? false;
+            card.CheckPlayability(cash);
+        }
+    }
+    protected bool SelectablesContainMoney() => selectableCards?.Any(c => c.cardInfo.type == CardType.Money) ?? false;
+    protected bool SelectablesContainTechnology() => selectableCards?.Any(c => c.cardInfo.type == CardType.Technology) ?? false;
+    protected bool SelectablesContainCreature() => selectableCards?.Any(c => c.cardInfo.type == CardType.Creature) ?? false;
     protected void MakeAllCardsInteractable()
         => selectableCards.ForEach(c => c.SetInteractable(true, Config.turnState));
-    
     protected void MakeMoneyCardsInteractable()
         => selectableCards.ForEach(c => c.SetInteractable(c.cardInfo.type == CardType.Money, Config.turnState));
+    
+    public override void EndState() => InteractionPile.EndInteraction();
 }

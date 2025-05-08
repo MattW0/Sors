@@ -35,6 +35,7 @@ public class Market : NetworkBehaviour
 
         MarketTile.OnTileSelected += PlayerSelectsTile;
         MarketTile.OnTileDeselected += PlayerDeselectsTile;
+        InteractionPanel.OnCheckMarketPrices += CheckMarketPrices;
     }
 
     private void Start(){
@@ -113,6 +114,11 @@ public class Market : NetworkBehaviour
 
     [TargetRpc]
     public void TargetCheckMarketPrices(NetworkConnection target, int playerCash)
+    {
+        CheckMarketPrices(playerCash);
+    }
+
+    private void CheckMarketPrices(int playerCash) 
     {
         // Can always buy money cards
         foreach(var tile in _moneyTiles) tile.Interactable = playerCash >= tile.Cost;
@@ -234,5 +240,7 @@ public class Market : NetworkBehaviour
     {
         MarketTile.OnTileSelected -= PlayerSelectsTile;
         MarketTile.OnTileDeselected -= PlayerDeselectsTile;
+        InteractionPanel.OnCheckMarketPrices -= CheckMarketPrices;
+
     }
 }

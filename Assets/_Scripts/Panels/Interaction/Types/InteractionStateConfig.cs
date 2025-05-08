@@ -9,6 +9,7 @@ public class InteractionStateConfig : ScriptableObject
     public TurnState turnState;
     public CardLocation interactionPile = CardLocation.Hand;
     public InteractionType interactionType;
+    public CardType cardType;
     public bool isUpTo;
     
     [Header("Button Configuration")]
