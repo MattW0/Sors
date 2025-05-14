@@ -25,7 +25,6 @@ public class PlayerInterfaceManager : NetworkBehaviour
         
         _buttons = GetComponent<PlayerInterfaceButtons>();
         TurnManager.OnTurnStateChanged += RpcChangeActionDescriptionText;
-
     }
 
     [ClientRpc]
@@ -63,11 +62,9 @@ public class PlayerInterfaceManager : NetworkBehaviour
 
     // [TargetRpc]
     // public void TargetUndoButtonEnabled(NetworkConnection conn, bool b) => _buttons.UndoButtonEnabled(b);
-    // public void UndoButtonEnabled(bool b) => _buttons.UndoButtonEnabled(b);
 
     // Only used for undo on playing money cards
-    // TODO: attackers, blockers choices
-    public void Undo() => _player.Cards.CmdUndoPlayMoney();
+    public void Undo() => _player.Cards.UndoPlayMoney();
     public void ForceEndTurn() => _player.ForceEndTurn();
 
     #region Log
@@ -104,7 +101,6 @@ public class PlayerInterfaceManager : NetworkBehaviour
 
     private void OnDestroy()
     {
-        // TurnManager.OnPlayerIsReady -= RpcLogPlayerAction;
         TurnManager.OnTurnStateChanged -= RpcChangeActionDescriptionText;
     }
 }

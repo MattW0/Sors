@@ -12,7 +12,7 @@ public class DevelopState : CardInteractionState
 
     public DevelopState()
     {
-        InteractionPanel.OnCheckCardsPrices += CheckPlayability;
+        PlayerManager.OnLocalCashUpdate += CheckPlayability;
     }
 
     public override bool CheckStateAutoskip() => !SelectablesContainTechnology();
@@ -27,6 +27,6 @@ public class DevelopState : CardInteractionState
 
     ~DevelopState() 
     {
-        InteractionPanel.OnCheckCardsPrices -= CheckPlayability;
+        PlayerManager.OnLocalCashUpdate -= CheckPlayability;
     }
 } 

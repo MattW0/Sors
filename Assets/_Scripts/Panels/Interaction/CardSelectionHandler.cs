@@ -46,20 +46,15 @@ public class CardSelectionHandler : MonoBehaviour
         var cardStats = card.GetComponent<CardStats>();
 
         var destination = _state.GetCardDestination(cardStats) 
-            ?? throw new Exception("Null exception on destination pile for card: " + cardStats.cardInfo.title);
+            ?? throw new Exception("Null exception on destination pile for state: " + _state.Config.turnState);
 
+        // Debug.Log($"Clicked card {cardStats.cardInfo.title}, is selected: {cardStats.IsSelected}");
+        
         // Check if player is playing money card
-        if (destination == CardLocation.MoneyZone) 
-        {
-            _interactionPanel.PlayerPlaysMoneyCard(cardStats);
-            _cardMover.MoveTo(card, true, CardLocation.Hand, CardLocation.MoneyZone);
-            cardStats.SetInteractable(false);
-        } else {
-            // Else we can select or deselect
-            // Debug.Log($"Clicked card {cardStats.cardInfo.title}, is selected: {cardStats.IsSelected}");
-            if(cardStats.IsSelected) DeselectCard(cardStats);
-            else SelectCard(cardStats);
-        }
+        if (destination == CardLocation.MoneyZone) _interactionPanel.LocalPlayer.Cards.PlayMoneyCard(cardStats);
+        // Else we can select or deselect
+        else if(cardStats.IsSelected) DeselectCard(cardStats);
+        else SelectCard(cardStats);
     }
 
     private void SelectCard(CardStats card)

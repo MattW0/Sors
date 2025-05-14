@@ -53,6 +53,7 @@ public class CardsPileSors : MonoBehaviour
     public void CardHasArrived(GameObject card)
 	{
 		card.transform.SetParent(cardHolderTransform, false);
+		_cardPileUI.UpdateCardPileNumber(cardHolderTransform.childCount);
 		_updatePosition = true;
 	}
 
@@ -62,8 +63,6 @@ public class CardsPileSors : MonoBehaviour
 			ChangePileWidth(cardHolderTransform.childCount);
 
 		(float radius, float angle, float cardAngle) = GetGeometry();
-		_cardPileUI.UpdateCardPileNumber(cardHolderTransform.childCount);
-
 		int i = 0;
 		foreach (Transform cardTransform in cardHolderTransform)
 		{

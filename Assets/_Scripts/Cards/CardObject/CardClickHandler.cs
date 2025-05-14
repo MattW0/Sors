@@ -16,7 +16,6 @@ public class CardClickHandler : MonoBehaviour, IPointerClickHandler
         else {
             if(! cardStats.IsInteractable) return; 
 
-            print("Invoke OnCardClicked");
             OnCardClicked?.Invoke(gameObject);
         }
     }

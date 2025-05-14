@@ -14,8 +14,6 @@ public class InteractionPanel : NetworkBehaviour
     [SerializeField] private ArrowManager _arrowManager;
     [SerializeField] private InteractionPileUI[] _interactablePiles;
     private InteractionUI _interactionUI;
-    public static event Action<int> OnCheckCardsPrices;
-    public static event Action<int> OnCheckMarketPrices;
 
     [Header("Helper Fields")]
     private IInteractionState _currentState;
@@ -104,16 +102,20 @@ public class InteractionPanel : NetworkBehaviour
     private void PlayerConfirms(InteractionType type)
     {
         print("Player confirms interaction type "+ type);
-        if (type == InteractionType.Play) ConfirmPlay();
-        else if (type == InteractionType.Buy) ConfirmBuy();
-        else if (type == InteractionType.Combat) ConfirmCombatSelection();
         // Default behavior that is resolved individually in TurnManager
-        else if (type == InteractionType.Select) ConfirmCardSelection();
+        if (type == InteractionType.Select) ConfirmCardSelection();
+        else if (type == InteractionType.Combat) ConfirmCombatSelection();
+        // Interaction with playing money cards
+        else {
+            LocalPlayer.Cards.ConfirmMoneyCards();
+            if (type == InteractionType.Buy) ConfirmBuy();
+            else if (type == InteractionType.Play) ConfirmPlay();
+        }
     }
 
-    private void ConfirmCardSelection() => LocalPlayer.CmdConfirmSelection(_selectionHandler.selectedCards);
-    private void ConfirmPlay() => LocalPlayer.CmdConfirmPlay(_selectionHandler.selectedCards[0]);
     private void ConfirmBuy() => LocalPlayer.CmdConfirmBuy(_selectionHandler.marketSelection.Value);
+    private void ConfirmPlay() => LocalPlayer.CmdConfirmPlay(_selectionHandler.selectedCards[0]);
+    private void ConfirmCardSelection() => LocalPlayer.CmdConfirmSelection(_selectionHandler.selectedCards);
     private void PlayerSkips(InteractionType type)
     {
         // We auto skip in 
@@ -130,10 +132,6 @@ public class InteractionPanel : NetworkBehaviour
         _currentState.EndState();
         _selectionHandler.EndSelection();
     }
-
-    // [TargetRpc]
-    // public void TargetUndoMoneyPlay(NetworkConnection target) => MoneyCardsAreInteractable();
-
     #region Combat
 
     private void ConfirmCombatSelection()
@@ -165,31 +163,4 @@ public class InteractionPanel : NetworkBehaviour
         InteractionStateBase.OnSkipInteraction -= PlayerSkips;
         InteractionStateBase.OnResetInteraction -= CmdPlayerResets;
     }
-
-    internal void PlayerPlaysMoneyCard(CardStats cardStats)
-    {
-        // TODO: Set LocalCash = player.Cash at start
-        LocalPlayer.LocalCash += cardStats.cardInfo.moneyValue;
-
-        print("Local cash " + LocalPlayer.LocalCash);
-
-        // LocalPlayer.Cards.CmdPlayMoneyCard(cardStats);
-
-        if(_currentState.Config.interactionType == InteractionType.Play)
-            CheckPlayability();
-        else if(_currentState.Config.interactionType == InteractionType.Buy)
-            CheckMarketPrices();
-    }
-
-    private void CheckPlayability()
-    {
-        OnCheckCardsPrices?.Invoke(LocalPlayer.LocalCash);
-    }
-
-    private void CheckMarketPrices()
-    {
-        OnCheckMarketPrices?.Invoke(LocalPlayer.LocalCash);
-        print("UPdate market prices");
-    }
-
 }

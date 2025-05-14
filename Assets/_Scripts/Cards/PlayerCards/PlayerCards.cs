@@ -10,7 +10,8 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
     public CardList deck;
     public CardList discard;
     public CardList hand;
-    public CardList moneyCardsInPlay;
+    private List<CardStats> _clientMoneyCardsInPlay;
+    private List<CardStats> _serverMoneyCardsToDiscard;
 
     // For serialization in unity inspector
     public string[] deckTitles;
@@ -28,10 +29,29 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
         deck = new CardList(_owner.isLocalPlayer, CardLocation.Deck);
         discard = new CardList(_owner.isLocalPlayer, CardLocation.Discard);
         hand = new CardList(_owner.isLocalPlayer, CardLocation.Hand);
-        moneyCardsInPlay = new CardList(_owner.isLocalPlayer, CardLocation.MoneyZone);
+        _clientMoneyCardsInPlay = new CardList(_owner.isLocalPlayer, CardLocation.MoneyZone);
+
+        _serverMoneyCardsToDiscard = new();
     }
 
     #region Server Logic
+
+    [Server]
+    private void ShuffleDiscardIntoDeck()
+    {
+        var temp = new List<CardStats>();
+        foreach (var card in discard)
+        {
+            temp.Add(card);
+            deck.Add(card);
+            
+            RpcMoveCard(card.gameObject, CardLocation.Discard, CardLocation.Deck);
+        }
+
+        foreach (var card in temp) discard.Remove(card);
+
+        deck.Shuffle();
+    }
 
     [Server]
     public void DrawCards(int amount)
@@ -66,50 +86,96 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
 
         if (destination == CardLocation.Discard) discard.AddRange(cards);
     }
-
-    public void PlayMoneyCard(CardStats card)
-    {
-        _owner.Cash += card.cardInfo.moneyValue;
-        
-        RemoveHandCards(new List<CardStats> { card }, CardLocation.MoneyZone);
-        RpcMoveCard(card.gameObject, CardLocation.Hand, CardLocation.MoneyZone);
-    }
-
+    
     [Command]
-    public void CmdUndoPlayMoney()
+    private void CmdConfirmMoneyCards(List<CardStats> cards)
     {
-        if (moneyCardsInPlay.Count == 0 || _owner.Cash <= 0) return;
-
-        ReturnUnspentMoneyToHand();
+        print($"{_owner.PlayerName} commits {cards.Count} money cards");
+        _serverMoneyCardsToDiscard.AddRange(cards);
     }
 
     [Server]
     public void DiscardMoneyCards()
     {
-        if (moneyCardsInPlay.Count == 0) return;
+        RemoveHandCards(_serverMoneyCardsToDiscard, CardLocation.Discard);
+        
+        var goCards = new List<GameObject>(_serverMoneyCardsToDiscard.Select(c => c.gameObject));
+        RpcDiscardMoneyCards(goCards);
 
-        // TODO: Does not give player the option to intentionally discard
-        //  money cards -> remove if Undo works as intended
-        ReturnUnspentMoneyToHand();
-
-        foreach (var card in moneyCardsInPlay)
-        {
-            discard.Add(card);
-            RpcMoveCard(card.gameObject, CardLocation.MoneyZone, CardLocation.Discard);
-        }
-
-        moneyCardsInPlay.Clear();
+        _serverMoneyCardsToDiscard.Clear();
     }
 
     #endregion
     #region Client Logic
 
-    [ClientRpc]
-    public void RpcMoveCards(List<GameObject> cards, CardLocation from, CardLocation to)
+    [Client]
+    public void PlayMoneyCard(CardStats card)
     {
-        _cardMover.MoveAllTo(cards, isOwned, from, to);
+        _clientMoneyCardsInPlay.Add(card);
+        _owner.LocalCash += card.cardInfo.moneyValue;
+
+        card.SetInteractable(false);
+        _cardMover.MoveTo(card.gameObject, true, CardLocation.Hand, CardLocation.MoneyZone);
     }
 
+    [ClientRpc]
+    private void RpcDiscardMoneyCards(List<GameObject> cards)
+    {
+        print($"Client discards {cards.Count} money cards");
+        var origin = isOwned ? CardLocation.MoneyZone : CardLocation.Hand;
+        _cardMover.MoveAllTo(cards, isOwned, origin, CardLocation.Discard);
+
+        _clientMoneyCardsInPlay.Clear();
+    }
+
+    [Client]
+    public void UndoPlayMoney()
+    {
+        if (_clientMoneyCardsInPlay.Count == 0 || _owner.LocalCash <= 0) return;
+
+        var temp = new List<CardStats>(_clientMoneyCardsInPlay);
+        foreach (var card in temp)
+        {
+            _owner.LocalCash -= card.cardInfo.moneyValue;
+            card.SetInteractable(true);
+            _cardMover.MoveTo(card.gameObject, true, CardLocation.MoneyZone, CardLocation.Hand);
+        }
+
+        _clientMoneyCardsInPlay.Clear();
+    }
+
+    [Client] internal void ConfirmMoneyCards() => CmdConfirmMoneyCards(_clientMoneyCardsInPlay);
+    #endregion
+    #region Helpers
+
+    private void ReturnUnspentMoneyToHand()
+    {
+        // Don't allow to return already spent money
+        var totalMoneyBack = 0;
+        var cardsToReturn = new List<CardStats>();
+        foreach (var card in _clientMoneyCardsInPlay)
+        {
+            if (totalMoneyBack + card.cardInfo.moneyValue > _owner.Cash) continue;
+
+            cardsToReturn.Add(card);
+            totalMoneyBack += card.cardInfo.moneyValue;
+        }
+
+        if (totalMoneyBack == 0) return;
+
+        // Return to hand
+        int undoAmount = 0;
+        foreach (var card in cardsToReturn)
+        {
+            _clientMoneyCardsInPlay.Remove(card);
+            undoAmount += card.cardInfo.moneyValue;
+            hand.Add(card);
+            RpcMoveCard(card.gameObject, CardLocation.MoneyZone, CardLocation.Hand);
+        }
+
+        // Substract cash
+        _owner.Cash -= undoAmount;
+    }
 
     [ClientRpc]
     public void RpcMoveCard(GameObject card, CardLocation from, CardLocation to)
@@ -134,56 +200,6 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
     [ClientRpc]
     public void RpcShowSpawnedCards(List<GameObject> cards, CardLocation destination, bool fromFile) => _cardMover.ShowSpawnedCards(cards, isOwned, destination, fromFile).Forget();
 
-    #endregion
-    #region Helpers
-
-    [Server]
-    private void ReturnUnspentMoneyToHand()
-    {
-        // Don't allow to return already spent money
-        var totalMoneyBack = 0;
-        var cardsToReturn = new List<CardStats>();
-        foreach (var card in moneyCardsInPlay)
-        {
-            if (totalMoneyBack + card.cardInfo.moneyValue > _owner.Cash) continue;
-
-            cardsToReturn.Add(card);
-            totalMoneyBack += card.cardInfo.moneyValue;
-        }
-
-        if (totalMoneyBack == 0) return;
-
-        // Return to hand
-        int undoAmount = 0;
-        foreach (var card in cardsToReturn)
-        {
-            moneyCardsInPlay.Remove(card);
-            undoAmount += card.cardInfo.moneyValue;
-            hand.Add(card);
-            RpcMoveCard(card.gameObject, CardLocation.MoneyZone, CardLocation.Hand);
-        }
-
-        // Substract cash
-        _owner.Cash -= undoAmount;
-    }
-
-    [Server]
-    private void ShuffleDiscardIntoDeck()
-    {
-        var temp = new List<CardStats>();
-        foreach (var card in discard)
-        {
-            temp.Add(card);
-            deck.Add(card);
-            
-            RpcMoveCard(card.gameObject, CardLocation.Discard, CardLocation.Deck);
-        }
-
-        foreach (var card in temp) discard.Remove(card);
-
-        deck.Shuffle();
-    }
-
     [Client]
     private async UniTaskVoid ClientDrawing(List<GameObject> cards)
     {
@@ -204,7 +220,6 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
         deckTitles = deck.Select(c => c.cardInfo.title).ToArray();
         discardTitles = discard.Select(c => c.cardInfo.title).ToArray();
         handTitles = hand.Select(c => c.cardInfo.title).ToArray();
-        moneyTitles = moneyCardsInPlay.Select(c => c.cardInfo.title).ToArray();
     }
 
     public void OnAfterDeserialize(){ }

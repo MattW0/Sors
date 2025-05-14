@@ -13,7 +13,7 @@ public class DeployState : CardInteractionState
 
     public DeployState()
     {
-        InteractionPanel.OnCheckCardsPrices += CheckPlayability;
+        PlayerManager.OnLocalCashUpdate += CheckPlayability;
     }
 
     public override bool CheckStateAutoskip() => !SelectablesContainCreature();
@@ -29,6 +29,6 @@ public class DeployState : CardInteractionState
     
     ~DeployState() 
     {
-        InteractionPanel.OnCheckCardsPrices -= CheckPlayability;
+        PlayerManager.OnLocalCashUpdate -= CheckPlayability;
     }
 } 

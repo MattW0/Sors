@@ -242,9 +242,6 @@ public class TurnManager : NetworkBehaviour
 
     public void PlayerConfirmBuy(PlayerManager player, MarketSelection selection)
     {
-        player.Buys--;
-        player.Cash -= selection.cost;
-
         // Player selections
         _selectedMarketCards[player] = selection.cardInfo;
         // Which cards to replace after this buy phase
@@ -261,6 +258,10 @@ public class TurnManager : NetworkBehaviour
             if (! card.HasValue) continue;
 
             PlayerGainsCard(owner, card.Value);
+            owner.Cards.DiscardMoneyCards();
+
+            owner.Buys--;
+            // owner.Cash -= card.cost;
         }
 
         _selectedMarketCards.Clear();
@@ -380,11 +381,11 @@ public class TurnManager : NetworkBehaviour
     private void CheckPlayAnotherCard()
     {
         // Play another card if not all players have skipped
-        if (AllPlayersSkipped()) FinishStartPlayPhase();
+        if (AllPlayersSkipped()) FinishPlayCard();
         else StartPhaseInteraction();
     }
 
-    private void FinishStartPlayPhase()
+    private void FinishPlayCard()
     {
         _boardManager.ResetHolders();
         PlayersDiscardMoney();
@@ -657,12 +658,13 @@ public class TurnManager : NetworkBehaviour
 
     private void PlayersDiscardMoney()
     {
-        foreach (var player in _gameManager.players.Values)
-        {
-            // Returns unused money then discards the remaining cards
-            player.Cards.DiscardMoneyCards();
-            player.Cash = 0;
-        }
+        print("TurnManager: Discard money");
+        // foreach (var player in _gameManager.players.Values)
+        // {
+        //     // Returns unused money then discards the remaining cards
+        //     player.Cards.DiscardMoneyCards();
+        //     player.Cash = 0;
+        // }
     }
 
     private void PlayersEmptyResources()
@@ -674,11 +676,6 @@ public class TurnManager : NetworkBehaviour
             player.Prevails = 0;
         }
     }
-
-    // internal void PlayerClickedUndoButton(PlayerManager player)
-    // {
-    //     _interactionPanel.TargetUndoMoneyPlay(player.connectionToClient);
-    // }
 
     private void StartPhaseInteraction(PrevailOption currentPrevailOption = PrevailOption.None)
     {

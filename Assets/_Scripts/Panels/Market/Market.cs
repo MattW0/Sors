@@ -35,7 +35,7 @@ public class Market : NetworkBehaviour
 
         MarketTile.OnTileSelected += PlayerSelectsTile;
         MarketTile.OnTileDeselected += PlayerDeselectsTile;
-        InteractionPanel.OnCheckMarketPrices += CheckMarketPrices;
+        PlayerManager.OnLocalCashUpdate += CheckMarketPrices;
     }
 
     private void Start(){
@@ -240,7 +240,6 @@ public class Market : NetworkBehaviour
     {
         MarketTile.OnTileSelected -= PlayerSelectsTile;
         MarketTile.OnTileDeselected -= PlayerDeselectsTile;
-        InteractionPanel.OnCheckMarketPrices -= CheckMarketPrices;
-
+        PlayerManager.OnLocalCashUpdate -= CheckMarketPrices;
     }
 }

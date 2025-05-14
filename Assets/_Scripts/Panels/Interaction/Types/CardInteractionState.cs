@@ -56,7 +56,9 @@ public abstract class CardInteractionState : InteractionStateBase
     protected virtual void CheckPlayability(int cash) 
     {
         // Since both states develop and deploy use this logic, for one of them selectableCards is null
-        if(selectableCards == null) return;
+        // Although valid only for develop and deploy, we have this here because CardInteractionState
+        // tracks the selectableCards (and we can avoid that in InteractionPanel)
+        if(selectableCards == null || Config.interactionType != InteractionType.Play) return;
         
         foreach (var card in selectableCards) {
             if (card.cardInfo.type != Config.cardType) continue;

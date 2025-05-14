@@ -17,7 +17,7 @@ public class PlayerManager : NetworkBehaviour
     private PlayerUI _playerUI;
     private PlayerUI _opponentUI;
     private BattleZoneEntity _entity;
-    // public static event Action<PlayerManager, int> OnCashChanged;
+    public static event Action<int> OnLocalCashUpdate;
     public static event Action<BattleZoneEntity> OnPlayerChooseEntityTarget;
 
     #region Stats
@@ -52,6 +52,7 @@ public class PlayerManager : NetworkBehaviour
         set {
             _localCash = value;
             _playerUI.SetCash(value);
+            OnLocalCashUpdate?.Invoke(value);
         }
     }
 
@@ -117,12 +118,12 @@ public class PlayerManager : NetworkBehaviour
         _turnManager.PlayerConfirmsCardSelection(this, selectedCards);
 
     [Command]
-    public void CmdConfirmPlay(CardStats card) => 
-        _turnManager.PlayerConfirmPlay(this, card);
-
-    [Command]
     public void CmdConfirmBuy(MarketSelection card) => 
         _turnManager.PlayerConfirmBuy(this, card);
+
+    [Command]
+    public void CmdConfirmPlay(CardStats card) => 
+        _turnManager.PlayerConfirmPlay(this, card);
 
     [Command]
     public void CmdSkipInteraction() => _turnManager.PlayerSkipsInteraction(this);
