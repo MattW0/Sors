@@ -34,9 +34,6 @@ public class PlayerManager : NetworkBehaviour
     public int Score { get => _score; set => _score = value; }
 
     [Header("Turn Stats")]
-    [SyncVar(hook="UISetCash"), SerializeField] private int _cash;
-    public int Cash { get => _cash; set => _cash = value; }
-
     [SyncVar(hook="UISetBuys"), SerializeField] private int _buys;
     public int Buys { get => _buys; set => _buys = value; }
     
@@ -45,8 +42,17 @@ public class PlayerManager : NetworkBehaviour
 
     [SyncVar(hook="UISetPrevails"), SerializeField] private int _prevails;
     public int Prevails { get => _prevails; set => _prevails = value; }
+    [SyncVar, SerializeField] private int _cash;
+    public int Cash { 
+        get => _cash; 
+        set {
+            _cash = value;
+            if (isOwned) LocalCash = value;
+            else _opponentUI.SetCash(value);
+        }
+    }
 
-    private int _localCash;
+    [SerializeField] private int _localCash;
     public int LocalCash { 
         get => _localCash; 
         set {
@@ -174,12 +180,6 @@ public class PlayerManager : NetworkBehaviour
         print("Setting score from " + oldValue + " to " + newValue);
         if (isOwned) _playerUI.SetScore(newValue);
         else _opponentUI.SetScore(newValue);
-    }
-
-    private void UISetCash(int oldValue, int newValue)
-    {
-        if (isOwned) _playerUI.SetCash(newValue);
-        else _opponentUI.SetCash(newValue);
     }
 
     private void UISetBuys(int oldValue, int newValue)

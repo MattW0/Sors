@@ -23,7 +23,7 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
 
     private void Start()
     {
-        _cardMover = CardMover.Instance;
+        _cardMover = GameServices.Get<CardMover>();
         _owner = GetComponent<PlayerManager>();
 
         deck = new CardList(_owner.isLocalPlayer, CardLocation.Deck);
@@ -86,13 +86,6 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
 
         if (destination == CardLocation.Discard) discard.AddRange(cards);
     }
-    
-    [Command]
-    private void CmdConfirmMoneyCards(List<CardStats> cards)
-    {
-        print($"{_owner.PlayerName} commits {cards.Count} money cards");
-        _serverMoneyCardsToDiscard.AddRange(cards);
-    }
 
     [Server]
     public void DiscardMoneyCards()
@@ -128,23 +121,31 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
         _clientMoneyCardsInPlay.Clear();
     }
 
-    [Client]
-    public void UndoPlayMoney()
-    {
-        if (_clientMoneyCardsInPlay.Count == 0 || _owner.LocalCash <= 0) return;
+    // [Client]
+    // public void UndoPlayMoney()
+    // {
+    //     if (_clientMoneyCardsInPlay.Count == 0 || _owner.LocalCash <= 0) return;
 
-        var temp = new List<CardStats>(_clientMoneyCardsInPlay);
-        foreach (var card in temp)
-        {
-            _owner.LocalCash -= card.cardInfo.moneyValue;
-            card.SetInteractable(true);
-            _cardMover.MoveTo(card.gameObject, true, CardLocation.MoneyZone, CardLocation.Hand);
-        }
+    //     var temp = new List<CardStats>(_clientMoneyCardsInPlay);
+    //     foreach (var card in temp)
+    //     {
+    //         _owner.LocalCash -= card.cardInfo.moneyValue;
+    //         card.SetInteractable(true);
+    //         _cardMover.MoveTo(card.gameObject, true, CardLocation.MoneyZone, CardLocation.Hand);
+    //     }
 
-        _clientMoneyCardsInPlay.Clear();
-    }
+    //     _clientMoneyCardsInPlay.Clear();
+    // }
 
     [Client] internal void ConfirmMoneyCards() => CmdConfirmMoneyCards(_clientMoneyCardsInPlay);
+
+    [Command]
+    private void CmdConfirmMoneyCards(List<CardStats> cards)
+    {
+        print($"{_owner.PlayerName} commits {cards.Count} money cards");
+        _serverMoneyCardsToDiscard.AddRange(cards);
+    }
+
     #endregion
     #region Helpers
 
@@ -155,7 +156,7 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
         var cardsToReturn = new List<CardStats>();
         foreach (var card in _clientMoneyCardsInPlay)
         {
-            if (totalMoneyBack + card.cardInfo.moneyValue > _owner.Cash) continue;
+            if (totalMoneyBack + card.cardInfo.moneyValue > _owner.LocalCash) continue;
 
             cardsToReturn.Add(card);
             totalMoneyBack += card.cardInfo.moneyValue;
@@ -174,7 +175,7 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
         }
 
         // Substract cash
-        _owner.Cash -= undoAmount;
+        _owner.LocalCash -= undoAmount;
     }
 
     [ClientRpc]

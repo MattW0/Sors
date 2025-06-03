@@ -12,7 +12,6 @@ public class PlayerInterfaceManager : NetworkBehaviour
     [SerializeField] private Logger _logger;
     [SerializeField] private Chat _chat;
     [SerializeField] private ActionDescription _actionDescription;
-    private PlayerInterfaceButtons _buttons;
     private PlayerManager _player;
     private Dictionary<int, string> _messageOrigin = new() {{0, "Game"}};
     private const int COMPUTER_PLAYER_ID = 1;
@@ -22,8 +21,6 @@ public class PlayerInterfaceManager : NetworkBehaviour
     private void Awake()
     {
         if (!Instance) Instance = this;
-        
-        _buttons = GetComponent<PlayerInterfaceButtons>();
         TurnManager.OnTurnStateChanged += RpcChangeActionDescriptionText;
     }
 
@@ -57,14 +54,9 @@ public class PlayerInterfaceManager : NetworkBehaviour
         _actionDescription.StartTurn(turnNumber);
         _logger.TurnStart(_messageOrigin[0], turnNumber);   
     }
-    // [ClientRpc]
-    // public void RpcUndoButtonEnabled(bool b) => _buttons.UndoButtonEnabled(b);
-
-    // [TargetRpc]
-    // public void TargetUndoButtonEnabled(NetworkConnection conn, bool b) => _buttons.UndoButtonEnabled(b);
 
     // Only used for undo on playing money cards
-    public void Undo() => _player.Cards.UndoPlayMoney();
+    // public void Undo() => _player.Cards.UndoPlayMoney();
     public void ForceEndTurn() => _player.ForceEndTurn();
 
     #region Log

@@ -28,7 +28,7 @@ public class CardSelectionHandler : MonoBehaviour
 
     private void Start()
     {
-        _cardMover = CardMover.Instance;
+        _cardMover = GameServices.Get<CardMover>();
     }
 
     public void BeginInteraction(CardInteractionState interactionState, int numberSelections)

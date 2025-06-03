@@ -6,8 +6,6 @@ using Cysharp.Threading.Tasks;
 
 public class CardMover : MonoBehaviour
 {
-    public static CardMover Instance { get; private set; }
-
     [Header("Playboard Transforms")]
     [SerializeField] private CardsPileSors playerHand;
     [SerializeField] private CardsPileSors playerMoneyZone;
@@ -25,11 +23,6 @@ public class CardMover : MonoBehaviour
     [SerializeField] private CardsPileSors entitySpawn;
     [SerializeField] private CardsPileSors trash;
     [SerializeField] private CardsPileSors interaction;
-    
-    private void Awake()
-    {
-        if(!Instance) Instance = this;
-    }
 
     public void MoveTo(GameObject card, bool hasAuthority, CardLocation from, CardLocation to)
     {

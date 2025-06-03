@@ -15,6 +15,9 @@ public class GameManager : NetworkBehaviour {
     private GameOptions _gameOptions;
     public static event Action<GameOptions> OnGameStart;
 
+    [Header("Game Services")]
+    [SerializeField] private CardMover cardMover;
+
     [Header("Game state")]
     public int turnNumber;
     public Dictionary<NetworkIdentity, PlayerManager> players = new();
@@ -25,10 +28,12 @@ public class GameManager : NetworkBehaviour {
     {
         if (Instance == null) Instance = this;
 
+        GameServices.Register(cardMover);
+        _cardSpawner = GetComponent<INetworkObjectSpawner>();
+
         Sors.Lan.SorsNetworkManager.OnAllPlayersReady += GameSetup;
         SorsSteamNetworkManager.OnAllPlayersReady += GameSetup;
 
-        _cardSpawner = GetComponent<INetworkObjectSpawner>();
     }
 
     #region Setup

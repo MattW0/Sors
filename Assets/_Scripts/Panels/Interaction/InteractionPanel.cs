@@ -72,8 +72,6 @@ public class InteractionPanel : NetworkBehaviour
 
         _currentState.StartState();
         _selectionHandler.BeginInteraction(state, numberSelections);
-
-        LocalPlayer.LocalCash = LocalPlayer.Cash;
     }
 
     [TargetRpc]

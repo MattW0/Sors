@@ -21,14 +21,14 @@ public class PlayerInterfaceButtons : MonoBehaviour
 
         // Add event listeners to the buttons
         _marketButton.onClick.AddListener(OnMarketButtonClicked);
-        _undoButton.onClick.AddListener(OnUndoButtonPressed);
+        // _undoButton.onClick.AddListener(OnUndoButtonPressed);
         _concedeButton.onClick.AddListener(OnConcedeButtonPressed);
         _utilityButton.onClick.AddListener(OnUtilityButtonPressed);
         _chatButton.onClick.AddListener(OnChatButtonPressed);
     }
     public void OnMarketButtonClicked() => OnOpenMarket?.Invoke();
     public void OnConcedeButtonPressed() => OnQuitButtonClicked?.Invoke();
-    public void OnUndoButtonPressed() => _manager.Undo();
+    // public void OnUndoButtonPressed() => _manager.Undo();
     public void OnUtilityButtonPressed() => _manager.ForceEndTurn();
     public void DisableUtilityButton() => _utilityButton.interactable = false;
     public void UndoButtonEnabled(bool b) => _undoButton.interactable = b;
