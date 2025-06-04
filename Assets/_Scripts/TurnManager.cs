@@ -23,6 +23,7 @@ public class TurnManager : NetworkBehaviour
     
     // Managers
     private GameManager _gameManager;
+    private INetworkObjectSpawner _networkObjectSpawner;
     private Market _market;
     private InteractionPanel _interactionPanel;
     private PrevailPanel _prevailPanel;
@@ -33,7 +34,7 @@ public class TurnManager : NetworkBehaviour
     [SerializeField] private PhasePanel _phasePanel;
 
     // Other helpers
-    private readonly Dictionary<PlayerManager, List<CardStats>> _selectedCards = new();
+    private readonly Dictionary<PlayerManager, List<int>> _selectedCards = new();
     private readonly Dictionary<PlayerManager, CardInfo?> _selectedMarketCards = new();
     private readonly List<(int, CardType)> _boughtCards = new();
     private Dictionary<PlayerManager, TurnState[]> _playerPhaseChoices = new();
@@ -86,6 +87,8 @@ public class TurnManager : NetworkBehaviour
         _phasePanel.RpcPreparePhasePanel(gameOptions.NumberPhases);
 
         _prevailPanel = PrevailPanel.Instance;
+
+        _networkObjectSpawner = ServiceLocator.Global.Get<INetworkObjectSpawner>();
     }
 
     private void VariablesCaching(GameOptions gameOptions)
@@ -196,8 +199,10 @@ public class TurnManager : NetworkBehaviour
         // TODO: Move this (and all other _interactionPanel logic) to interaction panel
         // and current state? Will need player references and be from Server tho... 
 
-        foreach (var (player, cards) in _selectedCards)
+        foreach (var (player, cardIds) in _selectedCards)
         {
+            var cards = _networkObjectSpawner.GetCardListByIds(cardIds);
+
             player.Cards.RemoveHandCards(cards, CardLocation.Discard);
             player.Cards.RpcMoveFromInteraction(cards, CardLocation.Hand, CardLocation.Discard);
             _logger.RpcLog(player.ID, cards);
@@ -345,28 +350,32 @@ public class TurnManager : NetworkBehaviour
         return Math.Min(numberPlays, numberSlots);
     }
 
-    public void PlayerConfirmPlay(PlayerManager player, CardStats card)
+    public void PlayerConfirmPlay(PlayerManager player, int cardId)
     {
-        player.Plays--;
         // TODO: Effect that reduces cost for play needs to apply here
         // Compare to PlayerConfirmBuy
+        player.Plays--;
 
-        print("Cost: "+card.cardInfo.cost);
-        player.Cash -= card.cardInfo.cost;
+        var card = _networkObjectSpawner.GetCardById(cardId);
+        player.TargetDeductFromLocalCash(player.connectionToClient, card.cardInfo.cost);
         
-        _selectedCards[player].Add(card);
+        _selectedCards[player].Add(cardId);
         PlayerIsReady(player);
     }
 
     private void PlayEntities()
     {
         Dictionary<GameObject, BattleZoneEntity> entities = new();
-        foreach (var (player, cards) in _selectedCards)
+        foreach (var (player, cardIds) in _selectedCards)
         {
             if(_selectedCards.Count() == 0) continue;
+
+            var cards = _networkObjectSpawner.GetCardListByIds(cardIds);
+
             player.Cards.RemoveHandCards(cards, CardLocation.PlayZone);
 
             foreach (var card in cards) {
+                Debug.Log("Playing " + card.cardInfo.title);
                 var cardInfo = card.cardInfo;
                 entities.Add(card.gameObject, _gameManager.SpawnFieldEntity(player, cardInfo));
                 _logger.RpcLog(player.ID, cardInfo.title, cardInfo.cost, LogType.Play);
@@ -455,8 +464,11 @@ public class TurnManager : NetworkBehaviour
 
     private void FinishPrevailCardIntoHand()
     {
-        foreach (var (player, cards) in _selectedCards)
+        foreach (var (player, cardIds) in _selectedCards)
         {
+            if(cardIds.Count == 0) continue;
+
+            var cards = _networkObjectSpawner.GetCardListByIds(cardIds);
             foreach (var card in cards)
             {
                 player.Cards.discard.Remove(card);
@@ -472,8 +484,11 @@ public class TurnManager : NetworkBehaviour
 
     private void FinishPrevailTrash()
     {
-        foreach (var (player, cards) in _selectedCards)
+        foreach (var (player, cardIds) in _selectedCards)
         {
+            if(cardIds.Count == 0) continue;
+
+            var cards = _networkObjectSpawner.GetCardListByIds(cardIds);
             foreach (var card in cards)
             {
                 player.Cards.hand.Remove(card);
@@ -630,7 +645,7 @@ public class TurnManager : NetworkBehaviour
         else throw new ArgumentOutOfRangeException(nameof(turnState), turnState, null);
     }
 
-    internal void PlayerConfirmsCardSelection(PlayerManager player, List<CardStats> selectedCards)
+    internal void PlayerConfirmsCardSelection(PlayerManager player, List<int> selectedCards)
     {
         _selectedCards[player].AddRange(selectedCards);
         PlayerIsReady(player);

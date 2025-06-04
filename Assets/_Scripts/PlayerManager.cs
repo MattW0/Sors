@@ -42,24 +42,30 @@ public class PlayerManager : NetworkBehaviour
 
     [SyncVar(hook="UISetPrevails"), SerializeField] private int _prevails;
     public int Prevails { get => _prevails; set => _prevails = value; }
-    [SyncVar, SerializeField] private int _cash;
-    public int Cash { 
-        get => _cash; 
-        set {
-            _cash = value;
-            if (isOwned) LocalCash = value;
-            else _opponentUI.SetCash(value);
-        }
+    [SyncVar(hook="SetCash"), SerializeField] private int _cash;
+    public int Cash { get => _cash; set => _cash = value; }
+
+    private void SetCash(int oldValue, int value)
+    {
+        if (isOwned) LocalCash = value;
+        else _opponentUI.SetCash(value);
     }
 
     [SerializeField] private int _localCash;
     public int LocalCash { 
         get => _localCash; 
         set {
+            print("Set local cash");
             _localCash = value;
             _playerUI.SetCash(value);
             OnLocalCashUpdate?.Invoke(value);
         }
+    }
+
+    [TargetRpc]
+    internal void TargetDeductFromLocalCash(NetworkConnection conn, int cost)
+    {
+        LocalCash -= cost;
     }
 
     #endregion Stats
@@ -120,16 +126,16 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Command]
-    internal void CmdConfirmSelection(List<CardStats> selectedCards) =>
-        _turnManager.PlayerConfirmsCardSelection(this, selectedCards);
+    internal void CmdConfirmSelection(List<int> selectedCardIds) =>
+        _turnManager.PlayerConfirmsCardSelection(this, selectedCardIds);
 
     [Command]
     public void CmdConfirmBuy(MarketSelection card) => 
         _turnManager.PlayerConfirmBuy(this, card);
 
     [Command]
-    public void CmdConfirmPlay(CardStats card) => 
-        _turnManager.PlayerConfirmPlay(this, card);
+    public void CmdConfirmPlay(int cardId) => 
+        _turnManager.PlayerConfirmPlay(this, cardId);
 
     [Command]
     public void CmdSkipInteraction() => _turnManager.PlayerSkipsInteraction(this);

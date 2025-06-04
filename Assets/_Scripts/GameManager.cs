@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 using Mirror;
 
+[RequireComponent(typeof(INetworkObjectSpawner))]
 public class GameManager : NetworkBehaviour {
     
     public static GameManager Instance { get; private set; }
@@ -14,9 +15,6 @@ public class GameManager : NetworkBehaviour {
     private Market _market;
     private GameOptions _gameOptions;
     public static event Action<GameOptions> OnGameStart;
-
-    [Header("Game Services")]
-    [SerializeField] private CardMover cardMover;
 
     [Header("Game state")]
     public int turnNumber;
@@ -28,12 +26,11 @@ public class GameManager : NetworkBehaviour {
     {
         if (Instance == null) Instance = this;
 
-        GameServices.Register(cardMover);
+        // Register services
         _cardSpawner = GetComponent<INetworkObjectSpawner>();
 
         Sors.Lan.SorsNetworkManager.OnAllPlayersReady += GameSetup;
         SorsSteamNetworkManager.OnAllPlayersReady += GameSetup;
-
     }
 
     #region Setup
@@ -43,6 +40,7 @@ public class GameManager : NetworkBehaviour {
         _turnManager = TurnManager.Instance;
         _market = Market.Instance;
         _uiManager = UIManager.Instance;
+        ServiceLocator.Global.VerifyGlobalServices();
 
         print(" --- Game starting --- \n" + options.ToString());
         _gameOptions = options;

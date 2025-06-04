@@ -23,7 +23,7 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
 
     private void Start()
     {
-        _cardMover = GameServices.Get<CardMover>();
+        _cardMover = ServiceLocator.Global.Get<CardMover>();
         _owner = GetComponent<PlayerManager>();
 
         deck = new CardList(_owner.isLocalPlayer, CardLocation.Deck);

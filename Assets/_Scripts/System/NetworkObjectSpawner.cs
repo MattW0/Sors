@@ -1,5 +1,8 @@
 using UnityEngine;
 using Mirror;
+using System.Linq;
+using System.Collections.Generic;
+using System;
 
 public class NetworkObjectSpawner : NetworkBehaviour, INetworkObjectSpawner
 {
@@ -12,6 +15,11 @@ public class NetworkObjectSpawner : NetworkBehaviour, INetworkObjectSpawner
     
     [Header("Special Cards")]
     [SerializeField] private ScriptableCard _curseCard;
+
+    // Card lookup dictionary (goID -> CardStats)
+    private readonly Dictionary<int, CardStats> _cardLookup = new();
+
+    private void Awake() => ServiceLocator.Global.Register<INetworkObjectSpawner>(this);
 
     public void PlayerGainCard(PlayerManager player, CardInfo cardInfo, CardLocation destination)
     {
@@ -106,8 +114,13 @@ public class NetworkObjectSpawner : NetworkBehaviour, INetworkObjectSpawner
         var instanceID = cardObject.GetInstanceID();
         cardObject.name = scriptableCard.title + "_" + instanceID.ToString();
 
-        cardObject.GetComponent<CardStats>().RpcSetCardStats(new CardInfo(scriptableCard, instanceID));
-        return cardObject.GetComponent<CardStats>();
+        var cardStats = cardObject.GetComponent<CardStats>();
+        var cardInfo = new CardInfo(scriptableCard, instanceID);
+
+        cardStats.RpcSetCardStats(cardInfo);
+        RegisterCard(cardInfo.goID, cardStats);
+
+        return cardStats;
     }
 
     private void AddCardToPlayerCollection(PlayerManager owner, CardStats card, CardLocation destination)
@@ -116,5 +129,25 @@ public class NetworkObjectSpawner : NetworkBehaviour, INetworkObjectSpawner
         else if(destination == CardLocation.Discard) owner.Cards.discard.Add(card);
         else if(destination == CardLocation.Hand) owner.Cards.hand.Add(card);
         else Debug.LogWarning("Trying to add card to invalid location: " + destination);
+    }
+
+    private void RegisterCard(int goID, CardStats card)
+    {
+        if (!_cardLookup.ContainsKey(goID))
+            _cardLookup[goID] = card;
+        else
+            Debug.LogWarning($"Card with goID {goID} already registered.");
+    }
+
+    public CardStats GetCardById(int goID)
+    {
+        _cardLookup.TryGetValue(goID, out var card);
+        if(card == null) throw new Exception("Try to look up inexistant card: " + goID);
+        return card;
+    }
+
+    public List<CardStats> GetCardListByIds(List<int> ids)
+    {
+        return ids.Select(c => GetCardById(c)).ToList();
     }
 }

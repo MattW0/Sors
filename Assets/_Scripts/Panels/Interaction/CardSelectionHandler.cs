@@ -28,7 +28,7 @@ public class CardSelectionHandler : MonoBehaviour
 
     private void Start()
     {
-        _cardMover = GameServices.Get<CardMover>();
+        _cardMover = ServiceLocator.Global.Get<CardMover>();
     }
 
     public void BeginInteraction(CardInteractionState interactionState, int numberSelections)
@@ -44,7 +44,6 @@ public class CardSelectionHandler : MonoBehaviour
     private void ClickedCard(GameObject card)
     {
         var cardStats = card.GetComponent<CardStats>();
-
         var destination = _state.GetCardDestination(cardStats) 
             ?? throw new Exception("Null exception on destination pile for state: " + _state.Config.turnState);
 

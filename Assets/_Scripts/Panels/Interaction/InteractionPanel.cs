@@ -112,8 +112,8 @@ public class InteractionPanel : NetworkBehaviour
     }
 
     private void ConfirmBuy() => LocalPlayer.CmdConfirmBuy(_selectionHandler.marketSelection.Value);
-    private void ConfirmPlay() => LocalPlayer.CmdConfirmPlay(_selectionHandler.selectedCards[0]);
-    private void ConfirmCardSelection() => LocalPlayer.CmdConfirmSelection(_selectionHandler.selectedCards);
+    private void ConfirmPlay() => LocalPlayer.CmdConfirmPlay(_selectionHandler.selectedCards[0].cardInfo.goID);
+    private void ConfirmCardSelection() => LocalPlayer.CmdConfirmSelection(_selectionHandler.selectedCards.Select(card => card.cardInfo.goID).ToList());
     private void PlayerSkips(InteractionType type)
     {
         // We auto skip in 

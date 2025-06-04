@@ -24,11 +24,12 @@ public class CardMover : MonoBehaviour
     [SerializeField] private CardsPileSors trash;
     [SerializeField] private CardsPileSors interaction;
 
+    private void Awake() => ServiceLocator.Global.Register<CardMover>(this);
+
     public void MoveTo(GameObject card, bool hasAuthority, CardLocation from, CardLocation to)
     {
         var (sourcePile, destinationPile) = GetPiles(from, to, hasAuthority);
         sourcePile.UpdatePosition = true;
-        // var destinationPile = GetPile(to, hasAuthority);
 
         // Is front or back up ?
         FlipCard(card, hasAuthority, to);

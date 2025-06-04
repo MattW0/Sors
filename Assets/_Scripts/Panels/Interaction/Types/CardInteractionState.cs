@@ -13,7 +13,6 @@ public abstract class CardInteractionState : InteractionStateBase
         InteractionPile = piles.FirstOrDefault(p => p.Location == Config.interactionPile);
 
         if(InteractionPile == null) Debug.LogWarning("Interaction pile not set in InteractionPanel.cs or not defined for state config " + ConfigName);
-        else Debug.Log($"Interaction state {ConfigName} initialized");
     }
 
     public void InitializeInteraction(List<CardStats> cards, int numberSelections)
