@@ -25,12 +25,6 @@ public class PhasePanelUI : MonoBehaviour
 
         HighlightTransition(0);
     }
-
-    public void ShowOpponentChoices(TurnState[] phases)
-    {
-        foreach(var phase in phases) 
-            OnPhaseSelectionConfirmed?.Invoke(phase);
-    }
     
     public void UpdatePhaseHighlight(TurnState newState)
     {
@@ -50,13 +44,19 @@ public class PhasePanelUI : MonoBehaviour
         progressBar.localScale = new Vector3(_progressBarCheckpoints[newIndex], 1f, 1f);
     }
 
-    internal void HighlightPhasesToPlay(TurnState[] phases)
+    internal void HighlightPhasesToPlay(List<TurnState> phases)
     {
-        for (int i = 0; i < phases.Length; i++)
+        foreach (var phase in phases)
         {
-            Enum.TryParse(phases[i].ToString(), out TurnState nextTurnState);
+            Enum.TryParse(phase.ToString(), out TurnState nextTurnState);
             _phaseHighlights[GetIndex(nextTurnState)].Highlight(0.7f, fadeDuration);
         }
+    }
+    
+    public void ShowOpponentChoices(List<TurnState> phases)
+    {
+        foreach(var phase in phases) 
+            OnPhaseSelectionConfirmed?.Invoke(phase);
     }
     
     private int GetIndex(TurnState state)

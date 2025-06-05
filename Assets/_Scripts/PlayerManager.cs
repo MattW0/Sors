@@ -20,6 +20,8 @@ public class PlayerManager : NetworkBehaviour
     public static event Action<int> OnLocalCashUpdate;
     public static event Action<BattleZoneEntity> OnPlayerChooseEntityTarget;
 
+    public PlayerTurnContext TurnContext { get; private set; } = new();
+
     #region Stats
 
     [Header("Game Stats")]
@@ -114,28 +116,37 @@ public class PlayerManager : NetworkBehaviour
     public void CmdPhaseSelection(List<TurnState> phases)
     {
         print($"    - {PlayerName} selection: {string.Join(", ", phases)}");
-        _turnManager.PlayerSelectedPhases(this, phases.ToArray());
+        TurnContext.PhaseChoices = phases;
+        _turnManager.PlayerIsReady(this);
     }
 
     [Command]
     public void CmdPrevailSelection(List<PrevailOption> options)
     {
-        // Saving local player choice
-        _chosenPrevailOptions = options;
-        _turnManager.PlayerSelectedPrevailOptions(this, options);
+        TurnContext.PrevailOptions = options;
+        _turnManager.PlayerIsReady(this);
     }
 
     [Command]
-    internal void CmdConfirmSelection(List<int> selectedCardIds) =>
-        _turnManager.PlayerConfirmsCardSelection(this, selectedCardIds);
+    internal void CmdConfirmSelection(List<int> selectedCardIds)
+    {
+        TurnContext.SelectedCardIds = selectedCardIds;
+        _turnManager.PlayerIsReady(this);
+    }
 
     [Command]
-    public void CmdConfirmBuy(MarketSelection card) => 
-        _turnManager.PlayerConfirmBuy(this, card);
+    public void CmdConfirmBuy(MarketSelection choice)
+    {
+        TurnContext.SelectedMarketCard = choice.cardInfo;
+        _turnManager.PlayerConfirmBuy(this, (choice.index, choice.cardInfo.type));
+    }
 
     [Command]
-    public void CmdConfirmPlay(int cardId) => 
+    public void CmdConfirmPlay(int cardId)
+    {
+        TurnContext.SelectedCardIds = new List<int> { cardId };
         _turnManager.PlayerConfirmPlay(this, cardId);
+    }
 
     [Command]
     public void CmdSkipInteraction() => _turnManager.PlayerSkipsInteraction(this);

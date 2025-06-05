@@ -35,7 +35,7 @@ public class PhasePanel : NetworkBehaviour
     private void RpcStartSelection() => OnPhaseSelectionStarted?.Invoke();
     
     [ClientRpc]
-    public void RpcShowPhaseSelection(PlayerManager player, TurnState[] phases)
+    public void RpcShowPhaseSelection(PlayerManager player, List<TurnState> phases)
     {
         _phasePanelUI.HighlightPhasesToPlay(phases);
 

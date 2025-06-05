@@ -34,12 +34,8 @@ public class TurnManager : NetworkBehaviour
     [SerializeField] private PhasePanel _phasePanel;
 
     // Other helpers
-    private readonly Dictionary<PlayerManager, List<int>> _selectedCards = new();
-    private readonly Dictionary<PlayerManager, CardInfo?> _selectedMarketCards = new();
     private readonly List<(int, CardType)> _boughtCards = new();
-    private Dictionary<PlayerManager, TurnState[]> _playerPhaseChoices = new();
-    private Dictionary<PlayerManager, List<PrevailOption>> _playerPrevailOptions = new();
-    private readonly List<PrevailOption> _prevailOptionsToPlay = new();
+    private List<PrevailOption> _prevailOptionsToPlay = new();
     private readonly CardList _trashedCards = new(false, CardLocation.Trash);
 
     // Events
@@ -97,16 +93,7 @@ public class TurnManager : NetworkBehaviour
         foreach (var player in _gameManager.players.Values)
         {
             playerNames.Add(player.PlayerName);
-            
-            _playerPhaseChoices.Add(player, new TurnState[gameOptions.NumberPhases]);
-            _playerPrevailOptions.Add(player, new());
-            _selectedCards.Add(player, new());
-            _selectedMarketCards.Add(player, null);
         }
-
-        // reverse order of _playerPhaseChoices to have host first
-        _playerPhaseChoices = _playerPhaseChoices.Reverse().ToDictionary(x => x.Key, x => x.Value);
-        _playerPrevailOptions = _playerPrevailOptions.Reverse().ToDictionary(x => x.Key, x => x.Value);
     }
     #endregion
 
@@ -126,31 +113,22 @@ public class TurnManager : NetworkBehaviour
             .Forget();
     }
 
-    public void PlayerSelectedPhases(PlayerManager player, TurnState[] phases)
-    {
-        _playerPhaseChoices[player] = phases;
-
-        foreach (var phase in phases)
-        {
-            if (!_phasesToPlay.Contains(phase)) _phasesToPlay.Add(phase);
-        }
-
-        PlayerIsReady(player);
-    }
-
     private void FinishPhaseSelection()
     {
+        foreach (var player in _gameManager.players.Values)
+        {
+            var chosenPhases = player.TurnContext.PhaseChoices;
+            _phasesToPlay.AddRange(chosenPhases);
+            _phasePanel.RpcShowPhaseSelection(player, chosenPhases);
+        }
+
         // Combat and Clean-Up each round
         _phasesToPlay.Add(TurnState.Attackers);
         _phasesToPlay.Add(TurnState.CleanUp);
+        _phasesToPlay = _phasesToPlay.Distinct().ToList();
         _phasesToPlay.Sort();
 
         _logger.RpcLog(_phasesToPlay);
-
-        foreach (var (player, phases) in _playerPhaseChoices)
-        {
-            _phasePanel.RpcShowPhaseSelection(player, phases);
-        }
 
         UpdateTurnState(TurnState.NextPhase);
     }
@@ -179,7 +157,7 @@ public class TurnManager : NetworkBehaviour
         foreach (var player in _gameManager.players.Values)
         {
             var nbCardDraw = _gameOptions.cardDraw;
-            if (_playerPhaseChoices[player].Contains(turnState)) nbCardDraw += _gameOptions.extraDraw;
+            if (player.TurnContext.PhaseChoices.Contains(turnState)) nbCardDraw += _gameOptions.extraDraw;
 
             player.Cards.DrawCards(nbCardDraw);
             _logger.RpcLog(player.ID, nbCardDraw);
@@ -199,9 +177,9 @@ public class TurnManager : NetworkBehaviour
         // TODO: Move this (and all other _interactionPanel logic) to interaction panel
         // and current state? Will need player references and be from Server tho... 
 
-        foreach (var (player, cardIds) in _selectedCards)
+        foreach (var player in _gameManager.players.Values)
         {
-            var cards = _networkObjectSpawner.GetCardListByIds(cardIds);
+            var cards = _networkObjectSpawner.GetCardListByIds(player.TurnContext.SelectedCardIds);
 
             player.Cards.RemoveHandCards(cards, CardLocation.Discard);
             player.Cards.RpcMoveFromInteraction(cards, CardLocation.Hand, CardLocation.Discard);
@@ -226,7 +204,7 @@ public class TurnManager : NetworkBehaviour
             player.Buys += _gameOptions.buys;
 
             // If player selected Invent or Recruit, they get the market bonus
-            if (_playerPhaseChoices[player].Contains(turnState))
+            if (player.TurnContext.PhaseChoices.Contains(turnState))
             {
                 player.Buys += _gameOptions.extraBuys;
                 PlayerGetsMarketBonus(player, _gameOptions.marketPriceReduction);
@@ -245,31 +223,26 @@ public class TurnManager : NetworkBehaviour
         _market.TargetMarketPriceReduction(player.connectionToClient, cardType, amount);
     }
 
-    public void PlayerConfirmBuy(PlayerManager player, MarketSelection selection)
+    public void PlayerConfirmBuy(PlayerManager player, (int, CardType) marketChoice)
     {
-        // Player selections
-        _selectedMarketCards[player] = selection.cardInfo;
-        // Which cards to replace after this buy phase
-        _boughtCards.Add((selection.index, selection.cardInfo.type));
-
+        _boughtCards.Add(marketChoice);
         _market.TargetResetMarket(player.connectionToClient, player.Buys);
         PlayerIsReady(player);
     }
 
     private void BuyCards()
     {
-        foreach (var (owner, card) in _selectedMarketCards)
+        foreach (var player in _gameManager.players.Values)
         {
+            CardInfo? card = player.TurnContext.SelectedMarketCard;
             if (! card.HasValue) continue;
 
-            PlayerGainsCard(owner, card.Value);
-            owner.Cards.DiscardMoneyCards();
+            PlayerGainsCard(player, card.Value);
+            player.Cards.DiscardMoneyCards();
 
-            owner.Buys--;
+            player.Buys--;
             // owner.Cash -= card.cost;
         }
-
-        _selectedMarketCards.Clear();
         _market.RpcMinButton();
 
         AsyncAwaitQueue(SorsTimings.showSpawnedCard)
@@ -330,7 +303,7 @@ public class TurnManager : NetworkBehaviour
             player.Plays += _gameOptions.plays;
 
             // If player selected Develop or Deploy, they get bonus Plays
-            if (_playerPhaseChoices[player].Contains(turnState)){
+            if (player.TurnContext.PhaseChoices.Contains(turnState)){
                 player.Plays += _gameOptions.extraPlays;
                 player.Cash += _gameOptions.extraCash;
             }
@@ -356,22 +329,20 @@ public class TurnManager : NetworkBehaviour
         // Compare to PlayerConfirmBuy
         player.Plays--;
 
-        var card = _networkObjectSpawner.GetCardById(cardId);
-        player.TargetDeductFromLocalCash(player.connectionToClient, card.cardInfo.cost);
+        var cashSpent = _networkObjectSpawner.GetCardById(cardId).cardInfo.cost;
+        player.TargetDeductFromLocalCash(player.connectionToClient, cashSpent);
         
-        _selectedCards[player].Add(cardId);
         PlayerIsReady(player);
     }
 
     private void PlayEntities()
     {
         Dictionary<GameObject, BattleZoneEntity> entities = new();
-        foreach (var (player, cardIds) in _selectedCards)
+        foreach (var player in _gameManager.players.Values)
         {
-            if(_selectedCards.Count() == 0) continue;
+            if(player.TurnContext.SelectedCardIds.Count() == 0) continue;
 
-            var cards = _networkObjectSpawner.GetCardListByIds(cardIds);
-
+            var cards = _networkObjectSpawner.GetCardListByIds(player.TurnContext.SelectedCardIds);
             player.Cards.RemoveHandCards(cards, CardLocation.PlayZone);
 
             foreach (var card in cards) {
@@ -410,35 +381,26 @@ public class TurnManager : NetworkBehaviour
         _prevailOptionsToPlay.Clear();
         foreach (var player in _gameManager.players.Values)
         {
+            player.TurnContext.PrevailOptions.Clear();
+
             int nbOptions = _gameOptions.prevails;
-            if (_playerPhaseChoices[player].Contains(turnState)) nbOptions += _gameOptions.extraPrevails;
+            if (player.TurnContext.PhaseChoices.Contains(turnState)) nbOptions += _gameOptions.extraPrevails;
 
             player.Prevails += nbOptions;
             _prevailPanel.TargetBeginPrevailPhase(player.connectionToClient, nbOptions);
         }
     }
 
-    public void PlayerSelectedPrevailOptions(PlayerManager player, List<PrevailOption> options)
-    {
-        _playerPrevailOptions[player] = options;
-        PlayerIsReady(player);
-    }
-
     private void StartPrevailOptions()
     {
         _prevailPanel.RpcOptionsSelected();
 
-        // Tracking which options will be played
-        foreach (var optionLists in _playerPrevailOptions.Values)
-        {
-            foreach (var option in optionLists)
-            {
-                if (_prevailOptionsToPlay.Contains(option)) continue;
-                _prevailOptionsToPlay.Add(option);
-            }
-        }
-
-        _prevailOptionsToPlay.Sort();
+        _prevailOptionsToPlay = _gameManager.players.Values
+            .SelectMany(p => p.TurnContext.PrevailOptions)
+            .Distinct()
+            .OrderBy(o => o)
+            .ToList();
+        
         NextPrevailOption();
     }
     private void NextPrevailOption()
@@ -464,11 +426,11 @@ public class TurnManager : NetworkBehaviour
 
     private void FinishPrevailCardIntoHand()
     {
-        foreach (var (player, cardIds) in _selectedCards)
+        foreach (var player in _gameManager.players.Values)
         {
-            if(cardIds.Count == 0) continue;
+            if(player.TurnContext.SelectedCardIds.Count() == 0) continue;
 
-            var cards = _networkObjectSpawner.GetCardListByIds(cardIds);
+            var cards = _networkObjectSpawner.GetCardListByIds(player.TurnContext.SelectedCardIds);
             foreach (var card in cards)
             {
                 player.Cards.discard.Remove(card);
@@ -484,11 +446,10 @@ public class TurnManager : NetworkBehaviour
 
     private void FinishPrevailTrash()
     {
-        foreach (var (player, cardIds) in _selectedCards)
+        foreach (var player in _gameManager.players.Values)
         {
-            if(cardIds.Count == 0) continue;
-
-            var cards = _networkObjectSpawner.GetCardListByIds(cardIds);
+            if(player.TurnContext.SelectedCardIds.Count() == 0) continue;
+            var cards = _networkObjectSpawner.GetCardListByIds(player.TurnContext.SelectedCardIds);
             foreach (var card in cards)
             {
                 player.Cards.hand.Remove(card);
@@ -506,9 +467,9 @@ public class TurnManager : NetworkBehaviour
 
     private void PrevailScoring(bool deducePoints = false)
     {
-        foreach (var (player, options) in _playerPrevailOptions)
+        foreach (var player in _gameManager.players.Values)
         {
-            var nbPicks = options.Count(option => option == PrevailOption.Score);
+            var nbPicks = player.TurnContext.PrevailOptions.Count(option => option == PrevailOption.Score);
             if (deducePoints) player.Score -= nbPicks;
             else player.Score += nbPicks;
         }
@@ -542,8 +503,10 @@ public class TurnManager : NetworkBehaviour
     private async UniTask BeginningOfTurn()
     {
         // Reset players and draw per turn
-        foreach (var player in _gameManager.players.Values)
+        foreach (var player in _gameManager.players.Values) {
+            player.TurnContext.PhaseChoices.Clear();
             player.Cards.DrawCards(_gameOptions.cardDraw);
+        }
 
         await UniTask.Delay(SorsTimings.wait);
 
@@ -578,7 +541,6 @@ public class TurnManager : NetworkBehaviour
         await UniTask.Delay(SorsTimings.wait);
 
         PrevailScoring(true);
-        _playerPrevailOptions.Clear();
         _prevailPanel.RpcReset();
 
         UpdateTurnState(TurnState.NextPhase);
@@ -645,12 +607,6 @@ public class TurnManager : NetworkBehaviour
         else throw new ArgumentOutOfRangeException(nameof(turnState), turnState, null);
     }
 
-    internal void PlayerConfirmsCardSelection(PlayerManager player, List<int> selectedCards)
-    {
-        _selectedCards[player].AddRange(selectedCards);
-        PlayerIsReady(player);
-    }
-
     public void PlayerSkipsInteraction(PlayerManager player)
     {
         _skippedPlayers.Add(player.ID);
@@ -697,7 +653,8 @@ public class TurnManager : NetworkBehaviour
         foreach (var player in _gameManager.players.Values)
         {
             // Reset selection from last interaction
-            _selectedCards[player].Clear();
+            player.TurnContext.SelectedCardIds.Clear();
+            player.TurnContext.SelectedMarketCard = null;
 
             var nbInteractions = GetNumberOfInteractions(player, currentPrevailOption);
             var collection = GetCollection(player);
@@ -714,7 +671,7 @@ public class TurnManager : NetworkBehaviour
             TurnState.Discard => _gameOptions.phaseDiscard,
             TurnState.Invent or TurnState.Recruit => player.Buys > 0 ? 1 : 0,
             TurnState.Develop or TurnState.Deploy => CheckNumberOfPossiblePlays(player),
-            TurnState.CardSelection or TurnState.Trash => _playerPrevailOptions[player].Count(option => option == currentPrevailOption),
+            TurnState.CardSelection or TurnState.Trash => player.TurnContext.PrevailOptions.Count(option => option == currentPrevailOption),
             _ => -1
         };
 
