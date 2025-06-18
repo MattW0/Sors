@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using System;
+using UnityEditor.PackageManager.Requests;
 
 [RequireComponent(typeof(InteractionPanel))]
 public class CardSelectionHandler : MonoBehaviour
 {
     public List<CardStats> selectedCards = new();
-    public MarketSelection? marketSelection;
+    public CardSelection cardSelection;
     private InteractionPanel _interactionPanel;
     private InteractionUI _ui;
     private CardMover _cardMover;
@@ -38,7 +39,7 @@ public class CardSelectionHandler : MonoBehaviour
 
         // Clear previous selections
         selectedCards.Clear();
-        marketSelection = null;
+        cardSelection.Clear();
     }
 
     private void ClickedCard(GameObject card)
@@ -64,6 +65,7 @@ public class CardSelectionHandler : MonoBehaviour
             DeselectCard(selectedCards.Last());
 
         card.IsSelected = true;
+        cardSelection = new CardSelection(card.cardInfo, card.cardInfo.cost);
         MoveCard(card, true);
     }
 
@@ -72,12 +74,14 @@ public class CardSelectionHandler : MonoBehaviour
         print($"Deselect card : {card.cardInfo.title}");
 
         card.IsSelected = false;
+        if (selectedCards.Count == 1) cardSelection.Clear();
+
         MoveCard(card, false);
     }
 
     private void SelectMarketTile(MarketTile tile)
     {
-        marketSelection = new MarketSelection(tile.cardInfo, tile.Cost, tile.Index);
+        cardSelection = new CardSelection(tile.cardInfo, tile.Cost, tile.Index);
         _ui.SelectMarketTile(tile.cardInfo);
     }
 
@@ -120,15 +124,17 @@ public class CardSelectionHandler : MonoBehaviour
     }
 }
 
-public struct MarketSelection
+public struct CardSelection
 {
-    public CardInfo cardInfo;
+    public CardInfo? cardInfo;
     public int cost;
-    public int index;
+    public int marketIndex;
 
-    public MarketSelection(CardInfo cardInfo, int cost, int index){
-        this.cardInfo = cardInfo;
+    public CardSelection(CardInfo card, int cost, int index = -1){
+        this.cardInfo = card;
         this.cost = cost;
-        this.index = index;
+        this.marketIndex = index;
     }
+
+    public void Clear() {  cardInfo = null; }
 }

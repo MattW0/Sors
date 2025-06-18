@@ -64,12 +64,6 @@ public class PlayerManager : NetworkBehaviour
         }
     }
 
-    [TargetRpc]
-    internal void TargetDeductFromLocalCash(NetworkConnection conn, int cost)
-    {
-        LocalCash -= cost;
-    }
-
     #endregion Stats
 
     #region GameSetup
@@ -134,18 +128,21 @@ public class PlayerManager : NetworkBehaviour
         _turnManager.PlayerIsReady(this);
     }
 
-    [Command]
-    public void CmdConfirmBuy(MarketSelection choice)
+    [Client]
+    public void ConfirmPayment(CardSelection choice, InteractionType type)
     {
-        TurnContext.SelectedMarketCard = choice.cardInfo;
-        _turnManager.PlayerConfirmBuy(this, (choice.index, choice.cardInfo.type));
+        LocalCash -= choice.cost;
+        CmdConfirmPayment(choice.cardInfo.Value, LocalCash, choice.marketIndex, type);
     }
 
     [Command]
-    public void CmdConfirmPlay(int cardId)
+    private void CmdConfirmPayment(CardInfo cardInfo, int cashBuffer, int marketIndex, InteractionType type)
     {
-        TurnContext.SelectedCardIds = new List<int> { cardId };
-        _turnManager.PlayerConfirmPlay(this, cardId);
+        TurnContext.SelectedCard = cardInfo;
+        TurnContext.CashBuffer = cashBuffer;
+
+        if (type == InteractionType.Buy) _turnManager.PlayerConfirmBuy(this, marketIndex);
+        else if (type == InteractionType.Play) _turnManager.PlayerConfirmPlay(this);
     }
 
     [Command]

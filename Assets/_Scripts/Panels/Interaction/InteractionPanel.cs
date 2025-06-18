@@ -100,20 +100,19 @@ public class InteractionPanel : NetworkBehaviour
     private void PlayerConfirms(InteractionType type)
     {
         print("Player confirms interaction type "+ type);
+        _selectionHandler.EndSelection();
+        
         // Default behavior that is resolved individually in TurnManager
-        if (type == InteractionType.Select) ConfirmCardSelection();
+        if (type == InteractionType.Select) LocalPlayer.CmdConfirmSelection(_selectionHandler.selectedCards.Select(card => card.cardInfo.goID).ToList());
         else if (type == InteractionType.Combat) ConfirmCombatSelection();
+        
         // Interaction with playing money cards
         else {
             LocalPlayer.Cards.ConfirmMoneyCards();
-            if (type == InteractionType.Buy) ConfirmBuy();
-            else if (type == InteractionType.Play) ConfirmPlay();
+            LocalPlayer.ConfirmPayment(_selectionHandler.cardSelection, type);
         }
     }
 
-    private void ConfirmBuy() => LocalPlayer.CmdConfirmBuy(_selectionHandler.marketSelection.Value);
-    private void ConfirmPlay() => LocalPlayer.CmdConfirmPlay(_selectionHandler.selectedCards[0].cardInfo.goID);
-    private void ConfirmCardSelection() => LocalPlayer.CmdConfirmSelection(_selectionHandler.selectedCards.Select(card => card.cardInfo.goID).ToList());
     private void PlayerSkips(InteractionType type)
     {
         // We auto skip in 

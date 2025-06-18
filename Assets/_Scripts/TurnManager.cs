@@ -4,15 +4,13 @@ using System.Linq;
 using UnityEngine;
 using Mirror;
 using Cysharp.Threading.Tasks;
-using Unity.VisualScripting;
 
 public class TurnManager : NetworkBehaviour
 {
     public static TurnManager Instance { get; private set; }
 
     [Header("Game state")]
-    public static TurnState TurnState { get; private set; }
-    [SerializeField] private TurnState turnState;
+    public TurnState turnState;
     private GameOptions _gameOptions;
     private int _nbPlayers;
 
@@ -34,7 +32,6 @@ public class TurnManager : NetworkBehaviour
     [SerializeField] private PhasePanel _phasePanel;
 
     // Other helpers
-    private readonly List<(int, CardType)> _boughtCards = new();
     private List<PrevailOption> _prevailOptionsToPlay = new();
     private readonly CardList _trashedCards = new(false, CardLocation.Trash);
 
@@ -195,7 +192,6 @@ public class TurnManager : NetworkBehaviour
     #region Buy cards
     private void StartBuyPhase()
     {
-        _boughtCards.Clear();
         _market.RpcBeginMarketPhase(turnState);
 
         foreach (var player in _gameManager.players.Values)
@@ -223,10 +219,11 @@ public class TurnManager : NetworkBehaviour
         _market.TargetMarketPriceReduction(player.connectionToClient, cardType, amount);
     }
 
-    public void PlayerConfirmBuy(PlayerManager player, (int, CardType) marketChoice)
+    public void PlayerConfirmBuy(PlayerManager player, int marketIndex)
     {
-        _boughtCards.Add(marketChoice);
-        _market.TargetResetMarket(player.connectionToClient, player.Buys);
+        _market.PlayerConfirmsChoice(marketIndex);
+        _market.TargetResetMarket(player.connectionToClient);
+
         PlayerIsReady(player);
     }
 
@@ -234,20 +231,28 @@ public class TurnManager : NetworkBehaviour
     {
         foreach (var player in _gameManager.players.Values)
         {
-            CardInfo? card = player.TurnContext.SelectedMarketCard;
-            if (! card.HasValue) continue;
-
-            PlayerGainsCard(player, card.Value);
-            player.Cards.DiscardMoneyCards();
+            var cardInfo = player.TurnContext.SelectedCard;
+            if (! cardInfo.HasValue) continue;
 
             player.Buys--;
-            // owner.Cash -= card.cost;
+            player.Cash = player.TurnContext.CashBuffer;
+
+            PlayerGainsCard(player, cardInfo.Value);
+
+            player.Cards.DiscardMoneyCards();
         }
         _market.RpcMinButton();
 
         AsyncAwaitQueue(SorsTimings.showSpawnedCard)
             .ContinueWith(CheckBuyAnotherCard)
             .Forget();
+    }
+
+    public void PlayerGainsCard(PlayerManager player, CardInfo cardInfo)
+    {
+        _gameManager.PlayerGainCard(player, cardInfo, CardLocation.Discard);
+        _logger.RpcLog(player.ID, cardInfo.title, cardInfo.cost, LogType.Buy);
+        AsyncAwaitQueue(SorsTimings.showSpawnedCard).Forget();
     }
 
     private void PlayerGainsCurses(PlayerManager player, int amount)
@@ -260,13 +265,6 @@ public class TurnManager : NetworkBehaviour
         }
 
         AsyncAwaitQueue(SorsTimings.showSpawnedCard + SorsTimings.waitShort).Forget();
-    }
-
-    public void PlayerGainsCard(PlayerManager player, CardInfo cardInfo)
-    {
-        _gameManager.PlayerGainCard(player, cardInfo, CardLocation.Discard);
-        _logger.RpcLog(player.ID, cardInfo.title, cardInfo.cost, LogType.Buy);
-        AsyncAwaitQueue(SorsTimings.showSpawnedCard).Forget();
     }
 
     private void CheckBuyAnotherCard()
@@ -284,7 +282,7 @@ public class TurnManager : NetworkBehaviour
     private void FinishBuyCard()
     {
         // Replace tiles that were bought by either player
-        _market.EndMarketPhase(_boughtCards);
+        _market.EndMarketPhase(turnState);
         PlayersDiscardMoney();
         
         _interactionPanel.RpcFinishState();
@@ -303,7 +301,8 @@ public class TurnManager : NetworkBehaviour
             player.Plays += _gameOptions.plays;
 
             // If player selected Develop or Deploy, they get bonus Plays
-            if (player.TurnContext.PhaseChoices.Contains(turnState)){
+            if (player.TurnContext.PhaseChoices.Contains(turnState))
+            {
                 player.Plays += _gameOptions.extraPlays;
                 player.Cash += _gameOptions.extraCash;
             }
@@ -323,15 +322,8 @@ public class TurnManager : NetworkBehaviour
         return Math.Min(numberPlays, numberSlots);
     }
 
-    public void PlayerConfirmPlay(PlayerManager player, int cardId)
-    {
-        // TODO: Effect that reduces cost for play needs to apply here
-        // Compare to PlayerConfirmBuy
-        player.Plays--;
-
-        var cashSpent = _networkObjectSpawner.GetCardById(cardId).cardInfo.cost;
-        player.TargetDeductFromLocalCash(player.connectionToClient, cashSpent);
-        
+    public void PlayerConfirmPlay(PlayerManager player)
+    {       
         PlayerIsReady(player);
     }
 
@@ -340,22 +332,32 @@ public class TurnManager : NetworkBehaviour
         Dictionary<GameObject, BattleZoneEntity> entities = new();
         foreach (var player in _gameManager.players.Values)
         {
-            if(player.TurnContext.SelectedCardIds.Count() == 0) continue;
+            var cardInfo = player.TurnContext.SelectedCard;
+            if (! cardInfo.HasValue) continue;
 
-            var cards = _networkObjectSpawner.GetCardListByIds(player.TurnContext.SelectedCardIds);
-            player.Cards.RemoveHandCards(cards, CardLocation.PlayZone);
+            player.Plays--;
+            player.Cash = player.TurnContext.CashBuffer;
 
-            foreach (var card in cards) {
-                Debug.Log("Playing " + card.cardInfo.title);
-                var cardInfo = card.cardInfo;
-                entities.Add(card.gameObject, _gameManager.SpawnFieldEntity(player, cardInfo));
-                _logger.RpcLog(player.ID, cardInfo.title, cardInfo.cost, LogType.Play);
-            }
+            var card = _networkObjectSpawner.GetCardById(cardInfo.Value.goID);
+            player.Cards.RemoveHandCards(new List<CardStats> { card }, CardLocation.PlayZone);
+
+            entities.Add(card.gameObject, _gameManager.SpawnFieldEntity(player, card.cardInfo));
+            PlayerPlaysCard(player, card.cardInfo);
+
+            player.Cards.DiscardMoneyCards();
         }
 
         // Skip waiting for entity ability checks
         if (entities.Count == 0) CheckPlayAnotherCard();
+
+        // TODO: Transform this to make one at a time enter? Would be clearer for players
+        // and make ETB triggers clearer. Compare to PlayerGainsCard.
         else AsyncPlayEntities(entities).ContinueWith(CheckPlayAnotherCard).Forget();
+    }
+
+    private void PlayerPlaysCard(PlayerManager player, CardInfo cardInfo) 
+    {
+        _logger.RpcLog(player.ID, cardInfo.title, cardInfo.cost, LogType.Play);
     }
 
     private void CheckPlayAnotherCard()
@@ -551,8 +553,7 @@ public class TurnManager : NetworkBehaviour
         // TODO: Should not use _market here but access it from _boardManager directly
         await _boardManager.BoardCleanUpEndOfTurn(_market.GetTileInfos());
 
-        PlayersDiscardMoney();
-        PlayersEmptyResources();
+        ResetPlayers();
 
         await UniTask.Delay(SorsTimings.waitLong);
     
@@ -630,22 +631,25 @@ public class TurnManager : NetworkBehaviour
     private void PlayersDiscardMoney()
     {
         print("TurnManager: Discard money");
-        // foreach (var player in _gameManager.players.Values)
-        // {
-        //     // Returns unused money then discards the remaining cards
-        //     player.Cards.DiscardMoneyCards();
-        //     player.Cash = 0;
-        // }
+        foreach (var player in _gameManager.players.Values)
+        {
+            // Returns unused money then discards the remaining cards
+            player.Cards.DiscardMoneyCards();
+            player.Cash = 0;
+        }
     }
 
-    private void PlayersEmptyResources()
+    private void ResetPlayers()
     {
         foreach (var player in _gameManager.players.Values)
         {
             player.Buys = 0;
             player.Plays = 0;
             player.Prevails = 0;
+            player.TurnContext.Reset();
         }
+
+        PlayersDiscardMoney();
     }
 
     private void StartPhaseInteraction(PrevailOption currentPrevailOption = PrevailOption.None)
@@ -653,8 +657,7 @@ public class TurnManager : NetworkBehaviour
         foreach (var player in _gameManager.players.Values)
         {
             // Reset selection from last interaction
-            player.TurnContext.SelectedCardIds.Clear();
-            player.TurnContext.SelectedMarketCard = null;
+            player.TurnContext.ResetState();
 
             var nbInteractions = GetNumberOfInteractions(player, currentPrevailOption);
             var collection = GetCollection(player);
@@ -705,6 +708,8 @@ public class TurnManager : NetworkBehaviour
         _prevailPanel.RpcReset();
         _interactionPanel.RpcFinishState();
         _market.RpcEndMarketPhase();
+
+        ResetPlayers();
 
         CleanUp().Forget();
     }

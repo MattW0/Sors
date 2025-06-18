@@ -33,7 +33,7 @@ public class InteractionUI : AnimatedPanel
 
     public void StartInteraction(IInteractionState state, bool skip, int nbCardsToSelectMax = -1)
     {
-        print("Interaction begin " + state + ", " + nbCardsToSelectMax);
+        // print("Interaction begin " + state + ", " + nbCardsToSelectMax);
         _state = (InteractionStateBase) state;
 
         _displayText.text = _state.InteractionText;

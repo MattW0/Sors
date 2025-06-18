@@ -13,6 +13,7 @@ public class Market : NetworkBehaviour
     [Header("Buy phase")]
     [SerializeField] private TurnState _currentPhase;
     [SerializeField] private MarketTile _selectedTile;
+    private List<int> _boughtCards = new();
 
     [Header("Available Cards")]
     [SerializeField] private ScriptableCard[] _startEntities;
@@ -74,8 +75,10 @@ public class Market : NetworkBehaviour
     // Public for GameStateLoader    
     [ClientRpc]
     public void RpcSetMoneyTiles(CardInfo[] moneyTilesInfo){
+        
+        // Money tiles have a negative index for distiguishability 
         for (var i = 0; i < moneyTilesInfo.Length; i++) 
-            _moneyTiles[i].InitializeTile(moneyTilesInfo[i], i);
+            _moneyTiles[i].InitializeTile(moneyTilesInfo[i], -i);
     }
 
     [ClientRpc]
@@ -149,34 +152,42 @@ public class Market : NetworkBehaviour
     public void PlayerDeselectsTile() => _selectedTile = null;
 
     #region Reset and EoP
+
     [TargetRpc]
-    public void TargetResetMarket(NetworkConnection target, int actionsLeft)
+    public void TargetResetMarket(NetworkConnection target)
     {
         _selectedTile.HasBeenChosen();
         PlayerDeselectsTile();
     }
 
-    public void EndMarketPhase(List<(int, CardType)> boughtCards)
+    [Server]
+    public void PlayerConfirmsChoice(int index) 
     {
-        foreach (var (index, type) in boughtCards)
-        {
-            if(type == CardType.Money) continue;
+        _boughtCards.Add(index);
+    }
 
-            if(type == CardType.Technology)
-                RpcSetTile(type, index, GetNewTechnologyFromDb());
-            else
-                RpcSetTile(type, index, GetNewCreatureFromDb());
+    [Server]
+    public void EndMarketPhase(TurnState phase)
+    {
+        foreach (var index in _boughtCards)
+        {
+            // Money cards have negative index -> do not replace
+            if (index < 0) continue; 
+
+            if (phase == TurnState.Invent)
+                RpcReplaceTile(index, GetNewTechnologyFromDb());
+            else if (phase == TurnState.Recruit)
+                RpcReplaceTile(index, GetNewCreatureFromDb());
         }
 
         RpcEndMarketPhase();
     }
 
     [ClientRpc]
-    public void RpcSetTile(CardType type, int index, CardInfo cardInfo)
+    public void RpcReplaceTile(int index, CardInfo cardInfo)
     {
-        if (type == CardType.Money) {}
-        else if (type == CardType.Technology) _technologyTiles[index].SetTile(cardInfo);
-        else _creatureTiles[index].SetTile(cardInfo);
+        if (_currentPhase == TurnState.Invent) _technologyTiles[index].SetTile(cardInfo);
+        else if (_currentPhase == TurnState.Recruit) _creatureTiles[index].SetTile(cardInfo);
     }
     
     [ClientRpc]
@@ -205,7 +216,8 @@ public class Market : NetworkBehaviour
         return scriptableTiles;
     }
 
-    public CardInfo GetNewTechnologyFromDb()
+    [Server]
+    private CardInfo GetNewTechnologyFromDb()
     {
         if(_availableTechnologyIds.Count == 0){
             // Random order of ids -> pop first element for random card
@@ -219,6 +231,7 @@ public class Market : NetworkBehaviour
         return new CardInfo(_technologyCardsDb[id]);
     }
 
+    [Server]
     public CardInfo GetNewCreatureFromDb()
     {
         if(_availableCreatureIds.Count == 0){
