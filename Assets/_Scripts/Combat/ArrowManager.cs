@@ -16,8 +16,8 @@ public class ArrowManager : NetworkBehaviour
     private TurnState _combatState;
     private PlayerManager _clicker;
     private List<CreatureEntity> _creatureGroup = new();
-    private Dictionary<int, ArrowRenderer> _floatingArrows = new();
-    [SerializeReference] private Dictionary<int, ArrowRenderer> _combatArrows = new();
+    private Dictionary<int, ArrowController> _floatingArrows = new();
+    [SerializeReference] private Dictionary<int, ArrowController> _combatArrows = new();
     private Dictionary<BattleZoneEntity, List<CreatureEntity>> _currentSelection = new();
     public Dictionary<BattleZoneEntity, List<CreatureEntity>> GetPlayerSelection() => _currentSelection;
 
@@ -121,7 +121,7 @@ public class ArrowManager : NetworkBehaviour
 
     private void SpawnFloatingArrow(GameObject prefab, Transform origin, int id)
     {
-        var arrowRenderer = Instantiate(prefab, parentTransform).GetComponent<ArrowRenderer>();
+        var arrowRenderer = Instantiate(prefab, parentTransform, true).GetComponent<ArrowController>();
         arrowRenderer.SetOrigin(origin.position);
         
         _combatArrows.Add(id, arrowRenderer);
@@ -170,9 +170,9 @@ public class ArrowManager : NetworkBehaviour
         _combatArrows[origin.ID] = arrow;
     }
 
-    private ArrowRenderer SpawnArrowFromOpponent(GameObject prefab, Transform origin, Transform target)
+    private ArrowController SpawnArrowFromOpponent(GameObject prefab, Transform origin, Transform target)
     {
-        var arrowRenderer = Instantiate(prefab, parentTransform).GetComponent<ArrowRenderer>();
+        var arrowRenderer = Instantiate(prefab, parentTransform).GetComponent<ArrowController>();
         
         arrowRenderer.SetOrigin(origin.position);
         arrowRenderer.SetTarget(target.position);
@@ -203,6 +203,8 @@ public class ArrowManager : NetworkBehaviour
 
         BattleZoneEntity.OnTargetStart -= EntityTargetStart;
         BattleZoneEntity.OnTargetFinish -= EntityTargetFinish;
+
+        TestEntity.OnEntityClicked -= SpawnFloatingArrow;
     }
 
 }
