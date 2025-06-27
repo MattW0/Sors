@@ -59,7 +59,6 @@ public class CardVisualHandler : MonoBehaviour
 
     private float curveYOffset;
     private float curveRotationOffset;
-    private Coroutine pressCoroutine;
 
     private void Start()
     {
@@ -85,11 +84,6 @@ public class CardVisualHandler : MonoBehaviour
 
         //Initialization
         initalize = true;
-    }
-
-    public void UpdateIndex(int length)
-    {
-        transform.SetSiblingIndex(parentCard.transform.parent.GetSiblingIndex());
     }
 
     void Update()
@@ -170,13 +164,14 @@ public class CardVisualHandler : MonoBehaviour
             transform.DOScale(scaleOnHover, scaleTransition).SetEase(scaleEase);
     }
 
-    public void Swap(float dir = 1)
+    public void Swap(float swapDirection = 1)
     {
+        // Swap direction = -1 (right), 1 (left)
         if (!swapAnimations)
             return;
 
         DOTween.Kill(2, true);
-        shakeParent.DOPunchRotation(Vector3.forward * swapRotationAngle * dir, swapTransition, swapVibrato, 1).SetId(3);
+        shakeParent.DOPunchRotation(Vector3.forward * swapRotationAngle * swapDirection, swapTransition, swapVibrato, 1).SetId(3);
     }
 
     private void BeginDrag(CardDragHandler card)

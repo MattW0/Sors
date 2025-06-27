@@ -12,7 +12,7 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
     private Image imageComponent;
     [SerializeField] private bool instantiateVisual = true;
     private Vector3 offset;
-    private Vector2 _screenBounds;
+    private static Vector2 _screenBounds;
 
     [Header("Movement")]
     [SerializeField] private float moveSpeedLimit = 50;
@@ -25,7 +25,7 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
 
     [Header("Visual")]
     [SerializeField] private GameObject _cardVisualPrefab;
-    [HideInInspector] public CardVisualHandler cardVisual;
+    private CardVisualHandler _cardVisual;
     private Camera _cam;
 
     [Header("States")]
@@ -52,35 +52,26 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
         if (!instantiateVisual)
             return;
 
-        cardVisual = Instantiate(_cardVisualPrefab, VisualPrefabsParent.instance.transform, false).GetComponent<CardVisualHandler>();
-        cardVisual.Initialize(this);
+        _cardVisual = Instantiate(_cardVisualPrefab, VisualPrefabsParent.instance.transform, false).GetComponent<CardVisualHandler>();
+        _cardVisual.Initialize(this);
     }
 
-    void Update()
+    void LateUpdate()
     {
-        ClampPosition();
+        if (! isDragging) return;
 
-        if (isDragging)
-        {
-            var targetPosition = MouseInputHelper.GetMouseWorldPosition(_cam);
-            print("targetPosition : "+ targetPosition);
-            print("transform: " + transform.position);
-            Vector3 direction = (targetPosition - transform.position).normalized;
-            print("direction : "+ direction);
-
-            Vector2 velocity = direction * Mathf.Min(moveSpeedLimit, Vector2.Distance(transform.position, targetPosition) / Time.deltaTime);
-            print("velocity : "+ velocity);
-            
-            transform.Translate(velocity * Time.deltaTime);
-        }
+        var targetPosition = ClampPosition(MouseInputHelper.GetMouseWorldPosition(_cam) - offset);
+        Vector3 direction = (targetPosition - transform.position).normalized;
+        Vector2 velocity = direction * Mathf.Min(moveSpeedLimit, Vector2.Distance(transform.position, targetPosition) / Time.deltaTime);
+        
+        transform.Translate(velocity * Time.deltaTime);
     }
 
-    void ClampPosition()
+    private static Vector3 ClampPosition(Vector3 position)
     {
-        Vector3 clampedPosition = transform.position;
-        clampedPosition.x = Mathf.Clamp(clampedPosition.x, -_screenBounds.x, _screenBounds.x);
-        clampedPosition.y = Mathf.Clamp(clampedPosition.y, -_screenBounds.y, _screenBounds.y);
-        transform.position = new Vector3(clampedPosition.x, clampedPosition.y, 0);
+        position.x = Mathf.Clamp(position.x, -_screenBounds.x, _screenBounds.x);
+        position.y = Mathf.Clamp(position.y, -_screenBounds.y, _screenBounds.y);
+        return position;
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -90,11 +81,9 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        print("OnBeginDrag");
         BeginDragEvent.Invoke(this);
         
         offset = MouseInputHelper.GetMouseWorldPosition(_cam) - transform.position;
-        print("offset:" + offset);
         isDragging = true;
         
         canvas.GetComponent<GraphicRaycaster>().enabled = false;
@@ -161,7 +150,7 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
         SelectEvent.Invoke(this, selected);
 
         if (selected)
-            transform.localPosition += cardVisual.transform.up * selectionOffset;
+            transform.localPosition += _cardVisual.transform.up * selectionOffset;
         else
             transform.localPosition = Vector3.zero;
     }
@@ -172,12 +161,18 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
         {
             selected = false;
             if (selected)
-                transform.localPosition += (cardVisual.transform.up * 50);
+                transform.localPosition += _cardVisual.transform.up * 50;
             else
                 transform.localPosition = Vector3.zero;
         }
     }
 
+    public void UpdateIndex()
+    {
+        transform.SetSiblingIndex(transform.parent.GetSiblingIndex());
+    }
+
+    public void Swap(int direction) => _cardVisual.Swap(direction);
 
     public int SiblingAmount()
     {
@@ -198,7 +193,7 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
 
     private void OnDestroy()
     {
-        if(cardVisual != null)
-        Destroy(cardVisual.gameObject);
+        if(_cardVisual != null)
+        Destroy(_cardVisual.gameObject);
     }
 }

@@ -1,19 +1,13 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using DG.Tweening;
 using System.Linq;
 
 public class SortableCardPile : MonoBehaviour
 {
-
-    [SerializeField] private CardDragHandler selectedCard;
-    [SerializeReference] private CardDragHandler hoveredCard;
-
+    [SerializeField] private CardDragHandler _movingCard;
     [SerializeField] private GameObject slotPrefab;
-    private RectTransform rect;
 
     [Header("Spawn Settings")]
     [SerializeField] private int cardsToSpawn = 7;
@@ -29,19 +23,12 @@ public class SortableCardPile : MonoBehaviour
             Instantiate(slotPrefab, transform);
         }
 
-        rect = GetComponent<RectTransform>();
         cards = GetComponentsInChildren<CardDragHandler>().ToList();
-
-        int cardCount = 0;
 
         foreach (CardDragHandler card in cards)
         {
-            card.PointerEnterEvent.AddListener(CardPointerEnter);
-            card.PointerExitEvent.AddListener(CardPointerExit);
             card.BeginDragEvent.AddListener(BeginDrag);
             card.EndDragEvent.AddListener(EndDrag);
-            card.name = cardCount.ToString();
-            cardCount++;
         }
 
         StartCoroutine(Frame());
@@ -51,83 +38,45 @@ public class SortableCardPile : MonoBehaviour
             yield return new WaitForSecondsRealtime(.1f);
             for (int i = 0; i < cards.Count; i++)
             {
-                if (cards[i].cardVisual != null)
-                    cards[i].cardVisual.UpdateIndex(transform.childCount);
+                cards[i].UpdateIndex();
             }
         }
     }
 
-    private void BeginDrag(CardDragHandler card)
-    {
-        selectedCard = card;
-    }
-
-
+    private void BeginDrag(CardDragHandler card) => _movingCard = card;
     void EndDrag(CardDragHandler card)
     {
-        if (selectedCard == null)
-            return;
+        if (_movingCard == null) return;
 
-        selectedCard.transform.DOLocalMove(selectedCard.selected ? new Vector3(0,selectedCard.selectionOffset,0) : Vector3.zero, tweenCardReturn ? .15f : 0).SetEase(Ease.OutBack);
+        var endValue = _movingCard.selected ? new Vector3(0,_movingCard.selectionOffset,0) : Vector3.zero;
+        var duration = tweenCardReturn ? .15f : 0;
 
-        rect.sizeDelta += Vector2.right;
-        rect.sizeDelta -= Vector2.right;
-
-        selectedCard = null;
-
+        _movingCard.transform.DOLocalMove(endValue, duration).SetEase(Ease.OutBack);
+        _movingCard = null;
     }
 
-    void CardPointerEnter(CardDragHandler card)
+    void LateUpdate()
     {
-        hoveredCard = card;
+        if (_movingCard == null || isCrossing) return;
+        CheckSlotPosition();
     }
 
-    void CardPointerExit(CardDragHandler card)
+    private void CheckSlotPosition()
     {
-        hoveredCard = null;
-    }
-
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Delete))
-        {
-            if (hoveredCard != null)
-            {
-                Destroy(hoveredCard.transform.parent.gameObject);
-                cards.Remove(hoveredCard);
-
-            }
-        }
-
-        if (Input.GetMouseButtonDown(1))
-        {
-            foreach (CardDragHandler card in cards)
-            {
-                card.Deselect();
-            }
-        }
-
-        if (selectedCard == null)
-            return;
-
-        if (isCrossing)
-            return;
-
         for (int i = 0; i < cards.Count; i++)
         {
-
-            if (selectedCard.transform.position.x > cards[i].transform.position.x)
+            if (_movingCard.transform.position.x > cards[i].transform.position.x)
             {
-                if (selectedCard.ParentIndex() < cards[i].ParentIndex())
+                if (_movingCard.ParentIndex() < cards[i].ParentIndex())
                 {
                     Swap(i);
                     break;
                 }
             }
 
-            if (selectedCard.transform.position.x < cards[i].transform.position.x)
+            if (_movingCard.transform.position.x < cards[i].transform.position.x)
             {
-                if (selectedCard.ParentIndex() > cards[i].ParentIndex())
+                if (_movingCard.ParentIndex() > cards[i].ParentIndex())
                 {
                     Swap(i);
                     break;
@@ -136,29 +85,26 @@ public class SortableCardPile : MonoBehaviour
         }
     }
 
-    void Swap(int index)
+    private void Swap(int index)
     {
         isCrossing = true;
 
-        Transform focusedParent = selectedCard.transform.parent;
+        Transform focusedParent = _movingCard.transform.parent;
         Transform crossedParent = cards[index].transform.parent;
 
         cards[index].transform.SetParent(focusedParent);
         cards[index].transform.localPosition = cards[index].selected ? new Vector3(0, cards[index].selectionOffset, 0) : Vector3.zero;
-        selectedCard.transform.SetParent(crossedParent);
+        _movingCard.transform.SetParent(crossedParent);
 
         isCrossing = false;
 
-        if (cards[index].cardVisual == null)
-            return;
-
-        bool swapIsRight = cards[index].ParentIndex() > selectedCard.ParentIndex();
-        cards[index].cardVisual.Swap(swapIsRight ? -1 : 1);
+        int swapDirection = cards[index].ParentIndex() > _movingCard.ParentIndex() ? -1 : 1;
+        cards[index].Swap(swapDirection);
 
         //Updated Visual Indexes
         foreach (CardDragHandler card in cards)
         {
-            card.cardVisual.UpdateIndex(transform.childCount);
+            card.UpdateIndex();
         }
     }
 

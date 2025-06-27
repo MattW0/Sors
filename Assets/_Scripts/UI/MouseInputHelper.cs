@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 public static class MouseInputHelper
@@ -10,7 +11,9 @@ public static class MouseInputHelper
     public static Vector3 GetWorldPositionForScreenPoint(Camera cam, Vector3 screenPosition)
     {
         screenPosition.z = zDistance;
-        return cam.ScreenToWorldPoint(screenPosition);
+        var worldPos = cam.ScreenToWorldPoint(screenPosition);
+
+        return worldPos;
     }
 
     /// <summary>
