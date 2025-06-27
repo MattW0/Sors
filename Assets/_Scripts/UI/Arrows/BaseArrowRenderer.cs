@@ -6,7 +6,6 @@ using UnityEditor.UI;
 
 public abstract class BaseArrowRenderer : MonoBehaviour, IArrowRenderer
 {
-    [SerializeField] float zDistance = 5f;
     [SerializeField] float height = 0.5f;
     [SerializeField] float segmentLength = 0.5f;
 
@@ -28,10 +27,8 @@ public abstract class BaseArrowRenderer : MonoBehaviour, IArrowRenderer
 
     public void FollowMouse()
     {
-        var mousePosition = Input.mousePosition;
-        mousePosition.z = zDistance;
-
-        end = _cam.ScreenToWorldPoint(mousePosition);
+        end = MouseInputHelper.GetMouseWorldPosition(_cam);
+        // end.z = 0;
         UpdateArrow();
     }
 

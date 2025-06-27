@@ -100,16 +100,22 @@ public class CardVisualHandler : MonoBehaviour
         SmoothFollow();
         FollowRotation();
         CardTilt();
-
     }
 
     private void HandPositioning()
     {
         // print("Hand position");
 
-        curveYOffset = curve.positioning.Evaluate(parentCard.NormalizedPosition()) * curve.positioningInfluence * parentCard.SiblingAmount();
-        curveYOffset = parentCard.SiblingAmount() < 5 ? 0 : curveYOffset;
-        curveRotationOffset = curve.rotation.Evaluate(parentCard.NormalizedPosition());
+        var normalPosition = parentCard.NormalizedSlotPosition();
+        print("normalPosition " + normalPosition);
+
+
+        curveYOffset = curve.positioning.Evaluate(normalPosition) * curve.positioningInfluence * parentCard.SiblingAmount();
+        
+        // print("cURVE Y OFFSET: " + curveYOffset);
+        
+        // curveYOffset = parentCard.SiblingAmount() < 5 ? 0 : curveYOffset;
+        curveRotationOffset = curve.rotation.Evaluate(parentCard.NormalizedSlotPosition());
     }
 
     private void SmoothFollow()
@@ -117,7 +123,10 @@ public class CardVisualHandler : MonoBehaviour
         // print("Smooth follow");
 
         Vector3 verticalOffset = Vector3.up * (parentCard.isDragging ? 0 : curveYOffset);
-        transform.position = Vector3.Lerp(transform.position, cardTransform.position + verticalOffset, followSpeed * Time.deltaTime);
+        Vector3 newPosition = Vector3.Lerp(transform.position, cardTransform.position + verticalOffset, followSpeed * Time.deltaTime);
+
+        // print("New position: " + newPosition);
+        transform.position = newPosition;
     }
 
     private void FollowRotation()
@@ -133,7 +142,7 @@ public class CardVisualHandler : MonoBehaviour
 
     private void CardTilt()
     {
-        print("Apply card tilt");
+        // print("Apply card tilt");
         savedIndex = parentCard.isDragging ? savedIndex : parentCard.ParentIndex();
         float sine = Mathf.Sin(Time.time + savedIndex) * (parentCard.isHovering ? .2f : 1);
         float cosine = Mathf.Cos(Time.time + savedIndex) * (parentCard.isHovering ? .2f : 1);
@@ -159,7 +168,6 @@ public class CardVisualHandler : MonoBehaviour
 
         if(scaleAnimations)
             transform.DOScale(scaleOnHover, scaleTransition).SetEase(scaleEase);
-
     }
 
     public void Swap(float dir = 1)
@@ -168,11 +176,12 @@ public class CardVisualHandler : MonoBehaviour
             return;
 
         DOTween.Kill(2, true);
-        shakeParent.DOPunchRotation((Vector3.forward * swapRotationAngle) * dir, swapTransition, swapVibrato, 1).SetId(3);
+        shakeParent.DOPunchRotation(Vector3.forward * swapRotationAngle * dir, swapTransition, swapVibrato, 1).SetId(3);
     }
 
     private void BeginDrag(CardDragHandler card)
     {
+        print("Begin drag CardVisualHandler");
         if(scaleAnimations)
             transform.DOScale(scaleOnSelect, scaleTransition).SetEase(scaleEase);
 
@@ -196,8 +205,8 @@ public class CardVisualHandler : MonoBehaviour
 
     private void PointerExit(CardDragHandler card)
     {
-        // if (!parentCard.wasDragged)
-        //     transform.DOScale(1, scaleTransition).SetEase(scaleEase);
+        if (!parentCard.wasDragged)
+            transform.DOScale(1, scaleTransition).SetEase(scaleEase);
     }
 
     private void PointerUp(CardDragHandler card, bool longPress)
