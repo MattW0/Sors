@@ -30,17 +30,6 @@ public class SortableCardPile : MonoBehaviour
             card.BeginDragEvent.AddListener(BeginDrag);
             card.EndDragEvent.AddListener(EndDrag);
         }
-
-        StartCoroutine(Frame());
-
-        IEnumerator Frame()
-        {
-            yield return new WaitForSecondsRealtime(.1f);
-            for (int i = 0; i < cards.Count; i++)
-            {
-                cards[i].UpdateIndex();
-            }
-        }
     }
 
     private void BeginDrag(CardDragHandler card) => _movingCard = card;
@@ -100,12 +89,6 @@ public class SortableCardPile : MonoBehaviour
 
         int swapDirection = cards[index].ParentIndex() > _movingCard.ParentIndex() ? -1 : 1;
         cards[index].Swap(swapDirection);
-
-        //Updated Visual Indexes
-        foreach (CardDragHandler card in cards)
-        {
-            card.UpdateIndex();
-        }
     }
 
 }

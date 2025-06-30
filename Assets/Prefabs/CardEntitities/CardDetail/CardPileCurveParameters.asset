@@ -10,59 +10,59 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: acdc068f2139a374593fc8e7328740fd, type: 3}
-  m_Name: CurveParameters
+  m_Name: CardPileCurveParameters
   m_EditorClassIdentifier: 
   positioning:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 5.4215636
-      outSlope: 5.4215636
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0.017456688
-    - serializedVersion: 3
-      time: 0.5037593
-      value: 0.997245
-      inSlope: 0.022714313
-      outSlope: 0.022714313
+      time: 0.00027310103
+      value: -0.000113517046
+      inSlope: 3.0753343
+      outSlope: 3.0753343
       tangentMode: 0
       weightedMode: 0
       inWeight: 0.33333334
-      outWeight: 0.12659904
+      outWeight: 0.09931034
     - serializedVersion: 3
-      time: 1
-      value: 0
-      inSlope: -5.8566313
-      outSlope: -5.8566313
+      time: 0.48860693
+      value: 0.4865967
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 136
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1.0000839
+      value: 0.00019860768
+      inSlope: -3.0473912
+      outSlope: -3.0473912
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0.022784356
-      outWeight: 0
+      inWeight: 0.10318815
+      outWeight: 0.33333334
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  positioningInfluence: 0.02
+  positioningInfluence: 0.5
   rotation:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: -0.002856493
-      value: 1.0060134
-      inSlope: -0
-      outSlope: -0
+      time: 0.00023407117
+      value: 1.0018888
+      inSlope: 0
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
-      time: 0.98178184
-      value: 0.0036634803
-      inSlope: -0
-      outSlope: -0
+      time: 0.995986
+      value: -0.998598
+      inSlope: 0
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
@@ -70,4 +70,4 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  rotationInfluence: 1.2
+  rotationInfluence: 2

@@ -52,7 +52,7 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
         if (!instantiateVisual)
             return;
 
-        _cardVisual = Instantiate(_cardVisualPrefab, VisualPrefabsParent.instance.transform, false).GetComponent<CardVisualHandler>();
+        _cardVisual = Instantiate(_cardVisualPrefab, transform, false).GetComponent<CardVisualHandler>();
         _cardVisual.Initialize(this);
     }
 
@@ -110,7 +110,6 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        print("pointer enter");
         PointerEnterEvent.Invoke(this);
         isHovering = true;
     }
@@ -167,28 +166,12 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
         }
     }
 
-    public void UpdateIndex()
-    {
-        transform.SetSiblingIndex(transform.parent.GetSiblingIndex());
-    }
-
     public void Swap(int direction) => _cardVisual.Swap(direction);
-
-    public int SiblingAmount()
-    {
-        return transform.parent.CompareTag("Slot") ? transform.parent.parent.childCount - 1 : 0;
-    }
 
     public int ParentIndex()
     {
-        return transform.parent.CompareTag("Slot") ? transform.parent.GetSiblingIndex() : 0;
-    }
-
-    public float NormalizedSlotPosition()
-    {
-        if (transform.parent.CompareTag("Slot")) return 0;
-
-        return ParentIndex() / transform.parent.parent.childCount;
+        var index = transform.parent.CompareTag("Slot") ? transform.parent.GetSiblingIndex() : 0;
+        return index;
     }
 
     private void OnDestroy()
