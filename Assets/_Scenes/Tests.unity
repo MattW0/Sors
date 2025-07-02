@@ -820,7 +820,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: -333.3333, y: 0}
-  m_SizeDelta: {x: 800, y: 200}
+  m_SizeDelta: {x: 800, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &356231308
 MonoBehaviour:
@@ -844,7 +844,7 @@ MonoBehaviour:
   m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 1
   m_ChildControlWidth: 1
-  m_ChildControlHeight: 0
+  m_ChildControlHeight: 1
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
@@ -900,7 +900,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _movingCard: {fileID: 0}
   slotPrefab: {fileID: 4392023728082851117, guid: e7de36488b2e0d14c97b009addbfaf1b, type: 3}
-  cardsToSpawn: 7
+  cardsToSpawn: 4
   cards: []
   tweenCardReturn: 1
 --- !u!1 &360399598

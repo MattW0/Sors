@@ -52,11 +52,12 @@ public class CardVisualHandler : MonoBehaviour
     [SerializeField] private bool swapAnimations = true;
     [SerializeField] private float swapRotationAngle = 30;
     [SerializeField] private float swapTransition = .15f;
-    [SerializeField] private int swapVibrato = 5;
+    [SerializeField] private int swapVibrato = 3;
 
     [Header("Curve")]
     [SerializeField] private CardPileCurveParameters curve;
 
+    private Vector3 _lastPosition;
     private float curveYOffset;
     private float curveRotationOffset;
     private Camera _cam; 
@@ -72,6 +73,8 @@ public class CardVisualHandler : MonoBehaviour
         //Declarations
         parentCard = parent;
         cardTransform = parent.transform;
+        _lastPosition = cardTransform.position;
+
         canvas = GetComponent<Canvas>();
         shadowCanvas = visualShadow.GetComponent<Canvas>();
 
@@ -92,13 +95,14 @@ public class CardVisualHandler : MonoBehaviour
     {
         if (!initalize || parentCard == null) return;
 
+        // Apply curve y position
         HandPositioning();
+
+        // Apply static rotation or hover tilt
         CardTilt();
 
         if (! parentCard.isDragging ) return;
-
-        SmoothFollow();
-        FollowRotation();
+        FollowDrag();
     }
 
     private void HandPositioning()
@@ -109,48 +113,47 @@ public class CardVisualHandler : MonoBehaviour
         curveYOffset = SiblingAmount() < 5 ? 0 : curveYOffset;
         curveRotationOffset = curve.rotation.Evaluate(normalPosition);
 
-        if (parentCard.isDragging ) return;
+        if (parentCard.isDragging) return;
         transform.position = new Vector3(transform.position.x, curveYOffset, transform.position.z);
-    }
-
-    private int SiblingAmount() => transform.parent.parent.parent.childCount - 1;
-    private float NormalizedSlotPosition() => (float) parentCard.ParentIndex() / SiblingAmount();
-
-    private void SmoothFollow()
-    {
-        transform.position = Vector3.Lerp(transform.position, cardTransform.position, followSpeed * Time.deltaTime);
-    }
-
-    private void FollowRotation()
-    {
-        Vector3 movement = transform.position - cardTransform.position;
-        movementDelta = Vector3.Lerp(movementDelta, movement, 25 * Time.deltaTime);
-
-        print("Movement rotation delta: " + movementDelta);
-
-        Vector3 movementRotation = (parentCard.isDragging ? movementDelta : movement) * rotationAmount;
-        rotationDelta = Vector3.Lerp(rotationDelta, movementRotation, _rotationSpeed * Time.deltaTime);
-
-        transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y, Mathf.Clamp(rotationDelta.x, -60, 60));
     }
 
     private void CardTilt()
     {
-        // print("Apply card tilt");
+        if (parentCard.isDragging) return;
+
         savedIndex = parentCard.isDragging ? savedIndex : parentCard.ParentIndex();
         float sine = Mathf.Sin(Time.time + savedIndex) * (parentCard.isHovering ? .2f : 1);
         float cosine = Mathf.Cos(Time.time + savedIndex) * (parentCard.isHovering ? .2f : 1);
 
         Vector3 offset = transform.position - MouseInputHelper.GetMouseWorldPosition(_cam);
-        float tiltX = parentCard.isHovering ? ((offset.y * -1) * manualTiltAmount) : 0;
-        float tiltY = parentCard.isHovering ? ((offset.x) * manualTiltAmount) : 0;
-        float tiltZ = parentCard.isDragging ? tiltParent.eulerAngles.z : (curveRotationOffset * (curve.rotationInfluence * SiblingAmount()));
+        float tiltX = parentCard.isHovering ? (offset.y * -1 * manualTiltAmount) : 0;
+        float tiltY = parentCard.isHovering ? (offset.x * manualTiltAmount) : 0;
+        float tiltZ = curveRotationOffset * (curve.rotationInfluence * SiblingAmount());
 
         float lerpX = Mathf.LerpAngle(tiltParent.eulerAngles.x, tiltX + (sine * autoTiltAmount), tiltSpeed * Time.deltaTime);
         float lerpY = Mathf.LerpAngle(tiltParent.eulerAngles.y, tiltY + (cosine * autoTiltAmount), tiltSpeed * Time.deltaTime);
         float lerpZ = Mathf.LerpAngle(tiltParent.eulerAngles.z, tiltZ, tiltSpeed / 2 * Time.deltaTime);
 
         tiltParent.eulerAngles = new Vector3(lerpX, lerpY, lerpZ);
+    }
+
+    private void FollowDrag()
+    {
+        Vector3 movement = cardTransform.position - _lastPosition;
+        movementDelta = Vector3.Lerp(movementDelta, movement, 25 * Time.deltaTime);
+
+        // Map movement to rotation and smooth it
+        Vector3 movementRotation = new Vector3(-movementDelta.y, movementDelta.x, 0f) * rotationAmount;
+        rotationDelta = Vector3.Lerp(rotationDelta, movementRotation, _rotationSpeed * Time.deltaTime);
+
+        tiltParent.eulerAngles = new Vector3(
+            rotationDelta.x,
+            rotationDelta.y,
+            Mathf.Clamp(rotationDelta.x, -60, 60)
+        );
+
+        transform.position = Vector3.Lerp(transform.position, cardTransform.position, followSpeed * Time.deltaTime);
+        _lastPosition = cardTransform.position;
     }
 
     private void Select(CardDragHandler card, bool state)
@@ -221,4 +224,7 @@ public class CardVisualHandler : MonoBehaviour
         visualShadow.localPosition += -Vector3.up * shadowOffset;
         shadowCanvas.overrideSorting = false;
     }
+
+    private int SiblingAmount() => transform.parent.parent.parent.childCount - 1;
+    private float NormalizedSlotPosition() => (float) parentCard.ParentIndex() / SiblingAmount();
 }
