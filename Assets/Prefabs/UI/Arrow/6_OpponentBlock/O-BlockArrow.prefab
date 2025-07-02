@@ -8,9 +8,17 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -9205831679529412624, guid: 4353c27218ee88a489ef2fc9acbfdd56, type: 3}
+      propertyPath: tipPrefab
+      value: 
+      objectReference: {fileID: 1125102575994816, guid: d73c2c91aab560c4a8ea97aeb6378467, type: 3}
+    - target: {fileID: -9205831679529412624, guid: 4353c27218ee88a489ef2fc9acbfdd56, type: 3}
+      propertyPath: segmentPrefab
+      value: 
+      objectReference: {fileID: 1609189630421558, guid: 5ff895379a73156439bfe02e480c9555, type: 3}
     - target: {fileID: 1267180111628874, guid: 4353c27218ee88a489ef2fc9acbfdd56, type: 3}
       propertyPath: m_Name
-      value: AnimatedArrow
+      value: O-BlockArrow
       objectReference: {fileID: 0}
     - target: {fileID: 4613943271108028, guid: 4353c27218ee88a489ef2fc9acbfdd56, type: 3}
       propertyPath: m_LocalPosition.x

@@ -29,7 +29,7 @@ public class CardMover : MonoBehaviour
     public void MoveTo(GameObject card, bool hasAuthority, CardLocation from, CardLocation to)
     {
         var (sourcePile, destinationPile) = GetPiles(from, to, hasAuthority);
-        sourcePile.UpdatePosition = true;
+        // sourcePile.UpdatePosition = true;
 
         // Is front or back up ?
         FlipCard(card, hasAuthority, to);
@@ -41,7 +41,7 @@ public class CardMover : MonoBehaviour
     public void MoveAllTo(List<GameObject> cards, bool hasAuthority, CardLocation from, CardLocation to)
     {
         var (sourcePile, destinationPile) = GetPiles(from, to, hasAuthority);
-        sourcePile.UpdatePosition = true;
+        // sourcePile.UpdatePosition = true;
         // var destinationPile = GetPile(to, hasAuthority);
 
         foreach(var card in cards){
@@ -84,10 +84,10 @@ public class CardMover : MonoBehaviour
 
         if(hasAuthority){
             playerCardSpawn.CardHasArrived(card);
-            playerCardSpawn.UpdatePosition = true;
+            // playerCardSpawn.UpdatePosition = true;
         } else {
             opponentCardSpawn.CardHasArrived(card);
-            opponentCardSpawn.UpdatePosition = true;
+            // opponentCardSpawn.UpdatePosition = true;
         }
         card.SetActive(true);
     }

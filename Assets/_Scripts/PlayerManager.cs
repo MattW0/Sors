@@ -191,7 +191,6 @@ public class PlayerManager : NetworkBehaviour
 
     private void UISetScore(int oldValue, int newValue)
     {
-        print("Setting score from " + oldValue + " to " + newValue);
         if (isOwned) _playerUI.SetScore(newValue);
         else _opponentUI.SetScore(newValue);
     }
