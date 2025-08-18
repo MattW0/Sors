@@ -4,7 +4,7 @@ public static class RequiredServices
 {
     public static readonly Type[] CoreServices = new Type[]
     {
-        typeof(INetworkObjectSpawner),
+        typeof(NetworkObjectSpawner),
         typeof(CardMover),
         // TODO: Add furhter services here (instead of singletons)
     };

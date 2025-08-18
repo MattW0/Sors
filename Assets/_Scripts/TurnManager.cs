@@ -21,7 +21,7 @@ public class TurnManager : NetworkBehaviour
     
     // Managers
     private GameManager _gameManager;
-    private INetworkObjectSpawner _networkObjectSpawner;
+    private NetworkObjectSpawner _networkObjectSpawner;
     private Market _market;
     private InteractionPanel _interactionPanel;
     private PrevailPanel _prevailPanel;
@@ -81,7 +81,7 @@ public class TurnManager : NetworkBehaviour
 
         _prevailPanel = PrevailPanel.Instance;
 
-        _networkObjectSpawner = ServiceLocator.Global.Get<INetworkObjectSpawner>();
+        _networkObjectSpawner = ServiceLocator.Global.Get<NetworkObjectSpawner>();
     }
 
     private void VariablesCaching(GameOptions gameOptions)

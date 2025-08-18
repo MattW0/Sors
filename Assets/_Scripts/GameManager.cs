@@ -4,12 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Mirror;
+using CardDecoder;
 
-[RequireComponent(typeof(INetworkObjectSpawner))]
+[RequireComponent(typeof(NetworkObjectSpawner))]
 public class GameManager : NetworkBehaviour {
     
     public static GameManager Instance { get; private set; }
-    private INetworkObjectSpawner _cardSpawner;
+    private NetworkObjectSpawner _cardSpawner;
     private TurnManager _turnManager;
     private UIManager _uiManager;
     private Market _market;
@@ -27,7 +28,7 @@ public class GameManager : NetworkBehaviour {
         if (Instance == null) Instance = this;
 
         // Register services
-        _cardSpawner = GetComponent<INetworkObjectSpawner>();
+        _cardSpawner = GetComponent<NetworkObjectSpawner>();
 
         Sors.Lan.SorsNetworkManager.OnAllPlayersReady += GameSetup;
         SorsSteamNetworkManager.OnAllPlayersReady += GameSetup;
@@ -96,15 +97,15 @@ public class GameManager : NetworkBehaviour {
 
         // Only paper money currently
         var startMoney = _market.GetStartMoneyCard();
-        for (var i = 0; i < _gameOptions.initialDeckSize - _gameOptions.initialEntities; i++){
-            var scriptableCard = startMoney;
-            startingDeck.Add(_cardSpawner.SpawnCard(player, scriptableCard, CardLocation.Deck));
+        for (var i = 0; i < _gameOptions.initialDeckSize - _gameOptions.initialEntities; i++){            
+            var card = _cardSpawner.SpawnCard(player, startMoney);
+            startingDeck.Add(card);
         }
 
         var startEntities = _market.GetStartEntities();
         for (var i = 0; i < _gameOptions.initialEntities; i++){
-            var scriptableCard = startEntities[i];
-            startingDeck.Add(_cardSpawner.SpawnCard(player, scriptableCard, CardLocation.Deck));
+            var card = _cardSpawner.SpawnCard(player, startEntities[i]);
+            startingDeck.Add(card);
         }
 
         player.Cards.RpcShowSpawnedCards(startingDeck, CardLocation.Deck, false);
@@ -113,8 +114,11 @@ public class GameManager : NetworkBehaviour {
     #endregion
 
     #region Spawning
-    public void PlayerGainCard(PlayerManager player, CardInfo card, CardLocation destination) => _cardSpawner.PlayerGainCard(player, card, destination);
-    public GameObject SpawnCard(PlayerManager player, ScriptableCard card, CardLocation destination) => _cardSpawner.SpawnCard(player, card, destination);
+    public void PlayerGainCard(PlayerManager player, CardInfo cardInfo, CardLocation destination){
+        var card = _cardSpawner.PlayerGainCard(player, cardInfo);
+        player.Cards.RpcShowSpawnedCard(card, destination);
+    }
+    public GameObject SpawnCard(PlayerManager player, ScriptableCard card, CardLocation destination) => _cardSpawner.SpawnCard(player, card);
     public void PlayerGainCurse(PlayerManager player) => _cardSpawner.PlayerGainCurse(player);
     public BattleZoneEntity SpawnFieldEntity(PlayerManager owner, CardInfo cardInfo) => _cardSpawner.SpawnFieldEntity(owner, cardInfo);
 

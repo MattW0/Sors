@@ -196,10 +196,16 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
     }
 
     [ClientRpc]
-    public void RpcShowSpawnedCard(GameObject card, CardLocation destination) => _cardMover.ShowSpawnedCard(card, isOwned, destination).Forget();
+    public void RpcShowSpawnedCard(GameObject card, CardLocation destination){
+        _cardMover.ShowSpawnedCard(card, isOwned, destination).Forget();
+        AddCardToCollection(card.GetComponent<CardStats>(), destination);
+    }
 
     [ClientRpc]
-    public void RpcShowSpawnedCards(List<GameObject> cards, CardLocation destination, bool fromFile) => _cardMover.ShowSpawnedCards(cards, isOwned, destination, fromFile).Forget();
+    public void RpcShowSpawnedCards(List<GameObject> cards, CardLocation destination, bool fromFile){
+        _cardMover.ShowSpawnedCards(cards, isOwned, destination, fromFile).Forget();
+        foreach(var card in cards) AddCardToCollection(card.GetComponent<CardStats>(), destination);
+    } 
 
     [Client]
     private async UniTaskVoid ClientDrawing(List<GameObject> cards)
@@ -224,4 +230,12 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
     }
 
     public void OnAfterDeserialize(){ }
+
+    private void AddCardToCollection(CardStats card, CardLocation destination)
+    {
+        if (destination == CardLocation.Deck) _owner.Cards.deck.Add(card);
+        else if(destination == CardLocation.Discard) _owner.Cards.discard.Add(card);
+        else if(destination == CardLocation.Hand) _owner.Cards.hand.Add(card);
+        else Debug.LogWarning("Trying to add card to invalid location: " + destination);
+    }
 }

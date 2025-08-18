@@ -6,8 +6,6 @@ using DG.Tweening;
 public class HandCardUI : CardUI
 {
     [SerializeField] private GameObject _front;
-    private CardVisualHandler visualHandler;
-
 
     public void CardBackUp()
     {

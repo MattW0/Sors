@@ -4,7 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System;
 
-public class NetworkObjectSpawner : NetworkBehaviour, INetworkObjectSpawner
+public class NetworkObjectSpawner : NetworkBehaviour //, INetworkObjectSpawner
 {
     [Header("Spawnable Prefabs")]
     [SerializeField] private GameObject _moneyCard;
@@ -19,9 +19,9 @@ public class NetworkObjectSpawner : NetworkBehaviour, INetworkObjectSpawner
     // Card lookup dictionary (goID -> CardStats)
     private readonly Dictionary<int, CardStats> _cardLookup = new();
 
-    private void Awake() => ServiceLocator.Global.Register<INetworkObjectSpawner>(this);
+    private void Awake() => ServiceLocator.Global.Register(this);
 
-    public void PlayerGainCard(PlayerManager player, CardInfo cardInfo, CardLocation destination)
+    public GameObject PlayerGainCard(PlayerManager player, CardInfo cardInfo)
     {
         // Load scriptable
         var pathPrefix = cardInfo.type switch {
@@ -32,12 +32,10 @@ public class NetworkObjectSpawner : NetworkBehaviour, INetworkObjectSpawner
         };
 
         var scriptableCard = Resources.Load<ScriptableCard>(pathPrefix + cardInfo.resourceName);
-        var co = SpawnCard(player, scriptableCard, destination);
-
-        player.Cards.RpcShowSpawnedCard(co, destination);
+        return SpawnCard(player, scriptableCard);
     }
 
-    public GameObject SpawnCard(PlayerManager player, ScriptableCard scriptableCard, CardLocation destination)
+    public GameObject SpawnCard(PlayerManager player, ScriptableCard scriptableCard)
     {
         if (scriptableCard == null) 
         {
@@ -51,8 +49,7 @@ public class NetworkObjectSpawner : NetworkBehaviour, INetworkObjectSpawner
         if (cardObject == null) return null;
 
         SpawnWithClientAuthority(cardObject, player);
-        var cardStats = InitializeCardOnClients(cardObject, scriptableCard);
-        AddCardToPlayerCollection(player, cardStats, destination);
+        InitializeCardOnClients(cardObject, scriptableCard);
 
         return cardObject;
     }
@@ -74,9 +71,9 @@ public class NetworkObjectSpawner : NetworkBehaviour, INetworkObjectSpawner
         return entity;
     }
 
-    public void PlayerGainCurse(PlayerManager player)
+    public GameObject PlayerGainCurse(PlayerManager player)
     {
-        SpawnCard(player, _curseCard, CardLocation.Discard);
+        return SpawnCard(player, _curseCard);
     }
 
     private GameObject CreateCardObject(ScriptableCard scriptableCard)
@@ -109,7 +106,7 @@ public class NetworkObjectSpawner : NetworkBehaviour, INetworkObjectSpawner
         }
     }
 
-    private CardStats InitializeCardOnClients(GameObject cardObject, ScriptableCard scriptableCard)
+    private void InitializeCardOnClients(GameObject cardObject, ScriptableCard scriptableCard)
     {
         var instanceID = cardObject.GetInstanceID();
         cardObject.name = scriptableCard.title + "_" + instanceID.ToString();
@@ -118,23 +115,11 @@ public class NetworkObjectSpawner : NetworkBehaviour, INetworkObjectSpawner
         var cardInfo = new CardInfo(scriptableCard, instanceID);
 
         cardStats.RpcSetCardStats(cardInfo);
-        RegisterCard(cardInfo.goID, cardStats);
 
-        return cardStats;
-    }
-
-    private void AddCardToPlayerCollection(PlayerManager owner, CardStats card, CardLocation destination)
-    {
-        if (destination == CardLocation.Deck) owner.Cards.deck.Add(card);
-        else if(destination == CardLocation.Discard) owner.Cards.discard.Add(card);
-        else if(destination == CardLocation.Hand) owner.Cards.hand.Add(card);
-        else Debug.LogWarning("Trying to add card to invalid location: " + destination);
-    }
-
-    private void RegisterCard(int goID, CardStats card)
-    {
+        // Register card
+        var goID = cardInfo.goID;
         if (!_cardLookup.ContainsKey(goID))
-            _cardLookup[goID] = card;
+            _cardLookup[goID] = cardStats;
         else
             Debug.LogWarning($"Card with goID {goID} already registered.");
     }

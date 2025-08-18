@@ -82,13 +82,9 @@ public class CardMover : MonoBehaviour
         card.transform.localScale = Vector3.one;
         if(!fromFile) card.GetComponent<HandCardUI>().CardFrontUp();
 
-        if(hasAuthority){
-            playerCardSpawn.CardHasArrived(card);
-            // playerCardSpawn.UpdatePosition = true;
-        } else {
-            opponentCardSpawn.CardHasArrived(card);
-            // opponentCardSpawn.UpdatePosition = true;
-        }
+        if (hasAuthority) opponentCardSpawn.CardHasArrived(card);
+        else playerCardSpawn.CardHasArrived(card);
+
         card.SetActive(true);
     }
 
