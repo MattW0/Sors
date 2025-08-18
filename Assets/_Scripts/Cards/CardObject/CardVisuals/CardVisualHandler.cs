@@ -9,8 +9,8 @@ public class CardVisualHandler : MonoBehaviour
     private bool initalize = false;
 
     [Header("CardDragHandler")]
-    public CardDragHandler parentCard;
-    private Transform cardTransform;
+    public CardDragHandler _dragHandler;
+    private Transform _slotTransform;
     private Vector3 rotationDelta;
     private int savedIndex;
     Vector3 movementDelta;
@@ -68,24 +68,29 @@ public class CardVisualHandler : MonoBehaviour
         shadowDistance = visualShadow.localPosition;
     }
 
-    public void Initialize(CardDragHandler parent, int index = 0)
+    public void Initialize(CardDragHandler dragHandler, GameObject card, int index = 0)
     {
         //Declarations
-        parentCard = parent;
-        cardTransform = parent.transform;
-        _lastPosition = cardTransform.position;
+        _dragHandler = dragHandler;
+        _slotTransform = dragHandler.transform;
+        transform.position = dragHandler.transform.position;
+
+        card.transform.SetParent(tiltParent, false);
+        card.transform.position = Vector3.zero;
+
+        _lastPosition = dragHandler.transform.position;
 
         canvas = GetComponent<Canvas>();
         shadowCanvas = visualShadow.GetComponent<Canvas>();
 
         //Event Listening
-        parentCard.PointerEnterEvent.AddListener(PointerEnter);
-        parentCard.PointerExitEvent.AddListener(PointerExit);
-        parentCard.BeginDragEvent.AddListener(BeginDrag);
-        parentCard.EndDragEvent.AddListener(EndDrag);
-        parentCard.PointerDownEvent.AddListener(PointerDown);
-        parentCard.PointerUpEvent.AddListener(PointerUp);
-        parentCard.SelectEvent.AddListener(Select);
+        _dragHandler.PointerEnterEvent.AddListener(PointerEnter);
+        _dragHandler.PointerExitEvent.AddListener(PointerExit);
+        _dragHandler.BeginDragEvent.AddListener(BeginDrag);
+        _dragHandler.EndDragEvent.AddListener(EndDrag);
+        _dragHandler.PointerDownEvent.AddListener(PointerDown);
+        _dragHandler.PointerUpEvent.AddListener(PointerUp);
+        _dragHandler.SelectEvent.AddListener(Select);
 
         //Initialization
         initalize = true;
@@ -93,7 +98,7 @@ public class CardVisualHandler : MonoBehaviour
 
     void LateUpdate()
     {
-        if (!initalize || parentCard == null) return;
+        if (!initalize || _dragHandler == null) return;
 
         // Apply curve y position
         HandPositioning();
@@ -101,7 +106,7 @@ public class CardVisualHandler : MonoBehaviour
         // Apply static rotation or hover tilt
         CardTilt();
 
-        if (! parentCard.isDragging ) return;
+        if (! _dragHandler.isDragging ) return;
         FollowDrag();
     }
 
@@ -110,36 +115,43 @@ public class CardVisualHandler : MonoBehaviour
         var normalPosition = NormalizedSlotPosition();
         curveYOffset = curve.positioning.Evaluate(normalPosition) * curve.positioningInfluence;
         
-        curveYOffset = SiblingAmount() < 5 ? 0 : curveYOffset;
+        curveYOffset = _dragHandler.SiblingAmount() < 5 ? 0 : curveYOffset;
         curveRotationOffset = curve.rotation.Evaluate(normalPosition);
 
-        if (parentCard.isDragging) return;
+        if (_dragHandler.isDragging) return;
         transform.position = new Vector3(transform.position.x, curveYOffset, transform.position.z);
+        // print("SetPosition: "+ transform.position);
     }
 
     private void CardTilt()
     {
-        if (parentCard.isDragging) return;
+        if (_dragHandler.isDragging) return;
 
-        savedIndex = parentCard.isDragging ? savedIndex : parentCard.ParentIndex();
-        float sine = Mathf.Sin(Time.time + savedIndex) * (parentCard.isHovering ? .2f : 1);
-        float cosine = Mathf.Cos(Time.time + savedIndex) * (parentCard.isHovering ? .2f : 1);
+        savedIndex = _dragHandler.isDragging ? savedIndex : _dragHandler.ParentIndex();
+        float sine = Mathf.Sin(Time.time + savedIndex) * (_dragHandler.isHovering ? .2f : 1);
+        float cosine = Mathf.Cos(Time.time + savedIndex) * (_dragHandler.isHovering ? .2f : 1);
 
         Vector3 offset = transform.position - MouseInputHelper.GetMouseWorldPosition(_cam);
-        float tiltX = parentCard.isHovering ? (offset.y * -1 * manualTiltAmount) : 0;
-        float tiltY = parentCard.isHovering ? (offset.x * manualTiltAmount) : 0;
-        float tiltZ = curveRotationOffset * (curve.rotationInfluence * SiblingAmount());
+        float tiltX = _dragHandler.isHovering ? (offset.y * -1 * manualTiltAmount) : 0;
+        float tiltY = _dragHandler.isHovering ? (offset.x * manualTiltAmount) : 0;
+        float tiltZ = curveRotationOffset * (curve.rotationInfluence * _dragHandler.SiblingAmount());
+
+        print($"{tiltX}, {tiltY}, {tiltX}");
 
         float lerpX = Mathf.LerpAngle(tiltParent.eulerAngles.x, tiltX + (sine * autoTiltAmount), tiltSpeed * Time.deltaTime);
         float lerpY = Mathf.LerpAngle(tiltParent.eulerAngles.y, tiltY + (cosine * autoTiltAmount), tiltSpeed * Time.deltaTime);
         float lerpZ = Mathf.LerpAngle(tiltParent.eulerAngles.z, tiltZ, tiltSpeed / 2 * Time.deltaTime);
+
+        print($"{lerpX}, {lerpY}, {lerpZ}");
+
+        // TODO: Find out why this results in errors when hovering the card
 
         tiltParent.eulerAngles = new Vector3(lerpX, lerpY, lerpZ);
     }
 
     private void FollowDrag()
     {
-        Vector3 movement = cardTransform.position - _lastPosition;
+        Vector3 movement = _slotTransform.position - _lastPosition;
         movementDelta = Vector3.Lerp(movementDelta, movement, 25 * Time.deltaTime);
 
         // Map movement to rotation and smooth it
@@ -152,8 +164,8 @@ public class CardVisualHandler : MonoBehaviour
             Mathf.Clamp(rotationDelta.x, -60, 60)
         );
 
-        transform.position = Vector3.Lerp(transform.position, cardTransform.position, followSpeed * Time.deltaTime);
-        _lastPosition = cardTransform.position;
+        transform.position = Vector3.Lerp(transform.position, _slotTransform.position, followSpeed * Time.deltaTime);
+        _lastPosition = _slotTransform.position;
     }
 
     private void Select(CardDragHandler card, bool state)
@@ -202,7 +214,7 @@ public class CardVisualHandler : MonoBehaviour
 
     private void PointerExit(CardDragHandler card)
     {
-        if (!parentCard.wasDragged)
+        if (!_dragHandler.wasDragged)
             transform.DOScale(1, scaleTransition).SetEase(scaleEase);
     }
 
@@ -225,6 +237,5 @@ public class CardVisualHandler : MonoBehaviour
         shadowCanvas.overrideSorting = false;
     }
 
-    private int SiblingAmount() => transform.parent.parent.parent.childCount - 1;
-    private float NormalizedSlotPosition() => (float) parentCard.ParentIndex() / SiblingAmount();
+    private float NormalizedSlotPosition() => (float) _dragHandler.ParentIndex() / _dragHandler.SiblingAmount();
 }

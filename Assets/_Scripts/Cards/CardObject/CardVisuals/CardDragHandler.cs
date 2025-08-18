@@ -5,12 +5,12 @@ using UnityEngine.EventSystems;
 using System.Collections.Generic;
 using System.Collections;
 using UnityEngine.UI;
+using System;
 
 public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler, IPointerUpHandler, IPointerDownHandler
 {
     private Canvas canvas;
     private Image imageComponent;
-    [SerializeField] private bool instantiateVisual = true;
     private Vector3 offset;
     private static Vector2 _screenBounds;
 
@@ -24,7 +24,6 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
     private float pointerUpTime;
 
     [Header("Visual")]
-    [SerializeField] private GameObject _cardVisualPrefab;
     private CardVisualHandler _cardVisual;
     private Camera _cam;
 
@@ -48,13 +47,9 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
         imageComponent = GetComponent<Image>();
         _cam = Camera.main;
         _screenBounds = MouseInputHelper.GetScreenBounds(_cam);
-
-        if (!instantiateVisual)
-            return;
-
-        _cardVisual = Instantiate(_cardVisualPrefab, transform, false).GetComponent<CardVisualHandler>();
-        _cardVisual.Initialize(this);
     }
+
+    internal void SetCardVisual(CardVisualHandler visual) => _cardVisual = visual;
 
     void LateUpdate()
     {
@@ -170,9 +165,11 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
 
     public int ParentIndex()
     {
-        var index = transform.parent.CompareTag("Slot") ? transform.parent.GetSiblingIndex() : 0;
+        var index = transform.CompareTag("Slot") ? transform.GetSiblingIndex() : 0;
         return index;
     }
+
+    public int SiblingAmount() => Math.Min(1, transform.parent.childCount - 1);
 
     private void OnDestroy()
     {

@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
 using Cysharp.Threading.Tasks;
+using System;
 
 public class CardMover : MonoBehaviour
 {
+    [SerializeField] private CardDragManager dragManager;
+
     [Header("Playboard Transforms")]
     [SerializeField] private CardsPileSors playerHand;
     [SerializeField] private CardsPileSors playerMoneyZone;
@@ -24,12 +27,13 @@ public class CardMover : MonoBehaviour
     [SerializeField] private CardsPileSors trash;
     [SerializeField] private CardsPileSors interaction;
 
+    public static event Action OnUpdatePileNumbers;
+
     private void Awake() => ServiceLocator.Global.Register<CardMover>(this);
 
     public void MoveTo(GameObject card, bool hasAuthority, CardLocation from, CardLocation to)
     {
         var (sourcePile, destinationPile) = GetPiles(from, to, hasAuthority);
-        // sourcePile.UpdatePosition = true;
 
         // Is front or back up ?
         FlipCard(card, hasAuthority, to);
@@ -82,8 +86,8 @@ public class CardMover : MonoBehaviour
         card.transform.localScale = Vector3.one;
         if(!fromFile) card.GetComponent<HandCardUI>().CardFrontUp();
 
-        if (hasAuthority) opponentCardSpawn.CardHasArrived(card);
-        else playerCardSpawn.CardHasArrived(card);
+        // if (hasAuthority) opponentCardSpawn.CardHasArrived(card);
+        // else playerCardSpawn.CardHasArrived(card);
 
         card.SetActive(true);
     }
@@ -91,15 +95,20 @@ public class CardMover : MonoBehaviour
     #region Helpers
     private void ApplyMovement(CardsPileSors pile, GameObject card)
     {
-        var destinationTransform = pile.cardHolderTransform;
-
-        card.transform.DOMove(destinationTransform.position, SorsTimings.cardMoveTime)
+        card.transform.DOMove(pile.cardHolderTransform.position, SorsTimings.cardMoveTime)
             .SetEase(Ease.InOutCubic)
-            .OnComplete(() => {
-                card.transform.SetParent(destinationTransform, true);
-                // card.transform.localScale = Vector3.one;
-                pile.CardHasArrived(card);
-            });
+            .OnComplete(() => CardArrives(pile, card));
+    }
+
+    private void CardArrives(CardsPileSors pile, GameObject card)
+    {
+        var pileTransform = pile.cardHolderTransform;
+        card.transform.SetParent(pileTransform, false);
+        OnUpdatePileNumbers?.Invoke();
+        // card.transform.localScale = Vector3.one;
+
+        if (pile.pileType != CardLocation.Hand) return;
+        dragManager.MakeCardDraggable(card, pileTransform);
     }
 
     private (CardsPileSors, CardsPileSors) GetPiles(CardLocation from, CardLocation to, bool hasAuthority)

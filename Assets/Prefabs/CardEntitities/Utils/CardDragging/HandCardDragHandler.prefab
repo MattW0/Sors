@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 4733504958392053089}
   m_Layer: 0
   m_Name: HandCardDragHandler
-  m_TagString: Untagged
+  m_TagString: Slot
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -38,7 +38,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 110, y: 1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &8153643484771845982
 MonoBehaviour:
@@ -52,11 +52,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d12e4ecb42a043499da18848d518b0e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  instantiateVisual: 1
   moveSpeedLimit: 50
   selected: 0
   selectionOffset: 25
-  _cardVisualPrefab: {fileID: 223063927890674701, guid: 33335324c7f28ad438ae8d9e245c530d, type: 3}
   isHovering: 0
   isDragging: 0
   wasDragged: 0

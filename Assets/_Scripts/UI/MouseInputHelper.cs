@@ -3,7 +3,7 @@ using UnityEngine;
 
 public static class MouseInputHelper
 {
-    static readonly float zDistance = 5f;
+    static readonly float zDistance = 8f;
 
     /// <summary>
     /// Gets the world position for any point on the camera

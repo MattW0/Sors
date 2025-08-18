@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
 using System.Linq;
+using System;
 
 public class SortableCardPile : MonoBehaviour
 {
@@ -24,12 +25,13 @@ public class SortableCardPile : MonoBehaviour
         }
 
         cards = GetComponentsInChildren<CardDragHandler>().ToList();
+        foreach (CardDragHandler dragHandler in cards) AddSlot(dragHandler);
+    }
 
-        foreach (CardDragHandler card in cards)
-        {
-            card.BeginDragEvent.AddListener(BeginDrag);
-            card.EndDragEvent.AddListener(EndDrag);
-        }
+    internal void AddSlot(CardDragHandler dragHandler)
+    {
+        dragHandler.BeginDragEvent.AddListener(BeginDrag);
+        dragHandler.EndDragEvent.AddListener(EndDrag);
     }
 
     private void BeginDrag(CardDragHandler card) => _movingCard = card;
@@ -37,7 +39,7 @@ public class SortableCardPile : MonoBehaviour
     {
         if (_movingCard == null) return;
 
-        var endValue = _movingCard.selected ? new Vector3(0,_movingCard.selectionOffset,0) : Vector3.zero;
+        var endValue = _movingCard.selected ? new Vector3(0, _movingCard.selectionOffset ,0) : Vector3.zero;
         var duration = tweenCardReturn ? .15f : 0;
 
         _movingCard.transform.DOLocalMove(endValue, duration).SetEase(Ease.OutBack);
@@ -90,5 +92,4 @@ public class SortableCardPile : MonoBehaviour
         int swapDirection = cards[index].ParentIndex() > _movingCard.ParentIndex() ? -1 : 1;
         cards[index].Swap(swapDirection);
     }
-
 }
