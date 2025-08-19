@@ -4,11 +4,11 @@ using UnityEngine;
 using DG.Tweening;
 using Cysharp.Threading.Tasks;
 using System;
+using Sirenix.Utilities.Editor;
 
+[RequireComponent(typeof(CardDragManager))]
 public class CardMover : MonoBehaviour
 {
-    [SerializeField] private CardDragManager dragManager;
-
     [Header("Playboard Transforms")]
     [SerializeField] private CardsPileSors playerHand;
     [SerializeField] private CardsPileSors playerMoneyZone;
@@ -26,10 +26,14 @@ public class CardMover : MonoBehaviour
     [SerializeField] private CardsPileSors entitySpawn;
     [SerializeField] private CardsPileSors trash;
     [SerializeField] private CardsPileSors interaction;
+    private CardDragManager _dragManager;
 
     public static event Action OnUpdatePileNumbers;
 
-    private void Awake() => ServiceLocator.Global.Register<CardMover>(this);
+    private void Awake() {
+        ServiceLocator.Global.Register(this);
+        _dragManager = GetComponent<CardDragManager>();
+    }
 
     public void MoveTo(GameObject card, bool hasAuthority, CardLocation from, CardLocation to)
     {
@@ -108,7 +112,7 @@ public class CardMover : MonoBehaviour
         // card.transform.localScale = Vector3.one;
 
         if (pile.pileType != CardLocation.Hand) return;
-        dragManager.MakeCardDraggable(card, pileTransform);
+        _dragManager.MakeCardDraggable(card, pileTransform);
     }
 
     private (CardsPileSors, CardsPileSors) GetPiles(CardLocation from, CardLocation to, bool hasAuthority)

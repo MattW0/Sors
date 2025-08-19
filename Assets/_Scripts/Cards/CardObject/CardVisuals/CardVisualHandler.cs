@@ -73,12 +73,10 @@ public class CardVisualHandler : MonoBehaviour
         //Declarations
         _dragHandler = dragHandler;
         _slotTransform = dragHandler.transform;
-        transform.position = dragHandler.transform.position;
+        _lastPosition = transform.position;
 
         card.transform.SetParent(tiltParent, false);
-        card.transform.position = Vector3.zero;
-
-        _lastPosition = dragHandler.transform.position;
+        card.transform.localPosition = Vector3.zero;
 
         canvas = GetComponent<Canvas>();
         shadowCanvas = visualShadow.GetComponent<Canvas>();
@@ -113,14 +111,13 @@ public class CardVisualHandler : MonoBehaviour
     private void HandPositioning()
     {
         var normalPosition = NormalizedSlotPosition();
-        curveYOffset = curve.positioning.Evaluate(normalPosition) * curve.positioningInfluence;
-        
-        curveYOffset = _dragHandler.SiblingAmount() < 5 ? 0 : curveYOffset;
+
         curveRotationOffset = curve.rotation.Evaluate(normalPosition);
+        curveYOffset = curve.positioning.Evaluate(normalPosition) * curve.positioningInfluence;
+        if (_dragHandler.SiblingAmount() < 5) curveYOffset = 0;
 
         if (_dragHandler.isDragging) return;
-        transform.position = new Vector3(transform.position.x, curveYOffset, transform.position.z);
-        // print("SetPosition: "+ transform.position);
+        transform.localPosition = new Vector3(_slotTransform.position.x, curveYOffset, _slotTransform.position.z);
     }
 
     private void CardTilt()
@@ -136,17 +133,19 @@ public class CardVisualHandler : MonoBehaviour
         float tiltY = _dragHandler.isHovering ? (offset.x * manualTiltAmount) : 0;
         float tiltZ = curveRotationOffset * (curve.rotationInfluence * _dragHandler.SiblingAmount());
 
-        print($"{tiltX}, {tiltY}, {tiltX}");
+        // Target tilt
+        Quaternion targetRotation = Quaternion.Euler(
+            tiltX + (sine * autoTiltAmount), 
+            tiltY + (cosine * autoTiltAmount), 
+            tiltZ
+        );
 
-        float lerpX = Mathf.LerpAngle(tiltParent.eulerAngles.x, tiltX + (sine * autoTiltAmount), tiltSpeed * Time.deltaTime);
-        float lerpY = Mathf.LerpAngle(tiltParent.eulerAngles.y, tiltY + (cosine * autoTiltAmount), tiltSpeed * Time.deltaTime);
-        float lerpZ = Mathf.LerpAngle(tiltParent.eulerAngles.z, tiltZ, tiltSpeed / 2 * Time.deltaTime);
-
-        print($"{lerpX}, {lerpY}, {lerpZ}");
-
-        // TODO: Find out why this results in errors when hovering the card
-
-        tiltParent.eulerAngles = new Vector3(lerpX, lerpY, lerpZ);
+        // Smooth rotation
+        tiltParent.localRotation = Quaternion.Lerp(
+            tiltParent.localRotation,
+            targetRotation,
+            tiltSpeed * Time.deltaTime
+        );
     }
 
     private void FollowDrag()
@@ -164,7 +163,7 @@ public class CardVisualHandler : MonoBehaviour
             Mathf.Clamp(rotationDelta.x, -60, 60)
         );
 
-        transform.position = Vector3.Lerp(transform.position, _slotTransform.position, followSpeed * Time.deltaTime);
+        transform.position = Vector3.Lerp(_slotTransform.position, _slotTransform.position, followSpeed * Time.deltaTime);
         _lastPosition = _slotTransform.position;
     }
 

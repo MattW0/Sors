@@ -165,11 +165,13 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
 
     public int ParentIndex()
     {
-        var index = transform.CompareTag("Slot") ? transform.GetSiblingIndex() : 0;
+        // return transform.parent.GetSiblingIndex();
+        var index = transform.parent.CompareTag("Slot") ? transform.parent.GetSiblingIndex() : 0;
+        // print("Index: " + index);
         return index;
     }
 
-    public int SiblingAmount() => Math.Min(1, transform.parent.childCount - 1);
+    public int SiblingAmount() => Math.Max(1, transform.parent.parent.childCount - 1);
 
     private void OnDestroy()
     {

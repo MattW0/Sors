@@ -7,16 +7,16 @@ public class CardDragManager : MonoBehaviour
     [SerializeField] private GameObject _cardSlotPrefab;
     [SerializeField] private GameObject _cardVisualPrefab;
 
-
     public void MakeCardDraggable(GameObject card, Transform parent)
     {
         // CreateDragableSlot(parent);
-		var dragHandler = Instantiate(_cardSlotPrefab, parent, false).GetComponentInChildren<CardDragHandler>();
-        var cardVisual = Instantiate(_cardVisualPrefab, transform, false).GetComponent<CardVisualHandler>();
+		var cardSlot = Instantiate(_cardSlotPrefab, parent, false);
+        var cardVisual = Instantiate(_cardVisualPrefab, cardSlot.transform, false).GetComponent<CardVisualHandler>();
 
+        var dragHandler = cardSlot.GetComponentInChildren<CardDragHandler>();
         dragHandler.SetCardVisual(cardVisual);
-        cardVisual.Initialize(dragHandler, card);
 
+        cardVisual.Initialize(dragHandler, card);
         _playerHand.AddSlot(dragHandler);
     }
 

@@ -12,7 +12,7 @@ public class SortableCardPile : MonoBehaviour
 
     [Header("Spawn Settings")]
     [SerializeField] private int cardsToSpawn = 7;
-    public List<CardDragHandler> cards;
+    public List<CardDragHandler> _draggableCards;
 
     bool isCrossing = false;
     [SerializeField] private bool tweenCardReturn = true;
@@ -24,12 +24,12 @@ public class SortableCardPile : MonoBehaviour
             Instantiate(slotPrefab, transform);
         }
 
-        cards = GetComponentsInChildren<CardDragHandler>().ToList();
-        foreach (CardDragHandler dragHandler in cards) AddSlot(dragHandler);
+        foreach (CardDragHandler dragHandler in GetComponentsInChildren<CardDragHandler>().ToList()) AddSlot(dragHandler);
     }
 
     internal void AddSlot(CardDragHandler dragHandler)
     {
+        _draggableCards.Add(dragHandler);
         dragHandler.BeginDragEvent.AddListener(BeginDrag);
         dragHandler.EndDragEvent.AddListener(EndDrag);
     }
@@ -54,42 +54,48 @@ public class SortableCardPile : MonoBehaviour
 
     private void CheckSlotPosition()
     {
-        for (int i = 0; i < cards.Count; i++)
+        float movingX = _movingCard.transform.position.x;
+        int movingIndex = _draggableCards.IndexOf(_movingCard);
+
+        for (int i = 0; i < _draggableCards.Count; i++)
         {
-            if (_movingCard.transform.position.x > cards[i].transform.position.x)
+            if (i == movingIndex) continue;
+            float otherX = _draggableCards[i].transform.position.x;
+
+            // Moving right
+            if (movingX > otherX && movingIndex < i)
             {
-                if (_movingCard.ParentIndex() < cards[i].ParentIndex())
-                {
-                    Swap(i);
-                    break;
-                }
+                Swap(movingIndex, i);
+                break;
             }
 
-            if (_movingCard.transform.position.x < cards[i].transform.position.x)
+            // Moving left
+            if (movingX < otherX && movingIndex > i)
             {
-                if (_movingCard.ParentIndex() > cards[i].ParentIndex())
-                {
-                    Swap(i);
-                    break;
-                }
+                Swap(movingIndex, i);
+                break;
             }
         }
     }
 
-    private void Swap(int index)
+    private void Swap(int fromIndex, int toIndex)
     {
         isCrossing = true;
 
-        Transform focusedParent = _movingCard.transform.parent;
-        Transform crossedParent = cards[index].transform.parent;
+        var moving = _draggableCards[fromIndex];
+        var target = _draggableCards[toIndex];
 
-        cards[index].transform.SetParent(focusedParent);
-        cards[index].transform.localPosition = cards[index].selected ? new Vector3(0, cards[index].selectionOffset, 0) : Vector3.zero;
-        _movingCard.transform.SetParent(crossedParent);
+        target.transform.SetParent(moving.transform.parent, false);
+        target.transform.localPosition = target.selected ? new Vector3(0, target.selectionOffset, 0) : Vector3.zero;
+        
+        moving.transform.SetParent(target.transform.parent);
+
+        _draggableCards[fromIndex] = target;
+        _draggableCards[toIndex] = moving;
+
+        int swapDirection = toIndex > fromIndex ? -1 : 1;
+        target.Swap(swapDirection);
 
         isCrossing = false;
-
-        int swapDirection = cards[index].ParentIndex() > _movingCard.ParentIndex() ? -1 : 1;
-        cards[index].Swap(swapDirection);
     }
 }
