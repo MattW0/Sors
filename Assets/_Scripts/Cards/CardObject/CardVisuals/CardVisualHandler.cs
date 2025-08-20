@@ -72,6 +72,8 @@ public class CardVisualHandler : MonoBehaviour
     {
         //Declarations
         _dragHandler = dragHandler;
+        dragHandler.cardVisual = this;
+
         _slotTransform = dragHandler.transform;
         _lastPosition = transform.position;
 
@@ -180,11 +182,13 @@ public class CardVisualHandler : MonoBehaviour
 
     public void Swap(float swapDirection = 1)
     {
+        // transform.SetSiblingIndex(transform.parent.GetSiblingIndex());
+
         // Swap direction = -1 (right), 1 (left)
-        if (!swapAnimations)
-            return;
+        if (!swapAnimations) return;
 
         DOTween.Kill(2, true);
+        print($"Swap direciton: {swapDirection}, swap punch rotation: {Vector3.forward * swapRotationAngle * swapDirection}");
         shakeParent.DOPunchRotation(Vector3.forward * swapRotationAngle * swapDirection, swapTransition, swapVibrato, 1).SetId(3);
     }
 

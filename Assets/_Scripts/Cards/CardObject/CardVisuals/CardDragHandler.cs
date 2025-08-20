@@ -24,7 +24,7 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
     private float pointerUpTime;
 
     [Header("Visual")]
-    private CardVisualHandler _cardVisual;
+    public CardVisualHandler cardVisual;
     private Camera _cam;
 
     [Header("States")]
@@ -48,8 +48,6 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
         _cam = Camera.main;
         _screenBounds = MouseInputHelper.GetScreenBounds(_cam);
     }
-
-    internal void SetCardVisual(CardVisualHandler visual) => _cardVisual = visual;
 
     void LateUpdate()
     {
@@ -144,7 +142,7 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
         SelectEvent.Invoke(this, selected);
 
         if (selected)
-            transform.localPosition += _cardVisual.transform.up * selectionOffset;
+            transform.localPosition += cardVisual.transform.up * selectionOffset;
         else
             transform.localPosition = Vector3.zero;
     }
@@ -155,13 +153,13 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
         {
             selected = false;
             if (selected)
-                transform.localPosition += _cardVisual.transform.up * 50;
+                transform.localPosition += cardVisual.transform.up * 50;
             else
                 transform.localPosition = Vector3.zero;
         }
     }
 
-    public void Swap(int direction) => _cardVisual.Swap(direction);
+    public void Swap(int direction) => cardVisual.Swap(direction);
 
     public int ParentIndex()
     {
@@ -175,7 +173,7 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
 
     private void OnDestroy()
     {
-        if(_cardVisual != null)
-        Destroy(_cardVisual.gameObject);
+        if(cardVisual != null)
+        Destroy(cardVisual.gameObject);
     }
 }

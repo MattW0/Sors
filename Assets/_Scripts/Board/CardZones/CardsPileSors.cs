@@ -24,7 +24,7 @@ public class CardsPileSors : MonoBehaviour
 	private void Start()
 	{
 		_cardPileUI = GetComponent<CardPileUI>();
-		cardHolderTransform.position = _cardPileUI.transform.position;
+		// cardHolderTransform.position = _cardPileUI.transform.position;
 	}
 
 	private void CheckNumberCards()
