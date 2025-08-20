@@ -68,7 +68,7 @@ public class CardVisualHandler : MonoBehaviour
         shadowDistance = visualShadow.localPosition;
     }
 
-    public void Initialize(CardDragHandler dragHandler, GameObject card, int index = 0)
+    public void Initialize(CardDragHandler dragHandler, Transform cardTransform, int index = 0)
     {
         //Declarations
         _dragHandler = dragHandler;
@@ -77,8 +77,8 @@ public class CardVisualHandler : MonoBehaviour
         _slotTransform = dragHandler.transform;
         _lastPosition = transform.position;
 
-        card.transform.SetParent(tiltParent, false);
-        card.transform.localPosition = Vector3.zero;
+        cardTransform.SetParent(tiltParent, false);
+        cardTransform.localPosition = Vector3.zero;
 
         canvas = GetComponent<Canvas>();
         shadowCanvas = visualShadow.GetComponent<Canvas>();
@@ -90,7 +90,7 @@ public class CardVisualHandler : MonoBehaviour
         _dragHandler.EndDragEvent.AddListener(EndDrag);
         _dragHandler.PointerDownEvent.AddListener(PointerDown);
         _dragHandler.PointerUpEvent.AddListener(PointerUp);
-        _dragHandler.SelectEvent.AddListener(Select);
+        _dragHandler.OnSelect += Select;
 
         //Initialization
         initalize = true;
@@ -170,7 +170,7 @@ public class CardVisualHandler : MonoBehaviour
         _lastPosition = _slotTransform.position;
     }
 
-    private void Select(CardDragHandler card, bool state)
+    private void Select(bool state)
     {
         DOTween.Kill(2, true);
         float dir = state ? 1 : 0;
@@ -239,4 +239,8 @@ public class CardVisualHandler : MonoBehaviour
     }
 
     private float NormalizedSlotPosition() => (float) _dragHandler.ParentIndex() / _dragHandler.SiblingAmount();
+
+    private void OnDestroy() {
+        _dragHandler.OnSelect -= Select;
+    }
 }

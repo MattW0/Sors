@@ -42,7 +42,7 @@ public class CardMover : MonoBehaviour
         FlipCard(card, hasAuthority, to);
 
         // ApplyScaling(card, from, to);
-        ApplyMovement(destinationPile, card);
+        ApplyMovement(sourcePile, destinationPile, card);
     }
 
     public void MoveAllTo(List<GameObject> cards, bool hasAuthority, CardLocation from, CardLocation to)
@@ -56,7 +56,7 @@ public class CardMover : MonoBehaviour
             FlipCard(card, hasAuthority, to);
 
             // ApplyScaling(card, from, to);
-            ApplyMovement(destinationPile, card);
+            ApplyMovement(sourcePile, destinationPile, card);
         }
     }
     
@@ -96,21 +96,21 @@ public class CardMover : MonoBehaviour
     }
 
     #region Helpers
-    private void ApplyMovement(CardsPileSors pile, GameObject card)
+    private void ApplyMovement(CardsPileSors source, CardsPileSors destination, GameObject card)
     {
-        card.transform.DOMove(pile.cardHolderTransform.position, SorsTimings.cardMoveTime)
+        _dragManager.CardLeaves(source, card);
+
+        card.transform.DOMove(destination.cardHolderTransform.position, SorsTimings.cardMoveTime)
             .SetEase(Ease.InOutCubic)
-            .OnComplete(() => CardArrives(pile, card));
+            .OnComplete(() => CardArrives(destination, card));
     }
 
     private void CardArrives(CardsPileSors pile, GameObject card)
     {
-        print("Card arrives at pile: " + pile.pileType);
-
         var pileTransform = pile.cardHolderTransform;
         card.transform.SetParent(pileTransform, false);
 
-        if (pile.pileType == CardLocation.Hand) _dragManager.MakeCardDraggable(card, pileTransform);
+        _dragManager.CardArrives(pile, card);
         OnUpdatePileNumbers?.Invoke();
     }
 

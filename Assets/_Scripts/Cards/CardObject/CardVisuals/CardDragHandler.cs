@@ -28,6 +28,7 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
     private Camera _cam;
 
     [Header("States")]
+    [SerializeField] private CardClickHandler _cardClickListener;
     public bool isHovering;
     public bool isDragging;
     [HideInInspector] public bool wasDragged;
@@ -39,7 +40,9 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
     [HideInInspector] public UnityEvent<CardDragHandler> PointerDownEvent;
     [HideInInspector] public UnityEvent<CardDragHandler> BeginDragEvent;
     [HideInInspector] public UnityEvent<CardDragHandler> EndDragEvent;
-    [HideInInspector] public UnityEvent<CardDragHandler, bool> SelectEvent;
+    [HideInInspector] public event Action<bool> OnSelect;
+    public event Action OnInspect;
+
 
     void Start()
     {
@@ -47,6 +50,14 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
         imageComponent = GetComponent<Image>();
         _cam = Camera.main;
         _screenBounds = MouseInputHelper.GetScreenBounds(_cam);
+    }
+
+    internal void Initialize(CardClickHandler card, CardVisualHandler cardVisual)
+    {
+        _cardClickListener = card;
+        _cardClickListener.AddObserver(this);
+
+        cardVisual.Initialize(this, card.transform);
     }
 
     void LateUpdate()
@@ -67,10 +78,7 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
         return position;
     }
 
-    public void OnDrag(PointerEventData eventData)
-    {
-
-    }
+    public void OnDrag(PointerEventData eventData) { }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
@@ -125,11 +133,11 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        if (eventData.button != PointerEventData.InputButton.Left)
-            return;
+        if (eventData.button == PointerEventData.InputButton.Right)
+        {
 
+        }
         pointerUpTime = Time.time;
-
         PointerUpEvent.Invoke(this, pointerUpTime - pointerDownTime > .2f);
 
         if (pointerUpTime - pointerDownTime > .2f)
@@ -139,7 +147,7 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
             return;
 
         selected = !selected;
-        SelectEvent.Invoke(this, selected);
+        OnSelect?.Invoke(selected);
 
         if (selected)
             transform.localPosition += cardVisual.transform.up * selectionOffset;

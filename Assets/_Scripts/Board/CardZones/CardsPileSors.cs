@@ -7,13 +7,14 @@ public class CardsPileSors : MonoBehaviour
 {
 	public Transform cardHolderTransform;
 	public CardLocation pileType;
+    public bool isSortable;
 
 	[Header("Arrangement Settings")]
 	[SerializeField] public CardPileSettings defaultSettings;
 	[SerializeField] public CardPileSettings interactionSettings;
 	private CardPileUI _cardPileUI;
 
-	private void Start()
+    private void Start()
 	{
 		_cardPileUI = GetComponent<CardPileUI>();
 		_cardPileUI.CardHolder = cardHolderTransform;

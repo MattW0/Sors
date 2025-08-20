@@ -8,14 +8,13 @@ using System;
 public class SortableCardPile : MonoBehaviour
 {
     [SerializeField] private CardDragHandler _movingCard;
-    [SerializeField] private GameObject slotPrefab;
+    public List<CardDragHandler> _draggableCards;
+    [SerializeField] private bool tweenCardReturn = true;
 
     [Header("Spawn Settings")]
-    [SerializeField] private int cardsToSpawn = 7;
-    public List<CardDragHandler> _draggableCards;
-
+    [SerializeField] private int cardsToSpawn = 0;
+    [SerializeField] private GameObject slotPrefab;
     private bool _isCrossing = false;
-    [SerializeField] private bool tweenCardReturn = true;
 
     void Start()
     {
@@ -34,6 +33,13 @@ public class SortableCardPile : MonoBehaviour
 
         dragHandler.BeginDragEvent.AddListener(BeginDrag);
         dragHandler.EndDragEvent.AddListener(EndDrag);
+    }
+
+    internal void RemoveSlot(CardDragHandler dragHandler)
+    {
+        _draggableCards.Remove(dragHandler);
+        dragHandler.BeginDragEvent.RemoveListener(BeginDrag);
+        dragHandler.EndDragEvent.RemoveListener(EndDrag);
     }
 
     private void BeginDrag(CardDragHandler card) => _movingCard = card;
