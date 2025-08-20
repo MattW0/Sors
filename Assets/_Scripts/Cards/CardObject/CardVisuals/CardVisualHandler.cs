@@ -58,8 +58,8 @@ public class CardVisualHandler : MonoBehaviour
     [SerializeField] private CardPileCurveParameters curve;
 
     private Vector3 _lastPosition;
-    private float curveYOffset;
-    private float curveRotationOffset;
+    private float _yPositionOffset;
+    private float _zRotationOffset;
     private Camera _cam; 
 
     private void Start()
@@ -114,12 +114,13 @@ public class CardVisualHandler : MonoBehaviour
     {
         var normalPosition = NormalizedSlotPosition();
 
-        curveRotationOffset = curve.rotation.Evaluate(normalPosition);
-        curveYOffset = curve.positioning.Evaluate(normalPosition) * curve.positioningInfluence;
-        if (_dragHandler.SiblingAmount() < 5) curveYOffset = 0;
+        _zRotationOffset = curve.rotation.Evaluate(normalPosition)  * _dragHandler.SiblingAmount();
+
+        _yPositionOffset = curve.positioning.Evaluate(normalPosition) * curve.positioningInfluence;
+        if (_dragHandler.SiblingAmount() < 5) _yPositionOffset = 0;
 
         if (_dragHandler.isDragging) return;
-        transform.localPosition = new Vector3(_slotTransform.position.x, curveYOffset, _slotTransform.position.z);
+        transform.localPosition = new Vector3(_slotTransform.position.x, _yPositionOffset, _slotTransform.position.z);
     }
 
     private void CardTilt()
@@ -133,7 +134,7 @@ public class CardVisualHandler : MonoBehaviour
         Vector3 offset = transform.position - MouseInputHelper.GetMouseWorldPosition(_cam);
         float tiltX = _dragHandler.isHovering ? (offset.y * -1 * manualTiltAmount) : 0;
         float tiltY = _dragHandler.isHovering ? (offset.x * manualTiltAmount) : 0;
-        float tiltZ = curveRotationOffset * (curve.rotationInfluence * _dragHandler.SiblingAmount());
+        float tiltZ = _zRotationOffset * curve.rotationInfluence;
 
         // Target tilt
         Quaternion targetRotation = Quaternion.Euler(
@@ -182,13 +183,10 @@ public class CardVisualHandler : MonoBehaviour
 
     public void Swap(float swapDirection = 1)
     {
-        // transform.SetSiblingIndex(transform.parent.GetSiblingIndex());
-
         // Swap direction = -1 (right), 1 (left)
         if (!swapAnimations) return;
 
-        DOTween.Kill(2, true);
-        print($"Swap direciton: {swapDirection}, swap punch rotation: {Vector3.forward * swapRotationAngle * swapDirection}");
+        DOTween.Kill(3, true);
         shakeParent.DOPunchRotation(Vector3.forward * swapRotationAngle * swapDirection, swapTransition, swapVibrato, 1).SetId(3);
     }
 

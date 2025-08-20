@@ -22,10 +22,9 @@ public class ActionDescription : MonoBehaviour
 
     public void ChangeActionDescriptionText(TurnState state)
     {
-        print($"    - ActionDescription: Changing action description");
-
         if (state == TurnState.NextPhase) return;
         actionDescriptionText.text = GetText(state);
+        print($"    - ActionDescription: {actionDescriptionText.text}");
 
         // Only change icon and title when phase changes
         var iconPath = GetIconPath(state);

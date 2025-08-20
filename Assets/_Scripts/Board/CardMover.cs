@@ -4,7 +4,6 @@ using UnityEngine;
 using DG.Tweening;
 using Cysharp.Threading.Tasks;
 using System;
-using Sirenix.Utilities.Editor;
 
 [RequireComponent(typeof(CardDragManager))]
 public class CardMover : MonoBehaviour
@@ -106,13 +105,13 @@ public class CardMover : MonoBehaviour
 
     private void CardArrives(CardsPileSors pile, GameObject card)
     {
+        print("Card arrives at pile: " + pile.pileType);
+
         var pileTransform = pile.cardHolderTransform;
         card.transform.SetParent(pileTransform, false);
-        OnUpdatePileNumbers?.Invoke();
-        // card.transform.localScale = Vector3.one;
 
-        if (pile.pileType != CardLocation.Hand) return;
-        _dragManager.MakeCardDraggable(card, pileTransform);
+        if (pile.pileType == CardLocation.Hand) _dragManager.MakeCardDraggable(card, pileTransform);
+        OnUpdatePileNumbers?.Invoke();
     }
 
     private (CardsPileSors, CardsPileSors) GetPiles(CardLocation from, CardLocation to, bool hasAuthority)

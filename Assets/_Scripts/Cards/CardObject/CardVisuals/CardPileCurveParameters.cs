@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "CardPileCurveParameters", menuName = "Card Pile Curve Parameters")]
+[CreateAssetMenu(fileName = "CardPileCurveParameters", menuName = "Card Pile/Curve Parameters")]
 public class CardPileCurveParameters : ScriptableObject
 {
     public AnimationCurve positioning;

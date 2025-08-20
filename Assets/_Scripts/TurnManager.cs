@@ -662,7 +662,7 @@ public class TurnManager : NetworkBehaviour
             var nbInteractions = GetNumberOfInteractions(player, currentPrevailOption);
             var collection = GetCollection(player);
 
-            print($" - {turnState}: phase interaction - {player.PlayerName} has {nbInteractions} options available");
+            print($" - {turnState}: {player.PlayerName} has {nbInteractions} interactions");
             _interactionPanel.TargetStartCardInteraction(player.connectionToClient, collection, turnState, nbInteractions);
         }
     }

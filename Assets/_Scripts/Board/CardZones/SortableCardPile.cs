@@ -14,7 +14,7 @@ public class SortableCardPile : MonoBehaviour
     [SerializeField] private int cardsToSpawn = 7;
     public List<CardDragHandler> _draggableCards;
 
-    bool isCrossing = false;
+    private bool _isCrossing = false;
     [SerializeField] private bool tweenCardReturn = true;
 
     void Start()
@@ -50,58 +50,41 @@ public class SortableCardPile : MonoBehaviour
 
     void LateUpdate()
     {
-        if (_movingCard == null || isCrossing) return;
+        if (_movingCard == null || _isCrossing) return;
         CheckSlotPosition();
     }
 
     private void CheckSlotPosition()
     {
         float movingX = _movingCard.cardVisual.transform.position.x;
-        // int movingIndex = _draggableCards.IndexOf(_movingCard);
+        int movingIndex = _movingCard.ParentIndex();
 
         for (int i = 0; i < _draggableCards.Count; i++)
         {
             // if (i == movingIndex) continue;
 
             float otherX = _draggableCards[i].cardVisual.transform.position.x;
+            var otherIndex = _draggableCards[i].ParentIndex();
 
             // Moving right
-            if (movingX > otherX) //movingIndex < i &&
+            if (movingX > otherX && movingIndex < otherIndex)
             {
-                if (_movingCard.ParentIndex() < _draggableCards[i].ParentIndex())
-                {
                 Swap(i);
                 break;
-                }
             }
 
             // Moving left
-            if (movingX < otherX)
+            if (movingX < otherX && movingIndex > otherIndex)
             {
-                if (_movingCard.ParentIndex() > _draggableCards[i].ParentIndex())
-                {
                 Swap(i);
                 break;
-                }
             }
         }
     }
 
     private void Swap(int index)
     {
-        // print($"Swap index : {fromIndex} -> {toIndex}");
-        isCrossing = true;
-
-        // Get slots from the cards
-        // Transform slotA = _draggableCards[fromIndex].transform.parent;
-        // Transform slotB = _draggableCards[toIndex].transform.parent;
-
-        // // Swap slots in hierarchy
-        // slotA.SetSiblingIndex(toIndex);
-        // slotB.SetSiblingIndex(fromIndex);
-
-        // // Swap in list
-        // (_draggableCards[toIndex], _draggableCards[fromIndex]) = (_draggableCards[fromIndex], _draggableCards[toIndex]);
+        _isCrossing = true;
 
         Transform focusedParent = _movingCard.transform.parent;
         Transform crossedParent = _draggableCards[index].transform.parent;
@@ -113,17 +96,13 @@ public class SortableCardPile : MonoBehaviour
         bool swapIsRight = _draggableCards[index].ParentIndex() > _movingCard.ParentIndex();
         _draggableCards[index].cardVisual.Swap(swapIsRight ? -1 : 1);
 
-
-
-        // int swapDirection = toIndex > fromIndex ? -1 : 1;
-        // _draggableCards[toIndex].Swap(swapDirection);
-
-        StartCoroutine(Frame());
+        _isCrossing = false;
+        // StartCoroutine(Frame());
     }
 
-    private IEnumerator Frame()
-    {
-        yield return new WaitForSecondsRealtime(.1f);
-        isCrossing = false;
-    }
+    // private IEnumerator Frame()
+    // {
+    //     yield return new WaitForSecondsRealtime(.1f);
+    //     _isCrossing = false;
+    // }
 }

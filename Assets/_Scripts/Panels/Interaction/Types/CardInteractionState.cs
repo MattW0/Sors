@@ -7,10 +7,10 @@ using System.Runtime.InteropServices;
 public abstract class CardInteractionState : InteractionStateBase
 {
     public List<CardStats> selectableCards;
-    public InteractionPileUI InteractionPile { get; set; }
-    public override void Initialize(InteractionPileUI[] piles)
+    public CardsPileSors InteractionPile { get; set; }
+    public override void Initialize(CardsPileSors[] piles)
     {
-        InteractionPile = piles.FirstOrDefault(p => p.Location == Config.interactionPile);
+        InteractionPile = piles.FirstOrDefault(p => p.pileType == Config.interactionPile);
 
         if(InteractionPile == null) Debug.LogWarning("Interaction pile not set in InteractionPanel.cs or not defined for state config " + ConfigName);
     }
