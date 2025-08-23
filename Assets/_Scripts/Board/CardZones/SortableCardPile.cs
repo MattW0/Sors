@@ -5,41 +5,31 @@ using DG.Tweening;
 using System.Linq;
 using System;
 
-public class SortableCardPile : MonoBehaviour
+[RequireComponent(typeof(CardsPileSors))]
+public class SortableCardPile : MonoBehaviour, ICardPileArrangement
 {
     [SerializeField] private CardDragHandler _movingCard;
-    public List<CardDragHandler> _draggableCards;
     [SerializeField] private bool tweenCardReturn = true;
-
-    [Header("Spawn Settings")]
-    [SerializeField] private int cardsToSpawn = 0;
-    [SerializeField] private GameObject slotPrefab;
     private bool _isCrossing = false;
+    public List<CardDragHandler> Cards => _cards;
+    private List<CardDragHandler> _cards = new();
 
-    void Start()
+    public void AddCard(CardDragHandler dragHandler, GameObject card)
     {
-        for (int i = 0; i < cardsToSpawn; i++)
-        {
-            Instantiate(slotPrefab, transform);
-        }
-
-        foreach (CardDragHandler dragHandler in GetComponentsInChildren<CardDragHandler>().ToList()) AddSlot(dragHandler);
-    }
-
-    internal void AddSlot(CardDragHandler dragHandler)
-    {
-        _draggableCards.Add(dragHandler);
-        dragHandler.gameObject.name = $"{_draggableCards.IndexOf(dragHandler)}";
+        _cards.Add(dragHandler);
+        dragHandler.gameObject.name = $"{_cards.IndexOf(dragHandler)}";
 
         dragHandler.BeginDragEvent.AddListener(BeginDrag);
         dragHandler.EndDragEvent.AddListener(EndDrag);
+
+        card.transform.localPosition = Vector3.zero;
     }
 
-    internal void RemoveSlot(CardDragHandler dragHandler)
+    public void RemoveCard(CardDragHandler card)
     {
-        _draggableCards.Remove(dragHandler);
-        dragHandler.BeginDragEvent.RemoveListener(BeginDrag);
-        dragHandler.EndDragEvent.RemoveListener(EndDrag);
+        _cards.Remove(card);
+        card.BeginDragEvent.RemoveListener(BeginDrag);
+        card.EndDragEvent.RemoveListener(EndDrag);
     }
 
     private void BeginDrag(CardDragHandler card) => _movingCard = card;
@@ -65,12 +55,12 @@ public class SortableCardPile : MonoBehaviour
         float movingX = _movingCard.cardVisual.transform.position.x;
         int movingIndex = _movingCard.ParentIndex();
 
-        for (int i = 0; i < _draggableCards.Count; i++)
+        for (int i = 0; i < _cards.Count; i++)
         {
             // if (i == movingIndex) continue;
 
-            float otherX = _draggableCards[i].cardVisual.transform.position.x;
-            var otherIndex = _draggableCards[i].ParentIndex();
+            float otherX = _cards[i].cardVisual.transform.position.x;
+            var otherIndex = _cards[i].ParentIndex();
 
             // Moving right
             if (movingX > otherX && movingIndex < otherIndex)
@@ -93,22 +83,15 @@ public class SortableCardPile : MonoBehaviour
         _isCrossing = true;
 
         Transform focusedParent = _movingCard.transform.parent;
-        Transform crossedParent = _draggableCards[index].transform.parent;
+        Transform crossedParent = _cards[index].transform.parent;
 
-        _draggableCards[index].transform.SetParent(focusedParent);
-        _draggableCards[index].transform.localPosition = _draggableCards[index].selected ? new Vector3(0, _draggableCards[index].selectionOffset, 0) : Vector3.zero;
+        _cards[index].transform.SetParent(focusedParent);
+        _cards[index].transform.localPosition = _cards[index].selected ? new Vector3(0, _cards[index].selectionOffset, 0) : Vector3.zero;
         _movingCard.transform.SetParent(crossedParent);
 
-        bool swapIsRight = _draggableCards[index].ParentIndex() > _movingCard.ParentIndex();
-        _draggableCards[index].cardVisual.Swap(swapIsRight ? -1 : 1);
+        bool swapIsRight = _cards[index].ParentIndex() > _movingCard.ParentIndex();
+        _cards[index].cardVisual.Swap(swapIsRight ? -1 : 1);
 
         _isCrossing = false;
-        // StartCoroutine(Frame());
     }
-
-    // private IEnumerator Frame()
-    // {
-    //     yield return new WaitForSecondsRealtime(.1f);
-    //     _isCrossing = false;
-    // }
 }

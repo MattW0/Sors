@@ -28,7 +28,7 @@ public class InteractionUI : AnimatedPanel
         _resetButton.onClick.AddListener(Reset);
 
         _displayText.text = "";
-        _detailCardPreview.HideAll(true);
+        _detailCardPreview.HideAll();
     }
 
     public void StartInteraction(IInteractionState state, bool skip, int nbCardsToSelectMax = -1)
@@ -70,7 +70,7 @@ public class InteractionUI : AnimatedPanel
 
     public void DeselectMarketTile()
     {
-        _detailCardPreview.HideAll(true);
+        _detailCardPreview.HideAll();
         _confirmButton.interactable = false;
     }
 

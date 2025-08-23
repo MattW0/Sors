@@ -7,7 +7,6 @@ public class CardsPileSors : MonoBehaviour
 {
 	public Transform cardHolderTransform;
 	public CardLocation pileType;
-    public bool isSortable;
 
 	[Header("Arrangement Settings")]
 	[SerializeField] public CardPileSettings defaultSettings;

@@ -19,6 +19,7 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
     public string[] handTitles;
     public string[] moneyTitles;
     private CardMover _cardMover;
+    private CardSlotsManager _cardSlotsManager;
     private PlayerManager _owner;
 
     private void Start()
@@ -196,16 +197,19 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
     }
 
     [ClientRpc]
-    public void RpcShowSpawnedCard(GameObject card, CardLocation destination){
+    public void RpcShowSpawnedCard(GameObject card, CardLocation destination)
+    {
         _cardMover.ShowSpawnedCard(card, isOwned, destination).Forget();
         AddCardToCollection(card.GetComponent<CardStats>(), destination);
     }
 
     [ClientRpc]
-    public void RpcShowSpawnedCards(List<GameObject> cards, CardLocation destination, bool fromFile){
+    public void RpcShowSpawnedCards(List<GameObject> cards, CardLocation destination, bool fromFile)
+    {
         _cardMover.ShowSpawnedCards(cards, isOwned, destination, fromFile).Forget();
-        foreach(var card in cards) AddCardToCollection(card.GetComponent<CardStats>(), destination);
-    } 
+        AddCardsToCollection(cards, destination);
+    }
+
 
     [Client]
     private async UniTaskVoid ClientDrawing(List<GameObject> cards)
@@ -216,6 +220,18 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
             RpcMoveCard(card, CardLocation.Deck, CardLocation.Hand);
             await UniTask.Delay(SorsTimings.draw);
         }
+    }
+
+    private void AddCardsToCollection(List<GameObject> cards, CardLocation destination)
+    {
+        foreach (var card in cards) AddCardToCollection(card.GetComponent<CardStats>(), destination);
+    }
+    private void AddCardToCollection(CardStats card, CardLocation destination)
+    {
+        if (destination == CardLocation.Deck) _owner.Cards.deck.Add(card);
+        else if(destination == CardLocation.Discard) _owner.Cards.discard.Add(card);
+        else if(destination == CardLocation.Hand) _owner.Cards.hand.Add(card);
+        else Debug.LogWarning("Trying to add card to invalid location: " + destination);
     }
 
     #endregion
@@ -230,12 +246,4 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
     }
 
     public void OnAfterDeserialize(){ }
-
-    private void AddCardToCollection(CardStats card, CardLocation destination)
-    {
-        if (destination == CardLocation.Deck) _owner.Cards.deck.Add(card);
-        else if(destination == CardLocation.Discard) _owner.Cards.discard.Add(card);
-        else if(destination == CardLocation.Hand) _owner.Cards.hand.Add(card);
-        else Debug.LogWarning("Trying to add card to invalid location: " + destination);
-    }
 }

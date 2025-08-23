@@ -86,8 +86,6 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
         
         offset = MouseInputHelper.GetMouseWorldPosition(_cam) - transform.position;
         isDragging = true;
-        
-        canvas.GetComponent<GraphicRaycaster>().enabled = false;
         imageComponent.raycastTarget = false;
 
         wasDragged = true;
@@ -97,7 +95,6 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
     {
         EndDragEvent.Invoke(this);
         isDragging = false;
-        canvas.GetComponent<GraphicRaycaster>().enabled = true;
         imageComponent.raycastTarget = true;
 
         StartCoroutine(FrameWait());

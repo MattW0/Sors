@@ -14,6 +14,7 @@ public class CardPileUI : MonoBehaviour
     }
 
     public void UpdateCardPileNumber(){
+        // print("Update card number");
         _cardNumber.text = CardHolder.childCount.ToString();
     }
 

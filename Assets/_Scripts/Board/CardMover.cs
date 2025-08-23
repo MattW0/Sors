@@ -5,7 +5,7 @@ using DG.Tweening;
 using Cysharp.Threading.Tasks;
 using System;
 
-[RequireComponent(typeof(CardDragManager))]
+[RequireComponent(typeof(CardSlotsManager))]
 public class CardMover : MonoBehaviour
 {
     [Header("Playboard Transforms")]
@@ -25,13 +25,13 @@ public class CardMover : MonoBehaviour
     [SerializeField] private CardsPileSors entitySpawn;
     [SerializeField] private CardsPileSors trash;
     [SerializeField] private CardsPileSors interaction;
-    private CardDragManager _dragManager;
+    private CardSlotsManager _slotManager;
 
     public static event Action OnUpdatePileNumbers;
 
     private void Awake() {
         ServiceLocator.Global.Register(this);
-        _dragManager = GetComponent<CardDragManager>();
+        _slotManager = GetComponent<CardSlotsManager>();
     }
 
     public void MoveTo(GameObject card, bool hasAuthority, CardLocation from, CardLocation to)
@@ -72,7 +72,7 @@ public class CardMover : MonoBehaviour
     public async UniTaskVoid ShowSpawnedCards(List<GameObject> cards, bool hasAuthority, CardLocation destination, bool fromFile)
     {
         foreach(var card in cards){
-            InitSpawnedCard(card, hasAuthority, fromFile);
+            InitSpawnedCard(card, fromFile);
             await UniTask.Delay(SorsTimings.spawnCard);
         }
 
@@ -84,33 +84,24 @@ public class CardMover : MonoBehaviour
         }
     }
 
-    private void InitSpawnedCard(GameObject card, bool hasAuthority, bool fromFile=false)
+    private void InitSpawnedCard(GameObject card, bool fromFile=false)
     {    
         card.transform.localScale = Vector3.one;
         if(!fromFile) card.GetComponent<HandCardUI>().CardFrontUp();
-
-        // if (hasAuthority) opponentCardSpawn.CardHasArrived(card);
-        // else playerCardSpawn.CardHasArrived(card);
-
         card.SetActive(true);
     }
 
     #region Helpers
     private void ApplyMovement(CardsPileSors source, CardsPileSors destination, GameObject card)
     {
-        _dragManager.CardLeaves(source, card);
-
         card.transform.DOMove(destination.cardHolderTransform.position, SorsTimings.cardMoveTime)
             .SetEase(Ease.InOutCubic)
-            .OnComplete(() => CardArrives(destination, card));
+            .OnComplete(() => FinishMove(destination, card));
     }
 
-    private void CardArrives(CardsPileSors pile, GameObject card)
+    private void FinishMove(CardsPileSors pile, GameObject card)
     {
-        var pileTransform = pile.cardHolderTransform;
-        card.transform.SetParent(pileTransform, false);
-
-        _dragManager.CardArrives(pile, card);
+        _slotManager.CardArrives(pile, card);
         OnUpdatePileNumbers?.Invoke();
     }
 
@@ -176,6 +167,29 @@ public class CardMover : MonoBehaviour
     //         card.transform.DOScale(0.25f, SorsTimings.cardMoveTime);
     //     }
     // }
+
+    public List<CardsPileSors> GetPiles() 
+    {
+        return new List<CardsPileSors> {
+            playerHand,
+            playerMoneyZone,
+            playerPlayZone,
+            playerDeck,
+            playerDiscardPile,
+            opponentHand,
+            opponentMoneyZone,
+            opponentPlayZone,
+            opponentDeck,
+            opponentDiscardPile,
+            playerCardSpawn,
+            opponentCardSpawn,
+            selection,
+            entitySpawn,
+            trash,
+            interaction
+        };
+    }
+
     #endregion
 }
 
