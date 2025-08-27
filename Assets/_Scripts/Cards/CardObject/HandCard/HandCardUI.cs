@@ -5,15 +5,15 @@ using DG.Tweening;
 
 public class HandCardUI : CardUI
 {
-    [SerializeField] private GameObject _front;
+    [SerializeField] private GameObject _back;
 
     public void CardBackUp()
     {
-        _front.SetActive(false);
+        _back.SetActive(true);
     }
     public void CardFrontUp()
     {
-        _front.SetActive(true);
+        _back.SetActive(false);
     }
 
     public void Highlight(bool value, TurnState state)

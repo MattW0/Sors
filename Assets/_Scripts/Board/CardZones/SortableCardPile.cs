@@ -5,29 +5,24 @@ using DG.Tweening;
 using System.Linq;
 using System;
 
-[RequireComponent(typeof(CardsPileSors))]
-public class SortableCardPile : MonoBehaviour, ICardPileArrangement
+public class SortableCardPile : CardPileArrangement
 {
     [SerializeField] private CardDragHandler _movingCard;
     [SerializeField] private bool tweenCardReturn = true;
     private bool _isCrossing = false;
-    public List<CardDragHandler> Cards => _cards;
-    private List<CardDragHandler> _cards = new();
 
-    public void AddCard(CardDragHandler dragHandler, GameObject card)
+    public override void AddCard(CardDragHandler dragHandler, GameObject card)
     {
-        _cards.Add(dragHandler);
-        dragHandler.gameObject.name = $"{_cards.IndexOf(dragHandler)}";
+        base.AddCard(dragHandler, card);
 
         dragHandler.BeginDragEvent.AddListener(BeginDrag);
         dragHandler.EndDragEvent.AddListener(EndDrag);
-
-        card.transform.localPosition = Vector3.zero;
     }
 
-    public void RemoveCard(CardDragHandler card)
+    public override void RemoveCard(CardDragHandler card)
     {
-        _cards.Remove(card);
+        base.RemoveCard(card);
+        
         card.BeginDragEvent.RemoveListener(BeginDrag);
         card.EndDragEvent.RemoveListener(EndDrag);
     }
@@ -55,12 +50,12 @@ public class SortableCardPile : MonoBehaviour, ICardPileArrangement
         float movingX = _movingCard.cardVisual.transform.position.x;
         int movingIndex = _movingCard.ParentIndex();
 
-        for (int i = 0; i < _cards.Count; i++)
+        for (int i = 0; i < cards.Count; i++)
         {
             // if (i == movingIndex) continue;
 
-            float otherX = _cards[i].cardVisual.transform.position.x;
-            var otherIndex = _cards[i].ParentIndex();
+            float otherX = cards[i].cardVisual.transform.position.x;
+            var otherIndex = cards[i].ParentIndex();
 
             // Moving right
             if (movingX > otherX && movingIndex < otherIndex)
@@ -83,14 +78,14 @@ public class SortableCardPile : MonoBehaviour, ICardPileArrangement
         _isCrossing = true;
 
         Transform focusedParent = _movingCard.transform.parent;
-        Transform crossedParent = _cards[index].transform.parent;
+        Transform crossedParent = cards[index].transform.parent;
 
-        _cards[index].transform.SetParent(focusedParent);
-        _cards[index].transform.localPosition = _cards[index].selected ? new Vector3(0, _cards[index].selectionOffset, 0) : Vector3.zero;
+        cards[index].transform.SetParent(focusedParent);
+        cards[index].transform.localPosition = cards[index].selected ? new Vector3(0, cards[index].selectionOffset, 0) : Vector3.zero;
         _movingCard.transform.SetParent(crossedParent);
 
-        bool swapIsRight = _cards[index].ParentIndex() > _movingCard.ParentIndex();
-        _cards[index].cardVisual.Swap(swapIsRight ? -1 : 1);
+        bool swapIsRight = cards[index].ParentIndex() > _movingCard.ParentIndex();
+        cards[index].cardVisual.Swap(swapIsRight ? -1 : 1);
 
         _isCrossing = false;
     }

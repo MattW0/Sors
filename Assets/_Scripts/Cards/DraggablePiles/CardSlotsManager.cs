@@ -27,38 +27,30 @@ public class CardSlotsManager : MonoBehaviour
 
         if (! _activeSlots.TryGetValue(stats.cardInfo.goID, out var slot)) {
             slot = await SpawnSlot(card);
-            print("Spawn slot for card: " + stats.cardInfo.title);
+            // print("Spawn slot for card: " + stats.cardInfo.title);
         }
 
-        print($"card {stats.cardInfo.title} arrives at pile {pile.pileType}");
-
-        var pileTransform = pile.cardHolderTransform;
-        
-        slot.MoveToPile(pileTransform);
+        // print($"card {stats.cardInfo.title} arrives at pile {pile.pileType}");
+        slot.SetParent(pile.cardHolderTransform);
         _controllers[pile].AddCard(slot.DragHandler, card);
     }
 
     internal void CardLeaves(CardsPileSors pile, GameObject card)
     {
         var stats = card.GetComponent<CardStats>();
-
-        // if (!_activeSlots.TryGetValue(stats.cardInfo.goID, out var slot))
-        //     return;
         
-        print($"Remove {stats.cardInfo.title} from collection {pile.pileType}");
+        // print($"Remove {stats.cardInfo.title} from collection {pile.pileType}");
         var slot = _activeSlots[stats.cardInfo.goID];
-
         _controllers[pile].RemoveCard(slot.DragHandler);
     }
     
     private async UniTask<CardSlot> SpawnSlot(GameObject card)
     {
         var stats = card.GetComponent<CardStats>();
-        Debug.Log($"Spawn slot for card {stats.cardInfo.title}");
-
         var slot = _factory.CreateSlot();
-        _activeSlots[stats.cardInfo.goID] = slot;
+
         slot.Initialize(card);
+        _activeSlots[stats.cardInfo.goID] = slot;
 
         // Example: small spawn delay / animation
         await UniTask.Delay(SorsTimings.spawnCard);

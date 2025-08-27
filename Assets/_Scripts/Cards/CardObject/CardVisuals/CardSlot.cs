@@ -4,25 +4,19 @@ using UnityEngine;
 public class CardSlot : MonoBehaviour
 {
     public CardDragHandler DragHandler { get; private set; }
-    public CardVisualHandler VisualHandler { get; private set; }
+    private CardVisualHandler _visualHandler;
 
-    private void Awake()
-    {
-        DragHandler = GetComponentInChildren<CardDragHandler>();
-        VisualHandler = DragHandler.GetComponentInChildren<CardVisualHandler>();
-    }
-
-    public void MoveToPile(Transform pileTransform)    
-    {
-        print("Set parent: " + pileTransform);
-        transform.SetParent(pileTransform, false);
-    }
-    
     public void Initialize(GameObject card)
     {
-        DragHandler.Initialize(card.GetComponent<CardClickHandler>(), VisualHandler);
+        DragHandler = GetComponentInChildren<CardDragHandler>();
+        _visualHandler = DragHandler.GetComponentInChildren<CardVisualHandler>();
+
+        DragHandler.Initialize(card.GetComponent<CardClickHandler>(), _visualHandler);
         gameObject.SetActive(true);
     }
+
+    public void SetParent(Transform pileTransform) => transform.SetParent(pileTransform, false);
+    
 
     public void DetachToPool(Transform poolParent)
     {

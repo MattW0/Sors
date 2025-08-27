@@ -37,12 +37,7 @@ public class CardMover : MonoBehaviour
     public void MoveTo(GameObject card, bool hasAuthority, CardLocation from, CardLocation to)
     {
         var (sourcePile, destinationPile) = GetPiles(from, to, hasAuthority);
-
-        // Is front or back up ?
-        FlipCard(card, hasAuthority, to);
-
-        // ApplyScaling(card, from, to);
-        ApplyMovement(sourcePile, destinationPile, card);
+        MoveCard(hasAuthority, from, to, sourcePile, destinationPile, card);
     }
 
     public void MoveAllTo(List<GameObject> cards, bool hasAuthority, CardLocation from, CardLocation to)
@@ -51,15 +46,17 @@ public class CardMover : MonoBehaviour
         // sourcePile.UpdatePosition = true;
         // var destinationPile = GetPile(to, hasAuthority);
 
-        foreach(var card in cards){
-            // Is front or back up ?
-            FlipCard(card, hasAuthority, to);
-
-            // ApplyScaling(card, from, to);
-            ApplyMovement(sourcePile, destinationPile, card);
-        }
+        foreach(var card in cards) MoveCard(hasAuthority, from, to, sourcePile, destinationPile, card);
     }
-    
+
+    private void MoveCard(bool hasAuthority, CardLocation from, CardLocation to, CardsPileSors sourcePile, CardsPileSors destinationPile, GameObject card)
+    {
+        // Is front or back up ?
+        FlipCard(card, hasAuthority, to);
+        // ApplyScaling(card, from, to);
+        ApplyMovement(sourcePile, destinationPile, card);
+    }
+
     public async UniTaskVoid ShowSpawnedCard(GameObject card, bool hasAuthority, CardLocation destination)
     {
         InitSpawnedCard(card, hasAuthority);
@@ -94,6 +91,9 @@ public class CardMover : MonoBehaviour
     #region Helpers
     private void ApplyMovement(CardsPileSors source, CardsPileSors destination, GameObject card)
     {
+        if (source.pileType != CardLocation.CardSpawn)
+            _slotManager.CardLeaves(source, card);
+
         card.transform.DOMove(destination.cardHolderTransform.position, SorsTimings.cardMoveTime)
             .SetEase(Ease.InOutCubic)
             .OnComplete(() => FinishMove(destination, card));
@@ -101,7 +101,7 @@ public class CardMover : MonoBehaviour
 
     private void FinishMove(CardsPileSors pile, GameObject card)
     {
-        _slotManager.CardArrives(pile, card);
+        _slotManager.CardArrives(pile, card).Forget();
         OnUpdatePileNumbers?.Invoke();
     }
 
@@ -151,22 +151,22 @@ public class CardMover : MonoBehaviour
         }
     }
 
-    // private void ApplyScaling(GameObject card, CardLocation from, CardLocation to)
-    // {
-    //     // Only apply scaling for piles PlayZone, MoneyZone and Spawn
-    //     // These have local scale 0.7 to reduce playboard space occupation        
-    //     if(to == CardLocation.Hand)
-    //         card.transform.DOScale(1.4f, SorsTimings.cardMoveTime);
-    //     else if(from == CardLocation.Hand && (to == CardLocation.MoneyZone || to == CardLocation.PlayZone))
-    //         card.transform.DOScale(0.7f, SorsTimings.cardMoveTime);
-    //     else if (from == CardLocation.CardSpawn){
-    //         card.transform.DOScale(0.5f, SorsTimings.cardMoveTime);
-    //     } else if (to == CardLocation.EntitySpawn){
-    //         card.transform.DOScale(3f, SorsTimings.cardMoveTime);
-    //     } else if (from == CardLocation.EntitySpawn){
-    //         card.transform.DOScale(0.25f, SorsTimings.cardMoveTime);
-    //     }
-    // }
+    private void ApplyScaling(GameObject card, CardLocation from, CardLocation to)
+    {
+        // Only apply scaling for piles PlayZone, MoneyZone and Spawn
+        // These have local scale 0.7 to reduce playboard space occupation        
+        if(to == CardLocation.Hand)
+            card.transform.DOScale(1.4f, SorsTimings.cardMoveTime);
+        else if(from == CardLocation.Hand && (to == CardLocation.MoneyZone || to == CardLocation.PlayZone))
+            card.transform.DOScale(0.7f, SorsTimings.cardMoveTime);
+        else if (from == CardLocation.CardSpawn){
+            card.transform.DOScale(0.5f, SorsTimings.cardMoveTime);
+        } else if (to == CardLocation.EntitySpawn){
+            card.transform.DOScale(3f, SorsTimings.cardMoveTime);
+        } else if (from == CardLocation.EntitySpawn){
+            card.transform.DOScale(0.25f, SorsTimings.cardMoveTime);
+        }
+    }
 
     public List<CardsPileSors> GetPiles() 
     {

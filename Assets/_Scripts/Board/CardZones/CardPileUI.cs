@@ -6,7 +6,7 @@ using System;
 
 public class CardPileUI : MonoBehaviour
 {
-    public Transform CardHolder { get; set; }
+    public Transform ParentTransform { get; set; }
     [SerializeField] private TMP_Text _cardNumber;
 
     private void Awake() {
@@ -15,7 +15,7 @@ public class CardPileUI : MonoBehaviour
 
     public void UpdateCardPileNumber(){
         // print("Update card number");
-        _cardNumber.text = CardHolder.childCount.ToString();
+        _cardNumber.text = ParentTransform.childCount.ToString();
     }
 
     private void OnDestroy() {

@@ -39,11 +39,11 @@ public class NetworkObjectSpawner : NetworkBehaviour //, INetworkObjectSpawner
     {
         if (scriptableCard == null) 
         {
-            Debug.LogWarning("Trying to spawn card where scriptable is null");
+            Debug.LogWarning("Trying to spawn card where scriptable is null: " + scriptableCard.name);
             return null;
         }
 
-        print($"Spawning card {scriptableCard.title} for {player.PlayerName}");
+        // print($"Spawning card {scriptableCard.title} for {player.PlayerName}");
 
         var cardObject = CreateCardObject(scriptableCard);
         if (cardObject == null) return null;
