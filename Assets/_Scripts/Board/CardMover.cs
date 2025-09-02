@@ -24,7 +24,6 @@ public class CardMover : MonoBehaviour
     [SerializeField] private CardsPileSors selection;
     [SerializeField] private CardsPileSors entitySpawn;
     [SerializeField] private CardsPileSors trash;
-    [SerializeField] private CardsPileSors interaction;
     private CardSlotsManager _slotManager;
 
     public static event Action OnUpdatePileNumbers;
@@ -126,7 +125,6 @@ public class CardMover : MonoBehaviour
             CardLocation.EntitySpawn => entitySpawn,
             CardLocation.Trash => trash,
             CardLocation.Selection => selection,
-            CardLocation.Interaction => interaction,
             _ => null
         };
 
@@ -139,8 +137,8 @@ public class CardMover : MonoBehaviour
         if(to == CardLocation.Discard 
             || to == CardLocation.MoneyZone 
             || to == CardLocation.Trash
-            || to == CardLocation.EntitySpawn
-            || to == CardLocation.Interaction){
+            || to == CardLocation.EntitySpawn)
+        {
             cardUI.CardFrontUp();
         } else if (to == CardLocation.Hand && hasAuthority){
             cardUI.CardFrontUp();
@@ -185,8 +183,7 @@ public class CardMover : MonoBehaviour
             opponentCardSpawn,
             selection,
             entitySpawn,
-            trash,
-            interaction
+            trash
         };
     }
 
@@ -203,6 +200,5 @@ public enum CardLocation : byte
     PlayZone,
     MoneyZone,
     Discard,
-    Selection,
-    Interaction
+    Selection
 }

@@ -12,7 +12,7 @@ public class CardsPileSors : MonoBehaviour
 	[Header("Arrangement Settings")]
 	[SerializeField] public CardPileSettings defaultSettings;
 	[SerializeField] public CardPileSettings interactionSettings;
-	public Transform cardHolderTransform;
+	[HideInInspector] public Transform cardHolderTransform;
 	private CardPileUI _cardPileUI;
 
     private void Start()

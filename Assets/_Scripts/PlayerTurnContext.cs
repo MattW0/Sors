@@ -15,7 +15,6 @@ public class PlayerTurnContext
         CashBuffer = 0;
         SelectedCardIds.Clear();
         SelectedCard = null;
-        PrevailOptions.Clear();
     }
 
     [Server]

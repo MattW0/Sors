@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using Mirror;
+using Mirror.Examples.Basic;
 
 public class PlayerManager : NetworkBehaviour
 {
@@ -117,6 +118,7 @@ public class PlayerManager : NetworkBehaviour
     [Command]
     public void CmdPrevailSelection(List<PrevailOption> options)
     {
+        // print(PlayerName + " has prevail options: " + options.Count);
         TurnContext.PrevailOptions = options;
         _turnManager.PlayerIsReady(this);
     }
