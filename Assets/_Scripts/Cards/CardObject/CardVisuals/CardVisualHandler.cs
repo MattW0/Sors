@@ -2,6 +2,7 @@ using UnityEngine;
 using DG.Tweening;
 using UnityEngine.UI;
 using TMPro.EditorUtilities;
+using System;
 
 
 public class CardVisualHandler : MonoBehaviour
@@ -181,13 +182,9 @@ public class CardVisualHandler : MonoBehaviour
             transform.DOScale(scaleOnHover, scaleTransition).SetEase(scaleEase);
     }
 
-    public void Swap(float swapDirection = 1)
+    internal void ResetShakeParent()
     {
-        // Swap direction = -1 (right), 1 (left)
-        if (!swapAnimations) return;
-
-        DOTween.Kill(3, true);
-        shakeParent.DOPunchRotation(Vector3.forward * swapRotationAngle * swapDirection, swapTransition, swapVibrato, 1).SetId(3);
+        throw new NotImplementedException();
     }
 
     private void BeginDrag(CardDragHandler card)

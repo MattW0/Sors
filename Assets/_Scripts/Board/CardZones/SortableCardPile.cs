@@ -4,6 +4,7 @@ using UnityEngine;
 using DG.Tweening;
 using System.Linq;
 using System;
+using CardDecoder;
 
 public class SortableCardPile : CardPileArrangement
 {
@@ -37,6 +38,8 @@ public class SortableCardPile : CardPileArrangement
 
         _movingCard.transform.DOLocalMove(endValue, duration).SetEase(Ease.OutBack);
         _movingCard = null;
+
+        // foreach(var c in cards) c.cardVisual.ResetShakeParent();
     }
 
     void LateUpdate()
@@ -85,7 +88,7 @@ public class SortableCardPile : CardPileArrangement
         _movingCard.transform.SetParent(crossedParent);
 
         bool swapIsRight = cards[index].ParentIndex() > _movingCard.ParentIndex();
-        cards[index].cardVisual.Swap(swapIsRight ? -1 : 1);
+        // cards[index].cardVisual.Swap(swapIsRight ? -1 : 1);
 
         _isCrossing = false;
     }

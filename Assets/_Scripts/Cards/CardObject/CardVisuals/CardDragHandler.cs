@@ -9,7 +9,6 @@ using System;
 
 public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler, IPointerUpHandler, IPointerDownHandler
 {
-    private Canvas canvas;
     private Image imageComponent;
     private Vector3 offset;
     private static Vector2 _screenBounds;
@@ -31,6 +30,7 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
     [SerializeField] private CardClickHandler _cardClickListener;
     public bool isHovering;
     public bool isDragging;
+    private bool isDraggable;
     [HideInInspector] public bool wasDragged;
 
     [Header("Events")]
@@ -46,7 +46,6 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
 
     void Start()
     {
-        canvas = GetComponentInParent<Canvas>();
         imageComponent = GetComponent<Image>();
         _cam = Camera.main;
         _screenBounds = MouseInputHelper.GetScreenBounds(_cam);
@@ -58,6 +57,18 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
         _cardClickListener.AddObserver(this);
 
         cardVisual.Initialize(this, card.transform);
+    }
+
+    internal void MakeStatic()
+    {
+        selected = false;
+        isDraggable = false;
+    }
+
+    internal void MakeSortable()
+    {
+        selected = false;
+        isDraggable = true;
     }
 
     void LateUpdate()
@@ -82,6 +93,8 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        if(!isDraggable) return; 
+
         BeginDragEvent.Invoke(this);
         
         offset = MouseInputHelper.GetMouseWorldPosition(_cam) - transform.position;
@@ -121,6 +134,8 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
 
     public void OnPointerDown(PointerEventData eventData)
     {
+        if(!isDraggable) return; 
+
         if (eventData.button != PointerEventData.InputButton.Left)
             return;
 
@@ -164,7 +179,7 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
         }
     }
 
-    public void Swap(int direction) => cardVisual.Swap(direction);
+    // public void Swap(int direction) => cardVisual.Swap(direction);
 
     public int ParentIndex()
     {
