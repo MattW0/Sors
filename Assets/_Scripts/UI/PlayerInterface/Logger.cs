@@ -62,6 +62,7 @@ public class Logger : MonoBehaviour
         else if(type == LogType.Play) Log($"Plays {cardName} for {cost} cash", originator, LogType.Play);
     }
 
+    public void PlayerDrawsCards(string originator) => Log($"Draws initial hand", originator, LogType.Standard);
     public void PlayerDrawsCards(string originator, int number) => Log($"Draws {number} cards", originator, LogType.Standard);
 
     public void PlayerDiscardsCards(string originator, List<string> cardNames)

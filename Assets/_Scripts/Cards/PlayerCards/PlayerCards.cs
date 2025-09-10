@@ -231,6 +231,7 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
         if (destination == CardLocation.Deck) _owner.Cards.deck.Add(card);
         else if(destination == CardLocation.Discard) _owner.Cards.discard.Add(card);
         else if(destination == CardLocation.Hand) _owner.Cards.hand.Add(card);
+        else if(destination == CardLocation.PlayZone) { /* no-op because fringe case with state file loader */ }
         else Debug.LogWarning("Trying to add card to invalid location: " + destination);
     }
 

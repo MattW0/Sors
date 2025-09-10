@@ -492,6 +492,7 @@ public class TurnManager : NetworkBehaviour
         if(! string.IsNullOrEmpty(_gameOptions.StateFile)) _abilityQueue.ClearQueue();
         else {
             foreach(var player in _gameManager.players.Values) {
+                _logger.RpcLog(player.ID);
                 player.Cards.deck.Shuffle();
                 player.Cards.DrawCards(_gameOptions.InitialHandSize);
             }

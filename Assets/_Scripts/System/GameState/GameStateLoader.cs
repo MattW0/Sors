@@ -95,16 +95,14 @@ public class GameStateLoader : MonoBehaviour
 
     private async UniTask SpawnEntitiesFromFile(PlayerManager p, Entities entities)
     {
-        print("Spawning entities for " + p.PlayerName);
         foreach(var e in entities.creatures) await SpawnEntity(p, e, true);
-        // await UniTask.Delay(SorsTimings.wait);
-
-        print("Spawning technologies ");
+        await UniTask.Delay(SorsTimings.waitShort);
         foreach (var e in entities.technologies) await SpawnEntity(p, e, false);
-        // await UniTask.Delay(SorsTimings.wait);
+        await UniTask.Delay(SorsTimings.waitShort);
 
-        print("Showing spawned entities");
         p.Cards.RpcShowSpawnedCards(_entitiesDict.Keys.ToList(), CardLocation.PlayZone, true);
+        // await UniTask.Delay(SorsTimings.wait);
+        
         await BoardManager.Instance.PlayEntities(_entitiesDict);
 
         _entitiesDict.Clear();

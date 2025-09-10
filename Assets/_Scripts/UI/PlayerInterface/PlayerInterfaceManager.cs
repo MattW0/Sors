@@ -60,9 +60,11 @@ public class PlayerInterfaceManager : NetworkBehaviour
     public void ForceEndTurn() => _player.ForceEndTurn();
 
     #region Log
-    [ClientRpc] public void RpcLog(int winner) => _logger.EndGame(_messageOrigin[winner]);
+    // TODO: Cannge winner log
+    // [ClientRpc] public void RpcLog(int winner) => _logger.EndGame(_messageOrigin[winner]);
     [ClientRpc] public void RpcLog(List<TurnState> phases) => _logger.PhasesToPlay(_messageOrigin[0], phases);
     [ClientRpc] public void RpcLog(TurnState newState) => _logger.PhaseChange(_messageOrigin[0], newState);
+    [ClientRpc] public void RpcLog(int playerId) => _logger.PlayerDrawsCards(_messageOrigin[playerId]);
     [ClientRpc] public void RpcLog(int playerId, int number) => _logger.PlayerDrawsCards(_messageOrigin[playerId], number);
     [ClientRpc] public void RpcLog(int playerId, string clash) => _logger.Log(clash, _messageOrigin[playerId], LogType.CombatClash);
     [ClientRpc] public void RpcLog(int playerId, List<CardStats> cards) => _logger.PlayerDiscardsCards(_messageOrigin[playerId], cards.Select(c => c.cardInfo.title).ToList());
