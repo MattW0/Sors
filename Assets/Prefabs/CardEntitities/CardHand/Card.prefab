@@ -1024,7 +1024,6 @@ GameObject:
   - component: {fileID: 5155140612128770232}
   - component: {fileID: 3215327794571095695}
   - component: {fileID: 1662656646801267718}
-  - component: {fileID: -3598334361177944276}
   - component: {fileID: 6272727540291811641}
   m_Layer: 6
   m_Name: Card
@@ -1146,19 +1145,6 @@ MonoBehaviour:
   highlight: {fileID: 6942316134712413200}
   _image: {fileID: 2266157713585857682}
   _back: {fileID: 2443357870601844121}
---- !u!114 &-3598334361177944276
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5450374274839420802}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d16e96c8497085642bd0be2fc0c83480, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  cardStats: {fileID: 3215327794571095695}
 --- !u!223 &6272727540291811641
 Canvas:
   m_ObjectHideFlags: 0

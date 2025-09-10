@@ -4,8 +4,6 @@ using UnityEngine.EventSystems;
 
 public class CardZoomView : ModalWindow, IPointerClickHandler
 {
-    
-
     [Header("Prefabs")]
     [SerializeField] private DetailCardPreview _cardPreview;
 
@@ -13,7 +11,7 @@ public class CardZoomView : ModalWindow, IPointerClickHandler
     {
         _cardPreview.HideAll(true);
 
-        CardClickHandler.OnInspect += InspectCardInfo;
+        CardDragHandler.OnInspect += InspectCardInfo;
         EntityClickHandler.OnInspect += InspectCardInfo;
         MarketTileUI.OnInspect += InspectCardInfo;
         DetailCardUI.OnInspect += InspectCardInfo;
@@ -37,7 +35,7 @@ public class CardZoomView : ModalWindow, IPointerClickHandler
 
     private void OnDestroy()
     {
-        CardClickHandler.OnInspect -= InspectCardInfo;
+        CardDragHandler.OnInspect -= InspectCardInfo;
         EntityClickHandler.OnInspect -= InspectCardInfo;
         MarketTileUI.OnInspect -= InspectCardInfo;
         DetailCardUI.OnInspect -= InspectCardInfo;
