@@ -20,7 +20,6 @@ public class PlayMoneyCardCommand : IPlayerCommand
         buffer.Add(card);
         player.LocalCash += card.cardInfo.moneyValue;
         card.SetInteractable(false);
-        mover.MoveTo(card.gameObject, true, CardLocation.Hand, CardLocation.MoneyZone);
     }
 
     public void ExecuteWith(CardMover mover)
@@ -35,7 +34,6 @@ public class PlayMoneyCardCommand : IPlayerCommand
 
         player.LocalCash -= card.cardInfo.moneyValue;
         card.SetInteractable(true);
-        mover.MoveTo(card.gameObject, true, CardLocation.MoneyZone, CardLocation.Hand);
         buffer.Remove(card);
     }
 

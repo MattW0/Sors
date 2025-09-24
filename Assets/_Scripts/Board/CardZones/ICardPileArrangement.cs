@@ -17,9 +17,9 @@ public abstract class CardPileArrangement : MonoBehaviour, ICardPileArrangement
     {
         var temp = transform.GetChild(0).GetComponentsInChildren<CardDragHandler>();
 
-        print(" --- Verify order ---");
+        // print(" --- Verify order ---");
         foreach(var dragHandler in temp){
-            print(dragHandler.Stats.cardInfo.title);
+            // print(dragHandler.Stats.cardInfo.title);
 
             var parentTransform = dragHandler.gameObject.transform.parent;
             parentTransform.gameObject.name = $"{parentTransform.GetSiblingIndex()}";

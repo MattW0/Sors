@@ -24,7 +24,6 @@ public class CardListUI : MonoBehaviour
         if (listInfo.location == CardLocation.Deck) text += "Deck";
         else if (listInfo.location == CardLocation.Discard) text += "Discard";
         else if (listInfo.location == CardLocation.Hand) text += "Hand";
-        else if (listInfo.location == CardLocation.MoneyZone) text += "Money Zone";
         else if (listInfo.location == CardLocation.PlayZone) text += "Play Zone";
         // Nobody owns these collections
         else if (listInfo.location == CardLocation.Trash) {

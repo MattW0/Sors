@@ -1,9 +1,5 @@
 using UnityEngine;
 using DG.Tweening;
-using UnityEngine.UI;
-using TMPro.EditorUtilities;
-using System;
-
 
 public class CardVisualHandler : MonoBehaviour
 {
@@ -19,7 +15,6 @@ public class CardVisualHandler : MonoBehaviour
 
     [Header("References")]
     public Transform visualShadow;
-    private float shadowOffset = 20;
     private Vector2 shadowDistance;
     private Canvas shadowCanvas;
     [SerializeField] private Transform shakeParent;
@@ -41,6 +36,7 @@ public class CardVisualHandler : MonoBehaviour
     [SerializeField] private float scaleOnSelect = 1.25f;
     [SerializeField] private float scaleTransition = .15f;
     [SerializeField] private Ease scaleEase = Ease.OutBack;
+    [SerializeField] private float selectionOffset = 30f;
 
     [Header("Select Parameters")]
     [SerializeField] private float selectPunchAmount = 20;
@@ -48,12 +44,6 @@ public class CardVisualHandler : MonoBehaviour
     [Header("Hober Parameters")]
     [SerializeField] private float hoverPunchAngle = 5;
     [SerializeField] private float hoverTransition = .15f;
-
-    [Header("Swap Parameters")]
-    [SerializeField] private bool swapAnimations = true;
-    [SerializeField] private float swapRotationAngle = 30;
-    [SerializeField] private float swapTransition = .15f;
-    [SerializeField] private int swapVibrato = 3;
 
     [Header("Curve")]
     [SerializeField] private CardPileCurveParameters curve;
@@ -89,9 +79,8 @@ public class CardVisualHandler : MonoBehaviour
         _dragHandler.PointerExitEvent.AddListener(PointerExit);
         _dragHandler.BeginDragEvent.AddListener(BeginDrag);
         _dragHandler.EndDragEvent.AddListener(EndDrag);
-        _dragHandler.PointerDownEvent.AddListener(PointerDown);
-        _dragHandler.PointerUpEvent.AddListener(PointerUp);
-        _dragHandler.OnSelect += Select;
+        
+        CardSelectionHandler.OnCardSelection += OnSelect;
 
         //Initialization
         initalize = true;
@@ -171,22 +160,6 @@ public class CardVisualHandler : MonoBehaviour
         _lastPosition = _slotTransform.position;
     }
 
-    private void Select(bool state)
-    {
-        DOTween.Kill(2, true);
-        float dir = state ? 1 : 0;
-        shakeParent.DOPunchPosition(shakeParent.up * selectPunchAmount * dir, scaleTransition, 10, 1);
-        shakeParent.DOPunchRotation(Vector3.forward * (hoverPunchAngle/2), hoverTransition, 20, 1).SetId(2);
-
-        if(scaleAnimations)
-            transform.DOScale(scaleOnHover, scaleTransition).SetEase(scaleEase);
-    }
-
-    internal void ResetShakeParent()
-    {
-        throw new NotImplementedException();
-    }
-
     private void BeginDrag(CardDragHandler card)
     {
         if(scaleAnimations)
@@ -215,29 +188,37 @@ public class CardVisualHandler : MonoBehaviour
         if (!_dragHandler.wasDragged)
             transform.DOScale(1, scaleTransition).SetEase(scaleEase);
     }
+    
+    // private void Select(bool state)
+    // {
+    //     DOTween.Kill(2, true);
+    //     float direction = state ? 1 : 0;
+    //     shakeParent.DOPunchPosition(shakeParent.up * selectPunchAmount * direction, scaleTransition, 10, 1);
+    //     shakeParent.DOPunchRotation(Vector3.forward * (hoverPunchAngle/2), hoverTransition, 20, 1).SetId(2);
 
-    private void PointerUp(CardDragHandler card, bool longPress)
+    //     if(scaleAnimations)
+    //         transform.DOScale(scaleOnHover, scaleTransition).SetEase(scaleEase);
+    // }
+
+    private void OnSelect(CardDragHandler card, bool isSelected)
     {
-        if(scaleAnimations)
-            transform.DOScale(longPress ? scaleOnHover : scaleOnSelect, scaleTransition).SetEase(scaleEase);
-        canvas.overrideSorting = false;
+        if (card.Stats.cardInfo.goID != _dragHandler.Stats.cardInfo.goID) return;
 
-        visualShadow.localPosition = shadowDistance;
-        shadowCanvas.overrideSorting = true;
-    }
+        print($"OnSelect: {isSelected} called on {card.Stats.cardInfo.goID}");
 
-    private void PointerDown(CardDragHandler card)
-    {
-        if(scaleAnimations)
-            transform.DOScale(scaleOnSelect, scaleTransition).SetEase(scaleEase);
-            
-        visualShadow.localPosition += -Vector3.up * shadowOffset;
-        shadowCanvas.overrideSorting = false;
+        if(scaleAnimations){
+            var scale = isSelected ? scaleOnSelect : 1f; 
+            transform.DOScale(scale, scaleTransition).SetEase(scaleEase);
+        }
+        
+        var direction = isSelected ? Vector3.up : -Vector3.up;
+        tiltParent.localPosition += selectionOffset * direction;
+        // tiltParent.GetComponent<Canvas>().overrideSorting = isSelected;
     }
 
     private float NormalizedSlotPosition() => (float) _dragHandler.ParentIndex() / _dragHandler.SiblingAmount();
 
-    private void OnDestroy() {
-        _dragHandler.OnSelect -= Select;
-    }
+    // private void OnDestroy() {
+    //     _dragHandler.OnSelect -= Select;
+    // }
 }

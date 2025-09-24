@@ -6,9 +6,11 @@ using System.Collections.Generic;
 using System.Collections;
 using UnityEngine.UI;
 using System;
+using Mirror;
 
 public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler, IPointerUpHandler, IPointerDownHandler
 {
+    public CardStats Stats;
     private Image imageComponent;
     private Vector3 offset;
     private static Vector2 _screenBounds;
@@ -16,33 +18,24 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
     [Header("Movement")]
     [SerializeField] private float moveSpeedLimit = 50;
 
-    [Header("Selection")]
-    public bool selected;
-    public float selectionOffset = 50;
-    private float pointerDownTime;
-    private float pointerUpTime;
-
     [Header("Visual")]
     public CardVisualHandler cardVisual;
     private Camera _cam;
 
     [Header("States")]
-    [SerializeField] private CardClickHandler _cardClickListener;
+    public bool Draggable { get; set; }
     public bool isHovering;
     public bool isDragging;
-    private bool isDraggable;
     [HideInInspector] public bool wasDragged;
 
     [Header("Events")]
     [HideInInspector] public UnityEvent<CardDragHandler> PointerEnterEvent;
     [HideInInspector] public UnityEvent<CardDragHandler> PointerExitEvent;
     [HideInInspector] public UnityEvent<CardDragHandler, bool> PointerUpEvent;
-    [HideInInspector] public UnityEvent<CardDragHandler> PointerDownEvent;
     [HideInInspector] public UnityEvent<CardDragHandler> BeginDragEvent;
     [HideInInspector] public UnityEvent<CardDragHandler> EndDragEvent;
-    [HideInInspector] public event Action<bool> OnSelect;
-    public event Action OnInspect;
-
+    public static event Action<CardInfo> OnInspect;
+    public static event Action<CardStats> OnCardClicked;
 
     void Start()
     {
@@ -51,24 +44,10 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
         _screenBounds = MouseInputHelper.GetScreenBounds(_cam);
     }
 
-    internal void Initialize(CardClickHandler card, CardVisualHandler cardVisual)
+    internal void Initialize(CardVisualHandler cardVisual, CardStats stats)
     {
-        _cardClickListener = card;
-        _cardClickListener.AddObserver(this);
-
-        cardVisual.Initialize(this, card.transform);
-    }
-
-    internal void MakeStatic()
-    {
-        selected = false;
-        isDraggable = false;
-    }
-
-    internal void MakeSortable()
-    {
-        selected = false;
-        isDraggable = true;
+        Stats = stats;
+        cardVisual.Initialize(this, stats.transform);
     }
 
     void LateUpdate()
@@ -89,36 +68,6 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
         return position;
     }
 
-    public void OnDrag(PointerEventData eventData) { }
-
-    public void OnBeginDrag(PointerEventData eventData)
-    {
-        if(!isDraggable) return; 
-
-        BeginDragEvent.Invoke(this);
-        
-        offset = MouseInputHelper.GetMouseWorldPosition(_cam) - transform.position;
-        isDragging = true;
-        imageComponent.raycastTarget = false;
-
-        wasDragged = true;
-    }
-
-    public void OnEndDrag(PointerEventData eventData)
-    {
-        EndDragEvent.Invoke(this);
-        isDragging = false;
-        imageComponent.raycastTarget = true;
-
-        StartCoroutine(FrameWait());
-
-        IEnumerator FrameWait()
-        {
-            yield return new WaitForEndOfFrame();
-            wasDragged = false;
-        }
-    }
-
     public void OnPointerEnter(PointerEventData eventData)
     {
         PointerEnterEvent.Invoke(this);
@@ -134,52 +83,47 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        if(!isDraggable) return; 
-
-        if (eventData.button != PointerEventData.InputButton.Left)
-            return;
-
-        PointerDownEvent.Invoke(this);
-        pointerDownTime = Time.time;
+        if (eventData.button == PointerEventData.InputButton.Right)
+            OnInspect?.Invoke(Stats.cardInfo);
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        if (eventData.button == PointerEventData.InputButton.Right)
-        {
-
-        }
-        pointerUpTime = Time.time;
-        PointerUpEvent.Invoke(this, pointerUpTime - pointerDownTime > .2f);
-
-        if (pointerUpTime - pointerDownTime > .2f)
-            return;
-
-        if (wasDragged)
-            return;
-
-        selected = !selected;
-        OnSelect?.Invoke(selected);
-
-        if (selected)
-            transform.localPosition += cardVisual.transform.up * selectionOffset;
-        else
-            transform.localPosition = Vector3.zero;
+        if (eventData.button == PointerEventData.InputButton.Right) return;
+        if (! Stats.IsInteractable || wasDragged) return;
+        
+        OnCardClicked?.Invoke(Stats);
     }
 
-    public void Deselect()
+    public void OnBeginDrag(PointerEventData eventData)
     {
-        if (selected)
-        {
-            selected = false;
-            if (selected)
-                transform.localPosition += cardVisual.transform.up * 50;
-            else
-                transform.localPosition = Vector3.zero;
-        }
+        if(!Draggable) return; 
+
+        BeginDragEvent.Invoke(this);
+        
+        offset = MouseInputHelper.GetMouseWorldPosition(_cam) - transform.position;
+        isDragging = true;
+        imageComponent.raycastTarget = false;
+
+        wasDragged = true;
     }
 
-    // public void Swap(int direction) => cardVisual.Swap(direction);
+    public void OnDrag(PointerEventData eventData) { }
+
+    public void OnEndDrag(PointerEventData eventData)
+    {
+        EndDragEvent.Invoke(this);
+        isDragging = false;
+        imageComponent.raycastTarget = true;
+
+        StartCoroutine(FrameWait());
+
+        IEnumerator FrameWait()
+        {
+            yield return new WaitForEndOfFrame();
+            wasDragged = false;
+        }
+    }
 
     public int ParentIndex()
     {

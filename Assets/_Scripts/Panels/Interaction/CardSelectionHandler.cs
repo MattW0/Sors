@@ -1,14 +1,15 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using System;
-using UnityEditor.PackageManager.Requests;
+using Cysharp.Threading.Tasks;
 
 [RequireComponent(typeof(InteractionPanel))]
 public class CardSelectionHandler : MonoBehaviour
 {
-    public List<CardStats> selectedCards = new();
+    // public List<CardStats> selectedCards = new();
+    public Stack<CardStats> selectedCards = new();
+
     public CardSelection cardSelection;
     private InteractionPanel _interactionPanel;
     private InteractionUI _ui;
@@ -16,13 +17,14 @@ public class CardSelectionHandler : MonoBehaviour
     [SerializeField] private int _numberSelections;
     private CardInteractionState _state;
     public static event Action OnResetCards;
+    public static event Action<CardDragHandler, bool> OnCardSelection;
 
     private void Awake() 
     {
         _interactionPanel = gameObject.GetComponent<InteractionPanel>();
         _ui = gameObject.GetComponentInChildren<InteractionUI>();
 
-        CardClickHandler.OnCardClicked += ClickedCard;
+        CardDragHandler.OnCardClicked += ClickedCard;
         MarketTile.OnTileSelected += SelectMarketTile;
         MarketTile.OnTileDeselected += DeselectMarketTile;
     }
@@ -42,41 +44,43 @@ public class CardSelectionHandler : MonoBehaviour
         cardSelection.Clear();
     }
 
-    private void ClickedCard(GameObject card)
+    private void ClickedCard(CardStats cardStats)
     {
-        var cardStats = card.GetComponent<CardStats>();
         var destination = _state.GetCardDestination(cardStats) 
             ?? throw new Exception("Null exception on destination pile for state: " + _state.Config.turnState);
-
-        // Debug.Log($"Clicked card {cardStats.cardInfo.title}, is selected: {cardStats.IsSelected}");
         
         // Check if player is playing money card
-        if (destination == CardLocation.MoneyZone) _interactionPanel.LocalPlayer.Cards.PlayMoneyCard(cardStats);
+        if (destination == CardLocation.MoneyZone) {
+            OnCardSelection?.Invoke(cardStats.DragHandler, true);
+            _interactionPanel.LocalPlayer.Cards.PlayMoneyCard(cardStats);
+            return;
+        }
+
         // Else we can select or deselect
-        else if(cardStats.IsSelected) DeselectCard(cardStats);
-        else SelectCard(cardStats);
+        print($"Number of selected cards: {selectedCards.Count()}");
+        
+        if(selectedCards.Contains(cardStats)) DeselectCard();
+        else SelectCard(cardStats).Forget();
     }
 
-    private void SelectCard(CardStats card)
+    private async UniTaskVoid SelectCard(CardStats card)
     {
-        print($"Select card : {card.cardInfo.title}");
         // Remove the previously selected card if user clicks another one
         if (selectedCards.Count >= _numberSelections)
-            DeselectCard(selectedCards.Last());
+            DeselectCard();
+            await UniTask.Delay(millisecondsDelay: SorsTimings.waitShort);
 
-        card.IsSelected = true;
         cardSelection = new CardSelection(card.cardInfo, card.cardInfo.cost);
-        MoveCard(card, true);
+        
+        OnCardSelection?.Invoke(card.DragHandler, true);
+        selectedCards.Push(card);
+
+        _ui.SetConfirmButtonEnabled(_state.IsConfirmEnabled(selectedCards.Count()));
     }
 
-    private void DeselectCard(CardStats card)
+    private void DeselectCard()
     {
-        print($"Deselect card : {card.cardInfo.title}");
-
-        card.IsSelected = false;
-        if (selectedCards.Count == 1) cardSelection.Clear();
-
-        MoveCard(card, false);
+        OnCardSelection?.Invoke(selectedCards.Pop().DragHandler, false);
     }
 
     private void SelectMarketTile(MarketTile tile)
@@ -87,27 +91,13 @@ public class CardSelectionHandler : MonoBehaviour
 
     private void DeselectMarketTile() => _ui.DeselectMarketTile();
 
-    private void MoveCard(CardStats card, bool toSelection)
-    {
-        var pile = _state.Config.interactionPile;
-
-        if(toSelection) {
-            _cardMover.MoveTo(card.gameObject, true, pile, CardLocation.Selection);
-            selectedCards.Add(card);
-        } else {
-            _cardMover.MoveTo(card.gameObject, true, CardLocation.Selection, pile);
-            selectedCards.Remove(card);
-        }
-
-        _ui.SetConfirmButtonEnabled(_state.IsConfirmEnabled(selectedCards.Count()));
-    }
-
     public void SkipCardInteraction()
     {
-        // Need temp copy because MoveCard modifies selectedCards
-        var tempList = new List<CardStats>(selectedCards);
-        foreach (var card in tempList) MoveCard(card, false);
-        selectedCards.Clear();
+        // Empty selection stack
+        while (selectedCards.Count > 0)
+            OnCardSelection?.Invoke(selectedCards.Pop().DragHandler, false);
+
+        _ui.SetConfirmButtonEnabled(_state.IsConfirmEnabled(selectedCards.Count()));
     }
 
     public void EndSelection()
@@ -118,7 +108,7 @@ public class CardSelectionHandler : MonoBehaviour
 
     private void OnDestroy()
     {
-        CardClickHandler.OnCardClicked -= ClickedCard;
+        CardDragHandler.OnCardClicked -= ClickedCard;
         MarketTile.OnTileSelected -= SelectMarketTile;
         MarketTile.OnTileDeselected -= DeselectMarketTile;
     }

@@ -10,6 +10,8 @@ public class CardStats : NetworkBehaviour
 
     public bool IsSelected { get; set; }
     public bool IsInteractable { get; private set; }
+    public CardDragHandler DragHandler { get; internal set; }
+
     public void SetInteractable(bool value, TurnState state = TurnState.None)
     {
         IsInteractable = value;

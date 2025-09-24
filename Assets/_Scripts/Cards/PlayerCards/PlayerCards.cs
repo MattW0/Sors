@@ -109,15 +109,13 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
         _owner.LocalCash += card.cardInfo.moneyValue;
 
         card.SetInteractable(false);
-        _cardMover.MoveTo(card.gameObject, true, CardLocation.Hand, CardLocation.MoneyZone);
     }
 
     [ClientRpc]
     private void RpcDiscardMoneyCards(List<GameObject> cards)
     {
         print($"Client discards {cards.Count} money cards");
-        var origin = isOwned ? CardLocation.MoneyZone : CardLocation.Hand;
-        _cardMover.MoveAllTo(cards, isOwned, origin, CardLocation.Discard);
+        _cardMover.MoveAllTo(cards, isOwned, CardLocation.Hand, CardLocation.Discard);
 
         _clientMoneyCardsInPlay.Clear();
     }
@@ -132,7 +130,6 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
     //     {
     //         _owner.LocalCash -= card.cardInfo.moneyValue;
     //         card.SetInteractable(true);
-    //         _cardMover.MoveTo(card.gameObject, true, CardLocation.MoneyZone, CardLocation.Hand);
     //     }
 
     //     _clientMoneyCardsInPlay.Clear();
@@ -188,7 +185,7 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
     [ClientRpc]
     public void RpcMoveFromInteraction(List<CardStats> cards, CardLocation from, CardLocation to)
     {
-        if(isOwned) from = CardLocation.Selection;
+        // if(isOwned) from = CardLocation.Selection;
         foreach(var c in cards) 
         {
             print($"Moving card {c.cardInfo.title} from {from}");

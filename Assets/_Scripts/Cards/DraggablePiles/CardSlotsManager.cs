@@ -7,7 +7,7 @@ using UnityEngine;
 public class CardSlotsManager : MonoBehaviour 
 {
     private Dictionary<CardsPileSors, ICardPileArrangement> _controllers = new();
-    private readonly Dictionary<int, CardSlot> _activeSlots = new();
+    // private readonly Dictionary<int, CardSlot> _activeSlots = new();
     private ICardSlotFactory _factory;
     [SerializeField] private GameObject _slotPrefab;
     private CardMover _cardMover;
@@ -21,16 +21,22 @@ public class CardSlotsManager : MonoBehaviour
             _controllers[pile] = pile.GetComponent<ICardPileArrangement>();
     }
 
-    internal async UniTask CardArrives(CardsPileSors pile, GameObject card)
+    internal void Initialize(CardsPileSors pile, GameObject card)
     {
         var stats = card.GetComponent<CardStats>();
+        var slot = SpawnSlot(card);
 
-        if (! _activeSlots.TryGetValue(stats.cardInfo.goID, out var slot)) {
-            slot = await SpawnSlot(card);
-            // print("Spawn slot for card: " + stats.cardInfo.title);
-        }
+        print($"Initialize card {stats.cardInfo.title} at pile {pile.pileType}");
+        slot.SetParent(pile.cardHolderTransform);
+        _controllers[pile].AddCard(slot.DragHandler, card);
+    }
 
-        // print($"card {stats.cardInfo.title} arrives at pile {pile.pileType}");
+    internal void CardArrives(CardsPileSors pile, GameObject card)
+    {
+        var stats = card.GetComponent<CardStats>();
+        var slot = card.GetComponentInParent<CardSlot>();
+
+        print($"card {stats.cardInfo.title} arrives at pile {pile.pileType}");
         slot.SetParent(pile.cardHolderTransform);
         _controllers[pile].AddCard(slot.DragHandler, card);
     }
@@ -39,21 +45,19 @@ public class CardSlotsManager : MonoBehaviour
     {
         var stats = card.GetComponent<CardStats>();
         
-        // print($"Remove {stats.cardInfo.title} from collection {pile.pileType}");
-        var slot = _activeSlots[stats.cardInfo.goID];
-        _controllers[pile].RemoveCard(slot.DragHandler);
+        print($"Remove {stats.cardInfo.title} from collection {pile.pileType}");
+        // var slot = _activeSlots[stats.cardInfo.goID];
+        _controllers[pile].RemoveCard(card.GetComponentInParent<CardSlot>().DragHandler);
     }
     
-    private async UniTask<CardSlot> SpawnSlot(GameObject card)
+    private CardSlot SpawnSlot(GameObject card)
     {
         var stats = card.GetComponent<CardStats>();
+        print("Spawning slot for card " + stats.cardInfo.title);
         var slot = _factory.CreateSlot();
 
-        slot.Initialize(card);
-        _activeSlots[stats.cardInfo.goID] = slot;
-
-        // Example: small spawn delay / animation
-        await UniTask.Delay(SorsTimings.spawnCard);
+        slot.Initialize(stats);
+        // await UniTask.Delay(SorsTimings.spawnCard);
 
         return slot;
     }

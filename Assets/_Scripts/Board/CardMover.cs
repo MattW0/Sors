@@ -10,18 +10,15 @@ public class CardMover : MonoBehaviour
 {
     [Header("Playboard Transforms")]
     [SerializeField] private CardsPileSors playerHand;
-    [SerializeField] private CardsPileSors playerMoneyZone;
     [SerializeField] private CardsPileSors playerPlayZone;
     [SerializeField] private CardsPileSors playerDeck;
     [SerializeField] private CardsPileSors playerDiscardPile;
     [SerializeField] private CardsPileSors opponentHand;
-    [SerializeField] private CardsPileSors opponentMoneyZone;
     [SerializeField] private CardsPileSors opponentPlayZone;
     [SerializeField] private CardsPileSors opponentDeck;
     [SerializeField] private CardsPileSors opponentDiscardPile;
     [SerializeField] private CardsPileSors playerCardSpawn;
     [SerializeField] private CardsPileSors opponentCardSpawn;
-    [SerializeField] private CardsPileSors selection;
     [SerializeField] private CardsPileSors entitySpawn;
     [SerializeField] private CardsPileSors trash;
     private CardSlotsManager _slotManager;
@@ -82,12 +79,12 @@ public class CardMover : MonoBehaviour
 
     private void InitSpawnedCard(GameObject card, bool hasAuthority=false, bool fromFile=false)
     {    
-        // card.transform.localScale = Vector3.one;
+        print("CardMover: Init spawned card");
         if(!fromFile) card.GetComponent<HandCardUI>().CardFrontUp();
-        else {
+        // else {
             var destination = GetPile(CardLocation.CardSpawn, hasAuthority);
-            FinishMove(destination, card);
-        }
+            _slotManager.Initialize(destination, card);
+        // }
 
         card.SetActive(true);
     }
@@ -100,20 +97,21 @@ public class CardMover : MonoBehaviour
 
         card.transform.DOMove(destination.cardHolderTransform.position, SorsTimings.cardMoveTime)
             .SetEase(Ease.InOutCubic)
-            .OnComplete(() => FinishMove(destination, card));
+            .OnComplete(() => FinishMove(destination, card)
+        );
     }
 
     private void FinishMove(CardsPileSors pile, GameObject card)
     {
-        _slotManager.CardArrives(pile, card).Forget();
+        _slotManager.CardArrives(pile, card);
         OnUpdatePileNumbers?.Invoke();
     }
 
     private (CardsPileSors, CardsPileSors) GetPiles(CardLocation from, CardLocation to, bool hasAuthority)
     {
         // Change where card comes from because card moved on client already ( InteractionPanel.SelectCard() )
-        if((to == CardLocation.EntitySpawn || to == CardLocation.Trash) && hasAuthority) 
-            from = CardLocation.Selection;
+        // if((to == CardLocation.EntitySpawn || to == CardLocation.Trash) && hasAuthority) 
+        //     from = CardLocation.Selection;
 
         return (GetPile(from, hasAuthority), GetPile(to, hasAuthority));
     }
@@ -125,11 +123,9 @@ public class CardMover : MonoBehaviour
             CardLocation.Deck => hasAuthority ? playerDeck : opponentDeck,
             CardLocation.Hand => hasAuthority ? playerHand : opponentHand,
             CardLocation.PlayZone => hasAuthority ? playerPlayZone : opponentPlayZone,
-            CardLocation.MoneyZone => hasAuthority ? playerMoneyZone : opponentMoneyZone,
             CardLocation.Discard => hasAuthority ? playerDiscardPile : opponentDiscardPile,
             CardLocation.EntitySpawn => entitySpawn,
             CardLocation.Trash => trash,
-            CardLocation.Selection => selection,
             _ => null
         };
 
@@ -139,8 +135,7 @@ public class CardMover : MonoBehaviour
     private void FlipCard(GameObject card, bool hasAuthority, CardLocation to)
     {
         var cardUI = card.GetComponent<HandCardUI>();
-        if(to == CardLocation.Discard 
-            || to == CardLocation.MoneyZone 
+        if(to == CardLocation.Discard
             || to == CardLocation.Trash
             || to == CardLocation.EntitySpawn)
         {
@@ -160,8 +155,6 @@ public class CardMover : MonoBehaviour
         // These have local scale 0.7 to reduce playboard space occupation        
         if(to == CardLocation.Hand)
             card.transform.DOScale(1.4f, SorsTimings.cardMoveTime);
-        else if(from == CardLocation.Hand && (to == CardLocation.MoneyZone || to == CardLocation.PlayZone))
-            card.transform.DOScale(0.7f, SorsTimings.cardMoveTime);
         else if (from == CardLocation.CardSpawn){
             card.transform.DOScale(0.5f, SorsTimings.cardMoveTime);
         } else if (to == CardLocation.EntitySpawn){
@@ -175,18 +168,15 @@ public class CardMover : MonoBehaviour
     {
         return new List<CardsPileSors> {
             playerHand,
-            playerMoneyZone,
             playerPlayZone,
             playerDeck,
             playerDiscardPile,
             opponentHand,
-            opponentMoneyZone,
             opponentPlayZone,
             opponentDeck,
             opponentDiscardPile,
             playerCardSpawn,
             opponentCardSpawn,
-            selection,
             entitySpawn,
             trash
         };
