@@ -46,6 +46,7 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
 
     internal void Initialize(CardVisualHandler cardVisual, CardStats stats)
     {
+        // print("Initialize carddraghandler on " + stats.cardInfo.title); 
         Stats = stats;
         cardVisual.Initialize(this, stats.transform);
     }
@@ -139,5 +140,11 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
     {
         if(cardVisual != null)
         Destroy(cardVisual.gameObject);
+    }
+
+    internal void ResetPosition()
+    {
+        transform.localPosition = Vector3.zero;
+        cardVisual.Reset();
     }
 }

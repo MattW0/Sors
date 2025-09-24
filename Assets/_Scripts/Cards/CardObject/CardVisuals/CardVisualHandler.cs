@@ -1,28 +1,24 @@
 using UnityEngine;
 using DG.Tweening;
+using System;
 
 public class CardVisualHandler : MonoBehaviour
 {
-    private bool initalize = false;
-
-    [Header("CardDragHandler")]
-    public CardDragHandler _dragHandler;
-    private Transform _slotTransform;
-    private Vector3 rotationDelta;
-    private int savedIndex;
-    Vector3 movementDelta;
-    private Canvas canvas;
 
     [Header("References")]
-    public Transform visualShadow;
-    private Vector2 shadowDistance;
-    private Canvas shadowCanvas;
     [SerializeField] private Transform shakeParent;
     [SerializeField] private Transform tiltParent;
+    public CardDragHandler _dragHandler;
+    private Transform _slotTransform;
+    private Canvas _canvas;
+    private Camera _cam; 
 
     [Header("Follow Parameters")]
     [SerializeField] private float followSpeed = 30;
     [SerializeField] private float _rotationSpeed = 10;
+    private Vector3 _movementDelta;
+    private Vector3 _rotationDelta;
+    private int _savedIndex;
 
     [Header("Rotation Parameters")]
     [SerializeField] private float rotationAmount = 20;
@@ -30,18 +26,14 @@ public class CardVisualHandler : MonoBehaviour
     [SerializeField] private float manualTiltAmount = 20;
     [SerializeField] private float tiltSpeed = 20;
 
-    [Header("Scale Parameters")]
+    [Header("Select and hover Parameters")]
+    [SerializeField] private bool shakeAnimations = true;
     [SerializeField] private bool scaleAnimations = true;
     [SerializeField] private float scaleOnHover = 1.15f;
     [SerializeField] private float scaleOnSelect = 1.25f;
     [SerializeField] private float scaleTransition = .15f;
     [SerializeField] private Ease scaleEase = Ease.OutBack;
     [SerializeField] private float selectionOffset = 30f;
-
-    [Header("Select Parameters")]
-    [SerializeField] private float selectPunchAmount = 20;
-
-    [Header("Hober Parameters")]
     [SerializeField] private float hoverPunchAngle = 5;
     [SerializeField] private float hoverTransition = .15f;
 
@@ -51,12 +43,12 @@ public class CardVisualHandler : MonoBehaviour
     private Vector3 _lastPosition;
     private float _yPositionOffset;
     private float _zRotationOffset;
-    private Camera _cam; 
+    private bool _initalized = false;
+    private bool _isSelected;
 
     private void Start()
     {
         _cam = Camera.main;
-        shadowDistance = visualShadow.localPosition;
     }
 
     public void Initialize(CardDragHandler dragHandler, Transform cardTransform, int index = 0)
@@ -71,8 +63,7 @@ public class CardVisualHandler : MonoBehaviour
         cardTransform.SetParent(tiltParent, false);
         cardTransform.localPosition = Vector3.zero;
 
-        canvas = GetComponent<Canvas>();
-        shadowCanvas = visualShadow.GetComponent<Canvas>();
+        _canvas = GetComponent<Canvas>();
 
         //Event Listening
         _dragHandler.PointerEnterEvent.AddListener(PointerEnter);
@@ -83,12 +74,12 @@ public class CardVisualHandler : MonoBehaviour
         CardSelectionHandler.OnCardSelection += OnSelect;
 
         //Initialization
-        initalize = true;
+        _initalized = true;
     }
 
     void LateUpdate()
     {
-        if (!initalize || _dragHandler == null) return;
+        if (!_initalized || _dragHandler == null) return;
 
         // Apply curve y position
         HandPositioning();
@@ -117,9 +108,9 @@ public class CardVisualHandler : MonoBehaviour
     {
         if (_dragHandler.isDragging) return;
 
-        savedIndex = _dragHandler.isDragging ? savedIndex : _dragHandler.ParentIndex();
-        float sine = Mathf.Sin(Time.time + savedIndex) * (_dragHandler.isHovering ? .2f : 1);
-        float cosine = Mathf.Cos(Time.time + savedIndex) * (_dragHandler.isHovering ? .2f : 1);
+        _savedIndex = _dragHandler.isDragging ? _savedIndex : _dragHandler.ParentIndex();
+        float sine = Mathf.Sin(Time.time + _savedIndex) * (_dragHandler.isHovering ? .2f : 1);
+        float cosine = Mathf.Cos(Time.time + _savedIndex) * (_dragHandler.isHovering ? .2f : 1);
 
         Vector3 offset = transform.position - MouseInputHelper.GetMouseWorldPosition(_cam);
         float tiltX = _dragHandler.isHovering ? (offset.y * -1 * manualTiltAmount) : 0;
@@ -144,16 +135,16 @@ public class CardVisualHandler : MonoBehaviour
     private void FollowDrag()
     {
         Vector3 movement = _slotTransform.position - _lastPosition;
-        movementDelta = Vector3.Lerp(movementDelta, movement, 25 * Time.deltaTime);
+        _movementDelta = Vector3.Lerp(_movementDelta, movement, 25 * Time.deltaTime);
 
         // Map movement to rotation and smooth it
-        Vector3 movementRotation = new Vector3(-movementDelta.y, movementDelta.x, 0f) * rotationAmount;
-        rotationDelta = Vector3.Lerp(rotationDelta, movementRotation, _rotationSpeed * Time.deltaTime);
+        Vector3 movementRotation = new Vector3(-_movementDelta.y, _movementDelta.x, 0f) * rotationAmount;
+        _rotationDelta = Vector3.Lerp(_rotationDelta, movementRotation, _rotationSpeed * Time.deltaTime);
 
         tiltParent.eulerAngles = new Vector3(
-            rotationDelta.x,
-            rotationDelta.y,
-            Mathf.Clamp(rotationDelta.x, -60, 60)
+            _rotationDelta.x,
+            _rotationDelta.y,
+            Mathf.Clamp(_rotationDelta.x, -60, 60)
         );
 
         transform.position = Vector3.Lerp(_slotTransform.position, _slotTransform.position, followSpeed * Time.deltaTime);
@@ -165,12 +156,12 @@ public class CardVisualHandler : MonoBehaviour
         if(scaleAnimations)
             transform.DOScale(scaleOnSelect, scaleTransition).SetEase(scaleEase);
 
-        canvas.overrideSorting = true;
+        _canvas.overrideSorting = true;
     }
 
     private void EndDrag(CardDragHandler card)
     {
-        canvas.overrideSorting = false;
+        _canvas.overrideSorting = false;
         transform.DOScale(1, scaleTransition).SetEase(scaleEase);
     }
 
@@ -188,37 +179,38 @@ public class CardVisualHandler : MonoBehaviour
         if (!_dragHandler.wasDragged)
             transform.DOScale(1, scaleTransition).SetEase(scaleEase);
     }
-    
-    // private void Select(bool state)
-    // {
-    //     DOTween.Kill(2, true);
-    //     float direction = state ? 1 : 0;
-    //     shakeParent.DOPunchPosition(shakeParent.up * selectPunchAmount * direction, scaleTransition, 10, 1);
-    //     shakeParent.DOPunchRotation(Vector3.forward * (hoverPunchAngle/2), hoverTransition, 20, 1).SetId(2);
-
-    //     if(scaleAnimations)
-    //         transform.DOScale(scaleOnHover, scaleTransition).SetEase(scaleEase);
-    // }
 
     private void OnSelect(CardDragHandler card, bool isSelected)
     {
         if (card.Stats.cardInfo.goID != _dragHandler.Stats.cardInfo.goID) return;
 
-        print($"OnSelect: {isSelected} called on {card.Stats.cardInfo.goID}");
+        _isSelected = isSelected;
+        var direction = isSelected ? Vector3.up : -Vector3.up;
+        tiltParent.localPosition += selectionOffset * direction;
+        _canvas.overrideSorting = isSelected;
 
         if(scaleAnimations){
             var scale = isSelected ? scaleOnSelect : 1f; 
             transform.DOScale(scale, scaleTransition).SetEase(scaleEase);
         }
-        
-        var direction = isSelected ? Vector3.up : -Vector3.up;
-        tiltParent.localPosition += selectionOffset * direction;
-        // tiltParent.GetComponent<Canvas>().overrideSorting = isSelected;
+
+        if(shakeAnimations){
+            DOTween.Kill(2, true);
+            shakeParent.DOPunchRotation(Vector3.forward * (hoverPunchAngle/2), hoverTransition, 20, 1).SetId(2);
+        }
     }
 
     private float NormalizedSlotPosition() => (float) _dragHandler.ParentIndex() / _dragHandler.SiblingAmount();
 
-    // private void OnDestroy() {
-    //     _dragHandler.OnSelect -= Select;
-    // }
+    internal void Reset()
+    {
+        tiltParent.localPosition = Vector3.zero;
+        tiltParent.GetComponent<RectTransform>().sizeDelta = Vector2.zero;
+        _canvas.overrideSorting = false;
+    }
+
+    private void OnDestroy() {
+        CardSelectionHandler.OnCardSelection += OnSelect;
+    }
+
 }

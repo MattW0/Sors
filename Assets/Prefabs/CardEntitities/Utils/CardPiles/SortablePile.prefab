@@ -72,8 +72,8 @@ GameObject:
   m_Component:
   - component: {fileID: 4726933998844579008}
   - component: {fileID: 1863799650072911755}
-  - component: {fileID: 2331485111219502748}
   - component: {fileID: 6052427177964827598}
+  - component: {fileID: 9057627381809099565}
   m_Layer: 9
   m_Name: SortablePile
   m_TagString: Untagged
@@ -116,22 +116,7 @@ MonoBehaviour:
   cards: []
   _movingCard: {fileID: 0}
   tweenCardReturn: 1
---- !u!114 &2331485111219502748
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5197233728939108143}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 855fca858c6f8d740948523f444e822e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  pileType: 4
-  defaultSettings: {fileID: 11400000, guid: 8452f804e55d92e4082924bf1c08a0dd, type: 2}
-  interactionSettings: {fileID: 11400000, guid: 27b80a8f9e6c23d479ba9c276b4061a9, type: 2}
-  cardHolderTransform: {fileID: 4726933998844579008}
+  cardPileTransformation: {fileID: 0}
 --- !u!114 &6052427177964827598
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -145,3 +130,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _cardNumber: {fileID: 0}
+--- !u!114 &9057627381809099565
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5197233728939108143}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db1b2d9ec6e65144f8b20c15b74305d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pileType: 0
+  cardHolderTransform: {fileID: 0}

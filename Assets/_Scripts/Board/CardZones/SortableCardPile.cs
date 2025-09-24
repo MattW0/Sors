@@ -1,12 +1,12 @@
 using UnityEngine;
 using DG.Tweening;
 
-public class SortableCardPile : CardPileArrangement
+public class SortableCardPile : CardPile
 {
     [SerializeField] private CardDragHandler _movingCard;
     [SerializeField] private bool tweenCardReturn = true;
     private bool _isCrossing = false;
-
+    
     public override void AddCard(CardDragHandler dragHandler, GameObject card)
     {
         base.AddCard(dragHandler, card);

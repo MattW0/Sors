@@ -9,18 +9,18 @@ using System;
 public class CardMover : MonoBehaviour
 {
     [Header("Playboard Transforms")]
-    [SerializeField] private CardsPileSors playerHand;
-    [SerializeField] private CardsPileSors playerPlayZone;
-    [SerializeField] private CardsPileSors playerDeck;
-    [SerializeField] private CardsPileSors playerDiscardPile;
-    [SerializeField] private CardsPileSors opponentHand;
-    [SerializeField] private CardsPileSors opponentPlayZone;
-    [SerializeField] private CardsPileSors opponentDeck;
-    [SerializeField] private CardsPileSors opponentDiscardPile;
-    [SerializeField] private CardsPileSors playerCardSpawn;
-    [SerializeField] private CardsPileSors opponentCardSpawn;
-    [SerializeField] private CardsPileSors entitySpawn;
-    [SerializeField] private CardsPileSors trash;
+    [SerializeField] private CardPile playerHand;
+    [SerializeField] private CardPile playerDeck;
+    [SerializeField] private CardPile playerDiscardPile;
+    [SerializeField] private CardPile trash;
+    [SerializeField] private CardPile opponentHand;
+    [SerializeField] private CardPile opponentDeck;
+    [SerializeField] private CardPile opponentDiscardPile;
+    [SerializeField] private CardPile playerPlayZone;
+    [SerializeField] private CardPile opponentPlayZone;
+    [SerializeField] private CardPile playerCardSpawn;
+    [SerializeField] private CardPile opponentCardSpawn;
+    [SerializeField] private CardPile entitySpawn;
     private CardSlotsManager _slotManager;
 
     public static event Action OnUpdatePileNumbers;
@@ -45,7 +45,7 @@ public class CardMover : MonoBehaviour
         foreach(var card in cards) MoveCard(hasAuthority, from, to, sourcePile, destinationPile, card);
     }
 
-    private void MoveCard(bool hasAuthority, CardLocation from, CardLocation to, CardsPileSors sourcePile, CardsPileSors destinationPile, GameObject card)
+    private void MoveCard(bool hasAuthority, CardLocation from, CardLocation to, CardPile sourcePile, CardPile destinationPile, GameObject card)
     {
         // Is front or back up ?
         FlipCard(card, hasAuthority, to);
@@ -79,35 +79,34 @@ public class CardMover : MonoBehaviour
 
     private void InitSpawnedCard(GameObject card, bool hasAuthority=false, bool fromFile=false)
     {    
-        print("CardMover: Init spawned card");
+        // print("CardMover: Init spawned card");
         if(!fromFile) card.GetComponent<HandCardUI>().CardFrontUp();
-        // else {
-            var destination = GetPile(CardLocation.CardSpawn, hasAuthority);
-            _slotManager.Initialize(destination, card);
-        // }
+
+        var destination = GetPile(CardLocation.CardSpawn, hasAuthority);
+        _slotManager.Initialize(destination, card);
 
         card.SetActive(true);
     }
 
     #region Helpers
-    private void ApplyMovement(CardsPileSors source, CardsPileSors destination, GameObject card)
+    private void ApplyMovement(CardPile source, CardPile destination, GameObject card)
     {
         if (source.pileType != CardLocation.CardSpawn)
             _slotManager.CardLeaves(source, card);
 
-        card.transform.DOMove(destination.cardHolderTransform.position, SorsTimings.cardMoveTime)
+        card.transform.DOMove(destination.CardPileTransformation.cardHolderTransform.position, SorsTimings.cardMoveTime)
             .SetEase(Ease.InOutCubic)
             .OnComplete(() => FinishMove(destination, card)
         );
     }
 
-    private void FinishMove(CardsPileSors pile, GameObject card)
+    private void FinishMove(CardPile pile, GameObject card)
     {
         _slotManager.CardArrives(pile, card);
         OnUpdatePileNumbers?.Invoke();
     }
 
-    private (CardsPileSors, CardsPileSors) GetPiles(CardLocation from, CardLocation to, bool hasAuthority)
+    private (CardPile, CardPile) GetPiles(CardLocation from, CardLocation to, bool hasAuthority)
     {
         // Change where card comes from because card moved on client already ( InteractionPanel.SelectCard() )
         // if((to == CardLocation.EntitySpawn || to == CardLocation.Trash) && hasAuthority) 
@@ -116,7 +115,7 @@ public class CardMover : MonoBehaviour
         return (GetPile(from, hasAuthority), GetPile(to, hasAuthority));
     }
 
-    private CardsPileSors GetPile(CardLocation location, bool hasAuthority)
+    private CardPile GetPile(CardLocation location, bool hasAuthority)
     {
         var pile = location switch{
             CardLocation.CardSpawn => hasAuthority ? playerCardSpawn : opponentCardSpawn,
@@ -164,9 +163,9 @@ public class CardMover : MonoBehaviour
         }
     }
 
-    public List<CardsPileSors> GetPiles() 
+    public List<CardPile> GetPiles() 
     {
-        return new List<CardsPileSors> {
+        return new List<CardPile> {
             playerHand,
             playerPlayZone,
             playerDeck,

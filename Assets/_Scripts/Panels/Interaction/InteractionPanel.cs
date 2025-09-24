@@ -12,7 +12,7 @@ public class InteractionPanel : NetworkBehaviour
     private CardSelectionHandler _selectionHandler;
     private BoardManager _boardManager;
     [SerializeField] private ArrowManager _arrowManager;
-    [SerializeField] private CardsPileSors[] _interactablePiles;
+    [SerializeField] private CardPile[] _interactablePiles;
     private InteractionUI _interactionUI;
 
     [Header("Helper Fields")]

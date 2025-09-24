@@ -2,16 +2,24 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public interface ICardPileArrangement
+public interface ICardPile
 {
     void AddCard(CardDragHandler dragHandler, GameObject card);
     void RemoveCard(CardDragHandler card);
+    void StartInteraction();
+    void EndInteraction();
 }
 
-[RequireComponent(typeof(CardsPileSors))]
-public abstract class CardPileArrangement : MonoBehaviour, ICardPileArrangement
+public abstract class CardPile : MonoBehaviour, ICardPile
 {
     public List<CardDragHandler> cards = new();
+    public CardLocation pileType;
+    [HideInInspector]public CardPileTransformation CardPileTransformation { get; private set; }
+
+    private void Awake() 
+    {
+        CardPileTransformation = GetComponent<CardPileTransformation>();
+    }
 
     public virtual void VerifyOrder()
     {
@@ -32,12 +40,15 @@ public abstract class CardPileArrangement : MonoBehaviour, ICardPileArrangement
     {
         cards.Add(dragHandler);
 
-        dragHandler.transform.localPosition = Vector3.zero;
         card.transform.localPosition = Vector3.zero;
+        dragHandler.ResetPosition();
     }
 
     public virtual void RemoveCard(CardDragHandler card)
     {
         cards.Remove(card);
     }
+
+    public void StartInteraction() => CardPileTransformation.StartInteraction();
+    public void EndInteraction() => CardPileTransformation.EndInteraction();
 }

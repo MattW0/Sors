@@ -3,7 +3,7 @@ using Sirenix.Utilities.Editor;
 using UnityEngine;
 
 
-public class StaticCardPile : CardPileArrangement
+public class StaticCardPile : CardPile
 {
     public override void AddCard(CardDragHandler dragHandler, GameObject card)
     {

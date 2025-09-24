@@ -85,16 +85,21 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
             hand.Remove(cardToRemove);
         }
 
+        RpcRemoveHandCards(cards, destination);
+
         if (destination == CardLocation.Discard) discard.AddRange(cards);
+    }
+
+    private void RpcRemoveHandCards(List<CardStats> cards, CardLocation destination)
+    {
+        _cardMover.MoveAllTo(cards.Select(c => c.gameObject).ToList(), isOwned, CardLocation.Hand, destination);
     }
 
     [Server]
     public void DiscardMoneyCards()
     {
         RemoveHandCards(_serverMoneyCardsToDiscard, CardLocation.Discard);
-        
-        var goCards = new List<GameObject>(_serverMoneyCardsToDiscard.Select(c => c.gameObject));
-        RpcDiscardMoneyCards(goCards);
+        RpcDiscardMoneyCards(_serverMoneyCardsToDiscard);
 
         _serverMoneyCardsToDiscard.Clear();
     }
@@ -112,28 +117,27 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
     }
 
     [ClientRpc]
-    private void RpcDiscardMoneyCards(List<GameObject> cards)
+    private void RpcDiscardMoneyCards(List<CardStats> cards)
     {
         print($"Client discards {cards.Count} money cards");
-        _cardMover.MoveAllTo(cards, isOwned, CardLocation.Hand, CardLocation.Discard);
-
+        _cardMover.MoveAllTo(cards.Select(c => c.gameObject).ToList(), isOwned, CardLocation.Hand, CardLocation.Discard);
         _clientMoneyCardsInPlay.Clear();
     }
 
-    // [Client]
-    // public void UndoPlayMoney()
-    // {
-    //     if (_clientMoneyCardsInPlay.Count == 0 || _owner.LocalCash <= 0) return;
+    [Client]
+    public void UndoPlayMoney()
+    {
+        if (_clientMoneyCardsInPlay.Count == 0 || _owner.LocalCash <= 0) return;
 
-    //     var temp = new List<CardStats>(_clientMoneyCardsInPlay);
-    //     foreach (var card in temp)
-    //     {
-    //         _owner.LocalCash -= card.cardInfo.moneyValue;
-    //         card.SetInteractable(true);
-    //     }
+        var temp = new List<CardStats>(_clientMoneyCardsInPlay);
+        foreach (var card in temp)
+        {
+            _owner.LocalCash -= card.cardInfo.moneyValue;
+            card.SetInteractable(true);
+        }
 
-    //     _clientMoneyCardsInPlay.Clear();
-    // }
+        _clientMoneyCardsInPlay.Clear();
+    }
 
     [Client] internal void ConfirmMoneyCards() => CmdConfirmMoneyCards(_clientMoneyCardsInPlay);
 

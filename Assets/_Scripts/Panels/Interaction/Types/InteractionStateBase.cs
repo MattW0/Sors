@@ -27,7 +27,7 @@ public abstract class InteractionStateBase : IInteractionState
     public static event Action<InteractionType> OnConfirmInteraction;
     public static event Action<InteractionType> OnSkipInteraction;
     public static event Action OnResetInteraction;
-    public abstract void Initialize(CardsPileSors[] piles);
+    public abstract void Initialize(CardPile[] piles);
     public abstract void StartState();
 
     // Up-to vs exact interaction

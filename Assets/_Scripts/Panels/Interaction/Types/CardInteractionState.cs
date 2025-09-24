@@ -1,14 +1,13 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
-using System;
 using System.Runtime.InteropServices;
 
 public abstract class CardInteractionState : InteractionStateBase
 {
     public List<CardStats> selectableCards;
-    public CardsPileSors InteractionPile { get; set; }
-    public override void Initialize(CardsPileSors[] piles)
+    public ICardPile InteractionPile { get; set; }
+    public override void Initialize(CardPile[] piles)
     {
         InteractionPile = piles.FirstOrDefault(p => p.pileType == Config.interactionPile);
 

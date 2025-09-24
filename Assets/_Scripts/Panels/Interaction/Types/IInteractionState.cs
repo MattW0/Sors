@@ -3,7 +3,7 @@
 public interface IInteractionState { 
     public string ConfigName { get; }
     public InteractionStateConfig Config { get; }
-    public void Initialize(CardsPileSors[] piles);
+    public void Initialize(CardPile[] piles);
     public void StartState();
     public void EndState();
 }

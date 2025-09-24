@@ -11,7 +11,7 @@ public class CardSlot : MonoBehaviour
         DragHandler = GetComponentInChildren<CardDragHandler>();
         _visualHandler = DragHandler.GetComponentInChildren<CardVisualHandler>();
 
-        stats.DragHandler = this.DragHandler;
+        stats.DragHandler = DragHandler;
         DragHandler.Initialize(_visualHandler, stats);
         gameObject.SetActive(true);
     }
