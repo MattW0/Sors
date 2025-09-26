@@ -2,6 +2,8 @@ using UnityEngine;
 using DG.Tweening;
 using System.Linq;
 using UnityUtils;
+using UnityEngine.Scripting.APIUpdating;
+using TMPro.EditorUtilities;
 
 [RequireComponent(typeof(CardPileUI))]
 public class CardPileTransformation : Transformable
@@ -10,6 +12,8 @@ public class CardPileTransformation : Transformable
 	private CardPileUI _cardPileUI;
     [SerializeField] private CardPileSettings _defaultSettings;
     [SerializeField] private CardPileSettings _interactionSettings;
+    private CardPileSettings _active;
+    [SerializeField] bool _inEditor = false;
     
 	private void Awake() 
 	{
@@ -23,25 +27,29 @@ public class CardPileTransformation : Transformable
 		cardHolderTransform = transform.Children().First().transform;
 		_cardPileUI.ParentTransform = cardHolderTransform;
 
-        InitTransformable();
+        InitTransformable(cardHolderTransform);
+        EndInteraction();
 	}
 
     private void Update() 
     {
-        if (Default == null) return;
+        if (_inEditor || _active == null) return;
 
-        StartTransform(Default, SorsTimings.cardPileRearrangement);
+        StartMove(_active.position, _active.scale);
+        StartTransform(_active, SorsTimings.cardPileRearrangement);
     }
 
     internal void StartInteraction()
 	{
-		cardHolderTransform.DOLocalMove(Transformed.position, SorsTimings.cardPileRearrangement);
-        cardHolderTransform.DOScale(Transformed.scale, SorsTimings.cardPileRearrangement);
+        _active = _interactionSettings;
+        StartMove(_active.position, _active.scale);
 	}
 
     internal void EndInteraction()
 	{
-		cardHolderTransform.DOLocalMove(Default.position, SorsTimings.cardPileRearrangement);
-        cardHolderTransform.DOScale(Default.scale, SorsTimings.cardPileRearrangement);
+        _active = _defaultSettings ?? null;
+        
+        if(_active) StartMove(_active.position, _active.scale);
+        else StartMove(Vector3.zero);
 	}
 }

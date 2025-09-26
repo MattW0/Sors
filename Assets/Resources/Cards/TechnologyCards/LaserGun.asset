@@ -17,20 +17,22 @@ MonoBehaviour:
   resourceName: LaserGun
   type: 2
   title: Laser Gun
-  cost: 7
+  cost: 6
   health: 3
   attack: 0
   points: 2
   moneyValue: 0
   abilities:
   - trigger: 10
+    amount: 2
     effect: 5
     target: 9
-    amount: 1
+    text: 
   - trigger: 10
+    amount: 1
     effect: 5
     target: 7
-    amount: 1
+    text: 
   traits: 
-  description: 'Clean Up: Laser Gun deals 1 damage to a Creature and to itself'
   flavourText: 
+  description: 'Clean Up: Laser Gun deals 2 damage to a Creature and 1 to itself.'

@@ -15,7 +15,7 @@ public class CardPileSettings : TransformationSetting
 public class TransformationSetting : ScriptableObject
 {
     public Vector3 position;
-    public Vector3 scale = new(1.2f, 1.2f, 1f);
+    public float scale = 1.2f;
 	public float width;
 	public float height;
 }
