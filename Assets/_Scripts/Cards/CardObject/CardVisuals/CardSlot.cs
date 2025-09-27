@@ -16,7 +16,11 @@ public class CardSlot : MonoBehaviour
         gameObject.SetActive(true);
     }
 
-    public void SetParent(Transform pileTransform) => transform.SetParent(pileTransform, false);
+    public void SetParent(Transform pileTransform)
+    {
+        transform.SetParent(pileTransform, false);
+        transform.localPosition = Vector3.zero;
+    } 
 
     public void DetachToPool(Transform poolParent)
     {

@@ -4,6 +4,7 @@ using UnityEngine;
 
 public interface ICardPile
 {
+    int NumberCards { get; }
     void AddCard(CardDragHandler dragHandler, GameObject card);
     void RemoveCard(CardDragHandler card);
     void StartInteraction();
@@ -14,7 +15,8 @@ public abstract class CardPile : MonoBehaviour, ICardPile
 {
     public List<CardDragHandler> cards = new();
     public CardLocation pileType;
-    [HideInInspector]public CardPileTransformation CardPileTransformation { get; private set; }
+    [HideInInspector] public CardPileTransformation CardPileTransformation { get; private set; }
+    public int NumberCards => cards.Count();
 
     private void Awake() 
     {

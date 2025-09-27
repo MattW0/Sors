@@ -8,33 +8,21 @@ public class CardSlotsManager : MonoBehaviour
 {
     private ICardSlotFactory _factory;
     [SerializeField] private GameObject _slotPrefab;
-    private CardMover _cardMover;
 
-    private void Awake()
-    {
-        _factory = new CardSlotFactory(_slotPrefab, transform);
-        _cardMover = ServiceLocator.Global.Get<CardMover>();
-    }
+    private void Awake() => _factory = new CardSlotFactory(_slotPrefab, transform);
 
     internal void Initialize(CardPile pile, GameObject card)
     {
-        var stats = card.GetComponent<CardStats>();
-        var slot = SpawnSlot(card);
-
         // print($"Initialize card {stats.cardInfo.title} at pile {pile.pileType}");
-        slot.SetParent(pile.CardPileTransformation.cardHolderTransform);
-        pile.AddCard(slot.DragHandler, card);
+        var slot = SpawnSlot(card);
+        SetParent(pile, card, slot);
     }
 
     internal void CardArrives(CardPile pile, GameObject card)
     {
         // print($"card {card.GetComponent<CardStats>().cardInfo.title} arrives at pile {pile.pileType}");
-        
         var slot = card.GetComponentInParent<CardSlot>();
-        pile.AddCard(slot.DragHandler, card);
-
-        slot.SetParent(pile.CardPileTransformation.cardHolderTransform);
-        slot.transform.localPosition = Vector3.zero;
+        SetParent(pile, card, slot);
     }
 
     internal void CardLeaves(CardPile pile, GameObject card)
@@ -54,5 +42,11 @@ public class CardSlotsManager : MonoBehaviour
         // await UniTask.Delay(SorsTimings.spawnCard);
 
         return slot;
+    }
+
+    private static void SetParent(CardPile pile, GameObject card, CardSlot slot)
+    {
+        pile.AddCard(slot.DragHandler, card);
+        slot.SetParent(pile.CardPileTransformation.cardHolderTransform);
     }
 }
