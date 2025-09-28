@@ -29,8 +29,6 @@ public class PlayerInterfaceManager : NetworkBehaviour
     {
         _actionDescription.NumberPhases = numberPhasesToChoose;
         _player = PlayerManager.GetLocalPlayer();
-        if(!_player.isServer) gameObject.GetComponent<PlayerInterfaceButtons>().DisableUtilityButton();
-        // else TurnManager.OnPlayerIsReady += RpcLogPlayerAction;
 
         var colorPalette = UIManager.ColorPalette;
         foreach (var p in players)
@@ -85,11 +83,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
 
     [ClientRpc]
     private void RpcHandleMessage(string originator, string message) => OnChatMessageReceived?.Invoke(originator, message);
-    public void ToggleLogChat()
-    {
-        _chat.ToggleVisible();
-        _logger.ToggleVisible();
-    }
+    public void ToggleChat() => _chat.ToggleVisible();
 
     #endregion
 
