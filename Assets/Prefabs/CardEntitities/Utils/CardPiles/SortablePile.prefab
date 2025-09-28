@@ -114,9 +114,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cards: []
+  pileType: 0
   _movingCard: {fileID: 0}
   tweenCardReturn: 1
-  cardPileTransformation: {fileID: 0}
 --- !u!114 &6052427177964827598
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -142,5 +142,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db1b2d9ec6e65144f8b20c15b74305d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pileType: 0
   cardHolderTransform: {fileID: 0}
+  _defaultSettings: {fileID: 0}
+  _interactionSettings: {fileID: 0}
+  cardWidth: 120
+  _minWidth: 200
+  _maxWidth: 800
+  _layoutGroup: {fileID: 629448962540480712}

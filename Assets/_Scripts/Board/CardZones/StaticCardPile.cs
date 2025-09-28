@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using Sirenix.Utilities.Editor;
 using UnityEngine;
 
 
@@ -9,6 +7,8 @@ public class StaticCardPile : CardPile
     {
         base.AddCard(dragHandler, card);
         dragHandler.Draggable = false;
+
+        VerifyOrder();
     }
 }
 

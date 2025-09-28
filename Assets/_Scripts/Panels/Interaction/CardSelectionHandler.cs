@@ -13,7 +13,6 @@ public class CardSelectionHandler : MonoBehaviour
     public CardSelection cardSelection;
     private InteractionPanel _interactionPanel;
     private InteractionUI _ui;
-    private CardMover _cardMover;
     [SerializeField] private int _numberSelections;
     private CardInteractionState _state;
     public static event Action OnResetCards;
@@ -27,11 +26,6 @@ public class CardSelectionHandler : MonoBehaviour
         CardDragHandler.OnCardClicked += ClickedCard;
         MarketTile.OnTileSelected += SelectMarketTile;
         MarketTile.OnTileDeselected += DeselectMarketTile;
-    }
-
-    private void Start()
-    {
-        _cardMover = ServiceLocator.Global.Get<CardMover>();
     }
 
     public void BeginInteraction(CardInteractionState interactionState, int numberSelections)

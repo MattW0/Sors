@@ -13,7 +13,7 @@ public class CardSlotsManager : MonoBehaviour
 
     internal void Initialize(CardPile pile, GameObject card)
     {
-        // print($"Initialize card {stats.cardInfo.title} at pile {pile.pileType}");
+        // print($"Initialize card {card.GetComponent<CardStats>().cardInfo.title} at pile {pile.pileType}");
         var slot = SpawnSlot(card);
         SetParent(pile, card, slot);
     }
@@ -26,9 +26,8 @@ public class CardSlotsManager : MonoBehaviour
     }
 
     internal void CardLeaves(CardPile pile, GameObject card)
-    {        
+    {
         // print($"Remove {card.GetComponent<CardStats>().cardInfo.title} from collection {pile.pileType}");
-
         pile.RemoveCard(card.GetComponentInParent<CardSlot>().DragHandler);
     }
     

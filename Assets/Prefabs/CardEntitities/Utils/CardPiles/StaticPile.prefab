@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 280563387104033948}
   - component: {fileID: 7829750685757181125}
   - component: {fileID: 6446496762439387752}
+  - component: {fileID: 39844803312573791}
   m_Layer: 9
   m_Name: Cards
   m_TagString: Untagged
@@ -75,6 +76,32 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &39844803312573791
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2076226005940763313}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 0
+  m_Spacing: 0
+  m_ChildForceExpandWidth: 1
+  m_ChildForceExpandHeight: 1
+  m_ChildControlWidth: 1
+  m_ChildControlHeight: 1
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
 --- !u!1 &5557037214872625458
 GameObject:
   m_ObjectHideFlags: 0
@@ -165,8 +192,7 @@ MonoBehaviour:
   cardHolderTransform: {fileID: 0}
   _defaultSettings: {fileID: 11400000, guid: 4589309ea99f62c46807028c1b9c774d, type: 2}
   _interactionSettings: {fileID: 0}
-  _inEditor: 0
-  width: 0
   cardWidth: 110
   _minWidth: 200
   _maxWidth: 1200
+  _layoutGroup: {fileID: 39844803312573791}

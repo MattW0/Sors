@@ -29,8 +29,6 @@ public abstract class CardPile : MonoBehaviour, ICardPile
 
         // print(" --- Verify order ---");
         foreach(var dragHandler in temp){
-            // print(dragHandler.Stats.cardInfo.title);
-
             var parentTransform = dragHandler.gameObject.transform.parent;
             parentTransform.gameObject.name = $"{parentTransform.GetSiblingIndex()}";
         }
@@ -44,13 +42,16 @@ public abstract class CardPile : MonoBehaviour, ICardPile
 
         card.transform.localPosition = Vector3.zero;
         dragHandler.ResetPosition();
+
+        CardPileTransformation.StartTransform().Forget();
     }
 
     public virtual void RemoveCard(CardDragHandler card)
     {
         cards.Remove(card);
+        CardPileTransformation.StartTransform().Forget();
     }
 
-    public void StartInteraction() => CardPileTransformation.StartInteraction();
-    public void EndInteraction() => CardPileTransformation.EndInteraction();
+    public void StartInteraction() => CardPileTransformation.StartMove(true).Forget();
+    public void EndInteraction() => CardPileTransformation.StartMove(false).Forget();
 }

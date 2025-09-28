@@ -19,7 +19,6 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
     public string[] handTitles;
     public string[] moneyTitles;
     private CardMover _cardMover;
-    private CardSlotsManager _cardSlotsManager;
     private PlayerManager _owner;
 
     private void Start()
@@ -95,15 +94,6 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
         _cardMover.MoveAllTo(cards.Select(c => c.gameObject).ToList(), isOwned, CardLocation.Hand, destination);
     }
 
-    [Server]
-    public void DiscardMoneyCards()
-    {
-        RemoveHandCards(_serverMoneyCardsToDiscard, CardLocation.Discard);
-        RpcDiscardMoneyCards(_serverMoneyCardsToDiscard);
-
-        _serverMoneyCardsToDiscard.Clear();
-    }
-
     #endregion
     #region Client Logic
 
@@ -116,11 +106,26 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
         card.SetInteractable(false);
     }
 
-    [ClientRpc]
-    private void RpcDiscardMoneyCards(List<CardStats> cards)
+    [Client] internal void ConfirmMoneyCards() => CmdConfirmMoneyCards(_clientMoneyCardsInPlay);
+
+    [Command]
+    private void CmdConfirmMoneyCards(List<CardStats> cards)
     {
-        print($"Client discards {cards.Count} money cards");
-        _cardMover.MoveAllTo(cards.Select(c => c.gameObject).ToList(), isOwned, CardLocation.Hand, CardLocation.Discard);
+        print($"{_owner.PlayerName} commits {cards.Count} money cards");
+        _serverMoneyCardsToDiscard.AddRange(cards);
+    }
+
+    [Server]
+    public void DiscardMoneyCards()
+    {
+        RemoveHandCards(_serverMoneyCardsToDiscard, CardLocation.Discard);
+        RpcEndMoneyPlaying();
+        _serverMoneyCardsToDiscard.Clear();
+    }
+
+    [ClientRpc]
+    private void RpcEndMoneyPlaying()
+    {
         _clientMoneyCardsInPlay.Clear();
     }
 
@@ -138,18 +143,6 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
 
         _clientMoneyCardsInPlay.Clear();
     }
-
-    [Client] internal void ConfirmMoneyCards() => CmdConfirmMoneyCards(_clientMoneyCardsInPlay);
-
-    [Command]
-    private void CmdConfirmMoneyCards(List<CardStats> cards)
-    {
-        print($"{_owner.PlayerName} commits {cards.Count} money cards");
-        _serverMoneyCardsToDiscard.AddRange(cards);
-    }
-
-    #endregion
-    #region Helpers
 
     private void ReturnUnspentMoneyToHand()
     {
@@ -179,6 +172,9 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
         // Substract cash
         _owner.LocalCash -= undoAmount;
     }
+
+    #endregion
+    #region Helpers
 
     [ClientRpc]
     public void RpcMoveCard(GameObject card, CardLocation from, CardLocation to)

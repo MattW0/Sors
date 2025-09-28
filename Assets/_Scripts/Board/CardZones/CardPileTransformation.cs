@@ -1,10 +1,10 @@
 using UnityEngine;
-using DG.Tweening;
 using System.Linq;
 using UnityUtils;
-using UnityEngine.Scripting.APIUpdating;
-using TMPro.EditorUtilities;
 using System;
+using UnityEngine.UI;
+using Cysharp.Threading.Tasks;
+using System.Threading;
 
 [RequireComponent(typeof(CardPileUI))]
 public class CardPileTransformation : Transformable
@@ -19,7 +19,8 @@ public class CardPileTransformation : Transformable
     [SerializeField] private float cardWidth = 120f;
     [SerializeField] private float _minWidth = 200f;
     [SerializeField] private float _maxWidth = 800f;
-
+    [SerializeField] private HorizontalLayoutGroup _layoutGroup;
+    private CancellationToken _cancellationToken;
     
 	private void Awake() 
 	{
@@ -34,34 +35,34 @@ public class CardPileTransformation : Transformable
 		cardHolderTransform = transform.Children().First().transform;
 		_cardPileUI.ParentTransform = cardHolderTransform;
 
+        _cancellationToken = this.GetCancellationTokenOnDestroy();
         InitTransformable(cardHolderTransform);
-        EndInteraction();
+        StartMove(false).Forget();
 	}
 
-    private void Update() 
+    internal async UniTaskVoid StartTransform() => await DoTransform();
+    internal async UniTaskVoid StartMove(bool isInteraction)
+	{
+        _active = isInteraction ? _interactionSettings : _defaultSettings;
+
+        await UniTask.WhenAll(
+            MoveTask(_cancellationToken, _active, SorsTimings.cardPileRearrangement),
+            DoTransform()
+        );
+
+        _layoutGroup.enabled = _active.isHorizontalLayout;
+	}
+
+
+    private async UniTask DoTransform()
     {
-        if (_active == null) return;
+        if(_active.isHorizontalLayout) {
+            _width = Math.Min(_pile.NumberCards * cardWidth, _maxWidth);
+            _width = Math.Max(_width, _minWidth);
+        } else {
+            _width = 0f;
+        }
 
-        StartMove(_active.position, _active.scale);
-        if(!_active.isHorizontalLayout) return;
-
-        _width = Math.Min(_pile.NumberCards * cardWidth, _maxWidth);
-        _width = Math.Max(_width, _minWidth);
-
-        StartTransform(_active, _width, SorsTimings.cardPileRearrangement);
+        await TransformTask(_cancellationToken, _width, SorsTimings.cardPileRearrangement);
     }
-
-    internal void StartInteraction()
-	{
-        _active = _interactionSettings;
-        StartMove(_active.position, _active.scale);
-	}
-
-    internal void EndInteraction()
-	{
-        _active = _defaultSettings ?? null;
-        
-        if(_active) StartMove(_active.position, _active.scale);
-        else StartMove(Vector3.zero);
-	}
 }

@@ -233,7 +233,6 @@ public class BoardManager : NetworkBehaviour
 
     public int CheckNumberOfFreeSlots(bool isHost, TurnState state) => _dropZone.GetNumberOfFreeSlots(isHost, state);
     public void ResetHolders() => _dropZone.RpcResetHolders();
-    // public void DiscardMoney() => _dropZone.RpcDiscardMoney();
     #endregion
     private void OnDestroy()
     {

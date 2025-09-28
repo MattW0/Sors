@@ -167,7 +167,7 @@ public class Market : NetworkBehaviour
     }
 
     [Server]
-    public void EndMarketPhase(TurnState phase)
+    public void ReplaceTiles(TurnState phase)
     {
         foreach (var index in _boughtCards)
         {
@@ -179,7 +179,11 @@ public class Market : NetworkBehaviour
             else if (phase == TurnState.Recruit)
                 RpcReplaceTile(index, GetNewCreatureFromDb());
         }
+    }
 
+    [Server]
+    public void EndMarketPhase()
+    {
         RpcEndMarketPhase();
     }
 

@@ -213,13 +213,6 @@ public class DropZoneManager : NetworkBehaviour
         return (creatures, technologies);
     }
 
-    // [ClientRpc]
-    // public void RpcDiscardMoney()
-    // {
-    //     playerMoneyZone.DiscardMoney();
-    //     opponentMoneyZone.DiscardMoney();
-    // }
-
     [Server]
     public void DestroyTargetArrows() => RpcDestroyArrows();
     [ClientRpc]

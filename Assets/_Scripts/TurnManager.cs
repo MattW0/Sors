@@ -234,9 +234,6 @@ public class TurnManager : NetworkBehaviour
             var cardInfo = player.TurnContext.SelectedCard;
             if (! cardInfo.HasValue) continue;
 
-            player.Buys--;
-            player.Cash = player.TurnContext.CashBuffer;
-
             PlayerGainsCard(player, cardInfo.Value);
 
             player.Cards.DiscardMoneyCards();
@@ -244,12 +241,15 @@ public class TurnManager : NetworkBehaviour
         _market.RpcMinButton();
 
         AsyncAwaitQueue(SorsTimings.showSpawnedCard)
-            .ContinueWith(CheckBuyAnotherCard)
+            .ContinueWith(RestockMarket)
             .Forget();
     }
 
     public void PlayerGainsCard(PlayerManager player, CardInfo cardInfo)
     {
+        player.Buys--;
+        player.Cash = player.TurnContext.CashBuffer;
+
         _gameManager.PlayerGainCard(player, cardInfo, CardLocation.Discard);
         _logger.RpcLog(player.ID, cardInfo.title, cardInfo.cost, LogType.Buy);
         AsyncAwaitQueue(SorsTimings.showSpawnedCard).Forget();
@@ -267,6 +267,15 @@ public class TurnManager : NetworkBehaviour
         AsyncAwaitQueue(SorsTimings.showSpawnedCard + SorsTimings.waitShort).Forget();
     }
 
+    private void RestockMarket()
+    {
+        _market.RpcMaxButton();
+        // Replace tiles that were bought by either player
+        _market.ReplaceTiles(turnState);
+
+        CheckBuyAnotherCard();
+    }
+
     private void CheckBuyAnotherCard()
     {
         // Play another card if not all players have skipped
@@ -281,9 +290,10 @@ public class TurnManager : NetworkBehaviour
 
     private void FinishBuyCard()
     {
-        // Replace tiles that were bought by either player
-        _market.EndMarketPhase(turnState);
-        PlayersDiscardMoney();
+        foreach (var player in _gameManager.players.Values)
+            player.Cash = 0;
+
+        _market.EndMarketPhase();
         
         _interactionPanel.RpcFinishState();
         UpdateTurnState(TurnState.NextPhase);
@@ -370,7 +380,10 @@ public class TurnManager : NetworkBehaviour
     private void FinishPlayCard()
     {
         _boardManager.ResetHolders();
-        PlayersDiscardMoney();
+        foreach (var player in _gameManager.players.Values)
+        {
+            player.Cash = 0;
+        }
 
         _interactionPanel.RpcFinishState();
         UpdateTurnState(TurnState.NextPhase);
@@ -520,7 +533,7 @@ public class TurnManager : NetworkBehaviour
     {
         await UniTask.Delay(delayMiliseconds);
 
-        // Waiting for AbilityQueue to finish resolving Buy triggers
+        // Waiting for AbilityQueue to finish resolving triggers (phase transition, buy, gain)
         await _abilityQueue.Resolve();
     }
 
@@ -629,17 +642,6 @@ public class TurnManager : NetworkBehaviour
         return _readyPlayers.Count == _nbPlayers;
     }
 
-    private void PlayersDiscardMoney()
-    {
-        print("TurnManager: Discard money");
-        foreach (var player in _gameManager.players.Values)
-        {
-            // Returns unused money then discards the remaining cards
-            player.Cards.DiscardMoneyCards();
-            player.Cash = 0;
-        }
-    }
-
     private void ResetPlayers()
     {
         foreach (var player in _gameManager.players.Values)
@@ -649,8 +651,6 @@ public class TurnManager : NetworkBehaviour
             player.Prevails = 0;
             player.TurnContext.Reset();
         }
-
-        PlayersDiscardMoney();
     }
 
     private void StartPhaseInteraction(PrevailOption currentPrevailOption = PrevailOption.None)
