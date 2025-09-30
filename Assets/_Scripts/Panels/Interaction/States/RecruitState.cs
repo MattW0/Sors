@@ -9,10 +9,21 @@ public class RecruitState : CardInteractionState
                 return "Buy a Creature or Money card";
         }
     }
+
+    public RecruitState()
+    {
+        InteractionPanel.OnUndoMoneyPlay += MakeMoneyCardsInteractable;
+    }
+
     public override CardLocation? GetCardDestination(CardStats cardStats)
     {
         if(cardStats.cardInfo.type == CardType.Money) return CardLocation.MoneyZone;
         return null;
     }
-    public override void MakeCardsInteractable() => MakeMoneyCardsInteractable();
+    public override void MakeCardsInteractable() => MakeMoneyCardsInteractable(Config.turnState);
+
+    ~RecruitState()
+    {
+        InteractionPanel.OnUndoMoneyPlay -= MakeMoneyCardsInteractable;
+    }
 }

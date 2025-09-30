@@ -179,12 +179,8 @@ public class Market : NetworkBehaviour
             else if (phase == TurnState.Recruit)
                 RpcReplaceTile(index, GetNewCreatureFromDb());
         }
-    }
 
-    [Server]
-    public void EndMarketPhase()
-    {
-        RpcEndMarketPhase();
+        _boughtCards.Clear();
     }
 
     [ClientRpc]

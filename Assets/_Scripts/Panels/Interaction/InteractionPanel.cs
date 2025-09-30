@@ -14,6 +14,7 @@ public class InteractionPanel : NetworkBehaviour
     [SerializeField] private ArrowManager _arrowManager;
     [SerializeField] private CardPile[] _interactablePiles;
     private InteractionUI _interactionUI;
+    public static event Action<TurnState> OnUndoMoneyPlay;
 
     [Header("Helper Fields")]
     private IInteractionState _currentState;
@@ -41,7 +42,7 @@ public class InteractionPanel : NetworkBehaviour
 
         InteractionStateBase.OnConfirmInteraction += PlayerConfirms;
         InteractionStateBase.OnSkipInteraction += PlayerSkips;
-        InteractionStateBase.OnResetInteraction += CmdPlayerResets;
+        InteractionStateBase.OnResetInteraction += PlayerResets;
     }
 
     private void Start() 
@@ -99,7 +100,7 @@ public class InteractionPanel : NetworkBehaviour
 
     private void PlayerConfirms(InteractionType type)
     {
-        print("Player confirms interaction type "+ type);
+        // print("Player confirms interaction type "+ type);
         _selectionHandler.EndSelection();
         
         // Default behavior that is resolved individually in TurnManager
@@ -149,8 +150,27 @@ public class InteractionPanel : NetworkBehaviour
     [Command(requiresAuthority = false)]
     private void CmdPlayerConfirmsCombat() => _boardManager.PlayerConfirmsCombatState(LocalPlayer);
 
+    private void PlayerResets() 
+    {
+        if (_currentState.Config.turnState == TurnState.Attackers 
+            || _currentState.Config.turnState == TurnState.Blockers)
+            CmdResetArrows();
+        else {
+            UndoMoneyPlay();
+        }
+    }
     [Command(requiresAuthority = false)]
-    private void CmdPlayerResets() => _arrowManager.TargetResetArrows(LocalPlayer.connectionToClient);
+    private void CmdResetArrows() 
+    {
+        _arrowManager.TargetResetArrows(LocalPlayer.connectionToClient);
+    }
+
+    // [ClientRpc]
+    private void UndoMoneyPlay()
+    {
+        _selectionHandler.UndoMoneyPlay();
+        OnUndoMoneyPlay?.Invoke(_currentState.Config.turnState);
+    }
 
     #endregion
 
@@ -158,6 +178,6 @@ public class InteractionPanel : NetworkBehaviour
     {
         InteractionStateBase.OnConfirmInteraction -= PlayerConfirms;
         InteractionStateBase.OnSkipInteraction -= PlayerSkips;
-        InteractionStateBase.OnResetInteraction -= CmdPlayerResets;
+        InteractionStateBase.OnResetInteraction -= PlayerResets;
     }
 }

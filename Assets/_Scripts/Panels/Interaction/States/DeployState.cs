@@ -14,6 +14,7 @@ public class DeployState : CardInteractionState
     public DeployState()
     {
         PlayerManager.OnLocalCashUpdate += CheckPlayability;
+        InteractionPanel.OnUndoMoneyPlay += MakeMoneyCardsInteractable;
     }
 
     public override bool CheckStateAutoskip() => !SelectablesContainCreature();
@@ -25,10 +26,11 @@ public class DeployState : CardInteractionState
         return null;
     }
 
-    public override void MakeCardsInteractable() => MakeMoneyCardsInteractable();
+    public override void MakeCardsInteractable() => MakeMoneyCardsInteractable(Config.turnState);
     
     ~DeployState() 
     {
         PlayerManager.OnLocalCashUpdate -= CheckPlayability;
+        InteractionPanel.OnUndoMoneyPlay -= MakeMoneyCardsInteractable;
     }
 } 

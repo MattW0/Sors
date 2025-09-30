@@ -1,7 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 
 public abstract class CardInteractionState : InteractionStateBase
 {
@@ -69,8 +68,12 @@ public abstract class CardInteractionState : InteractionStateBase
     protected bool SelectablesContainCreature() => selectableCards?.Any(c => c.cardInfo.type == CardType.Creature) ?? false;
     protected void MakeAllCardsInteractable()
         => selectableCards.ForEach(c => c.SetInteractable(true, Config.turnState));
-    protected void MakeMoneyCardsInteractable()
-        => selectableCards.ForEach(c => c.SetInteractable(c.cardInfo.type == CardType.Money, Config.turnState));
+    protected void MakeMoneyCardsInteractable(TurnState state) 
+    {
+        if (Config.turnState != state) return;
+
+        selectableCards.ForEach(c => c.SetInteractable(c.cardInfo.type == CardType.Money, Config.turnState));
+    }
     
     public override void EndState() => InteractionPile.EndInteraction();
 }

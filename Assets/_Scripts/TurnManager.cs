@@ -293,7 +293,7 @@ public class TurnManager : NetworkBehaviour
         foreach (var player in _gameManager.players.Values)
             player.Cash = 0;
 
-        _market.EndMarketPhase();
+        _market.RpcEndMarketPhase();
         
         _interactionPanel.RpcFinishState();
         UpdateTurnState(TurnState.NextPhase);

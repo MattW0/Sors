@@ -81,7 +81,7 @@ public class MarketTile : MonoBehaviour
         IsSelected = false;
         Interactable = false;
 
-        _alreadyChosen = true;
+        // _alreadyChosen = true;
         _ui.ShowAsChosen();
     }
     

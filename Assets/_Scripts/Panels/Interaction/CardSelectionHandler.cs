@@ -106,6 +106,12 @@ public class CardSelectionHandler : MonoBehaviour
         MarketTile.OnTileSelected -= SelectMarketTile;
         MarketTile.OnTileDeselected -= DeselectMarketTile;
     }
+
+    internal void UndoMoneyPlay()
+    {
+        var undoables = _interactionPanel.LocalPlayer.Cards.UndoPlayMoney();
+        foreach (var card in undoables) OnCardSelection?.Invoke(card.DragHandler, false);
+    }
 }
 
 public struct CardSelection

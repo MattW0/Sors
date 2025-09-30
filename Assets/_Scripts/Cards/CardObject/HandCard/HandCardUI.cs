@@ -1,7 +1,4 @@
-using System.Collections;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using DG.Tweening;
 
 public class HandCardUI : CardUI
 {

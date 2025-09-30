@@ -1,22 +1,20 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using Mirror.BouncyCastle.Crypto.Generators;
 
 public class PrevailUI : AnimatedPanel
 {
     [SerializeField] private TMP_Text instructions;
-    [SerializeField] private Button confirm;
+    [SerializeField] private Button _confirm;
     private PrevailPanel _panel;
     private bool _isOpen;
     
     void Start()
     {
-        confirm.onClick.AddListener(OnClickConfirm);
         _panel = PrevailPanel.Instance;
+
+        _confirm.onClick.AddListener(OnClickConfirm);
+        _confirm.interactable = false;
 
         PrevailPanel.OnPrevailSelectionEnded += Close;
         PlayerInterfaceButtons.OnOpenPrevailPanel += ToggleOpen;
@@ -25,13 +23,13 @@ public class PrevailUI : AnimatedPanel
     public void Begin(int numberOptions)
     {
         Open();
-        confirm.interactable = true;
+        _confirm.interactable = true;
         instructions.text = "Choose up to " + numberOptions.ToString();
     }
 
     private void OnClickConfirm()
     {
-        confirm.interactable = false;
+        _confirm.interactable = false;
         _panel.ConfirmButonClicked();
     }
 

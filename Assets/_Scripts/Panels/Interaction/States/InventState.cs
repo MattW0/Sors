@@ -10,11 +10,22 @@ public class InventState : CardInteractionState
                 return "Buy a Technology or Money card";
         }
     }
+
+    public InventState()
+    {
+        InteractionPanel.OnUndoMoneyPlay += MakeMoneyCardsInteractable;
+    }
+
     public override CardLocation? GetCardDestination(CardStats cardStats)
     {
         if(cardStats.cardInfo.type == CardType.Money) return CardLocation.MoneyZone;
         return null;
     }
 
-    public override void MakeCardsInteractable() => MakeMoneyCardsInteractable();
+    public override void MakeCardsInteractable() => MakeMoneyCardsInteractable(Config.turnState);
+
+    ~InventState() 
+    {
+        InteractionPanel.OnUndoMoneyPlay -= MakeMoneyCardsInteractable;
+    }
 }

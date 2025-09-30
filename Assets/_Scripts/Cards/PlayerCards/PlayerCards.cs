@@ -130,18 +130,20 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
     }
 
     [Client]
-    public void UndoPlayMoney()
+    public List<CardStats> UndoPlayMoney()
     {
-        if (_clientMoneyCardsInPlay.Count == 0 || _owner.LocalCash <= 0) return;
+        print("Undo playing money: " + _clientMoneyCardsInPlay.Count);
+        if (_clientMoneyCardsInPlay.Count == 0 || _owner.LocalCash <= 0) return _clientMoneyCardsInPlay;
 
         var temp = new List<CardStats>(_clientMoneyCardsInPlay);
-        foreach (var card in temp)
+        foreach (var card in _clientMoneyCardsInPlay)
         {
             _owner.LocalCash -= card.cardInfo.moneyValue;
             card.SetInteractable(true);
         }
 
         _clientMoneyCardsInPlay.Clear();
+        return temp;
     }
 
     private void ReturnUnspentMoneyToHand()
