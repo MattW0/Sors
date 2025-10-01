@@ -22,8 +22,6 @@ public class UIManager : NetworkBehaviour
         catch { Debug.Log("No Sors Colors found at Resources/ColorDefinitions/Sors Colors. Assign it manually on " + gameObject.name, this); }
 
         CardPileClick.OnLookAtCardList += RequestCardList;
-        CardListUI.OnCloseCardCollection += CloseCardList;
-
         PlayerInterfaceButtons.OnQuitButtonClicked += QuitDialog;
         
         AlertDialogue.OnAccept += AlertDialogueAccept;
@@ -46,12 +44,12 @@ public class UIManager : NetworkBehaviour
     {
         print($"Player {player.PlayerName} opens collection {listInfo.location}, owns collection {listInfo.isMine}");
 
-        if (_openCardLists.Contains(listInfo)) return;
-        _openCardLists.Add(listInfo);
+        // if (_openCardLists.Contains(listInfo)) return;
+        // _openCardLists.Add(listInfo);
 
         var cardList = GetCardList(player, listInfo);
 
-        cardList.OnUpdate += UpdateCardCollection;
+        // cardList.OnUpdate += UpdateCardCollection;
         TargetOpenCardCollection(player.connectionToClient, cardList, listInfo);
     }
 
@@ -75,21 +73,6 @@ public class UIManager : NetworkBehaviour
     public void RpcUpdateCardCollection(List<CardInfo> cards)
     {
         print("Updating card collection");
-    }
-
-    private void CloseCardList(CardListInfo listInfo)
-    {
-        CmdCloseCardList(PlayerManager.GetLocalPlayer(), listInfo);
-    }
-
-    [Command(requiresAuthority = false)]
-    private void CmdCloseCardList(PlayerManager player, CardListInfo listInfo)
-    {
-        if (!_openCardLists.Contains(listInfo)) return;
-
-        var cardList = GetCardList(player, listInfo);
-        cardList.OnUpdate -= UpdateCardCollection;
-        _openCardLists.Remove(listInfo);
     }
 
     private CardList GetCardList(PlayerManager player, CardListInfo listInfo)
@@ -126,8 +109,6 @@ public class UIManager : NetworkBehaviour
     private void OnDestroy()
     {
         CardPileClick.OnLookAtCardList -= RequestCardList;
-        CardListUI.OnCloseCardCollection -= CloseCardList;
-
         PlayerInterfaceButtons.OnQuitButtonClicked -= QuitDialog;
 
         AlertDialogue.OnAccept -= AlertDialogueAccept;

@@ -16,7 +16,7 @@ public class CardPileClick : MonoBehaviour, IPointerClickHandler, IPointerEnterH
         _clickOverlayImage = GetComponent<Image>();
         _clickOverlayImage.CrossFadeAlpha(0f, 0.5f, false);
 
-        // _cardListInfo = new CardListInfo(_isMine, GetComponentInParent<CardsPileSors>().pileType);
+        _cardListInfo = new CardListInfo(_isMine, GetComponentInParent<CardPile>().pileType);
     }
 
     public void OnPointerClick(PointerEventData eventData)
@@ -24,7 +24,7 @@ public class CardPileClick : MonoBehaviour, IPointerClickHandler, IPointerEnterH
         if (eventData.button == PointerEventData.InputButton.Right) return;
 
         print("Click on pile");
-        // OnLookAtCardList?.Invoke(_cardListInfo);
+        OnLookAtCardList?.Invoke(_cardListInfo);
     }
 
     public void OnPointerEnter(PointerEventData eventData)

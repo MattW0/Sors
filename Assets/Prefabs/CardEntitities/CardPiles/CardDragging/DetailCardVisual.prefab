@@ -262,28 +262,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7167d76743fefbf45b9056afd309d066, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _dragHandler: {fileID: 0}
-  visualShadow: {fileID: 9157190824811683565}
   shakeParent: {fileID: 3449025543118524474}
   tiltParent: {fileID: 5862976466474931636}
+  _dragHandler: {fileID: 0}
   followSpeed: 30
   _rotationSpeed: 10
   rotationAmount: 100
   autoTiltAmount: 5
   manualTiltAmount: 20
   tiltSpeed: 20
+  shakeAnimations: 1
   scaleAnimations: 1
   scaleOnHover: 1.15
   scaleOnSelect: 1.25
   scaleTransition: 0.15
   scaleEase: 27
-  selectPunchAmount: 20
+  selectionOffset: 30
   hoverPunchAngle: 5
   hoverTransition: 0.15
-  swapAnimations: 1
-  swapRotationAngle: 10
-  swapTransition: 0.15
-  swapVibrato: 5
   curve: {fileID: 11400000, guid: a00b98d31f9d5a149b95800f3fe23a04, type: 2}
 --- !u!223 &4132845374223140069
 Canvas:

@@ -2,13 +2,13 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System;
+using UnityEngine.EventSystems;
 
 public class CardListUI : MonoBehaviour
 {
     [SerializeField] private TMP_Text _collectionTitle;
     [SerializeField] private Button _closeButton;
-    private CardListInfo _listInfo;
-    public static event Action<CardListInfo> OnCloseCardCollection;
+    [SerializeField] IDragHandler _draggable;
 
     private void Start()
     {
@@ -18,9 +18,8 @@ public class CardListUI : MonoBehaviour
     public void Open(CardListInfo listInfo)
     {
         gameObject.SetActive(true);
-        _listInfo = listInfo;
 
-        var text = listInfo.isMine ? "" : "Opponent ";
+        var text = listInfo.isMine ? "Player " : "Opponent ";
         if (listInfo.location == CardLocation.Deck) text += "Deck";
         else if (listInfo.location == CardLocation.Discard) text += "Discard";
         else if (listInfo.location == CardLocation.Hand) text += "Hand";
@@ -35,7 +34,6 @@ public class CardListUI : MonoBehaviour
 
     private void Close()
     {
-        OnCloseCardCollection?.Invoke(_listInfo); 
         Destroy(gameObject);
     }
 }

@@ -9,7 +9,7 @@ public class CardList : List<CardStats>
     {
         Info = new CardListInfo(isMine, location);
     }
-    public event Action<CardListInfo, List<CardInfo>> OnUpdate;
+    // public event Action<CardListInfo, List<CardInfo>> OnUpdate;
 
     public void Shuffle()
     {
@@ -28,7 +28,7 @@ public class CardList : List<CardStats>
     public new void Add(CardStats card)
     {
         base.Add(card);
-        OnUpdate?.Invoke(Info, ToCardInfos());
+        // OnUpdate?.Invoke(Info, ToCardInfos());
     }
 
     public List<CardInfo> ToCardInfos()

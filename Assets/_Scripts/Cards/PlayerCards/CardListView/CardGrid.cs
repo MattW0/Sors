@@ -10,11 +10,12 @@ public class CardGrid : MonoBehaviour
 {
     public bool updateGrid;
     [SerializeField] private RectTransform _maxViewTransform;
+    [SerializeField] private CanvasGroup _canvasGroup;
     [SerializeField] private Transform _parentTransform;
     public Vector2 itemDimensions = new(220, 360);
     public float itemScaleFactor = 0.7f;
     public Vector2 padding = new(20f, 10f);
-    public float gap = 10f;
+    public float gap = 20f;
     public const float PANEL_MAX_WIDTH = 1300f;
     private const float HEADER_HEIGHT = 40f;
     private float _panelWidth;
@@ -29,7 +30,6 @@ public class CardGrid : MonoBehaviour
     
     internal void Open(int count)
     {
-        // transform.position = position;
         SetPanelDimension(count);
     }
 
@@ -70,12 +70,6 @@ public class CardGrid : MonoBehaviour
         }
     }
 
-    // private void OnEnable()
-    // {
-    //     SetPanelDimension(_parentTransform.childCount);
-    //     updateGrid = true;
-    // }
-
     private void SetPanelDimension(int count)
     {
         var minWidth = itemDimensions.x*count*itemScaleFactor + gap*(count-1) + 2*padding.x;
@@ -84,5 +78,7 @@ public class CardGrid : MonoBehaviour
 
         var height = itemDimensions.y*itemScaleFactor + 2*padding.y + HEADER_HEIGHT;
         _maxViewTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+
+        _canvasGroup.alpha = 1;
     }
 }

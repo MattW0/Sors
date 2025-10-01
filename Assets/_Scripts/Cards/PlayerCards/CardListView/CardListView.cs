@@ -1,5 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
+using System.Threading.Tasks;
 
 [RequireComponent(typeof(CardSpawner), typeof(CardListUI))]
 public class CardListView : MonoBehaviour
@@ -17,13 +19,7 @@ public class CardListView : MonoBehaviour
     {
         print("CardInfos count: " + cards.Count);
 
+        _cardSpawner.SpawnDetailCardObjectsInGrid(cards);
         _cardCollectionUI.Open(listInfo);
-        _cardSpawner.SpawnDetailCardObjectsInGrid(cards);
-    }
-
-    public void UpdateCollection(List<CardStats> cards)
-    {
-        print("Updating card collection");
-        _cardSpawner.SpawnDetailCardObjectsInGrid(cards);
     }
 }
