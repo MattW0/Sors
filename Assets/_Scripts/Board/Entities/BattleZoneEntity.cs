@@ -16,7 +16,7 @@ public class BattleZoneEntity : NetworkBehaviour
 
     [Header("UI")]
     public PlayZoneCardHolder EntityHolder { get; internal set; }
-    [SerializeField] private PlayerUI _playerUI;
+    [SerializeField] private PlayerEntityUI _playerUI;
     private EntityUI _entityUI;
     [SerializeField] private int _health;
     public int Health
@@ -128,10 +128,10 @@ public class BattleZoneEntity : NetworkBehaviour
     #endregion
 
     // Need this for player UI highlights : attackable, targetable, ...
-    public void SetPlayer(string title, PlayerUI playerUI)
+    public void SetPlayer(string title, PlayerEntityUI PlayerEntityUI)
     {
         Title = title;
-        _playerUI = playerUI;
+        _playerUI = PlayerEntityUI;
         Owner = GetComponent<PlayerManager>();
     }
 

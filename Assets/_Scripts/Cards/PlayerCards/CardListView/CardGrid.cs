@@ -10,7 +10,6 @@ public class CardGrid : MonoBehaviour
 {
     public bool updateGrid;
     [SerializeField] private RectTransform _maxViewTransform;
-    [SerializeField] private CanvasGroup _canvasGroup;
     [SerializeField] private Transform _parentTransform;
     public Vector2 itemDimensions = new(220, 360);
     public float itemScaleFactor = 0.7f;
@@ -78,7 +77,5 @@ public class CardGrid : MonoBehaviour
 
         var height = itemDimensions.y*itemScaleFactor + 2*padding.y + HEADER_HEIGHT;
         _maxViewTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
-
-        _canvasGroup.alpha = 1;
     }
 }

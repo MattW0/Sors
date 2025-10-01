@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine.EventSystems;
 using System;
 
-public class PlayerUI : MonoBehaviour, IPointerClickHandler
+public class PlayerEntityUI : MonoBehaviour, IPointerClickHandler
 {
     private BattleZoneEntity _playerEntity;
     private Vector3 _idlePosition;
@@ -16,10 +16,6 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
     [SerializeField] private TMP_Text playerScore;
 
     [Header("Turn Stats")]
-    [SerializeField] private TMP_Text turnCash;
-    [SerializeField] private TMP_Text turnBuys;
-    [SerializeField] private TMP_Text turnPlays;
-    [SerializeField] private TMP_Text turnPrevails;
     [SerializeField] private Image highlight;
     private bool _isTargetable;
     public static event Action<BattleZoneEntity> OnClickedPlayer;
@@ -34,27 +30,13 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
         // DropZoneManager.OnCombatEnd += EndCombat;
     }
 
-    public void SetEntity(BattleZoneEntity e, Vector3 p) 
+    public void SetEntity(BattleZoneEntity e) 
     {
         _playerEntity = e;
-        _playerEntity.transform.position = p;
+        _playerEntity.transform.position = transform.GetChild(0).position;
 
         _colors = UIManager.ColorPalette;
     }
-
-    // private void StartCombat(bool start)
-    // {
-    //     if(!start) return;
-
-    //     transform.position += _combatPosition;
-    //     _playerEntity.transform.position += _combatPosition;
-    // }
-
-    // private void EndCombat()
-    // {
-    //     transform.position -= _combatPosition;
-    //     _playerEntity.transform.position -= _combatPosition;
-    // }
 
     public void OnPointerClick(PointerEventData eventData)
     {
@@ -80,11 +62,20 @@ public class PlayerUI : MonoBehaviour, IPointerClickHandler
     public void SetName(string name) => playerName.text = name;
     public void SetHealth(int value) => playerHealth.text = value.ToString();
     public void SetScore(int value) => playerScore.text = value.ToString();
-    public void SetCash(int value) => turnCash.text = value.ToString();
-    public void SetBuys(int value) => turnBuys.text = value.ToString();
-    public void SetPlays(int value) => turnPlays.text = value.ToString();
-    public void SetPrevails(int value) => turnPrevails.text = value.ToString();
 
+    // private void StartCombat(bool start)
+    // {
+    //     if(!start) return;
+
+    //     transform.position += _combatPosition;
+    //     _playerEntity.transform.position += _combatPosition;
+    // }
+
+    // private void EndCombat()
+    // {
+    //     transform.position -= _combatPosition;
+    //     _playerEntity.transform.position -= _combatPosition;
+    // }
 
     // private void OnDestroy(){
     //     DropZoneManager.OnDeclareAttackers -= StartCombat;

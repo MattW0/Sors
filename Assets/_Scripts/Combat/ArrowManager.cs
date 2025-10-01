@@ -25,7 +25,7 @@ public class ArrowManager : NetworkBehaviour
     {
         CombatManager.OnCombatStateChanged += RpcCombatStateChanged;
         EntityClickHandler.OnEntityClicked += HandleEntityClicked;
-        PlayerUI.OnClickedPlayer += HandleClickedPlayerEntity;
+        PlayerEntityUI.OnClickedPlayer += HandleClickedPlayerEntity;
 
         CreatureEntity.OnOpponentDeclaredAttack += OpponentDeclaredAttack;
         CreatureEntity.OnOpponentDeclaredBlock += OpponentDeclaredBlock;
@@ -195,7 +195,7 @@ public class ArrowManager : NetworkBehaviour
     {
         CombatManager.OnCombatStateChanged -= RpcCombatStateChanged;
         EntityClickHandler.OnEntityClicked -= HandleEntityClicked;
-        PlayerUI.OnClickedPlayer -= HandleClickedPlayerEntity;
+        PlayerEntityUI.OnClickedPlayer -= HandleClickedPlayerEntity;
         
         CreatureEntity.OnOpponentDeclaredAttack -= OpponentDeclaredAttack;
         CreatureEntity.OnOpponentDeclaredBlock -= OpponentDeclaredBlock;

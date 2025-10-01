@@ -3,6 +3,7 @@ using UnityEngine;
 using System;
 using Mirror;
 using Mirror.Examples.Basic;
+using TMPro;
 
 public class PlayerManager : NetworkBehaviour
 {
@@ -15,8 +16,7 @@ public class PlayerManager : NetworkBehaviour
     public PlayerCards Cards { get ; private set; }
     public List<PrevailOption> _chosenPrevailOptions = new();
     public bool PlayerIsChoosingTarget { get; private set; }
-    private PlayerUI _playerUI;
-    private PlayerUI _opponentUI;
+    private PlayerResources _resources;
     private BattleZoneEntity _entity;
     public static event Action<int> OnLocalCashUpdate;
     public static event Action<BattleZoneEntity> OnPlayerChooseEntityTarget;
@@ -27,31 +27,31 @@ public class PlayerManager : NetworkBehaviour
 
     [Header("Game Stats")]
     public int ID { get; private set; }
-    [SyncVar(hook="UISetPlayerName"), SerializeField] private string _playerName;
+    [SyncVar(hook="SetPlayerName"), SerializeField] private string _playerName;
     public string PlayerName { get => _playerName; set => _playerName = value; }
 
-    [SyncVar(hook="UISetHealth"), SerializeField] private int _health;
+    [SyncVar(hook="SetHealth"), SerializeField] private int _health;
     public int Health { get => _health; set => _health = value; }
 
-    [SyncVar(hook="UISetScore"), SerializeField] private int _score;
+    [SyncVar(hook="SetScore"), SerializeField] private int _score;
     public int Score { get => _score; set => _score = value; }
 
     [Header("Turn Stats")]
-    [SyncVar(hook="UISetBuys"), SerializeField] private int _buys;
+    [SyncVar(hook="SetBuys"), SerializeField] private int _buys;
     public int Buys { get => _buys; set => _buys = value; }
     
-    [SyncVar(hook="UISetPlays"), SerializeField] private int _plays;
+    [SyncVar(hook="SetPlays"), SerializeField] private int _plays;
     public int Plays { get => _plays; set => _plays = value; }
 
-    [SyncVar(hook="UISetPrevails"), SerializeField] private int _prevails;
+    [SyncVar(hook="SetPrevails"), SerializeField] private int _prevails;
     public int Prevails { get => _prevails; set => _prevails = value; }
     [SyncVar(hook="SetCash"), SerializeField] private int _cash;
     public int Cash { get => _cash; set => _cash = value; }
 
-    private void SetCash(int oldValue, int value)
+    public void SetCash(int oldValue, int value)
     {
         if (isOwned) LocalCash = value;
-        else _opponentUI.SetCash(value);
+        else _resources.opponentResourcesUI.SetCash(value);
     }
 
     [SerializeField] private int _localCash;
@@ -59,7 +59,7 @@ public class PlayerManager : NetworkBehaviour
         get => _localCash; 
         set {
             _localCash = value;
-            _playerUI.SetCash(value);
+            _resources.playerResourcesUI.SetCash(value);
             OnLocalCashUpdate?.Invoke(value);
         }
     }
@@ -71,8 +71,7 @@ public class PlayerManager : NetworkBehaviour
     private void Awake()
     {
         Cards = GetComponent<PlayerCards>();
-        _playerUI = GameObject.Find("PlayerInfo").GetComponent<PlayerUI>();
-        _opponentUI = GameObject.Find("OpponentInfo").GetComponent<PlayerUI>();
+        _resources = GameObject.Find("Clients").GetComponent<PlayerResources>();
     }
 
     [ClientRpc]
@@ -89,18 +88,8 @@ public class PlayerManager : NetworkBehaviour
 
     private void EntityAndUISetup()
     {
-        // TODO: Check if playerUI logic needs to be here or if it can be done in PlayerUI class
-        
         var entity = GetComponent<BattleZoneEntity>();
-        if(isOwned) {
-            entity.SetPlayer(PlayerName, _playerUI);
-            // Child 0 is the player stats BG
-            _playerUI.SetEntity(entity, _playerUI.transform.GetChild(0).position);
-        } else {
-            entity.SetPlayer(PlayerName, _opponentUI);
-            // Child 0 is the player stats BG
-            _opponentUI.SetEntity(entity, _opponentUI.transform.GetChild(0).position);
-        }
+        _resources.SetPlayerEntity(isOwned, entity, PlayerName);
     }
     #endregion GameSetup
 
@@ -175,48 +164,14 @@ public class PlayerManager : NetworkBehaviour
 
     #endregion
 
-    #region Resources UI
-
-    // SyncVar hooks referenced by name, they are used!
-    private void UISetPlayerName(string oldValue, string newValue)
-    {
-        if (isOwned) _playerUI.SetName(newValue);
-        else _opponentUI.SetName(newValue);
-    }
-    
-    private void UISetHealth(int oldValue, int newValue)
-    {
-        if (isOwned) _playerUI.SetHealth(newValue);
-        else _opponentUI.SetHealth(newValue);
-    }
-
-    private void UISetScore(int oldValue, int newValue)
-    {
-        if (isOwned) _playerUI.SetScore(newValue);
-        else _opponentUI.SetScore(newValue);
-    }
-
-    private void UISetBuys(int oldValue, int newValue)
-    {
-        if (isOwned) _playerUI.SetBuys(newValue);
-        else _opponentUI.SetBuys(newValue);
-    }
-
-    private void UISetPlays(int oldValue, int newValue)
-    {
-        if (isOwned) _playerUI.SetPlays(newValue);
-        else _opponentUI.SetPlays(newValue);
-    }
-
-    private void UISetPrevails(int oldValue, int newValue)
-    {
-        if (isOwned) _playerUI.SetPrevails(newValue);
-        else _opponentUI.SetPrevails(newValue);
-    }
-    #endregion UI
-
     #region Utils
-
+    // SyncVar hooks referenced by name, they are used!
+    private void SetPlayerName(string oldValue, string newValue) => _resources.UISetPlayerName(isOwned, newValue);
+    private void SetHealth(int oldValue, int newValue) => _resources.UISetHealth(isOwned, newValue);
+    private void SetScore(int oldValue, int newValue) => _resources.UISetScore(isOwned, newValue);
+    private void SetBuys(int oldValue, int newValue) => _resources.UISetBuys(isOwned, newValue);
+    private void SetPlays(int oldValue, int newValue) => _resources.UISetPlays(isOwned, newValue);
+    private void SetPrevails(int oldValue, int newValue) => _resources.UISetPrevails(isOwned, newValue);
     public static PlayerManager GetLocalPlayer()
     {
         var networkIdentity = NetworkClient.connection.identity;
