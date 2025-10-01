@@ -3,13 +3,12 @@ using UnityEngine;
 using System.Linq;
 using System;
 using Cysharp.Threading.Tasks;
+using Unity.VisualScripting;
 
 [RequireComponent(typeof(InteractionPanel))]
 public class CardSelectionHandler : MonoBehaviour
 {
-    // public List<CardStats> selectedCards = new();
     public Stack<CardStats> selectedCards = new();
-
     public CardSelection cardSelection;
     private InteractionPanel _interactionPanel;
     private InteractionUI _ui;
@@ -87,11 +86,28 @@ public class CardSelectionHandler : MonoBehaviour
 
     public void SkipCardInteraction()
     {
-        // Empty selection stack
-        while (selectedCards.Count > 0)
-            OnCardSelection?.Invoke(selectedCards.Pop().DragHandler, false);
+        EmptySelectionStack();
 
         _ui.SetConfirmButtonEnabled(_state.IsConfirmEnabled(selectedCards.Count()));
+    }
+
+    internal void UndoMoneyPlay(InteractionType type)
+    {
+        if (type == InteractionType.Buy) {
+            cardSelection.Clear();
+            _ui.DeselectMarketTile();
+        } else {
+            EmptySelectionStack();
+        }
+
+        var undoables = _interactionPanel.LocalPlayer.Cards.UndoPlayMoney();
+        foreach (var card in undoables) OnCardSelection?.Invoke(card.DragHandler, false);
+    }
+
+    private void EmptySelectionStack()
+    {
+        while (selectedCards.Count > 0)
+            OnCardSelection?.Invoke(selectedCards.Pop().DragHandler, false);
     }
 
     public void EndSelection()
@@ -105,12 +121,6 @@ public class CardSelectionHandler : MonoBehaviour
         CardDragHandler.OnCardClicked -= ClickedCard;
         MarketTile.OnTileSelected -= SelectMarketTile;
         MarketTile.OnTileDeselected -= DeselectMarketTile;
-    }
-
-    internal void UndoMoneyPlay()
-    {
-        var undoables = _interactionPanel.LocalPlayer.Cards.UndoPlayMoney();
-        foreach (var card in undoables) OnCardSelection?.Invoke(card.DragHandler, false);
     }
 }
 

@@ -111,7 +111,6 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
     [Command]
     private void CmdConfirmMoneyCards(List<CardStats> cards)
     {
-        print($"{_owner.PlayerName} commits {cards.Count} money cards");
         _serverMoneyCardsToDiscard.AddRange(cards);
     }
 
@@ -133,6 +132,9 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
     public List<CardStats> UndoPlayMoney()
     {
         print("Undo playing money: " + _clientMoneyCardsInPlay.Count);
+
+        _owner.TurnContext.SelectedCard = null;
+
         if (_clientMoneyCardsInPlay.Count == 0 || _owner.LocalCash <= 0) return _clientMoneyCardsInPlay;
 
         var temp = new List<CardStats>(_clientMoneyCardsInPlay);

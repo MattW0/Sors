@@ -165,10 +165,9 @@ public class InteractionPanel : NetworkBehaviour
         _arrowManager.TargetResetArrows(LocalPlayer.connectionToClient);
     }
 
-    // [ClientRpc]
     private void UndoMoneyPlay()
     {
-        _selectionHandler.UndoMoneyPlay();
+        _selectionHandler.UndoMoneyPlay(_currentState.Config.interactionType);
         OnUndoMoneyPlay?.Invoke(_currentState.Config.turnState);
     }
 

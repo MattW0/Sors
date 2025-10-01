@@ -58,7 +58,6 @@ public class PlayerManager : NetworkBehaviour
     public int LocalCash { 
         get => _localCash; 
         set {
-            print("Set local cash");
             _localCash = value;
             _playerUI.SetCash(value);
             OnLocalCashUpdate?.Invoke(value);
