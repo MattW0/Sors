@@ -53,13 +53,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2145602941029879905}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.65, g: 0.45, b: 0.25, a: 0.2}
+  m_Color: {r: 0.6509804, g: 0.5176471, b: 0.2509804, a: 0.2}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -88,7 +88,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d61b8ef3f6da1d4d9dfea13aec14fd2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SorsColorPalette: {fileID: 11400000, guid: 34758a2075f7a5a4da0da917848493cf, type: 2}
   colorType: 6
   image: {fileID: 8501197770454630340}
   alpha: 0.2
@@ -145,13 +144,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5234390986977463034}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.65, g: 0.45, b: 0.25, a: 0.5}
+  m_Color: {r: 0.6509804, g: 0.5176471, b: 0.2509804, a: 0.5}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -180,7 +179,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d61b8ef3f6da1d4d9dfea13aec14fd2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SorsColorPalette: {fileID: 11400000, guid: 34758a2075f7a5a4da0da917848493cf, type: 2}
   colorType: 6
   image: {fileID: 6967178114168678868}
   alpha: 0.5
@@ -245,7 +243,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 37b40dcf1099cd04f81633f7c50bc644, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  highlight: {fileID: 6967178114168678868}
+  highlight: {fileID: 8501197770454630340}
   entityParent: {fileID: 1264628801332020201}
 --- !u!1 &6180475066072858034
 GameObject:
@@ -316,11 +314,11 @@ RectTransform:
   - {fileID: 325879795827515062}
   m_Father: {fileID: 1704242489609324573}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 60, y: 30}
-  m_Pivot: {x: 0, y: 1}
+  m_Pivot: {x: 1, y: 0}
 --- !u!222 &8221224842203891428
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -342,7 +340,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.65, g: 0.45, b: 0.25, a: 0.5}
+  m_Color: {r: 0.6509804, g: 0.5176471, b: 0.2509804, a: 0.5}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -371,7 +369,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d61b8ef3f6da1d4d9dfea13aec14fd2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SorsColorPalette: {fileID: 11400000, guid: 34758a2075f7a5a4da0da917848493cf, type: 2}
   colorType: 6
   image: {fileID: 2582975290130504620}
   alpha: 0.5
@@ -434,7 +431,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.65, g: 0.45, b: 0.25, a: 1}
+  m_Color: {r: 0.6509804, g: 0.5176471, b: 0.2509804, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -463,7 +460,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d61b8ef3f6da1d4d9dfea13aec14fd2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SorsColorPalette: {fileID: 11400000, guid: 34758a2075f7a5a4da0da917848493cf, type: 2}
   colorType: 6
   image: {fileID: 6218790558565372481}
   alpha: 1

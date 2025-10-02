@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 4349283975149956954}
   - component: {fileID: 9072014795304773102}
   m_Layer: 6
-  m_Name: CardType
+  m_Name: CardTypeHand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -213,5 +213,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_EffectColor: {r: 1, g: 1, b: 1, a: 1}
-  m_EffectDistance: {x: 1, y: -1}
+  m_EffectDistance: {x: 0.5, y: -0.5}
   m_UseGraphicAlpha: 1
