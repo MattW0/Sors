@@ -13,6 +13,7 @@ public class CardPileTransformation : Transformable
 	private CardPileUI _cardPileUI;
     [SerializeField] private CardPileSettings _defaultSettings;
     [SerializeField] private CardPileSettings _interactionSettings;
+    public CardPileCurveParameters curve;
     private CardPileSettings _active;
     private ICardPile _pile;
     private float _width;

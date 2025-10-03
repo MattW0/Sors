@@ -14,7 +14,7 @@ public class CardSlotsManager : MonoBehaviour
     internal void Initialize(CardPile pile, GameObject card)
     {
         // print($"Initialize card {card.GetComponent<CardStats>().cardInfo.title} at pile {pile.pileType}");
-        var slot = SpawnSlot(card);
+        var slot = SpawnSlot(card, pile.CardPileTransformation.curve);
         SetParent(pile, card, slot);
     }
 
@@ -31,13 +31,13 @@ public class CardSlotsManager : MonoBehaviour
         pile.RemoveCard(card.GetComponentInParent<CardSlot>().DragHandler);
     }
     
-    private CardSlot SpawnSlot(GameObject card)
+    private CardSlot SpawnSlot(GameObject card, CardPileCurveParameters curve)
     {
         var stats = card.GetComponent<CardStats>();
         // print("Spawning slot for card " + stats.cardInfo.title);
         var slot = _factory.CreateSlot();
 
-        slot.Initialize(stats);
+        slot.Initialize(stats, curve);
         // await UniTask.Delay(SorsTimings.spawnCard);
 
         return slot;

@@ -44,11 +44,11 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
         _screenBounds = MouseInputHelper.GetScreenBounds(_cam);
     }
 
-    internal void Initialize(CardVisualHandler cardVisual, CardStats stats)
+    internal void Initialize(CardVisualHandler cardVisual, CardStats stats, CardPileCurveParameters curve)
     {
         // print("Initialize carddraghandler on " + stats.cardInfo.title); 
         Stats = stats;
-        cardVisual.Initialize(this, stats.transform);
+        cardVisual.Initialize(this, stats.transform, curve);
     }
 
     void LateUpdate()

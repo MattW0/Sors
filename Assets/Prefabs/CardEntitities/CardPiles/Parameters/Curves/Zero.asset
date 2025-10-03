@@ -10,42 +10,33 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: acdc068f2139a374593fc8e7328740fd, type: 3}
-  m_Name: CardPileCurveParameters
+  m_Name: Zero
   m_EditorClassIdentifier: 
   positioning:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: 0.002511317
-      value: -0.0052895546
-      inSlope: 2
-      outSlope: 0.9903092
-      tangentMode: 1
+      time: 0
+      value: 0
+      inSlope: 0.0038220515
+      outSlope: 0.0038220515
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
-      outWeight: 0.06304526
-    - serializedVersion: 3
-      time: 0.50003785
-      value: 0.20039663
-      inSlope: -0.03563776
-      outSlope: -0.007111149
-      tangentMode: 1
-      weightedMode: 0
-      inWeight: 0.1309547
-      outWeight: 0.11159012
-    - serializedVersion: 3
-      time: 0.99873817
-      value: 0.011969149
-      inSlope: -0.99980235
-      outSlope: -2.0038912
-      tangentMode: 1
-      weightedMode: 0
-      inWeight: 0.06289834
       outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1.0080566
+      value: 0.0038528442
+      inSlope: 0.0038220515
+      outSlope: 0.0038220515
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  positioningInfluence: 100
+  positioningInfluence: 0
   rotation:
     serializedVersion: 2
     m_Curve:
@@ -70,4 +61,4 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  rotationInfluence: 1.2
+  rotationInfluence: 0

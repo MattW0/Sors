@@ -38,11 +38,15 @@ public class AnimatedArrow : BaseArrowRenderer
             if (!meshRenderer)
                 continue;
 
-            var material = meshRenderer.material;
-
-            var currentColor = material.color;
+            var materials = meshRenderer.materials;
+            
+            // Fade basic color
+            var currentColor = materials[0].color;
             currentColor.a = Alphas[i];
-            material.color = currentColor;
+            materials[0].color = currentColor;
+            
+            // Fade property on shader graph
+            materials[1].SetFloat("_Fade", Alphas[i]);
         }
 
         if (!_arrow)

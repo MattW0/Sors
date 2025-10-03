@@ -47,6 +47,8 @@ public class CardStats : NetworkBehaviour
         IsInteractable = false;
         IsSelected = false;
         _cardUI.Highlight(HighlightType.None);
+
+        if(DragHandler == null) return;
         DragHandler.cardVisual.Reset();
     }
 

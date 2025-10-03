@@ -6,13 +6,13 @@ public class CardSlot : MonoBehaviour
     public CardDragHandler DragHandler { get; private set; }
     private CardVisualHandler _visualHandler;
 
-    public void Initialize(CardStats stats)
+    public void Initialize(CardStats stats, CardPileCurveParameters curve)
     {
         DragHandler = GetComponentInChildren<CardDragHandler>();
         _visualHandler = DragHandler.GetComponentInChildren<CardVisualHandler>();
 
         stats.DragHandler = DragHandler;
-        DragHandler.Initialize(_visualHandler, stats);
+        DragHandler.Initialize(_visualHandler, stats, curve);
         gameObject.SetActive(true);
     }
 

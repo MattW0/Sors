@@ -38,7 +38,7 @@ public class CardVisualHandler : MonoBehaviour
     [SerializeField] private float hoverTransition = .15f;
 
     [Header("Curve")]
-    [SerializeField] private CardPileCurveParameters curve;
+    private CardPileCurveParameters _curve;
 
     private Vector3 _lastPosition;
     private float _yPositionOffset;
@@ -51,7 +51,7 @@ public class CardVisualHandler : MonoBehaviour
         _cam = Camera.main;
     }
 
-    public void Initialize(CardDragHandler dragHandler, Transform cardTransform, int index = 0)
+    public void Initialize(CardDragHandler dragHandler, Transform cardTransform, CardPileCurveParameters curve, int index = 0)
     {
         //Declarations
         _dragHandler = dragHandler;
@@ -64,6 +64,7 @@ public class CardVisualHandler : MonoBehaviour
         cardTransform.localPosition = Vector3.zero;
 
         _canvas = GetComponent<Canvas>();
+        _curve = curve;
 
         //Event Listening
         _dragHandler.PointerEnterEvent.AddListener(PointerEnter);
@@ -95,9 +96,9 @@ public class CardVisualHandler : MonoBehaviour
     {
         var normalPosition = NormalizedSlotPosition();
 
-        _zRotationOffset = curve.rotation.Evaluate(normalPosition)  * _dragHandler.SiblingAmount();
+        _zRotationOffset = _curve.rotation.Evaluate(normalPosition)  * _dragHandler.SiblingAmount();
 
-        _yPositionOffset = curve.positioning.Evaluate(normalPosition) * curve.positioningInfluence;
+        _yPositionOffset = _curve.positioning.Evaluate(normalPosition) * _curve.positioningInfluence;
         if (_dragHandler.SiblingAmount() < 5) _yPositionOffset = 0;
 
         if (_dragHandler.isDragging) return;
@@ -115,7 +116,7 @@ public class CardVisualHandler : MonoBehaviour
         Vector3 offset = transform.position - MouseInputHelper.GetMouseWorldPosition(_cam);
         float tiltX = _dragHandler.isHovering ? (offset.y * -1 * manualTiltAmount) : 0;
         float tiltY = _dragHandler.isHovering ? (offset.x * manualTiltAmount) : 0;
-        float tiltZ = _zRotationOffset * curve.rotationInfluence;
+        float tiltZ = _zRotationOffset * _curve.rotationInfluence;
 
         // Target tilt
         Quaternion targetRotation = Quaternion.Euler(

@@ -101,8 +101,9 @@ public class GameStateLoader : MonoBehaviour
         await UniTask.Delay(SorsTimings.waitShort);
 
         p.Cards.RpcShowSpawnedCards(_entitiesDict.Keys.ToList(), CardLocation.PlayZone, true);
-        // await UniTask.Delay(SorsTimings.wait);
+        await UniTask.Delay(SorsTimings.wait);
         
+        print($"Loading {_entitiesDict.Count()} for player {p.PlayerName}");
         await BoardManager.Instance.PlayEntities(_entitiesDict);
 
         _entitiesDict.Clear();
