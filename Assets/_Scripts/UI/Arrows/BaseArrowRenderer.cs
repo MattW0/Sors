@@ -34,7 +34,6 @@ public abstract class BaseArrowRenderer : MonoBehaviour, IArrowRenderer
 
     protected virtual void UpdateArrow()
     {
-        print("Update arrow: " + start + " -> " + end);
         UpdateArrowData();
     }
 

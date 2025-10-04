@@ -137,7 +137,7 @@ public class InteractionPanel : NetworkBehaviour
         foreach(var (target, creatureList) in _arrowManager.GetPlayerSelection())
             CmdSetGroupTarget(target, creatureList);
         
-        CmdPlayerConfirmsCombat();
+        CmdPlayerConfirmsCombat(LocalPlayer);
     }
 
     [Command(requiresAuthority = false)]
@@ -148,7 +148,7 @@ public class InteractionPanel : NetworkBehaviour
     }
 
     [Command(requiresAuthority = false)]
-    private void CmdPlayerConfirmsCombat() => _boardManager.PlayerConfirmsCombatState(LocalPlayer);
+    private void CmdPlayerConfirmsCombat(PlayerManager player) => _boardManager.PlayerConfirmsCombatState(player);
 
     private void PlayerResets() 
     {

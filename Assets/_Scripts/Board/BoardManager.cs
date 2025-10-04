@@ -116,6 +116,7 @@ public class BoardManager : NetworkBehaviour
 
     public void PlayerConfirmsCombatState(PlayerManager player)
     {
+        print($"Player confirms combat state ({_combatState}): {player.PlayerName}" );
         if (_combatState == TurnState.Attackers) 
         {
             _dropZone.TargetFinishChoosingAttackers(player.connectionToClient);
