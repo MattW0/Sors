@@ -236,7 +236,7 @@ public class TurnManager : NetworkBehaviour
 
             PlayerGainsCard(player, cardInfo.Value);
 
-            player.Cards.DiscardMoneyCards();
+            player.Cards.DiscardMoneyCards(player.ID);
         }
         _market.RpcMinButton();
 
@@ -354,7 +354,7 @@ public class TurnManager : NetworkBehaviour
             entities.Add(card.gameObject, _gameManager.SpawnFieldEntity(player, card.cardInfo));
             PlayerPlaysCard(player, card.cardInfo);
 
-            player.Cards.DiscardMoneyCards();
+            player.Cards.DiscardMoneyCards(player.ID);
         }
 
         // Skip waiting for entity ability checks

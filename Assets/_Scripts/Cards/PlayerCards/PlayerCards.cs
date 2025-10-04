@@ -11,7 +11,7 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
     public CardList discard;
     public CardList hand;
     private List<CardStats> _clientMoneyCardsInPlay;
-    private List<CardStats> _serverMoneyCardsToDiscard;
+    private Dictionary<int, List<CardStats>> _serverMoneyCardsToDiscard;
 
     // For serialization in unity inspector
     public string[] deckTitles;
@@ -89,6 +89,7 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
         if (destination == CardLocation.Discard) discard.AddRange(cards);
     }
 
+    [ClientRpc]
     private void RpcRemoveHandCards(List<CardStats> cards, CardLocation destination)
     {
         _cardMover.MoveAllTo(cards.Select(c => c.gameObject).ToList(), isOwned, CardLocation.Hand, destination);
@@ -106,20 +107,22 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
         card.SetInteractable(false);
     }
 
-    [Client] internal void ConfirmMoneyCards() => CmdConfirmMoneyCards(_clientMoneyCardsInPlay);
+    [Client] internal void ConfirmMoneyCards() => CmdConfirmMoneyCards(_clientMoneyCardsInPlay, _owner.ID);
 
     [Command]
-    private void CmdConfirmMoneyCards(List<CardStats> cards)
+    private void CmdConfirmMoneyCards(List<CardStats> cards, int playerId)
     {
-        _serverMoneyCardsToDiscard.AddRange(cards);
+        if(!_serverMoneyCardsToDiscard.ContainsKey(playerId)) _serverMoneyCardsToDiscard[playerId] = cards;
+        else _serverMoneyCardsToDiscard[playerId].AddRange(cards);
     }
 
     [Server]
-    public void DiscardMoneyCards()
+    public void DiscardMoneyCards(int playerId)
     {
-        RemoveHandCards(_serverMoneyCardsToDiscard, CardLocation.Discard);
+        print("Discard cards for player: " + playerId);
+        RemoveHandCards(_serverMoneyCardsToDiscard[playerId], CardLocation.Discard);
         RpcEndMoneyPlaying();
-        _serverMoneyCardsToDiscard.Clear();
+        _serverMoneyCardsToDiscard[playerId].Clear();
     }
 
     [ClientRpc]
@@ -146,35 +149,6 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
 
         _clientMoneyCardsInPlay.Clear();
         return temp;
-    }
-
-    private void ReturnUnspentMoneyToHand()
-    {
-        // Don't allow to return already spent money
-        var totalMoneyBack = 0;
-        var cardsToReturn = new List<CardStats>();
-        foreach (var card in _clientMoneyCardsInPlay)
-        {
-            if (totalMoneyBack + card.cardInfo.moneyValue > _owner.LocalCash) continue;
-
-            cardsToReturn.Add(card);
-            totalMoneyBack += card.cardInfo.moneyValue;
-        }
-
-        if (totalMoneyBack == 0) return;
-
-        // Return to hand
-        int undoAmount = 0;
-        foreach (var card in cardsToReturn)
-        {
-            _clientMoneyCardsInPlay.Remove(card);
-            undoAmount += card.cardInfo.moneyValue;
-            hand.Add(card);
-            RpcMoveCard(card.gameObject, CardLocation.MoneyZone, CardLocation.Hand);
-        }
-
-        // Substract cash
-        _owner.LocalCash -= undoAmount;
     }
 
     #endregion

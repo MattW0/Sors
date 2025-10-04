@@ -10,8 +10,6 @@ public class UIManager : NetworkBehaviour
     [SerializeField] private AlertDialogue _quitDialog;
     [SerializeField] private GameObject _cardCollectionViewPrefab;
     [SerializeField] private Transform _spawnParentTransform;
-    
-    [SerializeField] private List<CardListInfo> _openCardLists = new();
     public static SorsColors ColorPalette { get; private set; }
 
     private void Awake()
@@ -42,37 +40,17 @@ public class UIManager : NetworkBehaviour
     [Command(requiresAuthority = false)]
     private void CmdPlayerOpensCardCollection(PlayerManager player, CardListInfo listInfo)
     {
-        print($"Player {player.PlayerName} opens collection {listInfo.location}, owns collection {listInfo.isMine}");
-
-        // if (_openCardLists.Contains(listInfo)) return;
-        // _openCardLists.Add(listInfo);
-
         var cardList = GetCardList(player, listInfo);
-
-        // cardList.OnUpdate += UpdateCardCollection;
         TargetOpenCardCollection(player.connectionToClient, cardList, listInfo);
     }
 
     [TargetRpc]
     public void TargetOpenCardCollection(NetworkConnection conn, List<CardStats> collection, CardListInfo listInfo)
     {
-        print("Collection count on client: " + collection.Count);
-        // TODO: Still show when empty?
         if (collection.Count == 0) return;
 
         var listView = Instantiate(_cardCollectionViewPrefab, _spawnParentTransform).GetComponent<CardListView>();
         listView.OpenCardCollection(collection, listInfo);
-    }
-
-    public void UpdateCardCollection(CardListInfo info, List<CardInfo> cards)
-    {
-        RpcUpdateCardCollection(cards);
-    }
-
-    [ClientRpc]
-    public void RpcUpdateCardCollection(List<CardInfo> cards)
-    {
-        print("Updating card collection");
     }
 
     private CardList GetCardList(PlayerManager player, CardListInfo listInfo)

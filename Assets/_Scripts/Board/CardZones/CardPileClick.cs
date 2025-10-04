@@ -23,7 +23,6 @@ public class CardPileClick : MonoBehaviour, IPointerClickHandler, IPointerEnterH
     {
         if (eventData.button == PointerEventData.InputButton.Right) return;
 
-        print("Click on pile");
         OnLookAtCardList?.Invoke(_cardListInfo);
     }
 
