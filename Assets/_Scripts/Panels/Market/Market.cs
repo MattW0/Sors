@@ -158,6 +158,14 @@ public class Market : NetworkBehaviour
     {
         _selectedTile.HasBeenChosen();
         PlayerDeselectsTile();
+
+        // Disable all tiles until both players confirm and restart with CheckMarketPrices
+        foreach(var tile in _moneyTiles) tile.Interactable = false;
+        if (_currentPhase == TurnState.Invent){
+            foreach (var tile in _technologyTiles) tile.Interactable = false;
+        } else if (_currentPhase == TurnState.Recruit){
+            foreach (var tile in _creatureTiles) tile.Interactable = false;
+        }
     }
 
     [Server]
@@ -200,7 +208,6 @@ public class Market : NetworkBehaviour
 
     [ClientRpc] public void RpcMinButton() => _ui.MinButton();
     [ClientRpc] public void RpcMaxButton() => _ui.MaxButton();
-    public void MaxButton() => _ui.MaxButton();
 
     public List<CardInfo>[] GetTileInfos()
     {

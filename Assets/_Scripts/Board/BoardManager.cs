@@ -173,7 +173,9 @@ public class BoardManager : NetworkBehaviour
 
     private async UniTask ClearDeadEntities()
     {
-        print($"    - BoardManager: Clearing {_deadEntities.Count} dead entities");
+        if(_deadEntities.Count > 0)
+            print($"    - BoardManager: Clearing {_deadEntities.Count} dead entities");
+        
         await _dropZone.EntitiesLeave(_deadEntities);
 
         foreach (var dead in _deadEntities)

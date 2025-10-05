@@ -269,10 +269,8 @@ public class TurnManager : NetworkBehaviour
 
     private void RestockMarket()
     {
-        _market.RpcMaxButton();
         // Replace tiles that were bought by either player
         _market.ReplaceTiles(turnState);
-
         CheckBuyAnotherCard();
     }
 
@@ -285,6 +283,8 @@ public class TurnManager : NetworkBehaviour
         }
 
         _market.RpcMaxButton();
+        foreach (var player in _gameManager.players.Values)
+            _market.TargetCheckMarketPrices(player.connectionToClient, player.Cash);
         StartPhaseInteraction();
     }
 
