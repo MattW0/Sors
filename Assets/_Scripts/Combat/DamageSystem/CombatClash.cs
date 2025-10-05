@@ -34,23 +34,25 @@ public class CombatClash
 
     public async UniTask ExecuteCombatClash()
     {
-        await ExecuteDamage(_source, _target.gameObject.transform, _damageFromSource);
+        // Debug.Log("Execute " + this);
+        await ExecuteDamage(_source, _target, _damageFromSource);
 
         if (! IsClash) return;
         
-        // Target must be creature during a clash 
-        await ExecuteDamage(_target as CreatureEntity, _source.gameObject.transform, _damageFromTarget);
+        // Target must be creature during a clash
+        await ExecuteDamage(_target as CreatureEntity, _source, _damageFromTarget);
     }
 
-    private async UniTask ExecuteDamage(CreatureEntity source, Transform target, int damage)
+    private async UniTask ExecuteDamage(CreatureEntity source, BattleZoneEntity target, int damage)
     {
-        OnPlayAttack?.Invoke(source.gameObject.transform, target);
+        // Debug.Log($"ExecuteDamage: source={source}, target={target}, damage={damage}");
+        OnPlayAttack?.Invoke(source.transform, target.transform);
         await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.attackTime));
 
-        OnPlayDamage?.Invoke(target);
+        OnPlayDamage?.Invoke(target.transform);
         await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.damageTime));
 
-        _target.EntityTakesDamage(damage, source.GetTraits().Contains(Traits.Deathtouch));
+        target.EntityTakesDamage(damage, source.GetTraits().Contains(Traits.Deathtouch));
         OnFinishClash?.Invoke(source.ID);
     }
 

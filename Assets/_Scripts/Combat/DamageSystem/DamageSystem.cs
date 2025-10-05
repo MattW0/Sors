@@ -21,8 +21,8 @@ public class DamageSystem : MonoBehaviour
             return;
         }
 
-        print("Pre blocks attackers: " + _attackerTarget.Count);
-        print("Evaluating blocks: " + bA.Count);
+        // print("AttackerTarget: " + _attackerTarget.Count);
+        // print("BlockerAttacker: " + bA.Count);
         
         if (bA.Count == 0){
             EvaluateUnblocked();
@@ -46,6 +46,7 @@ public class DamageSystem : MonoBehaviour
             else 
                 excessDamage = EvaluateClashDamage(a, b, excessDamage);
             
+            // print("Excess damage: " + excessDamage);
             prevA = a;
         }
 
@@ -57,9 +58,10 @@ public class DamageSystem : MonoBehaviour
 
     private void EvaluateUnblocked()
     {
-        print("Post blocks attackers: " + _attackerTarget.Count);
-        foreach(var (a, t) in _attackerTarget)
-            _clashes.Add(new CombatClash(a, t, a.Attack));
+        foreach(var (a, t) in _attackerTarget){
+            var clash = new CombatClash(a, t, a.Attack);
+            _clashes.Add(clash);
+        }
 
         ExecuteClashes().Forget();
     }
@@ -67,8 +69,9 @@ public class DamageSystem : MonoBehaviour
     // Calculate the outcome of a combat clash between two creature entities, considering their traits and attack damage. Returns the remaining attack damage after the clash.
     private int EvaluateClashDamage(CreatureEntity attacker, CreatureEntity blocker, int attackDamage)
     {
-        print($"CombatClash: {attacker.Title} vs {blocker.Title} with {attackDamage} damage");
-        _clashes.Add(new CombatClash(attacker, blocker, attackDamage, blocker.Attack));
+        var clash = new CombatClash(attacker, blocker, attackDamage, blocker.Attack);
+        print("Add clash: " + clash);
+        _clashes.Add(clash);
 
         return attackDamage - blocker.Health;
     }
@@ -78,12 +81,27 @@ public class DamageSystem : MonoBehaviour
         if (excessDamage <= 0 || ! attacker.GetTraits().Contains(Traits.Trample)) return;
         
         var target = _attackerTarget[attacker];
-        print($"Trample of '{attacker.Title}' with {excessDamage} excess damage on '{target.Title}'");
+        // print($"Trample of '{attacker.Title}' with {excessDamage} excess damage on '{target.Title}'");
         _clashes.Add(new CombatClash(attacker, target, excessDamage));
         
     }
 
-    // private bool EvaluateFirstStrike(CreatureEntity attacker, CreatureEntity blocker, int attackDamage, int blockDamage)
+    private async UniTaskVoid ExecuteClashes() 
+    {
+        // Jänu was here : #@thisIsAComment ##xoxo
+
+        foreach (var clash in _clashes)
+        {
+            _playerInterfaceManager.RpcLog(clash.AggressorID, clash.ToString());
+            await clash.ExecuteCombatClash();
+        }
+        
+        _clashes.Clear();
+        _attackerTarget.Clear();
+        _combatManager.UpdateCombatState(TurnState.CombatCleanUp);
+    }
+
+        // private bool EvaluateFirstStrike(CreatureEntity attacker, CreatureEntity blocker, int attackDamage, int blockDamage)
     // {
     //     var attackerTraits = attacker.GetTraits();
     //     var blockerTraits = blocker.GetTraits();
@@ -105,20 +123,5 @@ public class DamageSystem : MonoBehaviour
 
     //     return false;
     // }
-
-    private async UniTaskVoid ExecuteClashes() 
-    {
-        // Jänu was here : #@thisIsAComment ##xoxo
-
-        foreach (var clash in _clashes)
-        {
-            _playerInterfaceManager.RpcLog(clash.AggressorID, clash.ToString());
-            await clash.ExecuteCombatClash();
-        }
-        
-        _clashes.Clear();
-        _attackerTarget.Clear();
-        _combatManager.UpdateCombatState(TurnState.CombatCleanUp);
-    }
 }
  
