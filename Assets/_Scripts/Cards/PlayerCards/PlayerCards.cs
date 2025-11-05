@@ -119,7 +119,7 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
     [Server]
     public void DiscardMoneyCards(int playerId)
     {
-        print("Discard cards for player: " + playerId);
+        // print("Discard cards for player: " + playerId);
         RemoveHandCards(_serverMoneyCardsToDiscard[playerId], CardLocation.Discard);
         RpcEndMoneyPlaying();
         _serverMoneyCardsToDiscard[playerId].Clear();
@@ -134,8 +134,7 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
     [Client]
     public List<CardStats> UndoPlayMoney()
     {
-        print("Undo playing money: " + _clientMoneyCardsInPlay.Count);
-
+        // print("Undo playing money: " + _clientMoneyCardsInPlay.Count);
         _owner.TurnContext.SelectedCard = null;
 
         if (_clientMoneyCardsInPlay.Count == 0 || _owner.LocalCash <= 0) return _clientMoneyCardsInPlay;

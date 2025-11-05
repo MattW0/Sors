@@ -78,7 +78,7 @@ public class DamageSystem : MonoBehaviour
 
     private void CheckTrampleDamage(CreatureEntity attacker, int excessDamage)
     {
-        if (excessDamage <= 0 || ! attacker.GetTraits().Contains(Traits.Trample)) return;
+        if (excessDamage <= 0 || ! attacker.GetTraits().Contains(Trait.Trample)) return;
         
         var target = _attackerTarget[attacker];
         // print($"Trample of '{attacker.Title}' with {excessDamage} excess damage on '{target.Title}'");
@@ -107,17 +107,17 @@ public class DamageSystem : MonoBehaviour
     //     var blockerTraits = blocker.GetTraits();
 
     //     // XOR: Neither or both have first strike
-    //     if( ! attackerTraits.Contains(Traits.FirstStrike)
-    //         ^ blockerTraits.Contains(Traits.FirstStrike))
+    //     if( ! attackerTraits.Contains(Trait.FirstStrike)
+    //         ^ blockerTraits.Contains(Trait.FirstStrike))
     //             return true;
 
     //     // Only attacker has first strike, need to track trample
-    //     if (attackerTraits.Contains(Traits.FirstStrike) 
+    //     if (attackerTraits.Contains(Trait.FirstStrike) 
     //         && blocker.Health - attackDamage > 0) 
     //             return true;
 
     //     // Only blocker has first strike
-    //     if (blockerTraits.Contains(Traits.FirstStrike)
+    //     if (blockerTraits.Contains(Trait.FirstStrike)
     //         && attacker.Health - blockDamage > 0)
     //             return true;
 

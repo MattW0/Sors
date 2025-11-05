@@ -1,7 +1,6 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
-using UnityUtils;
 
 public class CardUI : MonoBehaviour
 {
@@ -41,8 +40,9 @@ public class CardUI : MonoBehaviour
         _abilities.SetAbilities(cardInfo.abilities);
 
         if (cardInfo.type == CardType.Creature){
+            // print($"Set creature: {cardInfo.title}");
             _attack.text = cardInfo.attack.ToString();
-            _traits.SetTraits(cardInfo.traits);
+            _traits.Traits = cardInfo.traits;
         } else if (cardInfo.type == CardType.Technology) {
             _points.text = cardInfo.points.ToString();
         }

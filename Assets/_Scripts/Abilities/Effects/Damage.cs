@@ -13,6 +13,6 @@ public class Damage : IEffect
         }
         
         VFXSystem.RpcPlayHit(target, Effect.Damage);
-        target.EntityTakesDamage(amount, source.CardInfo.traits.Contains(Traits.Deathtouch));
+        target.EntityTakesDamage(amount, source.CardInfo.traits.Contains(Trait.Deathtouch));
     }
 }

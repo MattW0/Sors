@@ -63,9 +63,9 @@ namespace CardDecoder {
                 scriptableCard.health = card.health;
                 scriptableCard.points = card.points;
 
-                var traits = new List<Traits>();
+                var traits = new List<Trait>();
                 foreach(var t in card.traitsTexts){
-                    var trait = (Traits)System.Enum.Parse(typeof(Traits), t);
+                    var trait = (Trait)System.Enum.Parse(typeof(Trait), t);
                     traits.Add(trait);
                 }
                 scriptableCard.traits = traits;
@@ -77,8 +77,8 @@ namespace CardDecoder {
                     relationsTexts.Add(text);
                 }
 
-                UnityEditor.AssetDatabase.CreateAsset(scriptableCard, $"Assets/Resources/CreatureCards/{card.title}.asset");
-                UnityEditor.AssetDatabase.SaveAssets();
+                // UnityEditor.AssetDatabase.CreateAsset(scriptableCard, $"Assets/Resources/CreatureCards/{card.title}.asset");
+                // UnityEditor.AssetDatabase.SaveAssets();
             }
 
             private static string createRelationText(string name, string relation){

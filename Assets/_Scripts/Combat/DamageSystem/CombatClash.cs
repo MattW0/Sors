@@ -52,7 +52,7 @@ public class CombatClash
         OnPlayDamage?.Invoke(target.transform);
         await UniTask.Delay(TimeSpan.FromSeconds(SorsTimings.damageTime));
 
-        target.EntityTakesDamage(damage, source.GetTraits().Contains(Traits.Deathtouch));
+        target.EntityTakesDamage(damage, source.GetTraits().Contains(Trait.Deathtouch));
         OnFinishClash?.Invoke(source.ID);
     }
 

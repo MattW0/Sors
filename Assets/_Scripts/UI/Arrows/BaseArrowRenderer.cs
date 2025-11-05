@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
-using UnityEditor.UI;
 
 
 public abstract class BaseArrowRenderer : MonoBehaviour, IArrowRenderer

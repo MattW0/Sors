@@ -128,7 +128,7 @@ public class DropZoneManager : NetworkBehaviour
         // Auto-skip : All creatures have Devensive Trait (can't attack)
         foreach (var creature in creatures)
         {
-            if (! creature.GetTraits().Contains(Traits.Defensive)) 
+            if (! creature.GetTraits().Contains(Trait.Defensive)) 
                 return true;
         }
 
@@ -166,7 +166,7 @@ public class DropZoneManager : NetworkBehaviour
         // TODO: Check that not all creatures have Trait.Offensive
         foreach (var creature in playerCreatures)
         {
-            if (! creature.GetTraits().Contains(Traits.Offensive)) 
+            if (! creature.GetTraits().Contains(Trait.Offensive)) 
                 return true;
         }
 

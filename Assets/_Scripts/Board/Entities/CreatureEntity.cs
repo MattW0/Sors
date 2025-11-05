@@ -7,8 +7,8 @@ using System;
 public class CreatureEntity : BattleZoneEntity
 {
     private EntityUI _ui;
-    private List<Traits> _traits;
-    public List<Traits> GetTraits() => _traits;
+    private List<Trait> _traits;
+    public List<Trait> GetTraits() => _traits;
     public static event Action<BattleZoneEntity, BattleZoneEntity> OnOpponentDeclaredAttack;
     public static event Action<BattleZoneEntity, BattleZoneEntity> OnOpponentDeclaredBlock;
 
@@ -62,7 +62,7 @@ public class CreatureEntity : BattleZoneEntity
         DropZoneManager.OnResetEntityUI += ResetCreatureUI;
     }
 
-    public void InitializeCreature(int attack, List<Traits> traits)
+    public void InitializeCreature(int attack, List<Trait> traits)
     {
         _traits = traits;
         _attack = attack;
@@ -112,7 +112,7 @@ public class CreatureEntity : BattleZoneEntity
         if (IsAttacking) return;
 
         // Defensive creatures can only block and offensive creatures can only attack
-        CanAct = attackStep ? ! _traits.Contains(Traits.Defensive) : ! _traits.Contains(Traits.Offensive);
+        CanAct = attackStep ? ! _traits.Contains(Trait.Defensive) : ! _traits.Contains(Trait.Offensive);
     }
 
     private void ResetCreatureUI()

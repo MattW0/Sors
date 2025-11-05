@@ -23,7 +23,7 @@ public class ScriptableCard : ScriptableObject
     public List<Ability> abilities;
 
     [Header("Creature properties")]
-    public List<Traits> traits;
+    public List<Trait> traits;
 
     [Header("Display Texts")]
     public string flavourText;

@@ -23,7 +23,7 @@ public struct CardInfo : IEquatable<CardInfo>
     public List<Ability> abilities;
 
     [Header("Creature properties")]
-    public List<Traits> traits;
+    public List<Trait> traits;
 
     [Header("Display Texts")]
     [TextArea] public string description;
