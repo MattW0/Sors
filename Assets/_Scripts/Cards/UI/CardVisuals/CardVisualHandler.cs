@@ -113,7 +113,7 @@ public class CardVisualHandler : MonoBehaviour
         float sine = Mathf.Sin(Time.time + _savedIndex) * (_dragHandler.isHovering ? .2f : 1);
         float cosine = Mathf.Cos(Time.time + _savedIndex) * (_dragHandler.isHovering ? .2f : 1);
 
-        Vector3 offset = transform.position - MouseInputHelper.GetMouseWorldPosition(_cam);
+        Vector3 offset = transform.position - MouseInputHelper.GetMouseWorldPosition();
         float tiltX = _dragHandler.isHovering ? (offset.y * -1 * manualTiltAmount) : 0;
         float tiltY = _dragHandler.isHovering ? (offset.x * manualTiltAmount) : 0;
         float tiltZ = _zRotationOffset * _curve.rotationInfluence;

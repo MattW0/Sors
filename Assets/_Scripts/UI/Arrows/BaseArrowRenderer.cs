@@ -16,17 +16,10 @@ public abstract class BaseArrowRenderer : MonoBehaviour, IArrowRenderer
     protected readonly List<float> Alphas = new();
     protected virtual float Offset => 0f;
     protected virtual float FadeDistance => 0f;
-    private Camera _cam;
-
-    private void Awake() 
-    {
-        _cam = Camera.main;
-    }
 
     public void FollowMouse()
     {
-        end = MouseInputHelper.GetMouseWorldPosition(_cam);
-        // end.z = 0;
+        end = MouseInputHelper.GetMouseWorldPosition();
         UpdateArrow();
     }
 

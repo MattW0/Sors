@@ -20,7 +20,6 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
 
     [Header("Visual")]
     public CardVisualHandler cardVisual;
-    private Camera _cam;
 
     [Header("States")]
     public bool Draggable { get; set; }
@@ -40,8 +39,7 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
     void Start()
     {
         imageComponent = GetComponent<Image>();
-        _cam = Camera.main;
-        _screenBounds = MouseInputHelper.GetScreenBounds(_cam);
+        _screenBounds = MouseInputHelper.GetScreenBounds();
     }
 
     internal void Initialize(CardVisualHandler cardVisual, CardStats stats, CardPileCurveParameters curve)
@@ -55,7 +53,7 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
     {
         if (! isDragging) return;
 
-        var targetPosition = ClampPosition(MouseInputHelper.GetMouseWorldPosition(_cam) - offset);
+        var targetPosition = ClampPosition(MouseInputHelper.GetMouseWorldPosition() - offset);
         Vector3 direction = (targetPosition - transform.position).normalized;
         Vector2 velocity = direction * Mathf.Min(moveSpeedLimit, Vector2.Distance(transform.position, targetPosition) / Time.deltaTime);
         
@@ -102,7 +100,7 @@ public class CardDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
 
         BeginDragEvent.Invoke(this);
         
-        offset = MouseInputHelper.GetMouseWorldPosition(_cam) - transform.position;
+        offset = MouseInputHelper.GetMouseWorldPosition() - transform.position;
         isDragging = true;
         imageComponent.raycastTarget = false;
 

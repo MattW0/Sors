@@ -1,17 +1,17 @@
-using System.Runtime.InteropServices;
 using UnityEngine;
 
 public static class MouseInputHelper
 {
     static readonly float zDistance = 8f;
+    static Camera _cam => Camera.main;
 
     /// <summary>
     /// Gets the world position for any point on the camera
     /// </summary>
-    public static Vector3 GetWorldPositionForScreenPoint(Camera cam, Vector3 screenPosition)
+    public static Vector3 GetWorldPositionForScreenPoint(Vector3 screenPosition)
     {
         screenPosition.z = zDistance;
-        var worldPos = cam.ScreenToWorldPoint(screenPosition);
+        var worldPos = _cam.ScreenToWorldPoint(screenPosition);
 
         return worldPos;
     }
@@ -19,18 +19,18 @@ public static class MouseInputHelper
     /// <summary>
     /// Gets the world position of the mouse cursor projected onto a plane at z = zDistance = 5f
     /// </summary>
-    public static Vector3 GetMouseWorldPosition(Camera cam)
+    public static Vector3 GetMouseWorldPosition()
     {
-        return GetWorldPositionForScreenPoint(cam, Input.mousePosition);
+        return GetWorldPositionForScreenPoint(Input.mousePosition);
     }
 
     /// <summary>
     /// Gets the mouse delta movement in world space between last frame and this frame.
     /// </summary>
-    public static Vector3 GetMouseWorldDelta(Camera cam)
+    public static Vector3 GetMouseWorldDelta()
     {
-        Vector3 previous = GetWorldPositionForScreenPoint(cam, Input.mousePosition);
-        Vector3 current = GetMouseWorldPosition(cam);
+        Vector3 previous = GetWorldPositionForScreenPoint(Input.mousePosition);
+        Vector3 current = GetMouseWorldPosition();
         return current - previous;
     }
 
@@ -39,17 +39,24 @@ public static class MouseInputHelper
     /// </summary>
     /// <param name="cam">Camera to use for conversion</param>
     /// <returns>World space top-right bounds as Vector2 (x,y)</returns>
-    public static Vector2 GetScreenBounds(Camera cam)
+    public static Vector2 GetScreenBounds()
     {
-        if (cam == null)
-        {
-            Debug.LogError("Camera is null in GetScreenBounds!");
-            return Vector2.zero;
-        }
+        Vector3 topRightScreenPoint = new(Screen.width, Screen.height, zDistance);
+        Vector3 worldTopRight = _cam.ScreenToWorldPoint(topRightScreenPoint);
 
-        Vector3 topRightScreenPoint = new Vector3(Screen.width, Screen.height, zDistance);
-        Vector3 worldTopRight = cam.ScreenToWorldPoint(topRightScreenPoint);
+        return new(worldTopRight.x, worldTopRight.y);
+    }
 
-        return new Vector2(worldTopRight.x, worldTopRight.y);
+    public static Vector3 GetMousePositionWithinBounds()
+    {
+        Vector3 mouseWorld = GetMouseWorldPosition();
+
+        Vector3 bottomLeft = _cam.ScreenToWorldPoint(new Vector3(0, 0, zDistance));
+        Vector3 topRight = GetScreenBounds();
+
+        mouseWorld.x = Mathf.Clamp(mouseWorld.x, bottomLeft.x, topRight.x);
+        mouseWorld.y = Mathf.Clamp(mouseWorld.y, bottomLeft.y, topRight.y);
+
+        return mouseWorld;
     }
 }
