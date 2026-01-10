@@ -17,7 +17,7 @@ public static class MouseInputHelper
     }
 
     /// <summary>
-    /// Gets the world position of the mouse cursor projected onto a plane at z = zDistance = 5f
+    /// Gets the world position of the mouse cursor projected onto a plane at z = zDistance
     /// </summary>
     public static Vector3 GetMouseWorldPosition()
     {
@@ -58,5 +58,47 @@ public static class MouseInputHelper
         mouseWorld.y = Mathf.Clamp(mouseWorld.y, bottomLeft.y, topRight.y);
 
         return mouseWorld;
+    }
+
+    /// <summary>
+    /// Converts a screen-space position (e.g. mouse) into the local space of a Screen Space - Camera canvas.
+    /// </summary>
+    public static Vector3 GetCanvasLocalPosition(Vector3 screenPos, Canvas canvas)
+    {
+        if (canvas == null)
+        {
+            Debug.LogWarning("MouseInputHelper: Canvas reference is null!");
+            return Vector3.zero;
+        }
+
+        RectTransform canvasRect = canvas.GetComponent<RectTransform>();
+        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            canvasRect,
+            screenPos,
+            canvas.worldCamera,
+            out Vector2 localPoint))
+        {
+            return localPoint;
+        }
+
+        return Vector3.zero;
+    }
+
+    /// <summary>
+    /// Clamps a local canvas position so it stays fully within canvas bounds.
+    /// </summary>
+    public static Vector3 ClampToCanvasBounds(Vector3 localPos, RectTransform canvasRect, Vector2 elementSize, float scale = 1f)
+    {
+        Vector2 scaledHalfSize = 0.5f * scale * elementSize;
+
+        float xMin = -canvasRect.rect.width * 0.5f + scaledHalfSize.x;
+        float xMax =  canvasRect.rect.width * 0.5f - scaledHalfSize.x;
+        float yMin = -canvasRect.rect.height * 0.5f + scaledHalfSize.y;
+        float yMax =  canvasRect.rect.height * 0.5f - scaledHalfSize.y;
+
+        localPos.x = Mathf.Clamp(localPos.x, xMin, xMax);
+        localPos.y = Mathf.Clamp(localPos.y, yMin, yMax);
+
+        return localPos;
     }
 }

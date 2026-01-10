@@ -3,70 +3,93 @@ using System.Collections;
 
 public class MarketTileHoverPreview : MonoBehaviour
 {
+    [SerializeField] private CardHoverView _hoverView;
     [SerializeField] private DetailCardPreview _detailCardPreview;
-    [SerializeField] private RectTransform previewWindow;
-    private Vector3 _offset = new(0, -40f, 0f);
-    private float _viewHeight;
-    private float _viewWidth;
-    private WaitForSeconds _wait = new(SorsTimings.hoverPreviewDelay); 
-
-    private void Awake()
-    {
-        _viewHeight = previewWindow.rect.height;
-        _viewWidth = previewWindow.rect.width;
-    }
+    private WaitForSeconds _wait = new(SorsTimings.hoverPreviewDelay);
+    
+    private Coroutine _hoverCoroutine;
+    private Coroutine _exitCoroutine;
+    private bool _isVisible;
 
     private void OnEnable()
     {
         MarketTileUI.OnHoverTile += HoverStart;
-        MarketTileUI.OnHoverExit += HidePreview;
+        MarketTileUI.OnHoverExit += HoverExit;
     }
 
     private void OnDisable()
     {
         MarketTileUI.OnHoverTile -= HoverStart;
-        MarketTileUI.OnHoverExit -= HidePreview;
+        MarketTileUI.OnHoverExit -= HoverExit;
     }
 
     private void Start()
     {
-        HidePreview();
+        HideImmediate();
         _detailCardPreview.HideAll();
     }
     
-    private void HoverStart(CardInfo cardInfo)
+    private void HoverStart(CardInfo card)
     {
-        HidePreview();
-        StartCoroutine(HoverDelay(cardInfo));
+        print("Hover start");
+        // Cancel exit if we're moving to another card
+        if (_exitCoroutine != null) {
+            StopCoroutine(_exitCoroutine);
+            _exitCoroutine = null;
+        }
+
+        if (_isVisible) {
+            _hoverView.Show(card);
+            return;
+        }
+
+        if (_hoverCoroutine != null)
+            StopCoroutine(_hoverCoroutine);
+
+        _hoverCoroutine = StartCoroutine(HoverDelay(card));
+    }
+
+    private void HoverExit()
+    {
+        print("Exit");
+
+        if (_hoverCoroutine != null) {
+            StopCoroutine(_hoverCoroutine);
+            _hoverCoroutine = null;
+        }
+
+        if (_exitCoroutine != null)
+            StopCoroutine(_exitCoroutine);
+
+        _exitCoroutine = StartCoroutine(ExitDelay());
     }
 
     private IEnumerator HoverDelay(CardInfo card)
     {
         yield return _wait;
 
-        SetViewPosition();
-        _detailCardPreview.ShowPreview(card, card.type != CardType.Money);
+        print("Hover past delay");
+        _isVisible = true;
+        _hoverView.Show(card);
     }
 
-
-    private void HidePreview()
-    {   
-        StopAllCoroutines();
-        _detailCardPreview.HideAll();
-    }
-
-    private void SetViewPosition()
+    private IEnumerator ExitDelay()
     {
-        var pos = Input.mousePosition + _offset;
-        // print($"Init position : {pos.x}, {pos.y}");
+        yield return _wait;
 
-        var endWidth = pos.x - _viewWidth;
-        if(endWidth < 0f) pos.x -= endWidth;
+        print("Exit past delay");
 
-        var endHeight = pos.y - _viewHeight;
-        if(endHeight < 0f) pos.y -= endHeight;
+        _isVisible = false;
+        _hoverView.Hide();
+    }
 
-        // print($"Set position to : {pos.x}, {pos.y}");
-        previewWindow.position = pos;
+    private void HideImmediate()
+    {
+        _isVisible = false;
+
+        if (_hoverCoroutine != null) StopCoroutine(_hoverCoroutine);
+        if (_exitCoroutine != null) StopCoroutine(_exitCoroutine);
+
+        _hoverView.Hide();
     }
 }

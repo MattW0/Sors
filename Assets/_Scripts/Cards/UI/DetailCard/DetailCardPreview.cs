@@ -29,6 +29,12 @@ public class DetailCardPreview : MonoBehaviour
         if(withEntity) ShowEntity(cardInfo);
     }
 
+    public void ShowMarketPreview(CardInfo cardInfo, Vector3 pos)
+    {
+        // _cardHolder.localPosition = pos;
+        ShowCard(cardInfo);
+    }
+
     private void ShowCard(CardInfo cardInfo)
     {
         var card = cardInfo.type switch{
