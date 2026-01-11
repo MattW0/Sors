@@ -13,7 +13,6 @@ public class DevelopState : CardInteractionState
     public DevelopState()
     {
         PlayerManager.OnLocalCashUpdate += CheckPlayability;
-        InteractionPanel.OnUndoMoneyPlay += MakeMoneyCardsInteractable;
     }
 
     public override bool CheckStateAutoskip() => !SelectablesContainTechnology();
@@ -24,11 +23,13 @@ public class DevelopState : CardInteractionState
 
         return null;
     }
+    public override void HandleConfirm(InteractionPanel ctx) => ctx.ConfirmCashSpending(false);
+    public override void HandleReset(InteractionPanel ctx) => ctx.UndoMoneyPlay();
+    public override void HandleSkip(InteractionPanel ctx) => ctx.SkipInteraction();
     public override void MakeCardsInteractable() => MakeMoneyCardsInteractable(Config.turnState);
 
     ~DevelopState() 
     {
         PlayerManager.OnLocalCashUpdate -= CheckPlayability;
-        InteractionPanel.OnUndoMoneyPlay -= MakeMoneyCardsInteractable;
     }
 } 

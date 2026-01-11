@@ -10,20 +10,13 @@ public class RecruitState : CardInteractionState
         }
     }
 
-    public RecruitState()
-    {
-        InteractionPanel.OnUndoMoneyPlay += MakeMoneyCardsInteractable;
-    }
-
     public override CardLocation? GetCardDestination(CardStats cardStats)
     {
         if(cardStats.cardInfo.type == CardType.Money) return CardLocation.MoneyZone;
         return null;
     }
+    public override void HandleConfirm(InteractionPanel ctx) => ctx.ConfirmCashSpending(true);
+    public override void HandleReset(InteractionPanel ctx) => ctx.UndoMoneyPlay();
+    public override void HandleSkip(InteractionPanel ctx) => ctx.SkipInteraction();
     public override void MakeCardsInteractable() => MakeMoneyCardsInteractable(Config.turnState);
-
-    ~RecruitState()
-    {
-        InteractionPanel.OnUndoMoneyPlay -= MakeMoneyCardsInteractable;
-    }
 }

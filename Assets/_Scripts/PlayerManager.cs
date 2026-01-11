@@ -119,20 +119,20 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Client]
-    public void ConfirmPayment(CardSelection choice, InteractionType type)
+    public void ConfirmPayment(CardSelection choice, bool isBuy)
     {
         LocalCash -= choice.cost;
-        CmdConfirmPayment(choice.cardInfo.Value, LocalCash, choice.marketIndex, type);
+        CmdConfirmPayment(choice.cardInfo.Value, LocalCash, choice.marketIndex, isBuy);
     }
 
     [Command]
-    private void CmdConfirmPayment(CardInfo cardInfo, int cashBuffer, int marketIndex, InteractionType type)
+    private void CmdConfirmPayment(CardInfo cardInfo, int cashBuffer, int marketIndex, bool isBuy)
     {
         TurnContext.SelectedCard = cardInfo;
         TurnContext.CashBuffer = cashBuffer;
 
-        if (type == InteractionType.Buy) _turnManager.PlayerConfirmBuy(this, marketIndex);
-        else if (type == InteractionType.Play) _turnManager.PlayerConfirmPlay(this);
+        if (isBuy) _turnManager.PlayerConfirmBuy(this, marketIndex);
+        else _turnManager.PlayerConfirmPlay(this);
     }
 
     [Command]

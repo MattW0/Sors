@@ -24,11 +24,11 @@ public abstract class InteractionStateBase : IInteractionState
 
     [Header("Helper fields")]
     public int numberSelections;
-    public static event Action<InteractionType> OnConfirmInteraction;
-    public static event Action<InteractionType> OnSkipInteraction;
-    public static event Action OnResetInteraction;
     public abstract void Initialize(CardPile[] piles);
     public abstract void StartState();
+    public abstract void HandleConfirm(InteractionPanel ctx);
+    public abstract void HandleSkip(InteractionPanel ctx);
+    public abstract void HandleReset(InteractionPanel ctx);
 
     // Up-to vs exact interaction
     public virtual bool IsConfirmEnabled(int numberSelected)
@@ -36,9 +36,5 @@ public abstract class InteractionStateBase : IInteractionState
         if (Config.isUpTo) return numberSelected <= numberSelections;
         else return numberSelected == numberSelections;
     }
-
-    public virtual void OnConfirm() => OnConfirmInteraction?.Invoke(Config.interactionType);
-    public virtual void OnSkip() => OnSkipInteraction?.Invoke(Config.interactionType);
-    public virtual void OnReset() => OnResetInteraction?.Invoke();
     public abstract void EndState();
 }

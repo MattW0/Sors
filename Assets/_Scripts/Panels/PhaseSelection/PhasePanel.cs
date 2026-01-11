@@ -21,8 +21,8 @@ public class PhasePanel : NetworkBehaviour
         OptionalPhaseItemUI.OnToggleSelection += UpdateSelectedPhase;
         TurnManager.OnTurnStateChanged += RpcUpdatePhaseHighlight;
         CombatManager.OnCombatStateChanged += RpcUpdatePhaseHighlight;
-        InteractionPanel.OnConfirmPhaseSelection += PlayerConfirms;
-        InteractionPanel.OnResetPhaseSelection += PlayerResets;
+        PhaseSelectionState.OnConfirm += PlayerConfirms;
+        PhaseSelectionState.OnReset += PlayerResets;
     }
 
     [ClientRpc]
@@ -78,7 +78,7 @@ public class PhasePanel : NetworkBehaviour
         OptionalPhaseItemUI.OnToggleSelection -= UpdateSelectedPhase;
         TurnManager.OnTurnStateChanged -= RpcUpdatePhaseHighlight;
         CombatManager.OnCombatStateChanged -= RpcUpdatePhaseHighlight;
-        InteractionPanel.OnConfirmPhaseSelection -= PlayerConfirms;
-        InteractionPanel.OnResetPhaseSelection -= PlayerResets;
+        PhaseSelectionState.OnConfirm -= PlayerConfirms;
+        PhaseSelectionState.OnReset -= PlayerResets;
     }
 }

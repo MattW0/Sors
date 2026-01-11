@@ -10,5 +10,8 @@ public class PrevailToHandState : CardInteractionState
         }
     }
     public override CardLocation? GetCardDestination(CardStats cardStats) => CardLocation.Selection;
+    public override void HandleConfirm(InteractionPanel ctx) => ctx.ConfirmCardSelection();
+    public override void HandleReset(InteractionPanel ctx) {}
+    public override void HandleSkip(InteractionPanel ctx) => ctx.SkipInteraction();
     public override void MakeCardsInteractable() => MakeAllCardsInteractable();
 }

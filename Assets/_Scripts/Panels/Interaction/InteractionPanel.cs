@@ -3,24 +3,20 @@ using UnityEngine;
 using Mirror;
 using System.Linq;
 using System;
-using NUnit.Framework.Constraints;
 
 [RequireComponent(typeof(CardSelectionHandler))]
 public class InteractionPanel : NetworkBehaviour
 {
     public static InteractionPanel Instance { get; private set; }
-    public PlayerManager LocalPlayer { get; set; }
+    public PlayerManager LocalPlayer { get; private set; }
     private CardSelectionHandler _selectionHandler;
     private BoardManager _boardManager;
     [SerializeField] private ArrowManager _arrowManager;
     [SerializeField] private CardPile[] _interactablePiles;
     private InteractionUI _interactionUI;
-    public static event Action<TurnState> OnUndoMoneyPlay;
-    public static event Action OnConfirmPhaseSelection;
-    public static event Action OnResetPhaseSelection;
 
     [Header("Helper Fields")]
-    private IInteractionState _currentState;
+    private InteractionStateBase _currentState;
     private readonly IInteractionState[] _interactionStates = {
         new PhaseSelectionState(),
         new DiscardState(),
@@ -43,10 +39,6 @@ public class InteractionPanel : NetworkBehaviour
 
         _selectionHandler = GetComponent<CardSelectionHandler>();
         _interactionUI = GetComponentInChildren<InteractionUI>();
-
-        InteractionStateBase.OnConfirmInteraction += PlayerConfirms;
-        InteractionStateBase.OnSkipInteraction += PlayerSkips;
-        InteractionStateBase.OnResetInteraction += PlayerResets;
     }
 
     private void Start() 
@@ -101,6 +93,15 @@ public class InteractionPanel : NetworkBehaviour
         _currentState.StartState();
     }
 
+    public void ConfirmCurrentState()
+    {
+        _selectionHandler.EndSelection();
+        _currentState.HandleConfirm(this);
+    }
+
+    public void SkipCurrentState() => _currentState.HandleSkip(this);
+    public void ResetCurrentState() => _currentState.HandleReset(this);
+
     private void SetCurrentTurnState(TurnState turnState)
     {
         _currentState = (InteractionStateBase) _interactionStates.FirstOrDefault(x => x.Config.turnState == turnState);
@@ -109,33 +110,6 @@ public class InteractionPanel : NetworkBehaviour
             Debug.LogError($"No interaction state found for {turnState}");
             return;
         }
-    }
-
-    private void PlayerConfirms(InteractionType type)
-    {
-        // print("Player confirms interaction type "+ type);
-        _selectionHandler.EndSelection();
-        
-        // Default behavior that is resolved individually in TurnManager
-        if (type == InteractionType.Select) LocalPlayer.CmdConfirmSelection(_selectionHandler.selectedCards.Select(card => card.cardInfo.goID).ToList());
-        else if (type == InteractionType.Combat) ConfirmCombatSelection();
-        
-        // Interaction with playing money cards
-        else if (type == InteractionType.Buy || type == InteractionType.Play) {
-            LocalPlayer.Cards.ConfirmMoneyCards();
-            LocalPlayer.ConfirmPayment(_selectionHandler.cardSelection, type);
-        } else {
-            OnConfirmPhaseSelection.Invoke();
-        }
-    }
-
-    private void PlayerSkips(InteractionType type)
-    {
-        // We auto skip in 
-        if(type == InteractionType.Combat) return;
-
-        LocalPlayer.CmdSkipInteraction();
-        _selectionHandler.SkipCardInteraction();
     }
 
     [ClientRpc]
@@ -147,14 +121,6 @@ public class InteractionPanel : NetworkBehaviour
     }
     #region Combat
 
-    private void ConfirmCombatSelection()
-    {
-        foreach(var (target, creatureList) in _arrowManager.GetPlayerSelection())
-            CmdSetGroupTarget(target, creatureList);
-        
-        CmdPlayerConfirmsCombat(LocalPlayer);
-    }
-
     [Command(requiresAuthority = false)]
     private void CmdSetGroupTarget(BattleZoneEntity target, List<CreatureEntity> creatures)
     {
@@ -165,34 +131,48 @@ public class InteractionPanel : NetworkBehaviour
     [Command(requiresAuthority = false)]
     private void CmdPlayerConfirmsCombat(PlayerManager player) => _boardManager.PlayerConfirmsCombatState(player);
 
-    private void PlayerResets() 
-    {
-        if (_currentState.Config.turnState == TurnState.Attackers 
-            || _currentState.Config.turnState == TurnState.Blockers)
-            CmdResetArrows();
-        else if (_currentState.Config.turnState == TurnState.PhaseSelection)
-            OnResetPhaseSelection?.Invoke();
-        else 
-            UndoMoneyPlay();
-    }
     [Command(requiresAuthority = false)]
-    private void CmdResetArrows() 
+    private void CmdResetArrows(PlayerManager player) 
     {
-        _arrowManager.TargetResetArrows(LocalPlayer.connectionToClient);
-    }
-
-    private void UndoMoneyPlay()
-    {
-        _selectionHandler.UndoMoneyPlay(_currentState.Config.interactionType);
-        OnUndoMoneyPlay?.Invoke(_currentState.Config.turnState);
+        _arrowManager.TargetResetArrows(player.connectionToClient);
     }
 
     #endregion
 
-    private void OnDestroy()
+    #region === State Context API ===
+    // Everything below is intentionally narrow & safe
+
+    public Stack<CardStats> SelectedCards => _selectionHandler.selectedCards;
+    public InteractionStateConfig CurrentConfig => _currentState.Config;
+    public ArrowManager Arrows => _arrowManager;
+
+    public void ConfirmCardSelection()
     {
-        InteractionStateBase.OnConfirmInteraction -= PlayerConfirms;
-        InteractionStateBase.OnSkipInteraction -= PlayerSkips;
-        InteractionStateBase.OnResetInteraction -= PlayerResets;
+        LocalPlayer.CmdConfirmSelection(
+            SelectedCards.Select(c => c.cardInfo.goID).ToList()
+        );
     }
+
+    public void SkipInteraction()
+    {
+        LocalPlayer.CmdSkipInteraction();
+        _selectionHandler.SkipCardInteraction();
+    }
+
+    public void ConfirmCashSpending(bool isBuy) {
+        LocalPlayer.Cards.ConfirmMoneyCards();
+        LocalPlayer.ConfirmPayment(_selectionHandler.cardSelection, isBuy);
+    }
+
+    public void UndoMoneyPlay() => _selectionHandler.UndoMoneyPlay(CurrentConfig.interactionType);
+    public void ResetCombatArrows() => CmdResetArrows(LocalPlayer);
+    public void ConfirmCombatSelection()
+    {
+        foreach(var (target, creatureList) in _arrowManager.GetPlayerSelection())
+            CmdSetGroupTarget(target, creatureList);
+        
+        CmdPlayerConfirmsCombat(LocalPlayer);
+    }
+
+    #endregion
 }
