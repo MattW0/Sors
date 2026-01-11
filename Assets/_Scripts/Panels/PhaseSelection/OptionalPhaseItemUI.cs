@@ -41,8 +41,9 @@ public class OptionalPhaseItemUI : MonoBehaviour, IHighlightable, IPointerClickH
     {
         _tooltip = GetComponentInChildren<TooltipWindow>();
 
-        PhasePanel.OnPhaseSelectionStarted += StartSelection;
-        PhasePanel.OnPhaseSelectionConfirmed += EndSelection;
+        PhasePanel.OnReset += Initialize;
+        PhaseSelectionState.OnStart += Initialize;
+        PhaseSelectionState.OnEnd += EndSelection;
         PhasePanelUI.OnPhaseSelectionConfirmed += ShowOpponentSelection;
     }
 
@@ -76,7 +77,7 @@ public class OptionalPhaseItemUI : MonoBehaviour, IHighlightable, IPointerClickH
         if(!_isSelected) playerChoice.enabled = false;
     }
 
-    private void StartSelection()
+    private void Initialize()
     {
         _selectable = true;
         IsSelected = false;
@@ -102,8 +103,9 @@ public class OptionalPhaseItemUI : MonoBehaviour, IHighlightable, IPointerClickH
 
     private void OnDestroy()
     {
-        PhasePanel.OnPhaseSelectionStarted -= StartSelection;
-        PhasePanel.OnPhaseSelectionConfirmed -= EndSelection;
+        PhasePanel.OnReset -= Initialize;
+        PhaseSelectionState.OnStart -= Initialize;
+        PhaseSelectionState.OnEnd -= EndSelection;
         PhasePanelUI.OnPhaseSelectionConfirmed -= ShowOpponentSelection;
     }
 

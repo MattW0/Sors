@@ -36,7 +36,6 @@ public class TurnManager : NetworkBehaviour
     private readonly CardList _trashedCards = new(false, CardLocation.Trash);
 
     // Events
-    public static event Action OnStartPhaseSelection;
     public static event Action<TurnState> OnTurnStateChanged;
 
     #region Setup
@@ -60,7 +59,6 @@ public class TurnManager : NetworkBehaviour
         _nbPlayers = gameOptions.SinglePlayer ? 1 : 2;
 
         SetupInstances(gameOptions);
-        VariablesCaching(gameOptions);
         DrawInitialHand().Forget();
     }
 
@@ -68,30 +66,18 @@ public class TurnManager : NetworkBehaviour
     {
         _gameManager = GameManager.Instance;
         _boardManager = BoardManager.Instance;
+        _logger = PlayerInterfaceManager.Instance;
+        _prevailPanel = PrevailPanel.Instance;
+        _interactionPanel = InteractionPanel.Instance;
         _market = Market.Instance;
 
-        // Panels with setup (GameManager handles market setup)
-        _logger = PlayerInterfaceManager.Instance;
         _logger.RpcPrepare(_gameManager.players.Values.ToArray(), gameOptions.NumberPhases);
-
-        _interactionPanel = InteractionPanel.Instance;
         _interactionPanel.RpcPrepareInteractionPanel();
-
         _phasePanel.RpcPreparePhasePanel(gameOptions.NumberPhases);
-
-        _prevailPanel = PrevailPanel.Instance;
 
         _networkObjectSpawner = ServiceLocator.Global.Get<NetworkObjectSpawner>();
     }
 
-    private void VariablesCaching(GameOptions gameOptions)
-    {
-        var playerNames = new List<string>();
-        foreach (var player in _gameManager.players.Values)
-        {
-            playerNames.Add(player.PlayerName);
-        }
-    }
     #endregion
 
     #region Phase Selection
@@ -106,7 +92,7 @@ public class TurnManager : NetworkBehaviour
 
         // Wait for animation and abilities
         BeginningOfTurn()
-            .ContinueWith(() => OnStartPhaseSelection?.Invoke())
+            .ContinueWith(() => _interactionPanel.RpcStartPhaseSelection())
             .Forget();
     }
 
@@ -310,7 +296,7 @@ public class TurnManager : NetworkBehaviour
             // Each player gets +1 Play
             player.Plays += _gameOptions.plays;
 
-            // If player selected Develop or Deploy, they get bonus Plays
+            // BONUS: If player selected Develop or Deploy
             if (player.TurnContext.PhaseChoices.Contains(turnState))
             {
                 player.Plays += _gameOptions.extraPlays;

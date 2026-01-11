@@ -23,5 +23,6 @@ public enum InteractionType {
     Select,
     Buy,
     Play,
-    Combat
+    Combat,
+    PhaseSelection
 }

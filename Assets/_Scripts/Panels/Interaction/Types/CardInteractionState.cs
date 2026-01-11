@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 public abstract class CardInteractionState : InteractionStateBase
 {
@@ -52,6 +53,7 @@ public abstract class CardInteractionState : InteractionStateBase
     // Only used for play interactions : develop, deploy
     protected virtual void CheckPlayability(int cash) 
     {
+        Debug.Log($"check playability {cash}, selectableCards {selectableCards}");
         // Since both states develop and deploy use this logic, for one of them selectableCards is null
         // Although valid only for develop and deploy, we have this here because CardInteractionState
         // tracks the selectableCards (and we can avoid that in InteractionPanel)

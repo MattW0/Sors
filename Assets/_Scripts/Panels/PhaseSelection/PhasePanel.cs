@@ -1,27 +1,28 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using Mirror;
 using UnityEngine;
 
+[RequireComponent(typeof(PhasePanelUI))]
 public class PhasePanel : NetworkBehaviour
 {
     [SerializeField] private List<TurnState> _selectedPhases = new();
     private int _nbPhasesToChose;
     private PhasePanelUI _phasePanelUI;
     private PlayerManager _localPlayer;
-    public static event Action OnPhaseSelectionStarted;
+    [SerializeField] private InteractionUI _interactionPanelUI;
     public static event Action OnPhaseSelectionConfirmed;
+    public static event Action OnReset;
     
     private void Awake() 
     {
         _phasePanelUI = GetComponent<PhasePanelUI>();
 
-        TurnManager.OnStartPhaseSelection += RpcStartSelection;
         OptionalPhaseItemUI.OnToggleSelection += UpdateSelectedPhase;
-        
         TurnManager.OnTurnStateChanged += RpcUpdatePhaseHighlight;
         CombatManager.OnCombatStateChanged += RpcUpdatePhaseHighlight;
+        InteractionPanel.OnConfirmPhaseSelection += PlayerConfirms;
+        InteractionPanel.OnResetPhaseSelection += PlayerResets;
     }
 
     [ClientRpc]
@@ -31,9 +32,6 @@ public class PhasePanel : NetworkBehaviour
         _localPlayer = PlayerManager.GetLocalPlayer();
     }
 
-    [ClientRpc]
-    private void RpcStartSelection() => OnPhaseSelectionStarted?.Invoke();
-    
     [ClientRpc]
     public void RpcShowPhaseSelection(PlayerManager player, List<TurnState> phases)
     {
@@ -57,27 +55,30 @@ public class PhasePanel : NetworkBehaviour
         } else {
             _selectedPhases.Add(phase);
         }
-        
-        if (_selectedPhases.Count == _nbPhasesToChose){
-            ConfirmButtonPressed();
-        }
+
+        _interactionPanelUI.SetConfirmButtonEnabled(_selectedPhases.Count == _nbPhasesToChose);
     }
 
-    private void ConfirmButtonPressed()
+    private void PlayerConfirms()
     {
-        // actionDescriptionText.text = "Wait for opponent...";
         _localPlayer.CmdPhaseSelection(_selectedPhases);
-
         _selectedPhases.Clear();
         OnPhaseSelectionConfirmed?.Invoke();
     }
 
+    private void PlayerResets()
+    {
+        _interactionPanelUI.SetConfirmButtonEnabled(false);
+        _selectedPhases.Clear();
+        OnReset?.Invoke();
+    }
+
     private void OnDestroy() 
     {
-        TurnManager.OnStartPhaseSelection -= RpcStartSelection;
         OptionalPhaseItemUI.OnToggleSelection -= UpdateSelectedPhase;
-
         TurnManager.OnTurnStateChanged -= RpcUpdatePhaseHighlight;
         CombatManager.OnCombatStateChanged -= RpcUpdatePhaseHighlight;
+        InteractionPanel.OnConfirmPhaseSelection -= PlayerConfirms;
+        InteractionPanel.OnResetPhaseSelection -= PlayerResets;
     }
 }

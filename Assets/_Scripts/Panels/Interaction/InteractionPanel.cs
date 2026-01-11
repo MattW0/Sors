@@ -3,6 +3,7 @@ using UnityEngine;
 using Mirror;
 using System.Linq;
 using System;
+using NUnit.Framework.Constraints;
 
 [RequireComponent(typeof(CardSelectionHandler))]
 public class InteractionPanel : NetworkBehaviour
@@ -15,10 +16,13 @@ public class InteractionPanel : NetworkBehaviour
     [SerializeField] private CardPile[] _interactablePiles;
     private InteractionUI _interactionUI;
     public static event Action<TurnState> OnUndoMoneyPlay;
+    public static event Action OnConfirmPhaseSelection;
+    public static event Action OnResetPhaseSelection;
 
     [Header("Helper Fields")]
     private IInteractionState _currentState;
     private readonly IInteractionState[] _interactionStates = {
+        new PhaseSelectionState(),
         new DiscardState(),
         new InventState(),
         new DevelopState(),
@@ -57,6 +61,14 @@ public class InteractionPanel : NetworkBehaviour
         LocalPlayer = PlayerManager.GetLocalPlayer();
     }
 
+    [ClientRpc]
+    internal void RpcStartPhaseSelection()
+    {
+        SetCurrentTurnState(TurnState.PhaseSelection);
+        _interactionUI.StartInteraction(_currentState, skip: false);
+        _currentState.StartState();
+    }
+
     [TargetRpc]
     public void TargetStartCardInteraction(NetworkConnection target, List<CardStats> interactableCards, TurnState turnState, int numberSelections)
     {
@@ -73,6 +85,7 @@ public class InteractionPanel : NetworkBehaviour
 
         _currentState.StartState();
         _selectionHandler.BeginInteraction(state, numberSelections);
+        LocalPlayer.LocalCash = LocalPlayer.LocalCash;
     }
 
     [TargetRpc]
@@ -108,9 +121,11 @@ public class InteractionPanel : NetworkBehaviour
         else if (type == InteractionType.Combat) ConfirmCombatSelection();
         
         // Interaction with playing money cards
-        else {
+        else if (type == InteractionType.Buy || type == InteractionType.Play) {
             LocalPlayer.Cards.ConfirmMoneyCards();
             LocalPlayer.ConfirmPayment(_selectionHandler.cardSelection, type);
+        } else {
+            OnConfirmPhaseSelection.Invoke();
         }
     }
 
@@ -155,9 +170,10 @@ public class InteractionPanel : NetworkBehaviour
         if (_currentState.Config.turnState == TurnState.Attackers 
             || _currentState.Config.turnState == TurnState.Blockers)
             CmdResetArrows();
-        else {
+        else if (_currentState.Config.turnState == TurnState.PhaseSelection)
+            OnResetPhaseSelection?.Invoke();
+        else 
             UndoMoneyPlay();
-        }
     }
     [Command(requiresAuthority = false)]
     private void CmdResetArrows() 

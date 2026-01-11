@@ -3,7 +3,6 @@ using UnityEngine;
 using System.Linq;
 using System;
 using Cysharp.Threading.Tasks;
-using Unity.VisualScripting;
 
 [RequireComponent(typeof(InteractionPanel))]
 public class CardSelectionHandler : MonoBehaviour

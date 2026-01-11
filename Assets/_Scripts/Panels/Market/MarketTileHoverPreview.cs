@@ -31,7 +31,6 @@ public class MarketTileHoverPreview : MonoBehaviour
     
     private void HoverStart(CardInfo card)
     {
-        print("Hover start");
         // Cancel exit if we're moving to another card
         if (_exitCoroutine != null) {
             StopCoroutine(_exitCoroutine);
@@ -51,8 +50,6 @@ public class MarketTileHoverPreview : MonoBehaviour
 
     private void HoverExit()
     {
-        print("Exit");
-
         if (_hoverCoroutine != null) {
             StopCoroutine(_hoverCoroutine);
             _hoverCoroutine = null;
@@ -68,7 +65,6 @@ public class MarketTileHoverPreview : MonoBehaviour
     {
         yield return _wait;
 
-        print("Hover past delay");
         _isVisible = true;
         _hoverView.Show(card);
     }
@@ -76,8 +72,6 @@ public class MarketTileHoverPreview : MonoBehaviour
     private IEnumerator ExitDelay()
     {
         yield return _wait;
-
-        print("Exit past delay");
 
         _isVisible = false;
         _hoverView.Hide();
