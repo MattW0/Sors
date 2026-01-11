@@ -29,7 +29,7 @@ public class DeployState : CardInteractionState
     public override void HandleReset(InteractionPanel ctx) => ctx.UndoMoneyPlay();
     public override void HandleSkip(InteractionPanel ctx) => ctx.SkipInteraction();
 
-    public override void MakeCardsInteractable() => MakeMoneyCardsInteractable(Config.turnState);
+    public override void MakeCardsInteractable() => MakeMoneyCardsInteractable();
     
     ~DeployState() 
     {

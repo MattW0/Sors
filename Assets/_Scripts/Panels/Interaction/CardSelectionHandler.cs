@@ -90,14 +90,11 @@ public class CardSelectionHandler : MonoBehaviour
         _ui.SetConfirmButtonEnabled(_state.IsConfirmEnabled(selectedCards.Count()));
     }
 
-    internal void UndoMoneyPlay(InteractionType type)
+    internal void UndoMoneyPlay()
     {
-        if (type == InteractionType.Buy) {
-            cardSelection.Clear();
-            _ui.DeselectMarketTile();
-        } else {
-            EmptySelectionStack();
-        }
+        cardSelection.Clear();
+        _ui.DeselectMarketTile();
+        EmptySelectionStack();
 
         var undoables = _interactionPanel.LocalPlayer.Cards.UndoPlayMoney();
         foreach (var card in undoables) OnCardSelection?.Invoke(card.DragHandler, false);

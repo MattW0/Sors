@@ -5,6 +5,7 @@ using Cysharp.Threading.Tasks;
 using System.Linq;
 using Mirror;
 
+[RequireComponent(typeof(PlayerManager))]
 public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
 {
     public CardList deck;
@@ -104,7 +105,7 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
         _clientMoneyCardsInPlay.Add(card);
         _owner.LocalCash += card.cardInfo.moneyValue;
 
-        card.SetInteractable(false);
+        card.IsInteractable = false;
     }
 
     [Client] internal void ConfirmMoneyCards() => CmdConfirmMoneyCards(_clientMoneyCardsInPlay, _owner.ID);
@@ -143,7 +144,7 @@ public class PlayerCards : NetworkBehaviour, ISerializationCallbackReceiver
         foreach (var card in _clientMoneyCardsInPlay)
         {
             _owner.LocalCash -= card.cardInfo.moneyValue;
-            card.SetInteractable(true);
+            card.SetInteractable(true, UIManager.ColorPalette.defaultHighlight);
         }
 
         _clientMoneyCardsInPlay.Clear();

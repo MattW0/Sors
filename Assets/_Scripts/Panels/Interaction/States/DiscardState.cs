@@ -10,10 +10,8 @@ public class DiscardState : CardInteractionState
         }
     }
     public override CardLocation? GetCardDestination(CardStats cardStats) => CardLocation.Selection;
-
     public override void HandleConfirm(InteractionPanel ctx) => ctx.ConfirmCardSelection();
     public override void HandleReset(InteractionPanel ctx) => ctx.UndoMoneyPlay();
     public override void HandleSkip(InteractionPanel ctx){ }
-
-    public override void MakeCardsInteractable() => MakeAllCardsInteractable();
+    public override void MakeCardsInteractable() => MakeAllCardsInteractable(UIManager.ColorPalette.interactionNegativeHighlight);
 }

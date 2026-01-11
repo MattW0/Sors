@@ -9,15 +9,15 @@ public class CardStats : NetworkBehaviour
     private HandCardUI _cardUI;
 
     public bool IsSelected { get; set; }
-    public bool IsInteractable { get; private set; }
-    public CardDragHandler DragHandler { get; internal set; }
-
-    public void SetInteractable(bool value, TurnState state = TurnState.None)
-    {
-        IsInteractable = value;
-        _cardUI.Highlight(value, state);
+    private bool _isInteractable;
+    public bool IsInteractable { 
+        get => _isInteractable;
+        set {
+            _isInteractable = value;
+            if(!_isInteractable) _cardUI.DisableHighlight();
+        } 
     }
-
+    public CardDragHandler DragHandler { get; internal set; }
     private void Awake()
     {        
         _cardUI = gameObject.GetComponent<HandCardUI>();
@@ -34,19 +34,19 @@ public class CardStats : NetworkBehaviour
         _cardUI.SetCardUI(card, card.cardSpritePath);
     }
 
-    public void CheckPlayability(int cash)
+    public void SetInteractable(bool value, Color color)
     {
-        if (cash < cardInfo.cost) return;
-
-        IsInteractable = true;
-        _cardUI.Highlight(HighlightType.Playable);
+        IsInteractable = value;
+        if(value) _cardUI.SetHighlight(color);
     }
+
+    public void CheckPlayability(int cash) => SetInteractable(cash >= cardInfo.cost, UIManager.ColorPalette.interactionPositiveHighlight);
 
     private void ResetCard()
     {
         IsInteractable = false;
         IsSelected = false;
-        _cardUI.Highlight(HighlightType.None);
+        _cardUI.DisableHighlight();
 
         if(DragHandler == null) return;
         DragHandler.cardVisual.Reset();

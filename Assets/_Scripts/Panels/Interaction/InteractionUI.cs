@@ -20,7 +20,7 @@ public class InteractionUI : AnimatedPanel
 
     private void Start()
     {
-        _panel = InteractionPanel.Instance; 
+        _panel = GetComponentInParent<InteractionPanel>(); 
 
         _confirmButton.onClick.AddListener(Confirm);
         _skipButton.onClick.AddListener(Skip);
@@ -30,25 +30,21 @@ public class InteractionUI : AnimatedPanel
         _detailCardPreview.HideAll();
     }
 
-    public void StartInteraction(InteractionStateBase state, bool skip, int nbCardsToSelectMax = -1)
+    public void StartInteraction(InteractionStateBase state, bool skip)
     {
-        // print("Interaction begin " + state + ", " + nbCardsToSelectMax);
-        // _state = (InteractionStateBase) state;
-
         _displayText.text = state.InteractionText;
         _isWaiting = false;
 
         SetPanelButtons(state);
         PanelIn();
         
-        // TODO: Should panel always fade in? To better make player understand what is going on
         if(skip) Skip();
     }
 
     private void SetPanelButtons(InteractionStateBase state)
     {
         // Confirm button is always enabled
-        _confirmButton.interactable = state.Config.confirmButtonEnabled;
+        _confirmButton.interactable = state.IsConfirmEnabled(numberSelected: 0);
 
         _skipButton.gameObject.SetActive(state.Config.skipButtonVisible);
         _skipButton.interactable = state.Config.skipButtonEnabled;

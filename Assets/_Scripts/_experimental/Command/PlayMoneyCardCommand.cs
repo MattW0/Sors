@@ -19,7 +19,7 @@ public class PlayMoneyCardCommand : IPlayerCommand
     {
         buffer.Add(card);
         player.LocalCash += card.cardInfo.moneyValue;
-        card.SetInteractable(false);
+        card.IsInteractable = false;
     }
 
     public void ExecuteWith(CardMover mover)
@@ -33,7 +33,7 @@ public class PlayMoneyCardCommand : IPlayerCommand
         if (!buffer.Contains(card)) return;
 
         player.LocalCash -= card.cardInfo.moneyValue;
-        card.SetInteractable(true);
+        card.SetInteractable(true, UIManager.ColorPalette.defaultHighlight);
         buffer.Remove(card);
     }
 

@@ -26,7 +26,7 @@ public class DevelopState : CardInteractionState
     public override void HandleConfirm(InteractionPanel ctx) => ctx.ConfirmCashSpending(false);
     public override void HandleReset(InteractionPanel ctx) => ctx.UndoMoneyPlay();
     public override void HandleSkip(InteractionPanel ctx) => ctx.SkipInteraction();
-    public override void MakeCardsInteractable() => MakeMoneyCardsInteractable(Config.turnState);
+    public override void MakeCardsInteractable() => MakeMoneyCardsInteractable();
 
     ~DevelopState() 
     {

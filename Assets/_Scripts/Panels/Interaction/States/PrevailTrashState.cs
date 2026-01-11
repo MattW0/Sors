@@ -13,5 +13,5 @@ public class PrevailTrashState : CardInteractionState
     public override void HandleConfirm(InteractionPanel ctx) => ctx.ConfirmCardSelection();
     public override void HandleReset(InteractionPanel ctx) {}
     public override void HandleSkip(InteractionPanel ctx) => ctx.SkipInteraction();
-    public override void MakeCardsInteractable() => MakeAllCardsInteractable();
+    public override void MakeCardsInteractable() => MakeAllCardsInteractable(UIManager.ColorPalette.interactionNegativeHighlight);
 }

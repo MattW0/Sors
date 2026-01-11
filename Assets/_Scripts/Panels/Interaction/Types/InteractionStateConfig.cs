@@ -8,21 +8,11 @@ public class InteractionStateConfig : ScriptableObject
     [Header("Display Settings")]
     public TurnState turnState;
     public CardLocation interactionPile = CardLocation.Hand;
-    public InteractionType interactionType;
     public CardType cardType;
-    public bool isUpTo;
     
     [Header("Button Configuration")]
-    public bool confirmButtonEnabled;
+    public bool isUpTo;
     public bool skipButtonVisible = true;
     public bool skipButtonEnabled = true;
     public bool resetButtonVisible = false;
-} 
-
-public enum InteractionType {
-    Select,
-    Buy,
-    Play,
-    Combat,
-    PhaseSelection
 }

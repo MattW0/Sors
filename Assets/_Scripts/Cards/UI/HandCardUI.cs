@@ -13,39 +13,11 @@ public class HandCardUI : CardUI
         _back.SetActive(false);
     }
 
-    public void Highlight(bool value, TurnState state)
+    public void SetHighlight(Color color)
     {
-        if (!value || state == TurnState.None) {
-            highlight.enabled = false;
-            return;
-        }
-
-        var color = state switch
-        {
-            // TurnState.Develop or TurnState.Deploy => ColorPalette.interactionPositiveHighlight,
-            TurnState.Trash or TurnState.Discard => UIManager.ColorPalette.interactionNegativeHighlight,
-            TurnState.CardSelection => UIManager.ColorPalette.interactionPositiveHighlight,
-            _ => UIManager.ColorPalette.defaultHighlight
-        };
-
+        highlight.enabled = true;
         highlight.color = color;
-        highlight.enabled = true;
     }
 
-    public void Highlight(HighlightType type)
-    {
-        if (type == HighlightType.None)
-        {
-            highlight.enabled = false;
-            return;
-        }
-
-        highlight.color = type switch
-        {
-            HighlightType.Playable => UIManager.ColorPalette.interactionPositiveHighlight,
-            HighlightType.Selected => UIManager.ColorPalette.defaultHighlight,
-            _ => UIManager.ColorPalette.defaultHighlight
-        };
-        highlight.enabled = true;
-    }
+    public void DisableHighlight() => highlight.enabled = false;
 }

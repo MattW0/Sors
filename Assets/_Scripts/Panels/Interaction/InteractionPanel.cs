@@ -72,7 +72,7 @@ public class InteractionPanel : NetworkBehaviour
         var skip = state.CheckAutoskip();
         
         // Always start interaction UI so players know what's happening
-        _interactionUI.StartInteraction(_currentState, skip, numberSelections);
+        _interactionUI.StartInteraction(_currentState, skip);
         if(skip) return;
 
         _currentState.StartState();
@@ -164,7 +164,7 @@ public class InteractionPanel : NetworkBehaviour
         LocalPlayer.ConfirmPayment(_selectionHandler.cardSelection, isBuy);
     }
 
-    public void UndoMoneyPlay() => _selectionHandler.UndoMoneyPlay(CurrentConfig.interactionType);
+    public void UndoMoneyPlay() => _selectionHandler.UndoMoneyPlay();
     public void ResetCombatArrows() => CmdResetArrows(LocalPlayer);
     public void ConfirmCombatSelection()
     {
