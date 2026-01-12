@@ -340,7 +340,7 @@ public class TurnManager : NetworkBehaviour
             player.Cards.RemoveHandCards(new List<CardStats> { card }, CardLocation.PlayZone);
 
             entities.Add(card.gameObject, _gameManager.SpawnFieldEntity(player, card.cardInfo));
-            PlayerPlaysCard(player, card.cardInfo);
+            _logger.RpcLog(player.ID, card.cardInfo.title, card.cardInfo.cost, LogType.Play);
 
             player.Cards.DiscardMoneyCards(player.ID);
         }
@@ -351,11 +351,6 @@ public class TurnManager : NetworkBehaviour
         // TODO: Transform this to make one at a time enter? Would be clearer for players
         // and make ETB triggers clearer. Compare to PlayerGainsCard.
         else AsyncPlayEntities(entities).ContinueWith(CheckPlayAnotherCard).Forget();
-    }
-
-    private void PlayerPlaysCard(PlayerManager player, CardInfo cardInfo) 
-    {
-        _logger.RpcLog(player.ID, cardInfo.title, cardInfo.cost, LogType.Play);
     }
 
     private void CheckPlayAnotherCard()

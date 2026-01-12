@@ -52,12 +52,12 @@ public abstract class CardInteractionState : InteractionStateBase
     // Only used for play interactions : develop, deploy
     protected virtual void CheckPlayability(int cash) 
     {
-        Debug.Log($"check playability {cash}, selectableCards {selectableCards}, for type {Config.cardType}");
         // Since both states develop and deploy use this logic, for one of them selectableCards is null
         // Although valid only for develop and deploy, we have this here because CardInteractionState
         // tracks the selectableCards (and we can avoid that in InteractionPanel)
         if(selectableCards == null) return;
         
+        // Debug.Log($"check playability {cash}, selectableCards {selectableCards}, for type {Config.cardType}");
         foreach (var card in selectableCards) {
             if (card.cardInfo.type != Config.cardType) continue;
 
@@ -73,5 +73,8 @@ public abstract class CardInteractionState : InteractionStateBase
         selectableCards.ForEach(c => c.SetInteractable(c.cardInfo.type == CardType.Money, UIManager.ColorPalette.defaultHighlight));
     }
     
-    public override void EndState() => InteractionPile.EndInteraction();
+    public override void EndState(){
+        InteractionPile.EndInteraction();
+        selectableCards = null;
+    }
 }

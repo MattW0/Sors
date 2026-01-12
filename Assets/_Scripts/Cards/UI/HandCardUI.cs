@@ -15,6 +15,7 @@ public class HandCardUI : CardUI
 
     public void SetHighlight(Color color)
     {
+        print("Set highlight");
         highlight.enabled = true;
         highlight.color = color;
     }
