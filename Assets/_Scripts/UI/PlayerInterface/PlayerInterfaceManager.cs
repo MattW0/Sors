@@ -25,7 +25,7 @@ public class PlayerInterfaceManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcPrepare(PlayerManager[] players, int numberPhasesToChoose)
+    public void RpcPrepare(List<PlayerIdName> players, int numberPhasesToChoose)
     {
         _actionDescription.NumberPhases = numberPhasesToChoose;
         _player = PlayerManager.GetLocalPlayer();
@@ -33,8 +33,8 @@ public class PlayerInterfaceManager : NetworkBehaviour
         var colorPalette = UIManager.ColorPalette;
         foreach (var p in players)
         {
-            if(p.ID == _player.ID) _messageOrigin.Add(p.ID, p.PlayerName.AddColor(colorPalette.player));
-            else _messageOrigin.Add(p.ID, p.PlayerName.AddColor(colorPalette.opponent));
+            var color = p.id == _player.ID ? colorPalette.player : colorPalette.opponent;
+            _messageOrigin.Add(p.id, p.name.AddColor(color));
         }
 
         // Single-player (Count < 3 because 'Game' is another origin)
@@ -90,5 +90,18 @@ public class PlayerInterfaceManager : NetworkBehaviour
     private void OnDestroy()
     {
         TurnManager.OnTurnStateChanged -= RpcChangeActionDescriptionText;
+    }
+}
+
+[Serializable]
+public struct PlayerIdName
+{
+    public int id;
+    public string name;
+
+    public PlayerIdName(int id, string name)
+    {
+        this.id = id;
+        this.name = name;
     }
 }

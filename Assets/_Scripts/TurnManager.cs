@@ -5,6 +5,7 @@ using UnityEngine;
 using Mirror;
 using Cysharp.Threading.Tasks;
 
+[RequireComponent(typeof(CombatManager))]
 public class TurnManager : NetworkBehaviour
 {
     public static TurnManager Instance { get; private set; }
@@ -44,9 +45,6 @@ public class TurnManager : NetworkBehaviour
         if (Instance == null) Instance = this;
 
         GameManager.OnGameStart += Prepare;
-        // PlayerManager.OnCashChanged += PlayerCashChanged;
-
-        // Effects
         PriceReduction.OnMarketPriceReduction += PlayerGetsMarketBonus;
         Curse.OnPlayerGainsCurses += PlayerGainsCurses;
 
@@ -71,7 +69,11 @@ public class TurnManager : NetworkBehaviour
         _interactionPanel = InteractionPanel.Instance;
         _market = Market.Instance;
 
-        _logger.RpcPrepare(_gameManager.players.Values.ToArray(), gameOptions.NumberPhases);
+        List<PlayerIdName> players = _gameManager.players.Values
+            .Select(p => new PlayerIdName(p.ID, p.PlayerName))
+            .ToList();
+        _logger.RpcPrepare(players, gameOptions.NumberPhases);
+
         _interactionPanel.RpcPrepareInteractionPanel();
         _phasePanel.RpcPreparePhasePanel(gameOptions.NumberPhases);
 
@@ -509,6 +511,7 @@ public class TurnManager : NetworkBehaviour
         foreach (var player in _gameManager.players.Values) {
             player.TurnContext.PhaseChoices.Clear();
             player.Cards.DrawCards(_gameOptions.cardDraw);
+            _logger.RpcLog(player.ID, _gameOptions.cardDraw);
         }
 
         await UniTask.Delay(SorsTimings.wait);

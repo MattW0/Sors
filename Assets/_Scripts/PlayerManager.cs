@@ -5,6 +5,7 @@ using Mirror;
 using Mirror.Examples.Basic;
 using TMPro;
 
+[RequireComponent(typeof(BattleZoneEntity))]
 public class PlayerManager : NetworkBehaviour
 {
     public bool isAI;

@@ -16,7 +16,6 @@ public class Logger : MonoBehaviour
     {
         if(!printLine) return;
         printLine = false;
-
         Log($"This is a test message", "Origin", lineType);
     }
 

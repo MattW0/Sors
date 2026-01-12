@@ -5,6 +5,8 @@ using System.Linq;
 using UnityEngine;
 using Mirror;
 using CardDecoder;
+using Cysharp.Threading.Tasks;
+using System.Threading.Tasks;
 
 [RequireComponent(typeof(NetworkObjectSpawner))]
 public class GameManager : NetworkBehaviour {
@@ -53,11 +55,18 @@ public class GameManager : NetworkBehaviour {
             // Normal game setup
             _market.InitializeMarket();
             foreach (var player in players.Values) SpawnPlayerDeck(player);
-            OnGameStart?.Invoke(_gameOptions);
+
+            StartFreshGame().Forget();
         } else {
             // Start game from state file
             gameObject.GetComponent<GameStateLoader>().LoadGameState(options.StateFile);
         }
+    }
+
+    private async UniTaskVoid StartFreshGame()
+    {
+        await UniTask.Delay(SorsTimings.waitShort);
+        OnGameStart?.Invoke(_gameOptions);
     }
 
     private void InitPlayers()
