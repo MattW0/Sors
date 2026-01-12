@@ -442,7 +442,7 @@ public class TurnManager : NetworkBehaviour
         }
 
         _interactionPanel.RpcFinishState();
-        NextPrevailOption();
+        FinishPrevailOption(SorsTimings.wait).Forget();
     }
 
     private void FinishPrevailTrash()
@@ -463,6 +463,7 @@ public class TurnManager : NetworkBehaviour
         }
 
         _interactionPanel.RpcFinishState();
+
         NextPrevailOption();
     }
 
@@ -536,6 +537,12 @@ public class TurnManager : NetworkBehaviour
     {
         await UniTask.Delay(SorsTimings.waitLong);
         UpdateTurnState(TurnState.NextPhase);
+    }
+
+    private async UniTaskVoid FinishPrevailOption(int delayMiliseconds)
+    {
+        await UniTask.Delay(delayMiliseconds);
+        NextPrevailOption();
     }
 
     private async UniTaskVoid PrevailCleanUp()
