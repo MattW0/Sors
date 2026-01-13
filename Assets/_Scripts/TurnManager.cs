@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using Mirror;
 using Cysharp.Threading.Tasks;
+using CardDecoder;
 
 [RequireComponent(typeof(CombatManager))]
 public class TurnManager : NetworkBehaviour
@@ -245,13 +246,15 @@ public class TurnManager : NetworkBehaviour
 
     private void PlayerGainsCurses(PlayerManager player, int amount)
     {
-        // TODO: In singleplayer, player is null
-        for(int i=0; i<amount; i++)
-        {
-            _gameManager.PlayerGainCurse(player);
-            _logger.RpcLog(player.ID, "gains a curse");
-        }
+        var logMsg = $"gains {amount} curse";
+        if (amount > 1) logMsg += "s";
+        _logger.RpcLog(player.ID, logMsg);
 
+        List<GameObject> curses = new();
+        for(int i=0; i<amount; i++)
+            curses.Add(_gameManager.PlayerGainCurse(player));
+
+        player.Cards.RpcShowSpawnedCards(curses, CardLocation.Discard, false);
         AsyncAwaitQueue(SorsTimings.showSpawnedCard + SorsTimings.waitShort).Forget();
     }
 

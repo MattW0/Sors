@@ -127,7 +127,7 @@ public class GameManager : NetworkBehaviour {
         player.Cards.RpcShowSpawnedCard(card, destination);
     }
     public GameObject SpawnCard(PlayerManager player, ScriptableCard card, CardLocation destination) => _cardSpawner.SpawnCard(player, card);
-    public void PlayerGainCurse(PlayerManager player) => _cardSpawner.PlayerGainCurse(player);
+    public GameObject PlayerGainCurse(PlayerManager player) => _cardSpawner.PlayerGainCurse(player);
     public BattleZoneEntity SpawnFieldEntity(PlayerManager owner, CardInfo cardInfo) => _cardSpawner.SpawnFieldEntity(owner, cardInfo);
 
     #endregion
