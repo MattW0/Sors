@@ -22,7 +22,6 @@ public class GameManager : NetworkBehaviour {
     [Header("Game state")]
     public int turnNumber;
     public Dictionary<NetworkIdentity, PlayerManager> players = new();
-    private List<PlayerManager> _loosingPlayers = new();
     private List<PlayerManager> _winningPlayers = new();
     
     private void Awake()
@@ -134,53 +133,30 @@ public class GameManager : NetworkBehaviour {
     #endregion
 
     #region Ending
-    internal void PlayerIsDead(PlayerManager player){
-        if(_loosingPlayers.Contains(player)) return;
-        _loosingPlayers.Add(player);
-    }
-    internal void PlayerHasWinScore(PlayerManager player) {
-        if(_winningPlayers.Contains(player)) return;
-        _winningPlayers.Add(player);
-    }
+    internal void AddWinner(PlayerManager player) => _winningPlayers.Add(player);
+
     internal void EndGame()
     {
-        // TODO: Define and implement properly
-
         foreach (var player in players.Values){
-            _uiManager.RpcSetPlayerScore(player, player.Health, player.Score);
+            _uiManager.RpcSetFinalScore(player, player.Health, player.Score);
         }
 
         PlayerManager winner = null;
-        if (_winningPlayers.Count == 0 && _loosingPlayers.Count == 0) {} // Should never happen
-        else if(_winningPlayers.Count == 1 && _loosingPlayers.Count == 0){
+        if(_winningPlayers.Count == 1)
             winner = _winningPlayers[0];
-        } else if (_winningPlayers.Count == 0 && _loosingPlayers.Count == 1){
-            winner = _turnManager.GetOpponentPlayer(_loosingPlayers[0]);
-        } else if (_winningPlayers.Count == 1 && _loosingPlayers.Count == 1){
-            if (_winningPlayers[0] != _loosingPlayers[0]) winner = _winningPlayers[0];
-            // else _endScreen.RpcGameIsDraw();
-        } else if (_winningPlayers.Count == 2 && _loosingPlayers.Count == 0){
-            if (_winningPlayers[0].Score > _winningPlayers[1].Score) winner = _winningPlayers[0];
-            else if (_winningPlayers[0].Score < _winningPlayers[1].Score) winner = _winningPlayers[1];
-            // else _endScreen.RpcGameIsDraw();
-        } else if (_winningPlayers.Count == 0 && _loosingPlayers.Count == 2){
-            if (_loosingPlayers[0].Health > _loosingPlayers[1].Health) winner =_loosingPlayers[0];
-            else if (_loosingPlayers[0].Health < _loosingPlayers[1].Health) winner = _loosingPlayers[1];
-            // else _endScreen.RpcGameIsDraw();
-        } else if (_winningPlayers.Count == 2 && _loosingPlayers.Count == 1){
-            if(_winningPlayers[0] == _loosingPlayers[0]) winner = _winningPlayers[1];
-            else winner = _winningPlayers[0];
-        } else if (_winningPlayers.Count == 1 && _loosingPlayers.Count == 2){
-            if(_winningPlayers[0] == _loosingPlayers[0]) winner = _loosingPlayers[0];
-            else winner = _winningPlayers[1];
-        } else {
-            if (_winningPlayers[0].Score > _winningPlayers[1].Score) winner = _winningPlayers[0];
-            else if (_winningPlayers[0].Score < _winningPlayers[1].Score) winner = _winningPlayers[1];
-            else if (_loosingPlayers[0].Health > _loosingPlayers[1].Health) winner =_loosingPlayers[0];
-            else if (_loosingPlayers[0].Health < _loosingPlayers[1].Health) winner = _loosingPlayers[1];
+        else if (_winningPlayers.Count == 2){
+            var a = _winningPlayers[0];
+            var b = _winningPlayers[1];
+
+            winner =
+                a.Score != b.Score ? (a.Score > b.Score ? a : b) :
+                a.Health != b.Health ? (a.Health > b.Health ? a : b) :
+                null;
         }
 
-        if(winner) _uiManager.RpcSetGameWinner(winner);
+        print($"Winner out of {_winningPlayers.Count()} is " + winner.PlayerName);
+
+        if(winner != null) _uiManager.RpcSetGameWinner(winner);
         else _uiManager.RpcSetDraw();
     }
 

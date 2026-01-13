@@ -466,6 +466,8 @@ public class TurnManager : NetworkBehaviour
 
     private void PrevailScoring(bool deducePoints = false)
     {
+        if(deducePoints && GameEnds()) return;
+
         foreach (var player in _gameManager.players.Values)
         {
             var nbPicks = player.TurnContext.PrevailOptions.Count(option => option == PrevailOption.Score);
@@ -572,11 +574,7 @@ public class TurnManager : NetworkBehaviour
     private void UpdateTurnState(TurnState newState)
     {
         turnState = newState;
-
-        if(GameEnds()){
-            _gameManager.EndGame();
-            newState = TurnState.Idle;
-        }
+        if(GameEnds()) return;
 
         _readyPlayers.Clear();
         _skippedPlayers.Clear();
@@ -726,9 +724,14 @@ public class TurnManager : NetworkBehaviour
         foreach (var player in _gameManager.players.Values)
         {
             if (player.Health > 0 && player.Score < _gameOptions.winScore) continue;
-            if (player.Health <= 0) _gameManager.PlayerIsDead(player);
-            if (player.Score >= _gameOptions.winScore) _gameManager.PlayerHasWinScore(player);
+            if (player.Health <= 0) _gameManager.AddWinner(GetOpponentPlayer(player));
+            if (player.Score >= _gameOptions.winScore) _gameManager.AddWinner(player);
             gameEnds = true;
+        }
+
+        if (gameEnds) {
+            _gameManager.EndGame();
+            turnState = TurnState.Idle;
         }
 
         return gameEnds;

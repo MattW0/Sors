@@ -63,7 +63,7 @@ public class UIManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcSetPlayerScore(PlayerManager player, int health, int score) => _endScreen.SetPlayerScore(player, health, score);
+    public void RpcSetFinalScore(PlayerManager player, int health, int score) => _endScreen.SetPlayerScore(player, health, score);
 
     [ClientRpc]
     public void RpcSetGameWinner(PlayerManager player) => _endScreen.SetGameWinner(player);
