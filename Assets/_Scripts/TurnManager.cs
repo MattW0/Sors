@@ -596,7 +596,6 @@ public class TurnManager : NetworkBehaviour
     public void PlayerIsReady(PlayerManager player)
     {
         if (!_readyPlayers.Contains(player.ID)) _readyPlayers.Add(player.ID);
-        // OnPlayerIsReady?.Invoke(player.ID, turnState);
         print($"    - {player.PlayerName} ready ({_readyPlayers.Count} / {_nbPlayers})");
 
         // All players are ready

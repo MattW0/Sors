@@ -124,9 +124,8 @@ public class ArrowManager : NetworkBehaviour
         var arrowRenderer = Instantiate(prefab, parentTransform, true).GetComponent<ArrowController>();
         arrowRenderer.SetOrigin(origin.position);
         
-        _combatArrows.Add(id, arrowRenderer);
-        if(_floatingArrows.ContainsKey(id)) _floatingArrows[id] = arrowRenderer;
-        else _floatingArrows.Add(id, arrowRenderer);
+        _combatArrows.SafeAdd(id, arrowRenderer);
+        _floatingArrows.SafeAdd(id, arrowRenderer);
     }
 
     private void HandleClickedOpponentEntity(BattleZoneEntity entity)

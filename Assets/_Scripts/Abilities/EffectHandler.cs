@@ -36,7 +36,7 @@ public class EffectHandler : MonoBehaviour
 
     internal async UniTask Execute(BattleZoneEntity source, Ability ability)
     {
-        print($" - {ability} (executing)");
+        print($" - Execute: {ability}");
         _source = source;
 
         // Evaluate target (some are obvious, some require player input)

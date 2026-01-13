@@ -117,11 +117,7 @@ public class NetworkObjectSpawner : NetworkBehaviour //, INetworkObjectSpawner
         cardStats.RpcSetCardStats(cardInfo);
 
         // Register card
-        var goID = cardInfo.goID;
-        if (!_cardLookup.ContainsKey(goID))
-            _cardLookup[goID] = cardStats;
-        else
-            Debug.LogWarning($"Card with goID {goID} already registered.");
+        _cardLookup.SafeAdd(cardInfo.goID, cardStats);
     }
 
     public CardStats GetCardById(int goID)

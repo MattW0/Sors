@@ -51,8 +51,8 @@ public class Logger : MonoBehaviour
     {
         if (type == LogType.CombatAttacker) Log($"{sourceTitle} attacks {targetTitle}", originator, LogType.CombatAttacker);
         else if (type == LogType.CombatBlocker) Log($"{sourceTitle} blocks {targetTitle}", originator, LogType.CombatBlocker);
-        else if (type == LogType.AbilityTarget) Log($"{sourceTitle} targets {targetTitle}", originator, LogType.CombatClash);
-        else if (type == LogType.AbilityExecution) Log($"Executing ability from {sourceTitle} with target {targetTitle}", originator, LogType.AbilityExecution);
+        // else if (type == LogType.AbilityTarget) Log($"{sourceTitle} targets {targetTitle}", originator, LogType.CombatClash);
+        else if (type == LogType.AbilityExecution) Log($"Ability: {sourceTitle} -> {targetTitle}", originator, LogType.AbilityExecution);
     }
 
     public void PlayerSpendsCash(string originator, string cardName, int cost, LogType type)
