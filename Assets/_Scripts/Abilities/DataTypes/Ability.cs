@@ -27,9 +27,4 @@ public struct Ability
         Ability other = (Ability)obj;
         return (this.trigger == other.trigger) && (this.effect == other.effect) && (this.target == other.target) && (this.amount == other.amount);
     }
-
-    public override int GetHashCode()
-    {
-        return base.GetHashCode();
-    }
 }

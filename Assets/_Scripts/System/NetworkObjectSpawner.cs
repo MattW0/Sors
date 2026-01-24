@@ -23,26 +23,18 @@ public class NetworkObjectSpawner : NetworkBehaviour //, INetworkObjectSpawner
 
     public GameObject PlayerGainCard(PlayerManager player, CardInfo cardInfo)
     {
-        // Load scriptable
-        var pathPrefix = cardInfo.type switch {
-            CardType.Money => "Cards/MoneyCards/",
-            CardType.Creature => "Cards/CreatureCards/",
-            CardType.Technology => "Cards/TechnologyCards/",
-            _ => ""
-        };
-
-        var scriptableCard = Resources.Load<ScriptableCard>(pathPrefix + cardInfo.resourceName);
-        return SpawnCard(player, scriptableCard);
-    }
-
-    public GameObject SpawnCard(PlayerManager player, ScriptableCard scriptableCard)
-    {
+        var scriptableCard = ScriptableCardFactory.Load(cardInfo.resourceName, cardInfo.type);
         if (scriptableCard == null) 
         {
             Debug.LogWarning("Trying to spawn card where scriptable is null: " + scriptableCard.name);
             return null;
         }
 
+        return SpawnCard(player, scriptableCard);
+    }
+
+    public GameObject SpawnCard(PlayerManager player, ScriptableCard scriptableCard)
+    {
         // print($"Spawning card {scriptableCard.title} for {player.PlayerName}");
 
         var cardObject = CreateCardObject(scriptableCard);
