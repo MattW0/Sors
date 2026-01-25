@@ -8,30 +8,15 @@ using UnityEngine;
 [ExecuteAlways]
 public class DropdownInput : CardInfoFieldView
 {
-    public enum DropdownField { Type, Trait }
+    public enum DropdownField { Type }
     [SerializeField] private DropdownField dropdownField;
     [SerializeField] private TMP_Dropdown _dropdown;
-
-    [Header("CardType Subset")]
-    [SerializeField] private List<CardType> cardTypeOptions = new() {
-        CardType.Creature,
-        CardType.Technology,
-        CardType.Money 
-    };
-
-    [Header("Trait Subset")]
-    [SerializeField] private List<Trait> traitOptions = new() {
-        Trait.Trample, 
-        Trait.Deathtouch,
-        Trait.Lifelink 
-    };
-
-    private List<Enum> _activeValues = new();
 
     private void Awake()
     {
         UpdateOptions();
         _dropdown.onValueChanged.AddListener(OnChanged);
+        _creator = GetComponentInParent<CardCreator>();
     }
 
     private void UpdateOptions()
@@ -40,19 +25,11 @@ public class DropdownInput : CardInfoFieldView
         if (_fieldName != null) _fieldName.text = dropdownField.ToString();
 
         _dropdown.ClearOptions();
-        _activeValues.Clear();
         
         switch (dropdownField)
         {
             case DropdownField.Type:
-            _activeValues.AddRange(cardTypeOptions.Cast<Enum>());
-            _dropdown.AddOptions(cardTypeOptions.Select(Nicify).ToList());
-            break;
-
-
-            case DropdownField.Trait:
-            _activeValues.AddRange(traitOptions.Cast<Enum>());
-            _dropdown.AddOptions(traitOptions.Select(Nicify).ToList());
+            _dropdown.AddOptions(Configuration.CardTypeOptions.Select(Nicify).ToList());
             break;
         }
     }
@@ -61,25 +38,15 @@ public class DropdownInput : CardInfoFieldView
     {
         if (_creator == null) return;
 
-        var value = _activeValues[index];
+        var value = Configuration.CardTypeOptions[index];
         switch (dropdownField)
         {
             case DropdownField.Type: 
-                _creator.SetCardType((CardType)value);
+                _creator.SetCardType(value);
                 if (_descriptionText != null) _descriptionText.text = string.Empty;
-                break;
-            case DropdownField.Trait: 
-                var trait = (Trait)value;
-                _creator.card.traits = new List<Trait> { trait };
-                if (_descriptionText != null) _descriptionText.text = trait.GetDescription();
                 break;
         }
         _creator.NotifyChanged();
-    }
-
-    private static string Nicify<T>(T value) where T : Enum
-    {
-        return ObjectNames.NicifyVariableName(value.ToString());
     }
 
     private void OnDestroy()
@@ -87,4 +54,9 @@ public class DropdownInput : CardInfoFieldView
         if (_dropdown != null) _dropdown.onValueChanged.RemoveListener(OnChanged);
     }
     private void OnValidate() => UpdateOptions();
+
+    private static string Nicify<T>(T value) where T : Enum
+    {
+        return ObjectNames.NicifyVariableName(value.ToString());
+    }
 }
