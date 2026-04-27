@@ -10,11 +10,11 @@ public class TraitItem : MonoBehaviour
 {
     [SerializeField] private TMP_Dropdown _dropdown;
     [SerializeField] private Button _deleteButton;
-    private CardCreator _creator;
+    private CardSpecials _creator;
     private List<Trait> _options;
     public Trait SelectedTrait => _options[_dropdown.value];
 
-    public void Initialize(CardCreator creator, List<Trait> remainingOptions)
+    public void Initialize(CardSpecials creator, List<Trait> remainingOptions)
     {
         _creator = creator;
         _options = remainingOptions;
@@ -25,7 +25,7 @@ public class TraitItem : MonoBehaviour
         _dropdown.onValueChanged.AddListener(_ => OnChanged());
         _deleteButton.onClick.AddListener(OnDelete);
     }
-    private void OnChanged() => _creator.OnTraitChanged();
+    private void OnChanged() => _creator.SyncTraits();
     private void OnDelete()
     {
         _creator.RemoveTrait(this);

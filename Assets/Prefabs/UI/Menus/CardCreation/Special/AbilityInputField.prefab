@@ -18,16 +18,16 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1631697380865646584, guid: c51995db91b1dfc47ac3227e90634afc, type: 3}
       propertyPath: m_Name
-      value: TraitInputField
+      value: AbilityInputField
       objectReference: {fileID: 0}
     - target: {fileID: 2420274535744077023, guid: c51995db91b1dfc47ac3227e90634afc, type: 3}
       propertyPath: fieldId
-      value: traits
+      value: ability
       objectReference: {fileID: 0}
     - target: {fileID: 2420274535744077023, guid: c51995db91b1dfc47ac3227e90634afc, type: 3}
       propertyPath: _fieldName
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1102799799737079795}
     - target: {fileID: 2420274535744077023, guid: c51995db91b1dfc47ac3227e90634afc, type: 3}
       propertyPath: dropdownField
       value: 1
@@ -35,6 +35,10 @@ PrefabInstance:
     - target: {fileID: 2697963879000457469, guid: c51995db91b1dfc47ac3227e90634afc, type: 3}
       propertyPath: m_text
       value: Trait
+      objectReference: {fileID: 0}
+    - target: {fileID: 4750420864199970793, guid: c51995db91b1dfc47ac3227e90634afc, type: 3}
+      propertyPath: m_Options.m_Options.Array.size
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4750420864199970793, guid: c51995db91b1dfc47ac3227e90634afc, type: 3}
       propertyPath: m_Options.m_Options.Array.data[0].m_Text
@@ -51,6 +55,10 @@ PrefabInstance:
     - target: {fileID: 4873430133243976238, guid: c51995db91b1dfc47ac3227e90634afc, type: 3}
       propertyPath: m_SizeDelta.x
       value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 5425515761542858257, guid: c51995db91b1dfc47ac3227e90634afc, type: 3}
+      propertyPath: m_text
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6150425674218565585, guid: c51995db91b1dfc47ac3227e90634afc, type: 3}
       propertyPath: m_Pivot.x
@@ -134,11 +142,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8199756489183316842, guid: c51995db91b1dfc47ac3227e90634afc, type: 3}
       propertyPath: m_text
-      value: Trample
+      value: 
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 2420274535744077023, guid: c51995db91b1dfc47ac3227e90634afc, type: 3}
     m_RemovedGameObjects:
     - {fileID: 7726387448511856334, guid: c51995db91b1dfc47ac3227e90634afc, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c51995db91b1dfc47ac3227e90634afc, type: 3}
+--- !u!114 &1102799799737079795 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5425515761542858257, guid: c51995db91b1dfc47ac3227e90634afc, type: 3}
+  m_PrefabInstance: {fileID: 4901784764873757154}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

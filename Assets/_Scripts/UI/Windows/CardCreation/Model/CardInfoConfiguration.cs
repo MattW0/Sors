@@ -24,6 +24,7 @@ public struct Configuration
                 CardFieldId.Cost,
                 CardFieldId.Health,
                 CardFieldId.Attack,
+                CardFieldId.Abilities,
                 CardFieldId.Traits,
                 CardFieldId.Description,
                 CardFieldId.FlavourText
@@ -36,7 +37,9 @@ public struct Configuration
                 CardFieldId.Cost,
                 CardFieldId.Health,
                 CardFieldId.Points,
-                CardFieldId.Description
+                CardFieldId.Abilities,
+                CardFieldId.Description,
+                CardFieldId.FlavourText
                 }
         },
         {
