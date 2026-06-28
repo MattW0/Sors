@@ -25,6 +25,10 @@ public struct Ability
             return false;
 
         Ability other = (Ability)obj;
-        return (this.trigger == other.trigger) && (this.effect == other.effect) && (this.target == other.target) && (this.amount == other.amount);
+        
+        return (trigger == other.trigger) 
+            && (effect == other.effect)
+            && (target == other.target)
+            && (amount == other.amount);
     }
 }

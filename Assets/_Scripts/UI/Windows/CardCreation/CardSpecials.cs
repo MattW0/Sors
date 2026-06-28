@@ -58,7 +58,7 @@ public class CardSpecials : MonoBehaviour
         _creator.card.abilities.Clear();
 
         foreach (var item in _abilityItems)
-            _creator.card.abilities.Add(item.ability);
+            _creator.card.abilities.Add(item.Ability);
 
         _creator.NotifyChanged();
     }
@@ -72,6 +72,6 @@ public class CardSpecials : MonoBehaviour
     public void RemoveAbility(AbilityItem item)
     {
         _abilityItems.Remove(item);
-        SyncTraits();
+        SyncAbilities();
     }
 }
