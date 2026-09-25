@@ -19,8 +19,11 @@ public class CardCreateWindow : ModalWindow
         _creator = GetComponent<CardCreator>();
         _createCard.onClick.AddListener(CreateCard);
         _cancel.onClick.AddListener(WindowOut);
+
+        _creator.CanCreateCardChanged += OnCanCreateCardChanged;
     }
 
+    private void OnCanCreateCardChanged(bool canCreate) => _createCard.interactable = canCreate;
     private void CreateCard()
     {
         var cardInfo = _creator.card;

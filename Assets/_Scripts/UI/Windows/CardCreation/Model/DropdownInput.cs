@@ -11,6 +11,7 @@ public class DropdownInput : CardInfoFieldView
     public enum DropdownField { Type }
     [SerializeField] private DropdownField dropdownField;
     [SerializeField] private TMP_Dropdown _dropdown;
+    public override bool IsCommitable => true;
 
     private void Awake()
     {

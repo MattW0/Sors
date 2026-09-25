@@ -52,4 +52,33 @@ public struct Configuration
             }
         }
     };
+
+    public static readonly Dictionary<CardType, HashSet<string>> RequiredFields = new() {
+        {
+            CardType.Creature, new() {
+                CardFieldId.Type,
+                CardFieldId.Title,
+                CardFieldId.Cost,
+                CardFieldId.Health,
+                CardFieldId.Attack
+            }
+        },
+        {
+            CardType.Technology, new() {
+                CardFieldId.Type,
+                CardFieldId.Title,
+                CardFieldId.Cost,
+                CardFieldId.Health,
+                CardFieldId.Points
+                }
+        },
+        {
+            CardType.Money, new(){
+                CardFieldId.Type,
+                CardFieldId.Title,
+                CardFieldId.Cost,
+                CardFieldId.MoneyValue
+            }
+        }
+    };
 }

@@ -7,6 +7,7 @@ public class TextInput : CardInfoFieldView
     public enum TextField { Title, FlavourText, Description }
     [SerializeField] private TextField textField;
     [SerializeField] private TMP_InputField _input;
+    public override bool IsCommitable => !string.IsNullOrWhiteSpace(_input.text);
 
     private void Awake()
     {

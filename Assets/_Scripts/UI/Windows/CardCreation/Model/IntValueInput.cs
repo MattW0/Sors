@@ -7,6 +7,7 @@ public class IntValueInput : CardInfoFieldView
     public enum IntField { Cost, Attack, Health, Points, MoneyValue }
     [SerializeField] private IntField numberField;
     [SerializeField] private TMP_InputField _input;
+    public override bool IsCommitable => !string.IsNullOrWhiteSpace(_input.text);
 
     private void Awake()
     {
