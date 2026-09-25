@@ -7,7 +7,7 @@ using UnityEngine.UI;
 public class CardSpeicalInput : CardInfoFieldView
 {
     public enum SpecialField { Trait, Ability }
-    public override bool IsCommitable => true;   
+    public override bool IsCommitable => true;
 
     private void Awake()
     {

@@ -54,7 +54,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _triggerDropdown: {fileID: 3859728374005612139}
   _effectDropdown: {fileID: 8971799213392493161}
-  _amountInput: {fileID: 0}
+  _amountInput: {fileID: 7263040666115045609}
   _targetDropdown: {fileID: 6798668714394636807}
   _deleteButton: {fileID: 3554021116678287158}
 --- !u!222 &5677185977256710770
@@ -177,7 +177,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1250893306242907699, guid: c9a7836c9094daa4db2ed04d7b49f6f7, type: 3}
       propertyPath: m_SizeDelta.x
-      value: -4
+      value: -44
       objectReference: {fileID: 0}
     - target: {fileID: 1250893306242907699, guid: c9a7836c9094daa4db2ed04d7b49f6f7, type: 3}
       propertyPath: m_SizeDelta.y
@@ -213,7 +213,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1250893306242907699, guid: c9a7836c9094daa4db2ed04d7b49f6f7, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -2
+      value: -22
       objectReference: {fileID: 0}
     - target: {fileID: 1250893306242907699, guid: c9a7836c9094daa4db2ed04d7b49f6f7, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -377,6 +377,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7b743370ac3e4ec2a1668f5455a8ef8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &7263040666115045609 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6102731942105438345, guid: c9a7836c9094daa4db2ed04d7b49f6f7, type: 3}
+  m_PrefabInstance: {fileID: 3493319273997082720}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2da0c512f12947e489f739169773d7ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &8971799213392493161 stripped
@@ -697,6 +708,34 @@ PrefabInstance:
     - target: {fileID: 114821807817164798, guid: e667a8f81bf8ebb4e8e15073ee7d697d, type: 3}
       propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
       value: 1801810542
+      objectReference: {fileID: 0}
+    - target: {fileID: 114835938403400192, guid: e667a8f81bf8ebb4e8e15073ee7d697d, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114835938403400192, guid: e667a8f81bf8ebb4e8e15073ee7d697d, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114835938403400192, guid: e667a8f81bf8ebb4e8e15073ee7d697d, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1176129428030957642}
+    - target: {fileID: 114835938403400192, guid: e667a8f81bf8ebb4e8e15073ee7d697d, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114835938403400192, guid: e667a8f81bf8ebb4e8e15073ee7d697d, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OnDelete
+      objectReference: {fileID: 0}
+    - target: {fileID: 114835938403400192, guid: e667a8f81bf8ebb4e8e15073ee7d697d, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: AbilityItem, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 114835938403400192, guid: e667a8f81bf8ebb4e8e15073ee7d697d, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 114838812361332552, guid: e667a8f81bf8ebb4e8e15073ee7d697d, type: 3}
       propertyPath: colorType

@@ -13,6 +13,7 @@ public class AbilityItem : MonoBehaviour
     public Ability Ability {
         get => _ability;
     }
+    public bool IsCommitable => _ability.IsCommitable;
 
     [SerializeField] private TMP_Dropdown _triggerDropdown;
     [SerializeField] private TMP_Dropdown _effectDropdown;
@@ -20,53 +21,55 @@ public class AbilityItem : MonoBehaviour
     [SerializeField] private TMP_Dropdown _targetDropdown;
     [SerializeField] private Button _deleteButton;
     private CardSpecials _creator;
-    private Dictionary<TMP_Dropdown, IEnumerable<Enum>> _inputs;
+    private List<Trigger> _triggers;
+    private List<Effect> _effects;
+    private List<Target> _targets;
 
     public void Initialize(CardSpecials creator)
     {
         _creator = creator;
 
-        _triggerDropdown.AddOptions(Enum.GetValues(typeof(Trigger)).Cast<Trigger>().Select(Nicify).ToList());
-        _triggerDropdown.onValueChanged.AddListener(_ => OnTriggerChanged());
+        _triggers = Enum.GetValues(typeof(Trigger)).Cast<Trigger>().ToList();
+        _effects = Enum.GetValues(typeof(Effect)).Cast<Effect>().ToList();
+        _targets = Enum.GetValues(typeof(Target)).Cast<Target>().ToList();
 
-        _effectDropdown.AddOptions(Enum.GetValues(typeof(Effect)).Cast<Effect>().Select(Nicify).ToList());
-        _effectDropdown.onValueChanged.AddListener(_ => OnEffectChanged());
+        _triggerDropdown.AddOptions(_triggers.Select(Nicify).ToList());
+        _triggerDropdown.onValueChanged.AddListener(OnTriggerChanged);
 
-        _targetDropdown.AddOptions(Enum.GetValues(typeof(Target)).Cast<Target>().Select(Nicify).ToList());
-        _targetDropdown.onValueChanged.AddListener(_ => OnTargetChanged());
+        _effectDropdown.AddOptions(_effects.Select(Nicify).ToList());
+        _effectDropdown.onValueChanged.AddListener(OnEffectChanged);
+
+        _targetDropdown.AddOptions(_targets.Select(Nicify).ToList());
+        _targetDropdown.onValueChanged.AddListener(OnTargetChanged);
 
         _amountInput.onValueChanged.AddListener(OnValueChanged);
-        _deleteButton.onClick.AddListener(OnDelete);
     }
 
-    private void OnTriggerChanged()
+    private void OnTriggerChanged(int index)
     {
-        _ability.trigger = (Trigger) _triggerDropdown.value;
+        _ability.trigger = _triggers[index];
         _creator.SyncAbilities();
     }
 
-    private void OnEffectChanged()
+    private void OnEffectChanged(int index)
     {
-        _ability.effect = (Effect) _effectDropdown.value;
+        _ability.effect = _effects[index];
         _creator.SyncAbilities();
     }
 
-    private void OnTargetChanged()
+    private void OnTargetChanged(int index)
     {
-        _ability.target = (Target) _targetDropdown.value;
+        _ability.target = _targets[index];
         _creator.SyncAbilities();
     }
 
     private void OnValueChanged(string value)
     {
-        if (_amountInput != null) _amountInput.text = value;
-        if (!int.TryParse(value, out var v)) return;
-
-        _ability.amount = v;
+        if (int.TryParse(value, out var v))  _ability.amount = v;
         _creator.SyncAbilities();
     }
 
-    private void OnDelete()
+    public void OnDelete()
     {
         _creator.RemoveAbility(this);
         Destroy(gameObject);

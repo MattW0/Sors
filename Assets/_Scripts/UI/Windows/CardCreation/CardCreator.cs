@@ -7,7 +7,6 @@ using UnityEngine;
 public class CardCreator : MonoBehaviour
 {
     public CardInfo card = new();
-    public bool CanCreateCard { get; private set; }
     public event Action<bool> CanCreateCardChanged;
     [SerializeField] private DetailCardPreview _cardPreview;
     [SerializeField] private GameObject _options;
@@ -37,11 +36,11 @@ public class CardCreator : MonoBehaviour
         ApplyCardTypeRules();
         NotifyChanged();
     }
+
     public void NotifyChanged()
     {
         _cardPreview.ShowPreview(card, false);
-        CanCreateCard = HasRequiredFields();
-        CanCreateCardChanged?.Invoke(CanCreateCard);
+        CanCreateCardChanged?.Invoke(HasRequiredFields());
     }
 
     private bool HasRequiredFields()
@@ -58,7 +57,9 @@ public class CardCreator : MonoBehaviour
                 return false;
         }
 
-        return true;
+        Debug.Log($"Abilities valid: {_specials.AreAbilitiesValid}");
+
+        return _specials.AreAbilitiesValid;
     }
 
     private void ApplyCardTypeRules()

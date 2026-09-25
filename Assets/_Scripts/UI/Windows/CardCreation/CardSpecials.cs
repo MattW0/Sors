@@ -15,6 +15,7 @@ public class CardSpecials : MonoBehaviour
     private readonly List<AbilityItem> _abilityItems = new();
     private readonly List<TraitItem> _traitItems = new();
     private CardCreator _creator;
+    public bool AreAbilitiesValid => _abilityItems.All(x => x.IsCommitable);
 
     public void Configure(CardCreator creator)
     {
@@ -26,9 +27,10 @@ public class CardSpecials : MonoBehaviour
     private void AddAbility()
     {
         var item = Instantiate(_abilityItemPrefab, _abilitiesListParent).GetComponent<AbilityItem>();
-        item.Initialize(this);
 
+        item.Initialize(this);
         _abilityItems.Add(item);
+
         SyncAbilities();
     }
 

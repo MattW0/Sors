@@ -24,20 +24,20 @@ public class IntValueInput : CardInfoFieldView
         _fieldName.text = numberField.ToString();
     }
 
-    [ExecuteInEditMode]
     private void OnChanged(string value)
     {
         if (_descriptionText != null) _descriptionText.text = value;
-        if (!int.TryParse(value, out var v)) return;
         if (_creator == null) return;
 
-        switch (numberField)
-        {
-            case IntField.Cost: _creator.card.cost = v; break;
-            case IntField.Attack: _creator.card.attack = v; break;
-            case IntField.Health: _creator.card.health = v; break;
-            case IntField.Points: _creator.card.points = v; break;
-            case IntField.MoneyValue: _creator.card.moneyValue = v; break;
+        if (int.TryParse(value, out var v)) {
+            switch (numberField)
+            {
+                case IntField.Cost: _creator.card.cost = v; break;
+                case IntField.Attack: _creator.card.attack = v; break;
+                case IntField.Health: _creator.card.health = v; break;
+                case IntField.Points: _creator.card.points = v; break;
+                case IntField.MoneyValue: _creator.card.moneyValue = v; break;
+            }
         }
         _creator.NotifyChanged();
     }

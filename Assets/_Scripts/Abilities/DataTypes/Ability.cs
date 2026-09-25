@@ -7,6 +7,12 @@ public struct Ability
     public Target target;
     public string text;
 
+    public readonly bool IsCommitable =>
+        trigger != Trigger.None &&
+        effect != Effect.None &&
+        target != Target.None &&
+        !string.IsNullOrWhiteSpace(amount.ToString());
+
     public override string ToString()
     {
         if (amount == 0 && target == Target.None)
