@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Sirenix.OdinInspector;
 using TMPro;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Text.RegularExpressions;
 
 public class AbilityItem : MonoBehaviour
 {
@@ -77,6 +76,11 @@ public class AbilityItem : MonoBehaviour
 
     private static string Nicify<T>(T value) where T : Enum
     {
-        return ObjectNames.NicifyVariableName(value.ToString());
+        string name = value.ToString();
+
+        name = Regex.Replace(name, @"([A-Z]+)([A-Z][a-z])", "$1 $2");
+        name = Regex.Replace(name, @"([a-z0-9])([A-Z])", "$1 $2");
+
+        return name;
     }
 }
